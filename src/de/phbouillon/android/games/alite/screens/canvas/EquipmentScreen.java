@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -47,14 +47,14 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
-public class EquipmentScreen extends TradeScreen {	
+public class EquipmentScreen extends TradeScreen {
 	private static final String EQUIP_HINT = "(Tap again to equip)";
 	private int mountLaserPosition = -1;
 	private int selectionIndex = -1;
 	private static Pixmap [][] equipment;
 	private Equipment equippedEquipment = null;
 	private String pendingSelection = null;
-	
+
 	private static final String [] paths = {
 			"equipment_icons/fuel",
 			"equipment_icons/missiles",
@@ -71,14 +71,14 @@ public class EquipmentScreen extends TradeScreen {
 			"equipment_icons/mining_laser",
 			"equipment_icons/military_laser",
 			"equipment_icons/retro_rockets"};
-	
+
 	public EquipmentScreen(Game game) {
 		super(game, 15);
 		loopingAnimation = true;
 	}
-	
+
 	@Override
-	public void activate() {		
+	public void activate() {
 		createButtons();
 		if (pendingSelection != null) {
 			for (Button [] bs: tradeButton) {
@@ -125,7 +125,7 @@ public class EquipmentScreen extends TradeScreen {
 		alite.setScreen(es);
 		return true;
 	}
-		
+
 	@Override
 	protected void createButtons() {
 		SystemData currentSystem = ((Alite) game).getPlayer().getCurrentSystem();
@@ -148,9 +148,9 @@ public class EquipmentScreen extends TradeScreen {
 					return;
 				}
 			}
-		}		
+		}
 	}
-	
+
 	@Override
 	protected String getCost(int row, int column) {
 		Equipment equipment = ((Alite) game).getCobra().getEquipment(row * COLUMNS + column);
@@ -163,7 +163,7 @@ public class EquipmentScreen extends TradeScreen {
 		}
 		return equipmentPrice;
 	}
-	
+
 	@Override
 	public void present(float deltaTime) {
 		if (disposed) {
@@ -172,7 +172,7 @@ public class EquipmentScreen extends TradeScreen {
 		Graphics g = game.getGraphics();
 		g.clear(AliteColors.get().background());
 		displayTitle("Equip Ship");
-		
+
 		presentTradeGoods(deltaTime);
 	}
 
@@ -180,17 +180,17 @@ public class EquipmentScreen extends TradeScreen {
 		selection = null;
 		equippedEquipment = null;
 	}
-	
+
 	@Override
 	protected void presentSelection(int row, int column) {
 		Equipment equipment = ((Alite) game).getCobra().getEquipment(row * COLUMNS + column);
 		game.getGraphics().drawText(equipment.getName() + " " + EQUIP_HINT, X_OFFSET, 1050, AliteColors.get().message(), Assets.regularFont);
 	}
-	
+
 	void setLaserPosition(int laserPosition) {
 		this.mountLaserPosition = laserPosition;
 	}
-	
+
 	public Equipment getSelectedEquipment() {
 		if (selection == null) {
 			return null;
@@ -202,30 +202,30 @@ public class EquipmentScreen extends TradeScreen {
 				}
 				if (selection == tradeButton[x][y]) {
 					return ((Alite) game).getCobra().getEquipment(y * COLUMNS + x);
-				}				
+				}
 			}
 		}
 		return null;
 
 	}
-	
+
 	private int getNewLaserLocation(Laser laser, int row, int column) {
 		Player player = ((Alite) game).getPlayer();
-		PlayerCobra cobra = player.getCobra();		
+		PlayerCobra cobra = player.getCobra();
 		boolean front = cobra.getLaser(PlayerCobra.DIR_FRONT) != laser;
 		boolean right = cobra.getLaser(PlayerCobra.DIR_RIGHT) != laser;
 		boolean rear  = cobra.getLaser(PlayerCobra.DIR_REAR)  != laser;
 		boolean left  = cobra.getLaser(PlayerCobra.DIR_LEFT)  != laser;
 		int freeSlots = (front ? 1 : 0) + (right ? 1 : 0) + (rear ? 1 : 0) + (left ? 1 : 0);
-		
+
 		if (freeSlots == 0) {
 			return -1;
 		}
-		
+
 		newScreen = new LaserPositionSelectionScreen(this, game, front, right, rear, left, row, column);
     	return 0;
 	}
-	
+
     @Override
 	protected void performTrade(int row, int column) {
     	Equipment equipment = ((Alite) game).getCobra().getEquipment(row * COLUMNS + column);
@@ -240,13 +240,13 @@ public class EquipmentScreen extends TradeScreen {
 		int where = -1;
 		if (equipment instanceof Laser) {
 			if (mountLaserPosition == -1) {
-				int result = getNewLaserLocation((Laser) equipment, row, column); 
+				int result = getNewLaserLocation((Laser) equipment, row, column);
 				if (result == -1) {
 					setMessage("All lasers (of that type) already mounted.");
 					SoundManager.play(Assets.error);
 				}
 				return;
-			} else if (mountLaserPosition == -2) { 
+			} else if (mountLaserPosition == -2) {
 			    // Do nothing: User canceled.
 				mountLaserPosition = -1;
 				return;
@@ -277,9 +277,9 @@ public class EquipmentScreen extends TradeScreen {
 		if (cobra.isEquipmentInstalled(EquipmentStore.navalEnergyUnit) && equipment.equals(EquipmentStore.extraEnergyUnit)) {
 			setMessage("Only 1 " + equipment.getShortName() + " allowed.");
 			SoundManager.play(Assets.error);
-			return;			
+			return;
 		}
-		
+
 		if (equipment instanceof Laser) {
 			if (where != -1) {
 				player.setCash(player.getCash() - price);
@@ -296,7 +296,7 @@ public class EquipmentScreen extends TradeScreen {
 		} else {
 			if (equipment.getCost() == -1) {
 				// Fuel
-				price = player.getCurrentSystem().getFuelPrice();	
+				price = player.getCurrentSystem() == null ? 10 : player.getCurrentSystem().getFuelPrice();
 				int fuelToBuy = PlayerCobra.MAXIMUM_FUEL - cobra.getFuel();
 				int priceToPay = (fuelToBuy * price) / 10;
 				if (priceToPay > player.getCash()) {
@@ -353,20 +353,20 @@ public class EquipmentScreen extends TradeScreen {
 				((Alite) game).getFileUtils().autoSave((Alite) game);
 			} catch (IOException e) {
 				AliteLog.e("Auto saving failed", e.getMessage(), e);
-			}			
+			}
 		}
 	}
 
     public Equipment getEquippedEquipment() {
     	return equippedEquipment;
     }
-    
+
 	@Override
 	public void processTouch(TouchEvent touch) {
 		if (getMessage() != null) {
 			super.processTouch(touch);
 			return;
-		}		
+		}
 		boolean handled = false;
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			for (int y = 0; y < ROWS; y++) {
@@ -379,9 +379,9 @@ public class EquipmentScreen extends TradeScreen {
 							handled = true;
 							if (((Alite) game).getCurrentScreen() instanceof FlightScreen) {
 								SoundManager.play(Assets.error);
-								errorText = "Not Docked.";								
+								errorText = "Not Docked.";
 							} else {
-								performTrade(y, x);		
+								performTrade(y, x);
 								SoundManager.play(Assets.click);
 							}
 						} else {
@@ -398,7 +398,7 @@ public class EquipmentScreen extends TradeScreen {
 							}
 							startSelectionTime = System.nanoTime();
 							currentFrame = 0;
-							selection = tradeButton[x][y];													
+							selection = tradeButton[x][y];
 							cashLeft = null;
 							SoundManager.play(Assets.click);
 							handled = true;
@@ -428,9 +428,9 @@ public class EquipmentScreen extends TradeScreen {
     private void loadEquipmentAnimation(final Graphics g, int offset, String path) {
       for (int i = 1; i <= 15; i++) {
         equipment[offset][i] = g.newPixmap(path + "/" + i + ".png", true);
-      }    	
+      }
     }
-    
+
     private void disposeEquipmentAnimation(int offset) {
     	for (int i = 1; i <= 15; i++) {
     		if (equipment[offset][i] != null) {
@@ -439,7 +439,7 @@ public class EquipmentScreen extends TradeScreen {
     		equipment[offset][i] = null;
     	}
     }
-    
+
     private void readEquipmentStill(final Graphics g, int offset, String path) {
 		equipment[offset] = new Pixmap[16];
 		equipment[offset][0] = g.newPixmap(path + ".png", true);
@@ -457,34 +457,34 @@ public class EquipmentScreen extends TradeScreen {
 		Graphics g = game.getGraphics();
 
 		if (equipment == null) {
-			readEquipment(g);	
-		}		
+			readEquipment(g);
+		}
 		super.loadAssets();
-	}	
-	
+	}
+
 	@Override
 	public void dispose() {
 		super.dispose();
 		if (equipment != null) {
-			for (Pixmap [] ps: equipment) {				
-				ps[0].dispose();				
+			for (Pixmap [] ps: equipment) {
+				ps[0].dispose();
 			}
 			equipment = null;
 		}
 	}
-	
+
 	@Override
 	public void pause() {
 		super.pause();
 	}
-	
+
 	@Override
 	public void resume() {
 		super.resume();
-	}	
-		
+	}
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.EQUIP_SCREEN;
-	}	
+	}
 }

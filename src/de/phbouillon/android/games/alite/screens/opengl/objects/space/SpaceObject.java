@@ -141,7 +141,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		this.spawnCargoCanisters = true;
 		this.type = type;
 	}
-	
+
 	protected abstract void init();
 
 	protected void initTargetBox() {
@@ -281,10 +281,10 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 
 	protected void computeLegalStatusAfterFriendlyHit() {
 	    SystemData currentSystem = alite.getPlayer().getCurrentSystem();
-	    int legalValue = alite.getPlayer().getLegalValue();	 
+	    int legalValue = alite.getPlayer().getLegalValue();
 	    if (InGameManager.playerInSafeZone) {
-	    	if (getType() == ObjectType.SpaceStation || alite.getPlayer().getCurrentSystem().getGovernment() != Government.ANARCHY) {
-	    		InGameManager.safeZoneViolated = true;	    		
+	    	if (getType() == ObjectType.SpaceStation || currentSystem == null || currentSystem.getGovernment() != Government.ANARCHY) {
+	    		InGameManager.safeZoneViolated = true;
 	    	}
 	    }
 	    if (currentSystem != null) {
@@ -303,9 +303,9 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	    	// Default behavior as a "safeguard". Shouldn't really happen...
 	    	legalValue += 64;
 	    }
-	    alite.getPlayer().setLegalValue(legalValue);	    
+	    alite.getPlayer().setLegalValue(legalValue);
 	}
-	
+
 	public void setProximity(SpaceObject other) {
 		if (other == null) {
 			proximity = null;
@@ -910,7 +910,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		}
 		return new AspMkII(alite);
 	}
-	
+
 	public static SpaceObject createRandomTrader(final Alite alite) {
 		int type = (int) (Math.random() * 5);
 		switch (type) {
@@ -1022,7 +1022,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	public boolean hasOverrideColor() {
 		return overrideColor.lengthSq() > 0.005f;
 	}
-	
+
 	public Vector3f getOverrideColor() {
 		return overrideColor;
 	}
