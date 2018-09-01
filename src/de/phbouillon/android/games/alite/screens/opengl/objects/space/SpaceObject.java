@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
 import android.opengl.GLES11;
 import android.opengl.Matrix;
@@ -91,11 +90,11 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 
 	protected int numberOfVertices;
 	protected String textureFilename;
-	protected final float [] displayMatrix = new float[16];
-	protected float [] boundingBox;
-	protected float [] originalBoundingBox = null;
-	protected float [] vertices;
-	protected float [] normals;
+	private final float[] displayMatrix = new float[16];
+	protected float[] boundingBox;
+	private float[] originalBoundingBox = null;
+	private float[] vertices;
+	private float[] normals;
 	protected float maxSpeed;
 	protected float maxRollSpeed;
 	protected float maxPitchSpeed;
@@ -111,34 +110,33 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
     protected int legalityType;
     protected int maxCargoCanisters;
     protected boolean affectedByEnergyBomb = true;
-    protected boolean inBay = false;
+    boolean inBay = false;
     protected ShipType shipType;
-    protected final List <Float> laserHardpoints = new ArrayList<Float>();
-	protected final HashMap <AiStateCallback, AiStateCallbackHandler> aiStateCallbackHandlers = new HashMap<AiStateCallback, AiStateCallbackHandler>();
-    protected boolean ejected = false;
+    protected final List <Float> laserHardpoints = new ArrayList<>();
+	private final HashMap <AiStateCallback, AiStateCallbackHandler> aiStateCallbackHandlers = new HashMap<>();
+    private boolean ejected = false;
     protected boolean cloaked = false;
-    protected int cargoCanisterCount = 0;
-	protected boolean ignoreSafeZone = false;
-	protected long lastMissileTime = -1;
-	protected long laserColor = 0x7FFFAA00l;
+    private int cargoCanisterCount = 0;
+	private boolean ignoreSafeZone = false;
+	private long lastMissileTime = -1;
+	protected long laserColor = 0x7FFFAA00L;
 	protected String laserTexture = "textures/laser_orange.png";
-	protected transient List <EngineExhaust> exhaust = new ArrayList<EngineExhaust>();
-	protected boolean identified = false;
+	protected transient List <EngineExhaust> exhaust = new ArrayList<>();
+	private boolean identified = false;
 
-	private final List <ShipType> objectsToSpawn = new ArrayList<ShipType>();
+	private final List <ShipType> objectsToSpawn = new ArrayList<>();
 
-	private final static String [] matrixString = new String[] {"", "", "", ""};
 	private final SpaceObjectAI ai = new SpaceObjectAI(this);
 	private ObjectType type;
 	protected TargetBoxSpaceObject targetBox;
-	protected SpaceObject proximity;
+	private SpaceObject proximity;
 
 	private Vector3f overrideColor = new Vector3f(0, 0, 0);
 
 	public SpaceObject(Alite alite, String name, ObjectType type) {
 		super(name);
 		this.alite = alite;
-		this.spawnCargoCanisters = true;
+		spawnCargoCanisters = true;
 		this.type = type;
 	}
 
@@ -153,7 +151,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 
 	public void addExhaust(EngineExhaust exhaust) {
 		if (this.exhaust == null) {
-			this.exhaust = new ArrayList<EngineExhaust>();
+			this.exhaust = new ArrayList<>();
 		}
 		this.exhaust.add(exhaust);
 	}
@@ -163,7 +161,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	}
 
 	public List <EngineExhaust> getExhausts() {
-		return exhaust == null ? Collections.<EngineExhaust> emptyList() : exhaust;
+		return exhaust == null ? Collections.emptyList() : exhaust;
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
@@ -171,8 +169,8 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 			AliteLog.e("readObject", "SpaceObject.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "SpaceObject.readObject I");
-			this.alite = Alite.get();
-			exhaust = new ArrayList<EngineExhaust>();
+			alite = Alite.get();
+			exhaust = new ArrayList<>();
 			init();
 			AliteLog.e("readObject", "SpaceObject.readObject II");
 		} catch (ClassNotFoundException e) {
@@ -185,10 +183,10 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	}
 
 	public void setAggression(int aggression) {
-		this.aggressionLevel = aggression;
+		aggressionLevel = aggression;
 	}
 
-	public void addObjectToSpawn(ShipType type) {
+	void addObjectToSpawn(ShipType type) {
 		objectsToSpawn.add(type);
 	}
 
@@ -208,7 +206,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		this.type = type;
 	}
 
-	public final int getMissileCount() {
+	final int getMissileCount() {
 		return missileCount;
 	}
 
@@ -216,22 +214,22 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		missileCount = newMissileCount;
 	}
 
-	public boolean canFireMissile() {
+	boolean canFireMissile() {
 		if (missileCount <= 0) {
 			return false;
 		}
-		if (lastMissileTime == -1 || (System.nanoTime() - lastMissileTime) > 4000000000l) {
+		if (lastMissileTime == -1 || System.nanoTime() - lastMissileTime > 4000000000L) {
 			lastMissileTime = System.nanoTime();
 			return true;
 		}
 		return false;
 	}
 
-	public void setEjected(boolean b) {
-		this.ejected = b;
+	void setEjected() {
+		ejected = true;
 	}
 
-	public boolean hasEjected() {
+	boolean hasEjected() {
 		return ejected;
 	}
 
@@ -259,17 +257,6 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 
 	public boolean isCloaked() {
 		return cloaked;
-	}
-
-	public String getDisplayMatrixString() {
-		return String.format(Locale.getDefault(), "[%4.2f, %4.2f, %4.2f, %4.2f\n" +
-		                     " %4.2f, %4.2f, %4.2f, %4.2f\n" +
-		                     " %4.2f, %4.2f, %4.2f, %4.2f\n" +
-		                     " %4.2f, %4.2f, %4.2f, %4.2f]",
-		                       displayMatrix[ 0], displayMatrix[ 4], displayMatrix[ 8], displayMatrix[12],
-		                       displayMatrix[ 1], displayMatrix[ 5], displayMatrix[ 9], displayMatrix[13],
-		                       displayMatrix[ 2], displayMatrix[ 6], displayMatrix[10], displayMatrix[14],
-		                       displayMatrix[ 3], displayMatrix[ 7], displayMatrix[11], displayMatrix[15]);
 	}
 
 	protected boolean receivesProximityWarning() {
@@ -347,7 +334,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		if (dotSq > collisionSq) {
 			return;
 		}
-		if ((ai.getState() == AIState.EVADE) && (proximity != null)) {
+		if (ai.getState() == AIState.EVADE && proximity != null) {
 			getPosition().sub(proximity.getPosition(), v0);
 			v0.normalize();
 			float angleProx = getForwardVector().angleInDegrees(v0);
@@ -465,7 +452,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	}
 
 	@Override
-	public void setDisplayMatrix(float [] matrix) {
+	public void setDisplayMatrix(float[] matrix) {
 		int counter = 0;
 		for (float f: matrix) {
 			displayMatrix[counter++] = f;
@@ -473,11 +460,11 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	}
 
 	@Override
-	public float [] getDisplayMatrix() {
+	public float[] getDisplayMatrix() {
 		return displayMatrix;
 	}
 
-	protected final FloatBuffer createFaces(float [] vertexData, float [] normalData, int ...indices) {
+	protected final FloatBuffer createFaces(float[] vertexData, float[] normalData, int ...indices) {
 		vertices = new float[indices.length * 3];
 		normals  = new float[indices.length * 3];
 
@@ -497,7 +484,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		return GlUtils.toFloatBufferPositionZero(vertices);
 	}
 
-	protected final FloatBuffer createScaledFaces(float scale, float [] vertexData, float [] normalData, int ...indices) {
+	protected final FloatBuffer createScaledFaces(float scale, float[] vertexData, float[] normalData, int ...indices) {
 		vertices = new float[indices.length * 3];
 		normals  = new float[indices.length * 3];
 
@@ -517,7 +504,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		return GlUtils.toFloatBufferPositionZero(vertices);
 	}
 
-	protected final FloatBuffer createReversedFaces(float [] vertexData, float [] normalData, int ...indices) {
+	protected final FloatBuffer createReversedFaces(float[] vertexData, float[] normalData, int ...indices) {
 		vertices = new float[indices.length * 3];
 		normals  = new float[indices.length * 3];
 
@@ -537,7 +524,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		return GlUtils.toFloatBufferPositionZero(vertices);
 	}
 
-	protected final FloatBuffer createReversedRotatedFaces(float [] vertexData, float [] normalData, int ...indices) {
+	protected final FloatBuffer createReversedRotatedFaces(float[] vertexData, float[] normalData, int ...indices) {
 		vertices = new float[indices.length * 3];
 		normals  = new float[indices.length * 3];
 
@@ -560,7 +547,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 // -1 0 0
 //	0 1 0
 //	0 0 -1
-	protected final FloatBuffer createReversedScaledFaces(float scale, float [] vertexData, float [] normalData, int ...indices) {
+	protected final FloatBuffer createReversedScaledFaces(float scale, float[] vertexData, float[] normalData, int ...indices) {
 		vertices = new float[indices.length * 3];
 		normals  = new float[indices.length * 3];
 
@@ -580,16 +567,14 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		return GlUtils.toFloatBufferPositionZero(vertices);
 	}
 
-	public float [] getBoundingBox() {
+	public float[] getBoundingBox() {
 		return boundingBox;
 	}
 
 	public void scaleBoundingBox(float scale) {
 		if (originalBoundingBox == null) {
 			originalBoundingBox = new float[boundingBox.length];
-			for (int i = 0; i < boundingBox.length; i++) {
-				originalBoundingBox[i] = boundingBox[i];
-			}
+			System.arraycopy(boundingBox, 0, originalBoundingBox, 0, boundingBox.length);
 		}
 		for (int i = 0; i < originalBoundingBox.length; i++) {
 			boundingBox[i] = originalBoundingBox[i] * scale;
@@ -618,12 +603,6 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		return Math.max(Math.abs(boundingBox[0]) + Math.abs(boundingBox[1]),
 			            Math.max(Math.abs(boundingBox[2]) + Math.abs(boundingBox[3]),
 					Math.abs(boundingBox[4]) + Math.abs(boundingBox[5])));
-	}
-
-	public float getMedianRadius() {
-		return (Math.abs(boundingBox[0]) + Math.abs(boundingBox[1]) +
-			    Math.abs(boundingBox[2]) + Math.abs(boundingBox[3]) +
-			    Math.abs(boundingBox[4]) + Math.abs(boundingBox[5])) / 6.0f;
 	}
 
 	public void dispose() {
@@ -679,45 +658,22 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		return hullStrength;
 	}
 
-	public float setHullStrength(float newHullStrength) {
+	public void setHullStrength(float newHullStrength) {
 		hullStrength = newHullStrength;
 		if (hullStrength < 0) {
 			hullStrength = 0;
 		}
-		return hullStrength;
-	}
-
-	public boolean intersect(Vector3f origin, Vector3f direction) {
-		float [] verts = new float[vertices.length];
-		float [] matrix = getMatrix();
-		for (int i = 0; i < numberOfVertices * 3; i += 3) {
-			verts[i + 0] = matrix[0] * vertices[i + 0] + matrix[ 4] * vertices[i + 1] + matrix[ 8] * vertices[i + 2] + matrix[12];
-			verts[i + 1] = matrix[1] * vertices[i + 0] + matrix[ 5] * vertices[i + 1] + matrix[ 9] * vertices[i + 2] + matrix[13];
-			verts[i + 2] = matrix[2] * vertices[i + 0] + matrix[ 6] * vertices[i + 1] + matrix[10] * vertices[i + 2] + matrix[14];
-		}
-		return intersectInternal(numberOfVertices, origin, direction, verts);
 	}
 
 	public boolean intersect(Vector3f origin, Vector3f direction, float scaleFactor) {
-		float [] verts = new float[vertices.length];
-		float [] matrix = getMatrix();
+		float[] verts = new float[vertices.length];
+		float[] matrix = getMatrix();
 		for (int i = 0; i < numberOfVertices * 3; i += 3) {
-			verts[i + 0] = matrix[0] * (vertices[i + 0] * scaleFactor) + matrix[ 4] * (vertices[i + 1] * scaleFactor) + matrix[ 8] * (vertices[i + 2] * scaleFactor) + matrix[12];
-			verts[i + 1] = matrix[1] * (vertices[i + 0] * scaleFactor) + matrix[ 5] * (vertices[i + 1] * scaleFactor) + matrix[ 9] * (vertices[i + 2] * scaleFactor) + matrix[13];
-			verts[i + 2] = matrix[2] * (vertices[i + 0] * scaleFactor) + matrix[ 6] * (vertices[i + 1] * scaleFactor) + matrix[10] * (vertices[i + 2] * scaleFactor) + matrix[14];
+			verts[i] = matrix[0] * (vertices[i] * scaleFactor) + matrix[ 4] * (vertices[i + 1] * scaleFactor) + matrix[ 8] * (vertices[i + 2] * scaleFactor) + matrix[12];
+			verts[i + 1] = matrix[1] * (vertices[i] * scaleFactor) + matrix[ 5] * (vertices[i + 1] * scaleFactor) + matrix[ 9] * (vertices[i + 2] * scaleFactor) + matrix[13];
+			verts[i + 2] = matrix[2] * (vertices[i] * scaleFactor) + matrix[ 6] * (vertices[i + 1] * scaleFactor) + matrix[10] * (vertices[i + 2] * scaleFactor) + matrix[14];
 		}
 		return intersectInternal(numberOfVertices, origin, direction, verts);
-	}
-
-	public static final String debugMatrix(float [] matrix, boolean cr) {
-		matrixString[0] += String.format("[%+07.4f %+07.4f %+07.4f %+07.4f  ", matrix[ 0], matrix[ 4], matrix[ 8], matrix[12]);
-		matrixString[1] += String.format(" %+07.4f %+07.4f %+07.4f %+07.4f  ", matrix[ 1], matrix[ 5], matrix[ 9], matrix[13]);
-		matrixString[2] += String.format(" %+07.4f %+07.4f %+07.4f %+07.4f  ", matrix[ 2], matrix[ 6], matrix[10], matrix[14]);
-		matrixString[3] += String.format(" %+07.4f %+07.4f %+07.4f %+07.4f] ", matrix[ 3], matrix[ 7], matrix[11], matrix[15]);
-		if (cr) {
-			return matrixString[0] + "\n" + matrixString[1] + "\n" + matrixString[2] + "\n" + matrixString[3];
-		}
-		return "";
 	}
 
 	public void orientTowards(float x, float y, float z, float ux, float uy, float uz) {
@@ -730,18 +686,18 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		ai.orient(v0, v1, 0);
 	}
 
-	public float orientTowards(GraphicObject object, float deltaTime) {
+	public void orientTowards(GraphicObject object, float deltaTime) {
 		object.getUpVector().copy(v0);
 //		v0.negate();
-		return ai.orient(object.getPosition(), v0, deltaTime);
+		ai.orient(object.getPosition(), v0, deltaTime);
 	}
 
-	public float orientTowards(GraphicObject object, Vector3f up, float deltaTime) {
-		return ai.orient(object.getPosition(), up, deltaTime);
+	public void orientTowards(GraphicObject object, Vector3f up, float deltaTime) {
+		ai.orient(object.getPosition(), up, deltaTime);
 	}
 
-	public float orientTowardsUsingRollPitch(GraphicObject object, Vector3f up, float deltaTime) {
-		return ai.orientUsingRollPitchOnly(object.getPosition(), up, deltaTime);
+	public void orientTowardsUsingRollPitch(GraphicObject object, float deltaTime) {
+		ai.orientUsingRollPitchOnly(object.getPosition(), deltaTime);
 	}
 
 	public void setRandomOrientation(Vector3f origin, Vector3f up) {
@@ -838,17 +794,25 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	}
 
 	public static SpaceObject createRandomEnemy(final Alite alite) {
-		int extraShip = ((int) alite.getGenerator().getCurrentSeed()[0] >> 12);
-		int type = (int) (Math.random() * 9 + (extraShip == 5 || extraShip == 8 ? 0 : 2));
+		int type = (int) (Math.random() * 100);
+		if (type == 0) { // 1%
+			AliteLog.d("Ship Statistics", "Returning Cobra MkIII");
+			return CobraMkIII.createCobraMkIIIAsEnemy(alite);
+		}
+		if (type < 3) { // 2%
+			AliteLog.d("Ship Statistics", "Returning Cobra MkI");
+			return CobraMkI.createCobraMkIAsEnemy(alite);
+		}
+		int extraShip = alite.getGenerator().getCurrentSeed()[0] >> 12;
+		type = (int) (Math.random() * (9 + (extraShip == 5 || extraShip == 8 ? 0 : 2)));
 		AliteLog.d("Ship Statistics", "Returning extraShip == " + extraShip + " -- type == " + type);
-		if (type == 9 || type == 10) {
+		if (type > 8) {
 			SpaceObject result = createGalaxyLocalShip(alite, extraShip, type - 9);
-			if (result == null) {
-				// Fallback routine for galaxy local ships that do not yet exist.
-				type = (int) (Math.random() * 9);
-			} else {
+			if (result != null) {
 				return result;
 			}
+			// Fallback routine for galaxy local ships that do not yet exist.
+			type = (int) (Math.random() * 9);
 		}
 		switch (type) {
 			case 0: return new Adder(alite);
@@ -860,8 +824,6 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 			case 6: return new MorayStarBoat(alite);
 			case 7: return new Sidewinder(alite);
 			case 8: return new WolfMkII(alite);
-			case 9: return createGalaxyLocalShip(alite, extraShip, 0);
-			case 10: return createGalaxyLocalShip(alite, extraShip, 1);
 		}
 		return new Krait(alite);
 	}
@@ -886,15 +848,14 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	}
 
 	public static SpaceObject createRandomDefensiveShip(final Alite alite) {
-		int extraShip = ((int) alite.getGenerator().getCurrentSeed()[0] >> 12);
-		int type = (int) (Math.random() * 10 + (extraShip == 5 || extraShip == 8 ? 0 : 2));
+		int extraShip = alite.getGenerator().getCurrentSeed()[0] >> 12;
+		int type = (int) (Math.random() * (10 + (extraShip == 5 || extraShip == 8 ? 0 : 2)));
 		if (type > 9) {
 			SpaceObject result = createGalaxyLocalDefensiveShip(alite, extraShip, type - 10);
-			if (result == null) {
-				type = (int) (Math.random() * 10);
-			} else {
+			if (result != null) {
 				return result;
 			}
+			type = (int) (Math.random() * 10);
 		}
 		switch (type) {
 			case 0: return new CobraMkIII(alite);
@@ -944,7 +905,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		return new Asteroid1(alite);
 	}
 
-	public void aiStateCallback(AiStateCallback type) {
+	void aiStateCallback(AiStateCallback type) {
 		AiStateCallbackHandler handler = aiStateCallbackHandlers.get(type);
 		if (handler != null) {
 			handler.execute(this);
@@ -991,11 +952,11 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		cargoCanisterCount = count;
 	}
 
-	public void setIgnoreSafeZone(boolean b) {
+	public void setIgnoreSafeZone() {
 		ignoreSafeZone = true;
 	}
 
-	public boolean isIgnoreSafeZone() {
+	boolean isIgnoreSafeZone() {
 		return ignoreSafeZone;
 	}
 

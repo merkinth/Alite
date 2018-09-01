@@ -46,8 +46,8 @@ public final class SpaceObjectAI implements Serializable {
 	private static final float MISSILE_MIN_DIST_SQ                      = 36000000.0f;
 	public  static final float SHOOT_DISTANCE_SQ                        = 81000000.0f;
 	private static final float FIRE_MISSILE_UPON_FIRST_HIT_PROBABILITY  = 5.0f;
-	private static final long  BASE_DELAY_BETWEEN_SHOOT_CHECKS          = 59880239l; // 16.7 FPS
-	private static final long  SHOOT_DELAY_REDUCE_PER_RATING_LEVEL      =  3318363l; // 1.6625 Delta FPS
+	private static final long  BASE_DELAY_BETWEEN_SHOOT_CHECKS          = 59880239L; // 16.7 FPS
+	private static final long  SHOOT_DELAY_REDUCE_PER_RATING_LEVEL      = 3318363L; // 1.6625 Delta FPS
 	                                                                                 // => ~30 FPS at Elite.
 	private final SpaceObject so;
 
@@ -59,11 +59,11 @@ public final class SpaceObjectAI implements Serializable {
 	private final Vector3f   v2 = new Vector3f(0, 0, 0);
 	private final Vector3f   v3 = new Vector3f(0, 0, 0);
 
-	private Stack <AIState> currentState = new Stack<AIState>();
+	private Stack <AIState> currentState = new Stack<>();
 	private GraphicObject target = null;
 	private Vector3f evadePosition = new Vector3f(0, 0, 0);
 	private float evadeRangeSq = 0;
-	private final List <WayPoint> waypoints = new ArrayList<WayPoint>();
+	private final List <WayPoint> waypoints = new ArrayList<>();
 	private float currentDistance = -1;
 	private boolean pitchingOver = false;
 	private float flightRoll = 0.0f;
@@ -74,15 +74,14 @@ public final class SpaceObjectAI implements Serializable {
 	private long curveFollowStart;
 	private final Vector3f lastRotation = new Vector3f(0, 0, 0);
 
-	public SpaceObjectAI(final SpaceObject so) {
+	SpaceObjectAI(final SpaceObject so) {
 		this.so = so;
 		currentState.push(AIState.IDLE);
 	}
 
-	public float orientUsingRollPitchOnly(Vector3f targetPosition, Vector3f targetUp, float deltaTime) {
-		float result = trackInternal(targetPosition, targetUp, 1000.0f, deltaTime, false);
+	void orientUsingRollPitchOnly(Vector3f targetPosition, float deltaTime) {
+		trackInternal(targetPosition, 1000.0f, deltaTime, false);
 		executeSteeringNoSpeedChange(targetPosition);
-		return result;
 	}
 
 	private float trackPosition(Vector3f targetPosition, Vector3f targetUp, float deltaTime) {
@@ -121,7 +120,7 @@ public final class SpaceObjectAI implements Serializable {
 		return absAngle;
 	}
 
-	private float trackInternal(Vector3f targetPosition, Vector3f targetUp, float desiredRangeSq, float deltaTime, boolean retreat) {
+	private float trackInternal(Vector3f targetPosition, float desiredRangeSq, float deltaTime, boolean retreat) {
 		float rate1 = 2.0f * deltaTime;
 		float rate2 = 4.0f * deltaTime;
 		float stickRoll = 0.0f;
@@ -212,14 +211,11 @@ public final class SpaceObjectAI implements Serializable {
 				}
 			}
 		}
-//		if (targetUp != null) {
-//			stickRoll = rollToMatchUp(targetUp);
-//		}
 
-		if ((stickRoll > 0.0 && flightRoll < 0.0) || (stickRoll < 0.0 && flightRoll > 0.0)) {
+		if (stickRoll > 0.0 && flightRoll < 0.0 || stickRoll < 0.0 && flightRoll > 0.0) {
 			rate1 *= 4.0f;
 		}
-		if ((stickPitch > 0.0 && flightPitch < 0.0) || (stickPitch < 0.0 && flightPitch > 0.0)) {
+		if (stickPitch > 0.0 && flightPitch < 0.0 || stickPitch < 0.0 && flightPitch > 0.0) {
 			rate2 *= 4.0f;
 		}
 
@@ -278,7 +274,7 @@ public final class SpaceObjectAI implements Serializable {
 		return angle;
 	}
 
-	private float executeSteeringNoSpeedChange(Vector3f targetPosition) {
+	private void executeSteeringNoSpeedChange(Vector3f targetPosition) {
 		so.applyDeltaRotation(flightPitch, 0, flightRoll);
 		if (so instanceof CobraMkIII && ((CobraMkIII) so).isPlayerCobra()) {
 			so.getGame().getCobra().setRotation(flightPitch, flightRoll);
@@ -286,11 +282,10 @@ public final class SpaceObjectAI implements Serializable {
 		so.getPosition().copy(v0);
 		v0.sub(targetPosition);
 		v0.normalize();
-		float angle = so.getForwardVector().angleInDegrees(v0);
-		return angle;
+		so.getForwardVector().angleInDegrees(v0);
 	}
 
-	private float executeSteering(float desiredSpeed, Vector3f position) {
+	private void executeSteering(float desiredSpeed, Vector3f position) {
 		so.applyDeltaRotation(flightPitch, 0, flightRoll);
 		if (so instanceof CobraMkIII && ((CobraMkIII) so).isPlayerCobra()) {
 			so.getGame().getCobra().setRotation(flightPitch, flightRoll);
@@ -306,14 +301,13 @@ public final class SpaceObjectAI implements Serializable {
 		} else {
 			so.adjustSpeed(-desiredSpeed);
 		}
-		return angle;
 	}
 
-	private final float clamp(float val, float min, float max) {
+	private float clamp(float val, float min, float max) {
 		return val < min ? min : val > max ? max : val;
 	}
 
-	public float orient(Vector3f targetPosition, Vector3f targetUp, float deltaTime) {
+	void orient(Vector3f targetPosition, Vector3f targetUp, float deltaTime) {
 		so.updateInternals();
 		Quaternion.fromMatrix(so.getMatrix(), q1);
 		q1.normalize();
@@ -337,11 +331,8 @@ public final class SpaceObjectAI implements Serializable {
 			angle = 360 - angle;
 			v0.negate();
 		}
-		float result = 0.0f;
 		if (deltaTime > 0) {
-			float tempAngle = clamp(angle, -so.getMaxPitchSpeed() * 40, so.getMaxPitchSpeed() * 40) * deltaTime;
-			result = Math.abs(tempAngle - angle);
-			angle = tempAngle;
+			angle = clamp(angle, -so.getMaxPitchSpeed() * 40, so.getMaxPitchSpeed() * 40) * deltaTime;
 		}
 		if (Math.abs(angle) > 0.0001f && !Float.isInfinite(angle) && !Float.isNaN(angle)) {
 			Matrix.rotateM(so.getMatrix(), 0, angle, v0.x, v0.y, v0.z);
@@ -356,10 +347,9 @@ public final class SpaceObjectAI implements Serializable {
 			}
 			so.computeInternals();
 		}
-		return result;
 	}
 
-	private final void calculateTrackingSpeed(float angle) {
+	private void calculateTrackingSpeed(float angle) {
 		if (so instanceof Missile) {
 			if (angle > 50) {
 				so.setSpeed(-so.getMaxSpeed() * 0.3f);
@@ -400,13 +390,13 @@ public final class SpaceObjectAI implements Serializable {
 
 	private void attackObject(float deltaTime) {
 		if (target instanceof CobraMkIII && ((CobraMkIII) target).isPlayerCobra()) {
-			if (InGameManager.playerInSafeZone && !(so instanceof Viper) && !(so.isIgnoreSafeZone())) {
+			if (InGameManager.playerInSafeZone && !(so instanceof Viper) && !so.isIgnoreSafeZone()) {
 				waitForSafeZoneExit = true;
 				pushState(AIState.FLEE, target);
 				return;
 			}
 		}
-		trackInternal(target.getPosition(), null, 1000.0f, deltaTime, false);
+		trackInternal(target.getPosition(), 1000.0f, deltaTime, false);
 		avoidCollision();
 		float angle = executeSteering(-1);
 		float distanceSq = so.getPosition().distanceSq(target.getPosition());
@@ -416,7 +406,7 @@ public final class SpaceObjectAI implements Serializable {
 			}
 			long time = System.nanoTime();
 			int rating = Alite.get().getPlayer().getRating().ordinal();
-			if (rating >= 7 || lastShootCheck == -1 || (time - lastShootCheck) >= (BASE_DELAY_BETWEEN_SHOOT_CHECKS - (rating + 2) * SHOOT_DELAY_REDUCE_PER_RATING_LEVEL)) {
+			if (rating >= 7 || lastShootCheck == -1 || time - lastShootCheck >= BASE_DELAY_BETWEEN_SHOOT_CHECKS - (rating + 2) * SHOOT_DELAY_REDUCE_PER_RATING_LEVEL) {
 				int rand = (int) (Math.random() * 256);
 				if (so.getAggressionLevel() > rand) {
 					if (so.getGame().getLaserManager() != null) {
@@ -436,12 +426,12 @@ public final class SpaceObjectAI implements Serializable {
 				return;
 			}
 		}
-		trackInternal(target.getPosition(), null, 1000.0f, deltaTime, true);
+		trackInternal(target.getPosition(), 1000.0f, deltaTime, true);
 		avoidCollision();
 		executeSteering(so.getMaxSpeed());
 	}
 
-	private void flyStraight(float deltaTime) {
+	private void flyStraight() {
 		avoidCollision();
 	}
 
@@ -449,13 +439,13 @@ public final class SpaceObjectAI implements Serializable {
 		if (waypoints.isEmpty()) {
 			popState();
 			if (currentState.isEmpty()) {
-				setState(AIState.IDLE, (Object []) null);
+				setState(AIState.IDLE, (Object[]) null);
 			}
 			so.aiStateCallback(AiStateCallback.EndOfWaypointsReached);
 			return;
 		}
 		WayPoint wp = waypoints.get(0);
-		float d = trackInternal(wp.position, wp.upVector, 1000.0f, deltaTime, false);
+		float d = trackInternal(wp.position, 1000.0f, deltaTime, false);
 		float targetSpeed = wp.orientFirst ? 0.0f : so.getMaxSpeed();
 		if (Math.abs(1.0 - d) < 0.01 && wp.orientFirst) {
 			targetSpeed = so.getMaxSpeed();
@@ -465,7 +455,7 @@ public final class SpaceObjectAI implements Serializable {
 		avoidCollision();
 		executeSteering(targetSpeed, wp.position);
 		float distance = so.getPosition().distanceSq(wp.position);
-		if (distance < 1000 || (currentDistance > 0 && currentDistance < 40000 && distance > currentDistance)) {
+		if (distance < 1000 || currentDistance > 0 && currentDistance < 40000 && distance > currentDistance) {
 			currentDistance = -1;
 			wp.reached();
 			waypoints.remove(0);
@@ -474,7 +464,7 @@ public final class SpaceObjectAI implements Serializable {
 		}
 	}
 
-	private void followCurve(float deltaTime) {
+	private void followCurve() {
 		float time = (System.nanoTime() - curveFollowStart) / 1000000000.0f;
 		curve.compute(time);
 
@@ -493,7 +483,7 @@ public final class SpaceObjectAI implements Serializable {
 			popState();
 			if (currentState.isEmpty()) {
 				so.setSpeed(0);
-				setState(AIState.IDLE, (Object []) null);
+				setState(AIState.IDLE, (Object[]) null);
 			}
 		}
 	}
@@ -511,7 +501,7 @@ public final class SpaceObjectAI implements Serializable {
 			so.setProximity(null);
 			popState();
 			if (currentState.isEmpty()) {
-				setState(AIState.IDLE, (Object []) null);
+				setState(AIState.IDLE, (Object[]) null);
 			}
 			return;
 		}
@@ -520,7 +510,7 @@ public final class SpaceObjectAI implements Serializable {
 		v0.add(so.getPosition());
 		v0.copy(evadePosition);
 		evadeRangeSq = (proximity.getBoundingSphereRadiusSq() * 3.0f + so.getBoundingSphereRadiusSq() * 3.0f) * 18;
-		float dForward = trackInternal(evadePosition, null, evadeRangeSq, deltaTime, true);
+		float dForward = trackInternal(evadePosition, evadeRangeSq, deltaTime, true);
 		executeSteering(so.getMaxSpeed() * (0.5f * dForward + 0.5f));
 	}
 
@@ -531,12 +521,12 @@ public final class SpaceObjectAI implements Serializable {
 			return;
 		}
 		if (target instanceof SpaceObject && !((SpaceObject) target).isCloaked()) {
-			trackInternal(target.getPosition(), null, 1000.0f, deltaTime, false);
+			trackInternal(target.getPosition(), 1000.0f, deltaTime, false);
 		}
 		executeSteering(so instanceof Missile ? -1 : so.getMaxSpeed());
 	}
 
-	private void initiateTrack(boolean replace, Object [] data) {
+	private void initiateTrack(boolean replace, Object[] data) {
 		if (replace) {
 			currentState.clear();
 		}
@@ -546,7 +536,7 @@ public final class SpaceObjectAI implements Serializable {
 		target = data == null || data[0] == null ? null : (GraphicObject) data[0];
 	}
 
-	private void initiateMissileTrack(boolean replace, Object [] data) {
+	private void initiateMissileTrack(boolean replace, Object[] data) {
 		if (replace) {
 			currentState.clear();
 		}
@@ -570,7 +560,7 @@ public final class SpaceObjectAI implements Serializable {
 		}
 	}
 
-	private void initiateIdle(boolean replace, Object [] data) {
+	private void initiateIdle(boolean replace) {
 		if (replace) {
 			currentState.clear();
 		}
@@ -580,7 +570,7 @@ public final class SpaceObjectAI implements Serializable {
 		so.adjustSpeed(0);
 	}
 
-	private void initiateStraight(boolean replace, Object [] data) {
+	private void initiateStraight(boolean replace, Object[] data) {
 		if (replace) {
 			currentState.clear();
 		}
@@ -598,7 +588,7 @@ public final class SpaceObjectAI implements Serializable {
 		}
 	}
 
-	private void initiatePath(boolean replace, Object [] data) {
+	private void initiatePath(boolean replace, Object[] data) {
 		if (replace) {
 			currentState.clear();
 		}
@@ -621,7 +611,7 @@ public final class SpaceObjectAI implements Serializable {
 		}
 	}
 
-	private void initiateFollowCurve(boolean replace, Object [] data) {
+	private void initiateFollowCurve(boolean replace, Object[] data) {
 		if (replace) {
 			currentState.clear();
 		}
@@ -640,7 +630,7 @@ public final class SpaceObjectAI implements Serializable {
 		lastRotation.z = 0;
 	}
 
-	private void initiateFlee(boolean replace, Object [] data) {
+	private void initiateFlee(boolean replace, Object[] data) {
 		if (replace) {
 			currentState.clear();
 		}
@@ -668,7 +658,7 @@ public final class SpaceObjectAI implements Serializable {
 		}
 	}
 
-	private void initiateBank(boolean replace, Object [] data) {
+	private void initiateBank(boolean replace, Object[] data) {
 		target = data == null || data[0] == null ? null : (GraphicObject) data[0];
 		if (target == null) {
 			if (currentState.isEmpty()) {
@@ -695,7 +685,7 @@ public final class SpaceObjectAI implements Serializable {
 		}
 	}
 
-	private void initiateEvade(boolean replace, Object [] data) {
+	private void initiateEvade(boolean replace) {
 		if (replace) {
 			currentState.clear();
 		}
@@ -713,7 +703,7 @@ public final class SpaceObjectAI implements Serializable {
 		pitchingOver = true;
 	}
 
-	private void initiateAttack(boolean replace, Object [] data) {
+	private void initiateAttack(boolean replace, Object[] data) {
 		if (replace) {
 			currentState.clear();
 		}
@@ -723,13 +713,13 @@ public final class SpaceObjectAI implements Serializable {
 		target = data == null || data[0] == null ? null : (GraphicObject) data[0];
 	}
 
-	private final void alterStateInternal(AIState newState, boolean replace, Object ...data) {
+	private void alterStateInternal(AIState newState, boolean replace, Object ...data) {
 		switch (newState) {
 			case ATTACK:        initiateAttack(replace, data);
 					    break;
 			case BANK:          initiateBank(replace, data);
 					    break;
-			case EVADE:         initiateEvade(replace, data);
+			case EVADE:         initiateEvade(replace);
 			                    break;
 			case FLEE:          initiateFlee(replace, data);
 					    break;
@@ -737,7 +727,7 @@ public final class SpaceObjectAI implements Serializable {
 					    break;
 			case FLY_PATH:      initiatePath(replace, data);
 					    break;
-			case IDLE:          initiateIdle(replace, data);
+			case IDLE:          initiateIdle(replace);
 					    break;
 			case TRACK:         initiateTrack(replace, data);
 					    break;
@@ -749,15 +739,15 @@ public final class SpaceObjectAI implements Serializable {
 		}
 	}
 
-	final void setState(AIState newState, Object ...data) {
+	final void setState(AIState newState, Object... data) {
 		alterStateInternal(newState, true, data);
 	}
 
-	final void pushState(AIState newState, Object ...data) {
+	private void pushState(AIState newState, Object... data) {
 		alterStateInternal(newState, false, data);
 	}
 
-	final void popState() {
+	private void popState() {
 		if (currentState.isEmpty()) {
 			return;
 		}
@@ -773,7 +763,7 @@ public final class SpaceObjectAI implements Serializable {
 		if (so != null) {
 			if (so.escapeCapsuleCaps > 0 && so.getHullStrength() < 2 && !so.hasEjected()) {
 				if (Math.random() * 100 < 10) {
-					so.setEjected(true);
+					so.setEjected();
 					so.addObjectToSpawn(ShipType.EscapeCapsule);
 				}
 			}
@@ -796,7 +786,7 @@ public final class SpaceObjectAI implements Serializable {
 				fleeObject(deltaTime);
 				break;
 			case FLY_STRAIGHT:
-				flyStraight(deltaTime);
+				flyStraight();
 				break;
 			case FLY_PATH:
 				flyPath(deltaTime);
@@ -807,14 +797,14 @@ public final class SpaceObjectAI implements Serializable {
 				updateTrack(deltaTime);
 				break;
 			case FOLLOW_CURVE:
-				followCurve(deltaTime);
+				followCurve();
 				break;
 			default:
 				break;
 		}
 		if (Settings.VIS_DEBUG) {
 			if (so instanceof CobraMkIII && ((CobraMkIII) so).isPlayerCobra()) {
-				String sl = "";
+				String sl;
 				switch (currentState.peek()) {
 				case ATTACK:       sl = "AT"; break;
 				case BANK:         sl = "BN"; break;
@@ -823,7 +813,7 @@ public final class SpaceObjectAI implements Serializable {
 				case FLY_STRAIGHT: sl = "FS"; break;
 				case FLY_PATH:     sl = "FP"; break;
 				case IDLE:         sl = "ID"; break;
-				case TRACK:	   sl = "TR"; break;
+				case TRACK:        sl = "TR"; break;
 				case FOLLOW_CURVE: sl = "FC"; break;
 				default:           sl = "DE"; break;
 				}
@@ -843,10 +833,10 @@ public final class SpaceObjectAI implements Serializable {
 		return currentState.peek();
 	}
 
-	public String getStateStack() {
+	String getStateStack() {
 		String stack = "";
-		for (int i = 0; i < currentState.size(); i++) {
-			stack += currentState.get(i) + ", ";
+		for (AIState aCurrentState : currentState) {
+			stack += aCurrentState + ", ";
 		}
 		return stack;
 	}

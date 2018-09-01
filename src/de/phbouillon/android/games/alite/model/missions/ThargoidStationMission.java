@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model.missions;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -43,19 +43,19 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thar
 
 public class ThargoidStationMission extends Mission {
 	public static final int ID = 5;
-	
-	private char [] galaxySeed;
+
+	private char[] galaxySeed;
 	private int targetIndex;
 	private int state;
-	
+
 	private TimedEvent conditionRedEvent;
 
 	class LaunchThargoidFromStationEvent extends TimedEvent {
 		private static final long serialVersionUID = 8124490360245596874L;
 		private final ObjectSpawnManager spawnManager;
 		private final int numberOfThargoidsToSpawn;
-		
-		public LaunchThargoidFromStationEvent(final ObjectSpawnManager spawnManager, long delayInNanoSeconds, int numberOfThargoidsToSpawn) {
+
+		LaunchThargoidFromStationEvent(final ObjectSpawnManager spawnManager, long delayInNanoSeconds, int numberOfThargoidsToSpawn) {
 			super(delayInNanoSeconds);
 			this.spawnManager = spawnManager;
 			this.numberOfThargoidsToSpawn = numberOfThargoidsToSpawn;
@@ -74,21 +74,21 @@ public class ThargoidStationMission extends Mission {
 				public void execute(SpaceObject so) {
 					thargoid.setUpdater(null);
 					thargoid.setInBay(false);
-					thargoid.setIgnoreSafeZone(true);
+					thargoid.setIgnoreSafeZone();
 					thargoid.setAIState(AIState.ATTACK, spawnManager.getInGameManager().getShip());
 				}
 			});
-		}		
+		}
 	}
-	
+
 	public ThargoidStationMission(Alite alite) {
 		super(alite, ID);
 	}
-	
+
 	public int getState() {
 		return state;
 	}
-	
+
 	@Override
 	protected boolean checkStart() {
 		Player player = alite.getPlayer();
@@ -96,26 +96,24 @@ public class ThargoidStationMission extends Mission {
 			   !player.getActiveMissions().contains(this) &&
 			   !player.getCompletedMissions().contains(this) &&
 			    player.getCompletedMissions().contains(MissionManager.getInstance().get(CougarMission.ID)) &&
-				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 && 
-				player.getCondition() == Condition.DOCKED; 
+				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 &&
+				player.getCondition() == Condition.DOCKED;
 	}
 
-	public void setTarget(char [] galaxySeed, int target, int state) {
+	public void setTarget(char[] galaxySeed, int target, int state) {
 		this.galaxySeed = new char[3];
-		for (int i = 0; i < 3; i++) {
-			this.galaxySeed[i] = galaxySeed[i];
-		}
-		this.targetIndex = target;
+		System.arraycopy(galaxySeed, 0, this.galaxySeed, 0, 3);
+		targetIndex = target;
 		this.state = state;
 	}
-	
+
 	@Override
 	protected void acceptMission(boolean accept) {
 		// The player can't decline this mission...
 		alite.getPlayer().addActiveMission(this);
-		state = 1;			
+		state = 1;
 	}
-	
+
 	@Override
 	public void onMissionAccept() {
 	}
@@ -131,11 +129,11 @@ public class ThargoidStationMission extends Mission {
 	}
 
 	@Override
-	public void onMissionUpdate() {		
+	public void onMissionUpdate() {
 	}
 
 	@Override
-	public void load(DataInputStream dis) throws IOException {	
+	public void load(DataInputStream dis) throws IOException {
 		galaxySeed = new char[3];
 		galaxySeed[0] = dis.readChar();
 		galaxySeed[1] = dis.readChar();
@@ -147,7 +145,7 @@ public class ThargoidStationMission extends Mission {
 	}
 
 	@Override
-	public byte [] save() throws IOException {
+	public byte[] save() throws IOException {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(16);
 		DataOutputStream dos = new DataOutputStream(bos);
 		dos.writeChar(galaxySeed[0]);
@@ -156,7 +154,7 @@ public class ThargoidStationMission extends Mission {
 		dos.writeInt(targetIndex);
 		dos.writeInt(state);
 		dos.close();
-		bos.close();		
+		bos.close();
 		return bos.toByteArray();
 	}
 
@@ -172,28 +170,28 @@ public class ThargoidStationMission extends Mission {
 		}
 		if (state == 3) {
 			return new ThargoidStationScreen(alite, 1);
-		} 
+		}
 		return null;
 	}
-	
-	
+
+
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		boolean result = positionMatchesTarget(galaxySeed, targetIndex);
-		if ((state == 1 && !result) || (state == 2 && result)) {
+		if (state == 1 && !result || state == 2 && result) {
 			// !result => Any system but the one where the player received the mission
 			// result => The precise system where the Alien Space Station
-			// was when the player first saw it. He escaped and now tries again... 
+			// was when the player first saw it. He escaped and now tries again...
 			state = 2;
-			return new TimedEvent(10000000000l) {				
+			return new TimedEvent(10000000000L) {
 				private static final long serialVersionUID = 5516217861394636289L;
 
 				@Override
 				public void doPerform() {
-					manager.getInGameManager().getStation().setName("Alien Space Station");		
+					manager.getInGameManager().getStation().setName("Alien Space Station");
 					((SpaceObject) manager.getInGameManager().getStation()).setHullStrength(1024);
 					((SpaceStation) manager.getInGameManager().getStation()).denyAccess();
-					manager.getInGameManager().getStation().addDestructionCallback(new DestructionCallback() {				
+					manager.getInGameManager().getStation().addDestructionCallback(new DestructionCallback() {
 						private static final long serialVersionUID = 6715650816893032921L;
 
 						@Override
@@ -209,24 +207,24 @@ public class ThargoidStationMission extends Mission {
 					setRemove(true);
 				}
 			};
-		} 
+		}
 		return null;
 	}
 
 	private void spawnThargoids(final ObjectSpawnManager manager) {
 		if (manager.isInTorus()) {
-			manager.leaveTorus();				
-		}		
+			manager.leaveTorus();
+		}
 		SoundManager.play(Assets.com_conditionRed);
 		manager.getInGameManager().repeatMessage("Condition Red!", 3);
 		conditionRedEvent.pause();
-		Vector3f spawnPosition = manager.spawnObject();	
+		Vector3f spawnPosition = manager.spawnObject();
 		int thargoidNum = alite.getPlayer().getRating().ordinal() < 3 ? 1 : Math.random() < 0.5 ? 2 : 3;
 		for (int i = 0; i < thargoidNum; i++) {
 			Thargoid thargoid = new Thargoid(alite);
 			thargoid.setSpawnThargonDistanceSq(manager.computeSpawnThargonDistanceSq());
-			manager.spawnEnemyAndAttackPlayer(thargoid, i, spawnPosition, true);
-		}						
+			manager.spawnEnemyAndAttackPlayer(thargoid, i, spawnPosition);
+		}
 	}
 
 	@Override
@@ -234,26 +232,26 @@ public class ThargoidStationMission extends Mission {
 		if (state != 2) {
 			return null;
 		}
-		long delayToConditionRedEncounter = (long) ((((float) (2 << 9)) / 16.7f) * 1000000000l);
+		long delayToConditionRedEncounter = (long) ((2 << 9) / 16.7f * 1000000000L);
 		conditionRedEvent = new TimedEvent(delayToConditionRedEncounter) {
 			private static final long serialVersionUID = 7815560584428889246L;
 
 			@Override
 			public void doPerform() {
 				spawnThargoids(manager);
-			}			
+			}
 		};
 		return conditionRedEvent;
 	}
-	
+
 	@Override
 	public TimedEvent getViperSpawnReplacementEvent(final ObjectSpawnManager objectSpawnManager) {
-		if (state == 2 && objectSpawnManager.getInGameManager().isInSafeZone()) {			
+		if (state == 2 && objectSpawnManager.getInGameManager().isInSafeZone()) {
 			return new LaunchThargoidFromStationEvent(objectSpawnManager, objectSpawnManager.getDelayToViperEncounter(), 0);
 		}
 		return null;
 	}
-	
+
 	@Override
 	public TimedEvent getShuttleSpawnReplacementEvent(final ObjectSpawnManager objectSpawnManager) {
 		if (state == 2) {
@@ -261,7 +259,7 @@ public class ThargoidStationMission extends Mission {
 		}
 		return null;
 	}
-		
+
 	@Override
 	public TimedEvent getTraderSpawnReplacementEvent(final ObjectSpawnManager objectSpawnManager) {
 		if (state == 2) {
