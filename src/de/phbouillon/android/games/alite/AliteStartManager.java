@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -27,36 +27,27 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Messenger;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.android.vending.expansion.downloader.DownloadProgressInfo;
-import com.google.android.vending.expansion.downloader.DownloaderClientMarshaller;
-import com.google.android.vending.expansion.downloader.DownloaderServiceMarshaller;
-import com.google.android.vending.expansion.downloader.Helpers;
-import com.google.android.vending.expansion.downloader.IDownloaderClient;
-import com.google.android.vending.expansion.downloader.IDownloaderService;
-import com.google.android.vending.expansion.downloader.IStub;
+import com.google.android.vending.expansion.downloader.*;
 
 import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.io.AliteDownloaderService;
 import de.phbouillon.android.games.alite.io.AliteFiles;
 import de.phbouillon.android.games.alite.screens.canvas.tutorial.IMethodHook;
 
-public class AliteStartManager extends Activity implements IDownloaderClient {	
+public class AliteStartManager extends Activity implements IDownloaderClient {
 	public static final int ALITE_RESULT_CLOSE_ALL = 78615265;
-		
+
 	public static final String ALITE_STATE_FILE = "current_state.dat";
-		
+
 	private IStub downloaderClientStub;
-	private IDownloaderService remoteService; 
 	private String currentStatus = "Idle";
 	private float avgSpeed = 0.0f;
 	private int progressUpdateCalls = 0;
 	private AndroidFileIO fileIO;
-	private PendingIntent pendingIntent;
 
 	private class ErrorHook implements IMethodHook {
 		private static final long serialVersionUID = -3231920982342356254L;
@@ -70,12 +61,15 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 					"your device (seriously: It helped on a Nexus 4), or you can download " +
 					"the all-in-one-version of Alite, where this problem cannot occur, " +
 					"from http://alite.mobi");
-		}	
+		}
 	}
-	
+
 	private boolean expansionFilesDelivered() {
-        File oldObb = new File(Environment.getExternalStorageDirectory() + "/Android/obb/de.phbouillon.android.games.alite/main.2170.de.phbouillon.android.games.alite.obb");
+        File oldObb = new File(Helpers.generateSaveFileName(this,
+			Helpers.getExpansionAPKFileName(this, true, AliteConfig.PREVIOUS_EXTENSION_FILE_VERSION)));
+		AliteLog.e("Check for old OBB", "Old OBB exists? " + oldObb.getAbsolutePath());
         if (oldObb.exists()) {
+			AliteLog.e("Check for old OBB", "Old OBB exists, delete it.");
         	oldObb.delete();
         }
 	    String fileName = Helpers.getExpansionAPKFileName(this, true, AliteConfig.EXTENSION_FILE_VERSION);
@@ -83,7 +77,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 	    AliteLog.e("Check for OBB", "OBB exists? " + fileForNewFile.getAbsolutePath());
 	    return Helpers.doesFileExist(this, fileName, AliteConfig.EXTENSION_FILE_LENGTH, false);
 	}
-		
+
 	private void setStatus(String status) {
 		if (currentStatus.equals(status)) {
 			return;
@@ -91,17 +85,16 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		((TextView) findViewById(R.id.statusTextView)).setText(status);
 		currentStatus = status;
 	}
-	
+
 	private void checkDownload() {
 		if (!expansionFilesDelivered()) {
 			AliteLog.d("File does not exist!", "Expansion file does not exist. Downloading...");
 			Intent notifierIntent = new Intent(this, getClass());
 			notifierIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			pendingIntent = PendingIntent.getActivity(this, 0, notifierIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 			try {
-				int startResult = DownloaderClientMarshaller.startDownloadServiceIfRequired(this, pendingIntent,
-								AliteDownloaderService.class);
-				if (startResult != DownloaderClientMarshaller.NO_DOWNLOAD_REQUIRED) {
+				if (DownloaderClientMarshaller.startDownloadServiceIfRequired(this,
+						PendingIntent.getActivity(this, 0, notifierIntent, PendingIntent.FLAG_UPDATE_CURRENT),
+						AliteDownloaderService.class) != DownloaderClientMarshaller.NO_DOWNLOAD_REQUIRED) {
 					downloaderClientStub = DownloaderClientMarshaller.CreateStub(this, AliteDownloaderService.class);
 					setContentView(R.layout.activity_start_manager);
 					return;
@@ -112,7 +105,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 			}
 		}
 
-		AliteFiles.performMount(this,  
+		AliteFiles.performMount(this,
 				new IMethodHook() {
 			private static final long serialVersionUID = -6200281383445218241L;
 
@@ -122,10 +115,10 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 			}
 		}, new ErrorHook());
 	}
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);		
+		super.onCreate(savedInstanceState);
 		if (fileIO == null) {
 			fileIO = new AndroidFileIO(this);
 		}
@@ -134,15 +127,13 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		}
 		AliteLog.d("AliteStartManager.onCreate", "onCreate begin");
 		final Thread.UncaughtExceptionHandler oldHandler = Thread.getDefaultUncaughtExceptionHandler();
-		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread paramThread, Throwable paramThrowable) {				
-	            AliteLog.e("Uncaught Exception (AliteStartManager)", "Message: " + (paramThrowable == null ? "<null>" : paramThrowable.getMessage()), paramThrowable);
-				if (oldHandler != null) {
-					oldHandler.uncaughtException(paramThread, paramThrowable);
-				} else {
-					System.exit(2);
-				}
+		Thread.setDefaultUncaughtExceptionHandler((paramThread, paramThrowable) -> {
+			AliteLog.e("Uncaught Exception (AliteStartManager)",
+				"Message: " + (paramThrowable == null ? "<null>" : paramThrowable.getMessage()), paramThrowable);
+			if (oldHandler != null) {
+				oldHandler.uncaughtException(paramThread, paramThrowable);
+			} else {
+				System.exit(2);
 			}
 		});
 		AliteLog.d("Alite Start Manager", "Alite Start Manager has been created.");
@@ -155,32 +146,32 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		}
 		AliteLog.d("AliteStartManager.onCreate", "onCreate end");
 	}
-	
+
 //	private void checkSHA() {
 //	    String fileName = Helpers.getExpansionAPKFileName(this, true, EXTENSION_FILE_VERSION);
 //	    AliteLog.e("SHA-Checksum", "Start SHA-Checksum calculation");
 //	    File fileForNewFile = new File(Helpers.generateSaveFileName(this, fileName));
 //	    AliteLog.e("SHA-Checksum", "Checksum for obb: " + FileUtils.computeSHAString(fileForNewFile));
 //	}
-				
+
 	private void startGame() {
 		AliteLog.d("Alite Start Manager", "Loading Alite State");
 //		loadOXPs();
-		loadCurrentGame(fileIO);			
+		loadCurrentGame(fileIO);
 	}
-	
+
 	private void startAliteIntro() {
 		AliteLog.d("Alite Start Manager", "Starting INTRO!");
 		Intent intent = new Intent(this, AliteIntro.class);
 		intent.putExtra(Alite.LOG_IS_INITIALIZED, true);
-		startActivityForResult(intent, 0);	
+		startActivityForResult(intent, 0);
 	}
-	
+
 	private void startAlite() {
 		AliteLog.d("Alite Start Manager", "Starting Alite.");
 		Intent intent = new Intent(this, Alite.class);
 		intent.putExtra(Alite.LOG_IS_INITIALIZED, true);
-		startActivityForResult(intent, 0);	
+		startActivityForResult(intent, 0);
 	}
 
 	private void loadCurrentGame(AndroidFileIO fileIO) {
@@ -199,27 +190,27 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 					// However, if the game crashes right after the intro (probably because of the
 					// Activity change), we don't have a fallback. Hence, we simply prohibit resuming
 					// the intro...
-					AliteLog.d("Alite Start Manager", "Saved screen code == " + ((int) b[0]) + " - starting game.");
+					AliteLog.d("Alite Start Manager", "Saved screen code == " + b[0] + " - starting game.");
 					startAlite();
 				}
 			} else {
 				AliteLog.d("Alite Start Manager", "No state file present: Starting intro.");
-				startAliteIntro();			
-			}			
+				startAliteIntro();
+			}
 		} catch (IOException e) {
 			// Default to Intro...
 			AliteLog.e("Alite Start Manager", "Exception occurred. Starting intro.", e);
 			startAliteIntro();
 		}
 	}
-	
+
 	@Override
 	protected void onPause() {
 		AliteLog.d("AliteStartManager.onPause", "onPause begin");
-		super.onPause();		
+		super.onPause();
 		AliteLog.d("AliteStartManager.onPause", "onPause end");
 	}
-		
+
 	@Override
 	protected void onResume() {
 		AliteLog.d("AliteStartManager.onResume", "onResume begin");
@@ -229,21 +220,20 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		super.onResume();
 		AliteLog.d("AliteStartManager.onResume", "onResume end");
 	}
-	
+
 	@Override
 	protected void onStop() {
 		AliteLog.d("AliteStartManager.onStop", "onStop begin");
 		if (null != downloaderClientStub) {
 	        downloaderClientStub.disconnect(this);
-	    }		
+	    }
 		super.onStop();
 		AliteLog.d("AliteStartManager.onStop", "onStop end");
 	}
 
 	@Override
 	public void onServiceConnected(Messenger m) {
-		remoteService = DownloaderServiceMarshaller.CreateProxy(m);
-	    remoteService.onClientUpdated(downloaderClientStub.getMessenger());
+		DownloaderServiceMarshaller.CreateProxy(m).onClientUpdated(downloaderClientStub.getMessenger());
 	}
 
 	@Override
@@ -252,7 +242,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		if (newState == IDownloaderClient.STATE_COMPLETED) {
 			((TextView) findViewById(R.id.downloadProgressPercentTextView)).setText("100%");
 			((ProgressBar) findViewById(R.id.downloadProgressBar)).setProgress((int) AliteConfig.EXTENSION_FILE_LENGTH);
-			((TextView) findViewById(R.id.downloadTextView)).setText("Download complete.");
+			((TextView) findViewById(R.id.downloadTextView)).setText(R.string.notification_download_complete);
 			AliteFiles.performMount(this, new IMethodHook() {
 				private static final long serialVersionUID = -5369313962579796580L;
 
@@ -268,16 +258,19 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 	public void onDownloadProgress(DownloadProgressInfo progress) {
 		progressUpdateCalls++;
 		avgSpeed += progress.mCurrentSpeed;
-		TextView report = (TextView) findViewById(R.id.downloadTextView);
+		TextView report = findViewById(R.id.downloadTextView);
 		int mbRead = (int) (progress.mOverallProgress / 1024.0f / 1024.0f);
 		int mbTotal = (int) (progress.mOverallTotal / 1024.0f / 1024.0f);
-		report.setText("Downloading... " + mbRead + " of " + mbTotal + "MB read. Speed: " + String.format(Locale.getDefault(), "%4.2f", (avgSpeed / (float) progressUpdateCalls / 1024.0f)) + " MB/s. Time remaining: " + (int) ((float) progress.mTimeRemaining / 1000.0f) + "s.");
+		report.setText("Downloading... " + mbRead + " of " + mbTotal + "MB read. Speed: " +
+			String.format(Locale.getDefault(), "%4.2f", avgSpeed / progressUpdateCalls / 1024.0f) +
+			" MB/s. Time remaining: " + (int) (progress.mTimeRemaining / 1000.0f) + "s.");
 		((ProgressBar) findViewById(R.id.downloadProgressBar)).setMax((int) progress.mOverallTotal);
 		((ProgressBar) findViewById(R.id.downloadProgressBar)).setProgress((int) progress.mOverallProgress);
-		((TextView) findViewById(R.id.downloadProgressPercentTextView)).setText((int) (((float) progress.mOverallProgress / (float) progress.mOverallTotal * 100.0f)) + "%"); 
-		AliteLog.d("Progress", "Current Speed: " + progress.mCurrentSpeed + ", Overall progress: " + progress.mOverallProgress + ", Total progress: " + progress.mOverallTotal + ", Time Remaining: " + progress.mTimeRemaining);
+		((TextView) findViewById(R.id.downloadProgressPercentTextView)).setText((int) (progress.mOverallProgress / (float) progress.mOverallTotal * 100.0f) + "%");
+		AliteLog.d("Progress", "Current Speed: " + progress.mCurrentSpeed + ", Overall progress: " + progress.mOverallProgress +
+			", Total progress: " + progress.mOverallTotal + ", Time Remaining: " + progress.mTimeRemaining);
 	}
-	
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 	  if (resultCode == ALITE_RESULT_CLOSE_ALL) {
