@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,14 +18,11 @@ package de.phbouillon.android.games.alite;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.IOException;
-
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.opengl.GLES11;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.Menu;
 import de.phbouillon.android.framework.Screen;
@@ -39,56 +36,53 @@ import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.Rating;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
-import de.phbouillon.android.games.alite.model.missions.ConstrictorMission;
-import de.phbouillon.android.games.alite.model.missions.CougarMission;
-import de.phbouillon.android.games.alite.model.missions.EndMission;
-import de.phbouillon.android.games.alite.model.missions.Mission;
-import de.phbouillon.android.games.alite.model.missions.MissionManager;
-import de.phbouillon.android.games.alite.model.missions.SupernovaMission;
-import de.phbouillon.android.games.alite.model.missions.ThargoidDocumentsMission;
-import de.phbouillon.android.games.alite.model.missions.ThargoidStationMission;
+import de.phbouillon.android.games.alite.model.missions.*;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
-import de.phbouillon.android.games.alite.screens.canvas.BuyScreen;
-import de.phbouillon.android.games.alite.screens.canvas.DiskScreen;
-import de.phbouillon.android.games.alite.screens.canvas.EquipmentScreen;
-import de.phbouillon.android.games.alite.screens.canvas.GalaxyScreen;
-import de.phbouillon.android.games.alite.screens.canvas.HackerScreen;
-import de.phbouillon.android.games.alite.screens.canvas.InventoryScreen;
-import de.phbouillon.android.games.alite.screens.canvas.LibraryScreen;
 import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
-import de.phbouillon.android.games.alite.screens.canvas.LocalScreen;
-import de.phbouillon.android.games.alite.screens.canvas.PlanetScreen;
-import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
-import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
-import de.phbouillon.android.games.alite.screens.canvas.tutorial.TutorialSelectionScreen;
 import de.phbouillon.android.games.alite.screens.opengl.DefaultCoordinateTransformer;
-import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
 import de.phbouillon.android.games.alite.screens.opengl.TextureManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.LaserManager;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteFont;
 
+import java.io.IOException;
+
 public class Alite extends AndroidGame {
-	public static final String VERSION_STRING = AliteConfig.VERSION_STRING + " " + (AliteConfig.HAS_EXTENSION_APK ? "OBB" : "SFI"); 
+	public static final String VERSION_STRING = AliteConfig.VERSION_STRING + " " + (AliteConfig.HAS_EXTENSION_APK ? "OBB" : "SFI");
 	public static final String LOG_IS_INITIALIZED = "logIsInitialized";
-	
+
+	public static int NAVIGATION_BAR_LAUNCH;
+	public static int NAVIGATION_BAR_STATUS;
+	public static int NAVIGATION_BAR_BUY;
+	public static int NAVIGATION_BAR_INVENTORY;
+	public static int NAVIGATION_BAR_EQUIP;
+	public static int NAVIGATION_BAR_GALAXY;
+	public static int NAVIGATION_BAR_LOCAL;
+	public static int NAVIGATION_BAR_PLANET;
+	public static int NAVIGATION_BAR_DISK;
+	public static int NAVIGATION_BAR_OPTIONS;
+	public static int NAVIGATION_BAR_LIBRARY;
+	public static int NAVIGATION_BAR_ACADEMY;
+	public static int NAVIGATION_BAR_HACKER;
+	public static int NAVIGATION_BAR_QUIT;
+
 	private Player player;
 	private GalaxyGenerator generator;
 	private long startTime;
 	private long elapsedTime;
 	private NavigationBar navigationBar;
-	private int hackerId;
 	private static AliteScreen definingScreen;
 	private final FileUtils fileUtils;
 	private LaserManager laserManager;
 	private AliteFont font;
 	private static Alite alite;
 	private boolean saving = false;
-	
+	private boolean isHackerActive;
+
 	public Alite() {
-		super(1920, 1080);		
+		super(1920, 1080);
 		fileUtils = new FileUtils();
 		alite = this;
 	}
@@ -97,19 +91,19 @@ public class Alite extends AndroidGame {
 	public Screen getStartScreen() {
 		return new LoadingScreen(this);
 	}
-		
+
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
-		super.onWindowFocusChanged(hasFocus);		
+		super.onWindowFocusChanged(hasFocus);
 		AndroidUtil.setImmersion(getCurrentView());
 	}
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Intent intent = getIntent();
 		if (intent == null || !intent.getBooleanExtra(LOG_IS_INITIALIZED, false)) {
-			AliteLog.initialize(getFileIO());			
+			AliteLog.initialize(getFileIO());
 		}
 		AliteLog.d("Alite.onCreate", "onCreate begin");
 		final Thread.UncaughtExceptionHandler oldHandler = Thread.getDefaultUncaughtExceptionHandler();
@@ -132,10 +126,10 @@ public class Alite extends AndroidGame {
 			case 0: setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE); break;
 			case 1: setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); break;
 			case 2: setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE); break;
-		}				
+		}
 		AliteLog.d("Alite.onCreate", "onCreate end");
 	}
-	
+
 	public void initialize() {
 		if (generator == null) {
 			generator = new GalaxyGenerator();
@@ -145,7 +139,7 @@ public class Alite extends AndroidGame {
 			player = new Player(this);
 		}
 	}
-	
+
 	private void registerMissions() {
 		MissionManager.getInstance().clear();
 		MissionManager.getInstance().register(new ConstrictorMission(this));
@@ -155,107 +149,50 @@ public class Alite extends AndroidGame {
 		MissionManager.getInstance().register(new ThargoidStationMission(this));
 		MissionManager.getInstance().register(new EndMission(this));
 	}
-	
+
 	public void activateHacker() {
-		if (hackerId != 0) {
-			navigationBar.setVisible(hackerId, true);
+		if (NAVIGATION_BAR_HACKER != 0) {
+			isHackerActive = true;
+			navigationBar.setVisible(NAVIGATION_BAR_HACKER, true);
 		}
 	}
-	
+
 	public boolean isHackerActive() {
-		if (hackerId == 0) {
-			return false;
-		}
-		return navigationBar.isVisible(hackerId);
+		return isHackerActive;
 	}
-	
+
 	public void setIntergalActive(boolean active) {
 	}
-	
+
 	public void setGameTime(long elapsedTime) {
 		this.elapsedTime = elapsedTime;
-		this.startTime = System.nanoTime();
+		startTime = System.nanoTime();
 	}
-	
+
 	public long getGameTime() {
-		return elapsedTime + (System.nanoTime() - startTime);
+		return elapsedTime + System.nanoTime() - startTime;
 	}
-	
+
 	public FileUtils getFileUtils() {
 		return fileUtils;
 	}
-	
+
 	public Player getPlayer() {
 		return player;
 	}
-	
+
 	public PlayerCobra getCobra() {
 		return player.getCobra();
 	}
-	
+
 	public GalaxyGenerator getGenerator() {
 		return generator;
 	}
 
-	public StatusScreen getStatusScreen() {
-		return new StatusScreen(this);
-	}
-
-	public BuyScreen getBuyScreen() {
-		return new BuyScreen(this);
-	}
-	
-	public InventoryScreen getInventoryScreen() {
-		return new InventoryScreen(this);
-	}
-
-	public EquipmentScreen getEquipmentScreen() {
-		return new EquipmentScreen(this);
-	}
-
-	public GalaxyScreen getGalaxyScreen() {
-		return new GalaxyScreen(this);
-	}
-
-	public LocalScreen getLocalScreen() {
-		return new LocalScreen(this);
-	}
-
-	public PlanetScreen getPlanetScreen() {
-		if (player.getCurrentSystem() == null && player.getHyperspaceSystem() == null) {
-			return null;
-		}
-		return new PlanetScreen(this);
-	}
-	
-	public HyperspaceScreen getLaunchScreen() {
-		return new HyperspaceScreen(this, false);
-	}
-	
-	public DiskScreen getDiskScreen() {
-		return new DiskScreen(this);
-	}
-		
-	public OptionsScreen getOptionsScreen() {
-		return new OptionsScreen(this);
-	}
-		
-	public LibraryScreen getLibraryScreen() {
-		return new LibraryScreen(this, null);
-	}
-
-	public TutorialSelectionScreen getAcademyScreen() {
-		return new TutorialSelectionScreen(this);
-	}
-	
-	public HackerScreen getHackerScreen() {
-		return new HackerScreen(this);
-	}
-	
 	public NavigationBar getNavigationBar() {
 		return navigationBar;
 	}
-	
+
 	public boolean isHyperspaceTargetValid() {
 		if (player.getHyperspaceSystem() == null) {
 			return false;
@@ -263,20 +200,17 @@ public class Alite extends AndroidGame {
 		if (player.getHyperspaceSystem() == player.getCurrentSystem()) {
 			return false;
 		}
-		int distance = player.getCurrentSystem() == null ? computeDistance(player.getPosition(), player.getHyperspaceSystem()) : player.getCurrentSystem().computeDistance(player.getHyperspaceSystem()); 
-		if (!Settings.unlimitedFuel && player.getCobra().getFuel() < distance) {
-			return false;			
-		}
-		return true;		
+		int distance = player.getCurrentSystem() == null ? computeDistance(player.getPosition(), player.getHyperspaceSystem()) : player.getCurrentSystem().computeDistance(player.getHyperspaceSystem());
+		return Settings.unlimitedFuel || player.getCobra().getFuel() >= distance;
 	}
 
 	private int computeDistance(Point p, SystemData system) {
 		int dx = p.x - system.getX();
 		int dy = p.y - system.getY();
-		return (int) Math.sqrt(dx * dx + dy * dy) << 2;		
+		return (int) Math.sqrt(dx * dx + dy * dy) << 2;
 	}
-	
-	public boolean performHyperspaceJump() {		
+
+	public void performHyperspaceJump() {
 		InGameManager.safeZoneViolated = false;
 		if (player.getActiveMissions().size() == 0) {
 			player.increaseJumpCounter();
@@ -288,7 +222,7 @@ public class Alite extends AndroidGame {
 		if (player.getCobra().getPitch() <= -2.0f && player.getCobra().getRoll() <= -2.0f) {
 			willEnterWitchSpace = true;
 		}
-		int distance = player.getCurrentSystem() == null ? computeDistance(player.getPosition(), player.getHyperspaceSystem()) : 
+		int distance = player.getCurrentSystem() == null ? computeDistance(player.getPosition(), player.getHyperspaceSystem()) :
 				player.getCurrentSystem().computeDistance(player.getHyperspaceSystem());
 		if (willEnterWitchSpace) {
 			distance >>= 1;
@@ -308,15 +242,14 @@ public class Alite extends AndroidGame {
 		if (willEnterWitchSpace) {
 			fs.enterWitchSpace();
 		}
-		setScreen(fs);	
+		setScreen(fs);
     	GLES11.glMatrixMode(GLES11.GL_TEXTURE);
     	GLES11.glLoadIdentity();
-		navigationBar.setActiveIndex(2);
+		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
 		player.setLegalValue(player.getLegalValue() >> 1);
-		return true;
 	}
-	
-	public boolean performIntergalacticJump() {
+
+	public void performIntergalacticJump() {
 		InGameManager.safeZoneViolated = false;
 		if (player.getActiveMissions().size() == 0) {
 			player.increaseIntergalacticJumpCounter();
@@ -338,19 +271,18 @@ public class Alite extends AndroidGame {
 		setScreen(new FlightScreen(this, false));
     	GLES11.glMatrixMode(GLES11.GL_TEXTURE);
     	GLES11.glLoadIdentity();
-		navigationBar.setActiveIndex(2);
-		return true;
+		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
 	}
-	
+
 	@Override
 	protected void saveState() {
 		try {
 			fileUtils.saveState(getFileIO(), getCurrentScreen());
-		} catch (IOException e) {			
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-		
+
 	@Override
 	public void onPause() {
 		try {
@@ -358,7 +290,7 @@ public class Alite extends AndroidGame {
 			super.onPause();
 		} finally {
 			setSaving(false);
-		}	
+		}
 		if (getInput() != null) {
 			getInput().dispose();
 		}
@@ -383,8 +315,7 @@ public class Alite extends AndroidGame {
 			AliteLog.e("OnDestroy", "Still saving...");
 			try {
 				Thread.sleep(100);
-			} catch (InterruptedException e) {
-			}
+			} catch (InterruptedException ignored) { }
 		}
 		AliteLog.e("Alite.OnDestroy", "Destroying Alite Done.");
 		super.onDestroy();
@@ -398,28 +329,27 @@ public class Alite extends AndroidGame {
 			AliteLog.e("OnStop", "Still saving...");
 			try {
 				Thread.sleep(100);
-			} catch (InterruptedException e) {
-			}
+			} catch (InterruptedException ignored) { }
 		}
-		AliteLog.e("Alite.OnStop", "Stopping Alite Done.");				
-		super.onStop();		
+		AliteLog.e("Alite.OnStop", "Stopping Alite Done.");
+		super.onStop();
 	}
 
-	public synchronized void setSaving(boolean b) {
+	private synchronized void setSaving(boolean b) {
 		saving = b;
 	}
-	
-	public void loadAutosave() {
+
+	void loadAutosave() {
 		try {
 			AliteLog.d("[ALITE]", "Loading autosave.");
 			getFileUtils().autoLoad(this);
 		} catch (Exception e)  {
 			AliteLog.e("[ALITE]", "Loading autosave commander failed.", e);
-		}		
+		}
 	}
-	
+
 	@Override
-	public void onResume() {	
+	public void onResume() {
 		AliteLog.d("Alite.onResume", "onResume begin");
 		if (textureManager != null) {
 			textureManager.clear();
@@ -430,27 +360,26 @@ public class Alite extends AndroidGame {
 	}
 
 	@Override
-  public void afterSurfaceCreated() {
-    navigationBar = new NavigationBar(this);
-    navigationBar.add("Launch", Assets.launchIcon, null);
-    int intergalId = navigationBar.add("Gal. Jump", Assets.launchIcon, null);
-    navigationBar.setVisible(intergalId, false);
-    navigationBar.add("Status", Assets.statusIcon, "StatusScreen");
-    navigationBar.add("Buy", Assets.buyIcon, "BuyScreen");
-		navigationBar.add("Inventory", Assets.inventoryIcon, "InventoryScreen");
-		navigationBar.add("Equip", Assets.equipIcon, "EquipmentScreen");
-		navigationBar.add("Galaxy", Assets.galaxyIcon, "GalaxyScreen");
-		navigationBar.add("Local", Assets.localIcon, "LocalScreen");
-		navigationBar.add("Planet", Assets.planetIcon, "PlanetScreen");		
-		navigationBar.add("Disk", Assets.diskIcon, "DiskScreen");
-		navigationBar.add("Options", Assets.optionsIcon, "OptionsScreen");
-		navigationBar.add("Library", Assets.libraryIcon, "LibraryScreen");
-		navigationBar.add("Academy", Assets.academyIcon, "AcademyScreen");		
-		hackerId = navigationBar.add("Hacker", Assets.hackerIcon, "HackerScreen");
-		navigationBar.setVisible(hackerId, false);
-    navigationBar.add("Quit", Assets.quitIcon, null);
-		navigationBar.setActiveIndex(2);		
-		
+	public void afterSurfaceCreated() {
+		// if navigation target is defined package root of screens is screens.canvas
+		navigationBar = new NavigationBar(this);
+		NAVIGATION_BAR_LAUNCH = navigationBar.add("Launch", Assets.launchIcon, null);
+		NAVIGATION_BAR_STATUS = navigationBar.add("Status", Assets.statusIcon, "StatusScreen");
+		NAVIGATION_BAR_BUY = navigationBar.add("Buy", Assets.buyIcon, "BuyScreen");
+		NAVIGATION_BAR_INVENTORY = navigationBar.add("Inventory", Assets.inventoryIcon, "InventoryScreen");
+		NAVIGATION_BAR_EQUIP = navigationBar.add("Equip", Assets.equipIcon, "EquipmentScreen");
+		NAVIGATION_BAR_GALAXY = navigationBar.add("Galaxy", Assets.galaxyIcon, "GalaxyScreen");
+		NAVIGATION_BAR_LOCAL = navigationBar.add("Local", Assets.localIcon, "LocalScreen");
+		NAVIGATION_BAR_PLANET = navigationBar.add("Planet", Assets.planetIcon, "PlanetScreen");
+		NAVIGATION_BAR_DISK = navigationBar.add("Disk", Assets.diskIcon, "DiskScreen");
+		NAVIGATION_BAR_OPTIONS = navigationBar.add("Options", Assets.optionsIcon, "options.OptionsScreen");
+		NAVIGATION_BAR_LIBRARY = navigationBar.add("Library", Assets.libraryIcon, "LibraryScreen");
+		NAVIGATION_BAR_ACADEMY = navigationBar.add("Academy", Assets.academyIcon, "tutorial.TutorialSelectionScreen");
+		NAVIGATION_BAR_HACKER = navigationBar.add("Hacker", Assets.hackerIcon, "HackerScreen");
+		navigationBar.setVisible(NAVIGATION_BAR_HACKER, false);
+		NAVIGATION_BAR_QUIT = navigationBar.add("Quit", Assets.quitIcon, null);
+		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
+
 		AliteFont.ct = new DefaultCoordinateTransformer(this);
 		font = new AliteFont(this);
 		final float scaleFactor = getScaleFactor();
@@ -458,7 +387,7 @@ public class Alite extends AndroidGame {
 		Assets.boldFont       = new GLText();
 		Assets.italicFont     = new GLText();
 		Assets.boldItalicFont = new GLText();
-		Assets.titleFont      = new GLText(); 
+		Assets.titleFont      = new GLText();
 		Assets.smallFont      = new GLText();
 
 		if (AliteConfig.HAS_EXTENSION_APK) {
@@ -474,10 +403,10 @@ public class Alite extends AndroidGame {
 			Assets.italicFont.load(getAssets(), "robotoi.ttf", (int) (40.0f * scaleFactor), 40, 2, 2);
 			Assets.boldItalicFont.load(getAssets(), "robotobi.ttf", (int) (40.0f * scaleFactor), 40, 2, 2);
 			Assets.titleFont.load(getAssets(), "robotor.ttf", (int) (60.0f * scaleFactor), 60, 2, 2);
-			Assets.smallFont.load(getAssets(), "robotor.ttf", (int) (30.0f * scaleFactor), 30, 2, 2);			
+			Assets.smallFont.load(getAssets(), "robotor.ttf", (int) (30.0f * scaleFactor), 30, 2, 2);
 		}
 	}
-	
+
 	@Override
 	public void onBackPressed() {
 		// Does nothing on purpose: Saves the player from accidentally quitting
@@ -497,31 +426,27 @@ public class Alite extends AndroidGame {
 		invalidateOptionsMenu();
 		return true;
 	}
-	
+
 	public static void setDefiningScreen(AliteScreen definingScreen) {
 		Alite.definingScreen = definingScreen;
 	}
-	
-	public static AliteScreen getDefiningScreen() {
+
+	static AliteScreen getDefiningScreen() {
 		return Alite.definingScreen;
 	}
-	
+
 	public TextureManager getTextureManager() {
 		return textureManager;
 	}
-	
+
 	public AliteFont getFont() {
 		return font;
 	}
-	
-	public void runAsync(final Runnable runnable) {
-		((GLSurfaceView) getCurrentView()).queueEvent(runnable);
-	}
-	
+
 	public void setLaserManager(LaserManager man) {
-		this.laserManager = man;
+		laserManager = man;
 	}
-	
+
 	public LaserManager getLaserManager() {
 		return laserManager;
 	}
@@ -530,14 +455,6 @@ public class Alite extends AndroidGame {
 		return alite;
 	}
 
-	public void restartMe() {
-		runOnUiThread(new Runnable() {
-		    public void run() {
-		        recreate();
-		    }
-		});
-	}
-	
 	@Override
 	public void onConfigurationChanged(Configuration config) {
 		AliteLog.d("ON CONFIGURATION CHANGED", "ON CONFIGURATION CHANGED");

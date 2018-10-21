@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -33,13 +33,13 @@ import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
 public class InFlightButtonsOptionsScreen extends AliteScreen {
-	private ButtonConfigData [] uiButton = new ButtonConfigData[12];
+	private ButtonConfigData[] uiButton = new ButtonConfigData[12];
 
 	private Pixmap torusDriveDockingComputerPixmap;
 	private Pixmap hyperspacePixmap;
@@ -54,30 +54,30 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 	private Pixmap missilePixmap;
 	private Pixmap firePixmap;
 	private Pixmap overlayPixmap;
-	
+
 	private Button selectionMode;
 	private Button reset;
 	private Button back;
 	private ButtonConfigData selectedButton = null;
-	private ButtonConfigGroup [] buttonGroups = new ButtonConfigGroup[4];
+	private ButtonConfigGroup[] buttonGroups = new ButtonConfigGroup[4];
 	private boolean groupSelectionMode = true;
 	private boolean confirmReset = false;
-	
+
 	class ButtonConfigData {
 		Button button;
 		int groupIndex;
 		int settingsPosition;
 		String name;
 	}
-	
+
 	class ButtonConfigGroup {
-		ButtonConfigData [] buttons = new ButtonConfigData[3];		
+		ButtonConfigData[] buttons = new ButtonConfigData[3];
 	}
-	
-	public InFlightButtonsOptionsScreen(Game game) {
-		super(game);		
+
+	InFlightButtonsOptionsScreen(Game game) {
+		super(game);
 	}
-	
+
 	@Override
 	public void activate() {
 		uiButton[Settings.FIRE] = createButton(Settings.buttonPosition[Settings.FIRE], firePixmap, Settings.FIRE, "Fire Laser");
@@ -93,29 +93,28 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 	    uiButton[Settings.CLOAKING_DEVICE] = createButton(Settings.buttonPosition[Settings.CLOAKING_DEVICE], cloakingDevicePixmap, Settings.CLOAKING_DEVICE, "Cloaking Device");
 	    uiButton[Settings.ECM_JAMMER] = createButton(Settings.buttonPosition[Settings.ECM_JAMMER], ecmJammerPixmap, Settings.ECM_JAMMER, "ECM Jammer");
 
-		selectionMode = new Button(50, 860, 1620, 100, "Selection Mode: " + (groupSelectionMode ? "Group" : "Button"), Assets.titleFont, null);
-		selectionMode.setGradient(true);			
-		back = new Button(50, 970, 780, 100, "Back", Assets.titleFont, null);
-		back.setGradient(true);
-		reset = new Button(890, 970, 780, 100, "Reset Positions", Assets.titleFont, null);
-		reset.setGradient(true);
+		selectionMode = Button.createGradientTitleButton(50, 860, 1620, 100, "Selection Mode: " + (groupSelectionMode ? "Group" : "Button"));
+		back = Button.createGradientTitleButton(50, 970, 780, 100, "Back");
+		reset = Button.createGradientTitleButton(890, 970, 780, 100, "Reset Positions");
 	}
-		
+
 	private ButtonConfigData createButton(int position, Pixmap pixmap, int settingsPosition, String name) {
-		int xt, yt, groupIndex, buttonIndex;
+		int xt;
+		int yt;
+		int groupIndex;
+		int buttonIndex;
 		if (position < 6) {
-			xt = (((position % 3) % 2) == 0 ? 0 : 150) + (position < 3 ? 0 : 300);
+			xt = (position % 3 % 2 == 0 ? 0 : 150) + (position < 3 ? 0 : 300);
 			groupIndex = position < 3 ? 0 : 1;
 		} else {
-			xt = (((position % 3) % 2) == 0 ? 1500 : 1350) - (position < 9 ? 0 : 300);
+			xt = (position % 3 % 2 == 0 ? 1500 : 1350) - (position < 9 ? 0 : 300);
 			groupIndex = position < 9 ? 2 : 3;
 		}
-		yt = (position % 3) * 150 + 200;
+		yt = position % 3 * 150 + 200;
 		buttonIndex = position % 3;
-		
-		Button result = new Button(xt, yt, 200, 200, pixmap);
-		result.setUseBorder(false);
-		
+
+		Button result = Button.createPictureButton(xt, yt, 200, 200, pixmap);
+
 		ButtonConfigData config = new ButtonConfigData();
 		config.button = result;
 		config.groupIndex = groupIndex;
@@ -124,26 +123,26 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		if (buttonGroups[groupIndex] == null) {
 			buttonGroups[groupIndex] = new ButtonConfigGroup();
 		}
-		
+
 		buttonGroups[groupIndex].buttons[buttonIndex] = config;
 
 		return config;
 	}
-		
+
 	@Override
-	public void present(float deltaTime) {		
+	public void present(float deltaTime) {
 		if (disposed) {
 			return;
 		}
 		Graphics g = game.getGraphics();
-		g.clear(AliteColors.get().background());
-		
+		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
+
 		displayTitle("Button Position Options");
-		
-		g.drawText("Primary", 20, 150, AliteColors.get().mainText(), Assets.regularFont);
-		g.drawText("Secondary", 320, 150, AliteColors.get().mainText(), Assets.regularFont);
-		g.drawText("Secondary", 1180, 150, AliteColors.get().mainText(), Assets.regularFont);
-		g.drawText("Primary", 1480, 150, AliteColors.get().mainText(), Assets.regularFont);
+
+		g.drawText("Primary", 20, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
+		g.drawText("Secondary", 320, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
+		g.drawText("Secondary", 1180, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
+		g.drawText("Primary", 1480, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
 		String text;
 		if (groupSelectionMode) {
 			if (selectedButton == null) {
@@ -158,19 +157,19 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 				text = "Select the target button.";
 			}
 		}
-		centerText(text, 800, Assets.regularFont, AliteColors.get().mainText());
-		
+		centerText(text, 800, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+
 		for (ButtonConfigData b: uiButton) {
 			b.button.render(g);
 			if (b.button.isSelected()) {
 				g.drawPixmap(overlayPixmap, b.button.getX(), b.button.getY());
-				if (b.name.indexOf("/") == -1) {
-					centerText(b.name, b.button.getY() + 100, Assets.regularFont, AliteColors.get().mainText());	
+				if (!b.name.contains("/")) {
+					centerText(b.name, b.button.getY() + 100, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 				} else {
-					centerText(b.name.substring(0, b.name.indexOf("/")), b.button.getY() + 80, Assets.regularFont, AliteColors.get().mainText());
-					centerText(b.name.substring(b.name.indexOf("/") + 1), b.button.getY() + 120, Assets.regularFont, AliteColors.get().mainText());
+					centerText(b.name.substring(0, b.name.indexOf("/")), b.button.getY() + 80, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+					centerText(b.name.substring(b.name.indexOf("/") + 1), b.button.getY() + 120, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 				}
-				
+
 			}
 		}
 
@@ -178,15 +177,15 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		back.render(g);
 		reset.render(g);
 	}
-	
-	
+
+
 	private void swapSingleButton(ButtonConfigData src, ButtonConfigData target) {
 		AliteLog.d("Swapping Buttons", src.name + ", " + target.name + " => " + Settings.buttonPosition[src.settingsPosition] + ", " + Settings.buttonPosition[target.settingsPosition]);
-		 
+
 		for (int i = 0; i < 3; i++) {
 			if (buttonGroups[src.groupIndex].buttons[i] == src) {
 				buttonGroups[src.groupIndex].buttons[i] = null;
-			}			
+			}
 			if (buttonGroups[target.groupIndex].buttons[i] == target) {
 				buttonGroups[target.groupIndex].buttons[i] = src;
 			}
@@ -196,7 +195,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 				buttonGroups[src.groupIndex].buttons[i] = target;
 			}
 		}
-		
+
 		int srcValue = Settings.buttonPosition[src.settingsPosition];
 		int tgtValue = Settings.buttonPosition[target.settingsPosition];
 		int x = src.button.getX();
@@ -204,17 +203,16 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		int x2 = target.button.getX();
 		int y2 = target.button.getY();
 		target.button.move(x, y);
-		src.button.move(x2, y2);		
+		src.button.move(x2, y2);
 		int srcGrp = src.groupIndex;
-		int tgtGrp = target.groupIndex;
-		src.groupIndex = tgtGrp;
+		src.groupIndex = target.groupIndex;
 		target.groupIndex = srcGrp;
 		Settings.buttonPosition[src.settingsPosition] = tgtValue;
-		Settings.buttonPosition[target.settingsPosition] = srcValue;		
-				
+		Settings.buttonPosition[target.settingsPosition] = srcValue;
+
 		AliteLog.d("Swapped Buttons", src.name + ", " + target.name + " => " + Settings.buttonPosition[src.settingsPosition] + ", " + Settings.buttonPosition[target.settingsPosition]);
 	}
-	
+
 	private void debug() {
 		int count = 1;
 		for (ButtonConfigGroup bcg: buttonGroups) {
@@ -225,7 +223,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 			}
 			if (bcg != null && bcg.buttons == null) {
 				AliteLog.d("  BCG - " + count + ".buttons == null!!", "  BCG - " + count + ".buttons == null!!");
-			} 
+			}
 			if (bcg != null && bcg.buttons != null) {
 				for (ButtonConfigData b: bcg.buttons) {
 					AliteLog.d("  Button " + bc, "  Button " + bc + " => " + b.name + " => " + b.groupIndex + " => " + b.settingsPosition + " => " + Settings.buttonPosition[b.settingsPosition]);
@@ -235,8 +233,8 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 			count++;
 		}
 	}
-	
-	private void swapButtons(ButtonConfigData target) {		
+
+	private void swapButtons(ButtonConfigData target) {
 		if (groupSelectionMode) {
 			if (target.groupIndex != selectedButton.groupIndex) {
 				int srcGI = selectedButton.groupIndex;
@@ -255,19 +253,19 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		debug();
 		Settings.save(game.getFileIO());
 	}
-	
+
 	private void selectGroup(ButtonConfigData b) {
 		for (int j = 0; j < 3; j++) {
 			buttonGroups[b.groupIndex].buttons[j].button.setSelected(true);
 		}
 	}
-	
+
 	@Override
 	protected void processTouch(TouchEvent touch) {
 		super.processTouch(touch);
 		if (getMessage() != null) {
 			return;
-		}		
+		}
 
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (confirmReset && messageResult != 0) {
@@ -291,13 +289,13 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 				}
 			} else if (reset.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				setMessage("Are you sure?", MessageType.YESNO);
+				setQuestionMessage("Are you sure?");
 				confirmReset = true;
 			} else {
-				for (ButtonConfigData b: uiButton) {					
+				for (ButtonConfigData b: uiButton) {
 					if (b.button.isTouched(touch.x, touch.y)) {
 						if (selectedButton == null) {
-							selectedButton = b;							
+							selectedButton = b;
 							if (groupSelectionMode) {
 								selectGroup(b);
 							} else {
@@ -312,7 +310,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 			}
 		}
 	}
-	
+
 	@Override
 	public void dispose() {
 		super.dispose();
@@ -373,34 +371,34 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 	@Override
 	public void loadAssets() {
 		Graphics g = game.getGraphics();
-		
-		torusDriveDockingComputerPixmap = g.newPixmap("buttons/torus_docking.png", true);
-		hyperspacePixmap                = g.newPixmap("buttons/hyperspace.png", true);
-		galacticHyperspacePixmap        = g.newPixmap("buttons/gal_hyperspace.png", true);
-		statusPixmap                    = g.newPixmap("buttons/status.png", true);
-		ecmPixmap                       = g.newPixmap("buttons/ecm.png", true);
-		escapeCapsulePixmap             = g.newPixmap("buttons/escape_capsule.png", true);
-		energyBombPixmap                = g.newPixmap("buttons/energy_bomb.png", true);
-		retroRocketsPixmap              = g.newPixmap("buttons/retro_rockets.png", true);
-		ecmJammerPixmap                 = g.newPixmap("buttons/ecm_jammer.png", true);
-		cloakingDevicePixmap            = g.newPixmap("buttons/cloaking_device.png", true);
-		missilePixmap                   = g.newPixmap("buttons/missile.png", true);
-		firePixmap                      = g.newPixmap("buttons/fire.png", true);
-		overlayPixmap                   = g.newPixmap("buttons/overlay.png", true);
+
+		torusDriveDockingComputerPixmap = g.newPixmap("buttons/torus_docking.png");
+		hyperspacePixmap                = g.newPixmap("buttons/hyperspace.png");
+		galacticHyperspacePixmap        = g.newPixmap("buttons/gal_hyperspace.png");
+		statusPixmap                    = g.newPixmap("buttons/status.png");
+		ecmPixmap                       = g.newPixmap("buttons/ecm.png");
+		escapeCapsulePixmap             = g.newPixmap("buttons/escape_capsule.png");
+		energyBombPixmap                = g.newPixmap("buttons/energy_bomb.png");
+		retroRocketsPixmap              = g.newPixmap("buttons/retro_rockets.png");
+		ecmJammerPixmap                 = g.newPixmap("buttons/ecm_jammer.png");
+		cloakingDevicePixmap            = g.newPixmap("buttons/cloaking_device.png");
+		missilePixmap                   = g.newPixmap("buttons/missile.png");
+		firePixmap                      = g.newPixmap("buttons/fire.png");
+		overlayPixmap                   = g.newPixmap("buttons/overlay.png");
 
 		super.loadAssets();
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.INFLIGHT_BUTTONS_OPTIONS_SCREEN;
-	}		
-	
+	}
+
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeBoolean(groupSelectionMode);
 	}
-	
+
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		InFlightButtonsOptionsScreen ifbos = new InFlightButtonsOptionsScreen(alite);
 		try {
@@ -410,6 +408,6 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 			return false;
 		}
 		alite.setScreen(ifbos);
-		return true;		
-	}		
+		return true;
+	}
 }

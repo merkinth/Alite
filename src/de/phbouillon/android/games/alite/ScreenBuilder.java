@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.games.alite.screens.canvas.BuyScreen;
 import de.phbouillon.android.games.alite.screens.canvas.CatalogScreen;
 import de.phbouillon.android.games.alite.screens.canvas.DiskScreen;
@@ -66,7 +67,7 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 public class ScreenBuilder {
 	public static boolean createScreen(Alite alite, byte [] state) {
-		int screen = state[0];	
+		int screen = state[0];
 		if (screen != ScreenCodes.FLIGHT_SCREEN) {
 			alite.loadAutosave();
 		}
@@ -95,7 +96,7 @@ public class ScreenBuilder {
 				case ScreenCodes.INFLIGHT_BUTTONS_OPTIONS_SCREEN: return InFlightButtonsOptionsScreen.initialize(alite, dis);
 				case ScreenCodes.DEBUG_SCREEN: return DebugSettingsScreen.initialize(alite, dis);
 				case ScreenCodes.MORE_DEBUG_OPTIONS_SCREEN: return MoreDebugSettingsScreen.initialize(alite, dis);
-				case ScreenCodes.ABOUT_SCREEN: return AboutScreen.initialize(alite, dis);		
+				case ScreenCodes.ABOUT_SCREEN: return AboutScreen.initialize(alite, dis);
 				case ScreenCodes.LIBRARY_SCREEN: return LibraryScreen.initialize(alite, dis);
 				case ScreenCodes.LIBRARY_PAGE_SCREEN: return LibraryPageScreen.initialize(alite, dis);
 				case ScreenCodes.TUTORIAL_SELECTION_SCREEN: return TutorialSelectionScreen.initialize(alite, dis);
@@ -114,7 +115,7 @@ public class ScreenBuilder {
 				case ScreenCodes.TUT_BASIC_FLYING_SCREEN: return TutBasicFlying.initialize(alite, dis);
 				case ScreenCodes.TUT_ADVANCED_FLYING_SCREEN: return TutAdvancedFlying.initialize(alite, dis);
 				case ScreenCodes.HYPERSPACE_SCREEN: return HyperspaceScreen.initialize(alite, dis);
-				case ScreenCodes.FLIGHT_SCREEN: return FlightScreen.initialize(alite, dis);				
+				case ScreenCodes.FLIGHT_SCREEN: return FlightScreen.initialize(alite, dis);
 			}
 		} finally {
 			if (dis != null) {
@@ -123,8 +124,50 @@ public class ScreenBuilder {
 				} catch (IOException e) {
 				}
 			}
-			alite.getNavigationBar().moveToScreen(alite.getCurrentScreen());
+			moveToScreen(alite);
 		}
 		return false;
-	}	
+	}
+
+	private static void moveToScreen(Alite alite) {
+		Screen screen = alite.getCurrentScreen();
+		if (screen == null) {
+			return;
+		}
+		switch (screen.getScreenCode()) {
+			case ScreenCodes.STATUS_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS); break;
+
+			case ScreenCodes.BUY_SCREEN:
+			case ScreenCodes.QUANTITY_PAD_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY); break;
+
+			case ScreenCodes.INVENTORY_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_INVENTORY); break;
+			case ScreenCodes.EQUIP_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP); break;
+			case ScreenCodes.GALAXY_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY); break;
+			case ScreenCodes.LOCAL_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL); break;
+			case ScreenCodes.PLANET_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET); break;
+
+			case ScreenCodes.DISK_SCREEN:
+			case ScreenCodes.CATALOG_SCREEN:
+			case ScreenCodes.LOAD_SCREEN:
+			case ScreenCodes.SAVE_SCREEN:
+			case ScreenCodes.DISPLAY_OPTIONS_SCREEN:
+			case ScreenCodes.GAMEPLAY_OPTIONS_SCREEN:
+			case ScreenCodes.AUDIO_OPTIONS_SCREEN:
+			case ScreenCodes.CONTROL_OPTIONS_SCREEN:
+			case ScreenCodes.DEBUG_SCREEN:
+			case ScreenCodes.MORE_DEBUG_OPTIONS_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK); break;
+
+			case ScreenCodes.OPTIONS_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_OPTIONS); break;
+
+			case ScreenCodes.LIBRARY_SCREEN:
+			case ScreenCodes.LIBRARY_PAGE_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LIBRARY); break;
+
+			case ScreenCodes.TUTORIAL_SELECTION_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_ACADEMY); break;
+			case ScreenCodes.HACKER_SCREEN:
+				if (alite.isHackerActive()) {
+					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_HACKER);
+				}
+		}
+	}
+
 }

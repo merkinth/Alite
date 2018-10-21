@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -31,7 +31,7 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -40,22 +40,22 @@ public class HexNumberPadScreen extends AliteScreen {
 	private static final int OFFSET_Y = 20;
 	private static final int BUTTON_SIZE = 150;
 	private static final int GAP = 10;
-	
-	private final int xPos;
-	private final int yPos;
-	private final String [] buttonTexts = new String [] {"7", "8", "9", "E", "F", "4", "5", "6", "C", "D", "1", "2", "3", "A", "B", "0", "<-", "OK"};
-	private final Button [] pads;
+
+	private final int x;
+	private final int y;
+	private final String[] buttonTexts = new String[] {"7", "8", "9", "E", "F", "4", "5", "6", "C", "D", "1", "2", "3", "A", "B", "0", "<-", "OK"};
+	private final Button[] pads;
 	private String currentValueString = "";
 	private final HackerScreen hackerScreen;
 	private final int valueIndex;
-	
-	public HexNumberPadScreen(HackerScreen hackerScreen, Game game, int x, int y, int valueIndex) {
+
+	HexNumberPadScreen(HackerScreen hackerScreen, Game game, int x, int y, int valueIndex) {
 		super(game);
-		this.xPos = x;
-		this.yPos = y;
+		this.x = x;
+		this.y = y;
 		this.valueIndex = valueIndex;
 		this.hackerScreen = hackerScreen;
-		
+
 		pads = new Button[18];
 	}
 
@@ -63,11 +63,11 @@ public class HexNumberPadScreen extends AliteScreen {
 	public void activate() {
 		initializeButtons();
 	}
-	
+
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
-		dos.writeInt(xPos);
-		dos.writeInt(yPos);
+		dos.writeInt(x);
+		dos.writeInt(y);
 		dos.writeInt(valueIndex);
 		dos.writeInt(currentValueString.length());
 		if (currentValueString.length() > 0) {
@@ -99,20 +99,20 @@ public class HexNumberPadScreen extends AliteScreen {
 		return true;
 	}
 
-	private void initializeButtons() {		
+	private void initializeButtons() {
 		for (int y = 0; y < 4; y++) {
 			for (int x = 0; x < 5; x++) {
 				if (y == 3 && x > 2) {
 					break;
 				}
-				pads[y * 5 + x] = new Button(xPos + x * (BUTTON_SIZE + GAP) + OFFSET_X,
-						                     yPos + y * (BUTTON_SIZE + GAP) + OFFSET_Y,
-						                     BUTTON_SIZE, BUTTON_SIZE,
-						                     buttonTexts[y * 5 + x], Assets.regularFont, null);
+				pads[y * 5 + x] = Button.createRegularButton(this.x + x * (BUTTON_SIZE + GAP) + OFFSET_X,
+					 this.y + y * (BUTTON_SIZE + GAP) + OFFSET_Y,
+					 BUTTON_SIZE, BUTTON_SIZE,
+					 buttonTexts[y * 5 + x]);
 			}
 		}
 	}
-	
+
 	@Override
 	public void renderNavigationBar() {
 		// No navigation bar desired.
@@ -124,17 +124,17 @@ public class HexNumberPadScreen extends AliteScreen {
 			return;
 		}
 		Graphics g = game.getGraphics();
-		
+
 		hackerScreen.present(deltaTime);
 		int width = (BUTTON_SIZE + GAP) * 5 + 2 * OFFSET_X;
 		int height =  (BUTTON_SIZE + GAP) * 4 + 2 * OFFSET_Y;
-		g.gradientRect(xPos, yPos, width, height, false, true, AliteColors.get().backgroundLight(), AliteColors.get().backgroundDark());
-		g.rec3d(xPos, yPos, width, height, 10, AliteColors.get().backgroundLight(), AliteColors.get().backgroundDark());
+		g.verticalGradientRect(x, y, width, height, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
+		g.rec3d(x, y, width, height, 10, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
 		for (Button b: pads) {
 			b.render(g);
 		}
-		g.fillRect(50, 1018, 1669, 56, AliteColors.get().background());
-		g.drawText("New value for byte " + String.format("%02X", valueIndex) + ": " + currentValueString, 50, 1050, AliteColors.get().message(), Assets.regularFont);
+		g.fillRect(50, 1018, 1669, 56, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
+		g.drawText("New value for byte " + String.format("%02X", valueIndex) + ": " + currentValueString, 50, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
 
 	@Override
@@ -142,11 +142,11 @@ public class HexNumberPadScreen extends AliteScreen {
 		super.processTouch(touch);
 		if (getMessage() != null) {
 			return;
-		}		
+		}
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			int width = (BUTTON_SIZE + GAP) * 5 + 2 * OFFSET_X;
 			int height =  (BUTTON_SIZE + GAP) * 4 + 2 * OFFSET_Y;
-			if (touch.x < xPos || touch.y < yPos || touch.x > (xPos + width) || touch.y > (yPos + height)) {				
+			if (touch.x < x || touch.y < y || touch.x > x + width || touch.y > y + height) {
 				newScreen = hackerScreen;
 			}
 			for (Button b: pads) {
@@ -160,11 +160,10 @@ public class HexNumberPadScreen extends AliteScreen {
 					} else if ("OK".equals(t)) {
 						try {
 							byte newValue = (byte) Integer.parseInt(currentValueString, 16);
-							hackerScreen.state.values[valueIndex] = newValue;
-							hackerScreen.values[valueIndex].setText(String.format("%02X", newValue));
-						} catch (NumberFormatException e) {
+							hackerScreen.changeState(valueIndex, newValue);
+						} catch (NumberFormatException ignored) {
 							// Ignore and don't set new value (can happen if user hits ok before entering a new number)
-						}						
+						}
 						newScreen = hackerScreen;
 					} else if (currentValueString.length() < 2) {
 						currentValueString += t;
@@ -173,12 +172,12 @@ public class HexNumberPadScreen extends AliteScreen {
  			}
 		}
 	}
-		
+
 	@Override
 	protected void performScreenChange() {
 		if (inFlightScreenChange()) {
 			return;
-		}		
+		}
 		dispose();
 		game.setScreen(hackerScreen);
 		((Alite) game).getNavigationBar().performScreenChange();
@@ -193,9 +192,9 @@ public class HexNumberPadScreen extends AliteScreen {
 	public void loadAssets() {
 		super.loadAssets();
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.HEX_NUMBER_PAD_SCREEN;
-	}	
+	}
 }

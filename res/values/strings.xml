@@ -1,9 +1,11 @@
 <resources>
 
     <string name="app_name">Alite</string>
-    <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
-    <string name="title_activity_main">MainActivity</string>
+
+    <string name="color_scheme_classic">Classic</string>
+    <string name="color_scheme_modern">Modern</string>
+
     <!-- When a download completes, a notification is displayed, and this
         string is used to indicate that the download successfully completed.
         Note that such a download could have been initiated by a variety of

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.tutorial;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -42,7 +42,7 @@ public class TutNavigation extends TutorialScreen {
 	private PlanetScreen planet;
 	private LocalScreen  local;
 	private int screenToInitialize = 0;
-	
+
 	public TutNavigation(final Alite alite) {
 		super(alite);
 
@@ -58,41 +58,41 @@ public class TutNavigation extends TutorialScreen {
 		initLine_09();
 		initLine_10();
 	}
-	
+
 	private void initLine_00() {
-		final TutorialLine line = addLine(4, 
+		final TutorialLine line = addLine(4,
 				"Wonderful morning, eh, rookie? I have a bunch of " +
 				"information for you today. So wipe the sleep from your " +
 				"face and pay attention! You have seen the Galaxy screen " +
 				"already, but today, I'll tell you more about it. First: " +
 				"Open it.");
-		
+
 		status = new StatusScreen(alite);
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {			
+		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
-				Screen screen = (TutNavigation.this).updateNavBar(deltaTime); 
+				Screen screen = (TutNavigation.this).updateNavBar();
 				if (screen instanceof GalaxyScreen && !(screen instanceof LocalScreen)) {
 					line.setFinished();
 					status.dispose();
 					status = null;
-					alite.getNavigationBar().setActiveIndex(6);
+					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
 					galaxy = new GalaxyScreen(alite);
 					galaxy.loadAssets();
-					galaxy.activate();										
-				}								
+					galaxy.activate();
+				}
 			}
 		});
 	}
-	
+
 	private void initLine_01() {
-		final TutorialLine line = addLine(4, 
+		final TutorialLine line = addLine(4,
 				"The white cross you see indicates your current position. " +
 				"The red circle around it, shows how far you can travel " +
 				"with your current fuel. You can zoom in by pressing two " +
 				"fingers on the screen and move them apart. Do that until " +
 				"you can see the names of the systems appear.").setY(150);
-		
+
 		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
@@ -108,7 +108,7 @@ public class TutNavigation extends TutorialScreen {
 
 	private void initLine_02() {
 		final TutorialLine line = addLine(4, "Now, push the \"Home\" button.");
-		
+
 		line.setSkippable(false).setHeight(100).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
@@ -125,7 +125,7 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_03() {
-		final TutorialLine line = addLine(4, 
+		final TutorialLine line = addLine(4,
 				"See how it moved the map back to your current location? " +
 				"Helps newbies like yourself not to get lost so easily... " +
 				"Did you notice the different colors of the star systems? " +
@@ -134,21 +134,21 @@ public class TutNavigation extends TutorialScreen {
 				"blue. In case you forget, however, you can switch to the " +
 				"planet screen to get more information on the selected " +
 				"planet. Do that now.").setY(150).setHeight(300);
-		
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {			
+
+		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
 				if (galaxy != null) {
-					galaxy.updateMap(deltaTime);
+					galaxy.updateMap();
 				}
-				Screen screen = (TutNavigation.this).updateNavBar(deltaTime); 
+				Screen screen = (TutNavigation.this).updateNavBar();
 				if (screen instanceof PlanetScreen) {
 					galaxy.dispose();
 					galaxy = null;
-					alite.getNavigationBar().setActiveIndex(8);
+					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET);
 					planet = new PlanetScreen(alite);
 					planet.loadAssets();
-					planet.activate();					
+					planet.activate();
 					line.setFinished();
 					currentLineIndex++;
 				} else if (screen != null) {
@@ -162,18 +162,18 @@ public class TutNavigation extends TutorialScreen {
 		final TutorialLine line = addLine(4,
 				"No, I told you to switch to the planet screen, wet-nose. " +
 				"Try again.");
-		
-		line.setHeight(100).setSkippable(false).setUpdateMethod(new IMethodHook() {			
+
+		line.setHeight(100).setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
-				Screen newScreen = (TutNavigation.this).updateNavBar(deltaTime); 
+				Screen newScreen = (TutNavigation.this).updateNavBar();
 				if (newScreen instanceof PlanetScreen) {
 					galaxy.dispose();
 					galaxy = null;
-					alite.getNavigationBar().setActiveIndex(8);
+					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET);
 					planet = new PlanetScreen(alite);
 					planet.loadAssets();
-					planet.activate();					
+					planet.activate();
 					line.setFinished();
 				} else if (newScreen != null) {
 					line.setFinished();
@@ -199,18 +199,18 @@ public class TutNavigation extends TutorialScreen {
 		final TutorialLine line = addLine(4,
 				"Now that you have gathered information on the planet, " +
 				"switch to the local screen.").setY(150);
-		
-		line.setHeight(150).setSkippable(false).setUpdateMethod(new IMethodHook() {			
+
+		line.setHeight(150).setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
-				Screen screen = (TutNavigation.this).updateNavBar(deltaTime); 
+				Screen screen = (TutNavigation.this).updateNavBar();
 				if (screen instanceof LocalScreen) {
 					planet.dispose();
 					planet = null;
-					alite.getNavigationBar().setActiveIndex(7);
+					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL);
 					local = new LocalScreen(alite);
 					local.loadAssets();
-					local.activate();					
+					local.activate();
 					line.setFinished();
 					currentLineIndex++;
 				} else if (screen != null) {
@@ -221,38 +221,38 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_07() {
-		final TutorialLine line = addLine(4, 
+		final TutorialLine line = addLine(4,
 				"No, I told you to switch to the local screen, wet-nose. " +
 				"Try again.").setY(150);
-		
-		line.setHeight(150).setSkippable(false).setUpdateMethod(new IMethodHook() {			
+
+		line.setHeight(150).setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
-				Screen newScreen = (TutNavigation.this).updateNavBar(deltaTime); 
+				Screen newScreen = (TutNavigation.this).updateNavBar();
 				if (newScreen instanceof LocalScreen) {
 					planet.dispose();
 					planet = null;
-					alite.getNavigationBar().setActiveIndex(7);
+					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL);
 					local = new LocalScreen(alite);
 					local.loadAssets();
-					local.activate();					
+					local.activate();
 					line.setFinished();
 				} else if (newScreen != null) {
 					line.setFinished();
 					currentLineIndex--;
 				}
 			}
-		});		
+		});
 	}
 
 	private void initLine_08() {
-		final TutorialLine line = addLine(4, 
+		final TutorialLine line = addLine(4,
 				"The local screen is the same as the galaxy screen but it " +
 				"shows only a small region around your current location if " +
 				"accessed. You can zoom out, though. Just hold two fingers " +
 				"on the screen and move them together. Do it now.").setY(150);
-		
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {			
+
+		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
 				for (TouchEvent event: game.getInput().getTouchEvents()) {
@@ -291,32 +291,32 @@ public class TutNavigation extends TutorialScreen {
 		switch (screenToInitialize) {
 			case 0: status.activate();
 					alite.getNavigationBar().moveToTop();
-					alite.getNavigationBar().moveToScreen(ScreenCodes.STATUS_SCREEN);
+					alite.getNavigationBar().setActiveIndex(ScreenCodes.STATUS_SCREEN);
 					break;
 			case 1: status.dispose();
 					status = null;
-					alite.getNavigationBar().moveToScreen(ScreenCodes.GALAXY_SCREEN);
+					alite.getNavigationBar().setActiveIndex(ScreenCodes.GALAXY_SCREEN);
 					galaxy = new GalaxyScreen(alite);
 					galaxy.loadAssets();
 					galaxy.activate();
 					break;
 			case 2: status.dispose();
 					status = null;
-					alite.getNavigationBar().moveToScreen(ScreenCodes.LOCAL_SCREEN);
+					alite.getNavigationBar().setActiveIndex(ScreenCodes.LOCAL_SCREEN);
 					local = new LocalScreen(alite);
 					local.loadAssets();
 					local.activate();
 					break;
 			case 3: status.dispose();
 					status = null;
-					alite.getNavigationBar().moveToScreen(ScreenCodes.PLANET_SCREEN);
+					alite.getNavigationBar().setActiveIndex(ScreenCodes.PLANET_SCREEN);
 					planet = new PlanetScreen(alite);
 					planet.loadAssets();
 					planet.activate();
 					break;
 		}
 	}
-	
+
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		TutNavigation tn = new TutNavigation(alite);
 		try {
@@ -324,24 +324,24 @@ public class TutNavigation extends TutorialScreen {
 			tn.screenToInitialize = dis.readByte();
 		} catch (Exception e) {
 			AliteLog.e("Tutorial Navigation Screen Initialize", "Error in initializer.", e);
-			return false;			
+			return false;
 		}
 		alite.setScreen(tn);
 		return true;
 	}
-	
+
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeInt(currentLineIndex - 1);
 		dos.writeByte(status != null ? 0 : galaxy != null ? 1 : local != null ? 2 : 3);
 	}
-	
+
 	@Override
 	public void loadAssets() {
 		super.loadAssets();
 		status.loadAssets();
 	}
-	
+
 	@Override
 	public void doPresent(float deltaTime) {
 		if (status != null) {
@@ -353,10 +353,10 @@ public class TutNavigation extends TutorialScreen {
 		} else if (local != null) {
 			local.present(deltaTime);
 		}
-		
+
 		renderText();
 	}
-	
+
 	@Override
 	public void update(float deltaTime) {
 		super.update(deltaTime);
@@ -364,7 +364,7 @@ public class TutNavigation extends TutorialScreen {
 			planet.update(deltaTime);
 		}
 	}
-	
+
 	@Override
 	public void dispose() {
 		if (status != null) {
@@ -385,9 +385,9 @@ public class TutNavigation extends TutorialScreen {
 		}
 		super.dispose();
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.TUT_NAVIGATION_SCREEN;
-	}	
+	}
 }

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -20,49 +20,49 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 import java.util.List;
 
-import android.opengl.GLES11;
 import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.games.alite.Alite;
+import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.ObjectUtils;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 
 public class OnScreenDebug {
-	public static final void displayDockingAlignment(Alite alite, GraphicObject ship, SpaceObject spaceStation, float distanceSq) {
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	private static void displayDockingAlignment(Alite alite, GraphicObject ship, SpaceObject spaceStation, float distanceSq) {
+		alite.getGraphics().setColor(AliteColor.WHITE);
 		alite.getFont().drawText("Dist: " + distanceSq, 400, 50, false, 1.0f);
 		float fz = spaceStation.getDisplayMatrix()[10];
 		if (fz < 0.98f) {
-			GLES11.glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+			alite.getGraphics().setColor(AliteColor.RED);
 		} else {
-			GLES11.glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+			alite.getGraphics().setColor(AliteColor.GREEN);
 		}
 		alite.getFont().drawText("fz: " + fz, 400, 90, false, 1.0f);
 
 		float angle = ship.getForwardVector().angleInDegrees(spaceStation.getForwardVector());
 		if (Math.abs(angle) > 15.0f) {
-			GLES11.glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+			alite.getGraphics().setColor(AliteColor.RED);
 		} else {
-			GLES11.glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+			alite.getGraphics().setColor(AliteColor.GREEN);
 		}
 		alite.getFont().drawText(String.format("%4.2f", angle), 400, 130, false, 1.0f);
-		
+
 		float ux = Math.abs(spaceStation.getDisplayMatrix()[4]);
 		if (ux < 0.95f) {
-			GLES11.glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+			alite.getGraphics().setColor(AliteColor.RED);
 		} else {
-			GLES11.glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+			alite.getGraphics().setColor(AliteColor.GREEN);
 		}
 		alite.getFont().drawText("ux: " + ux, 400, 170, false, 1.0f);
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		alite.getGraphics().setColor(AliteColor.WHITE);
 	}
-	
-	public static final void debugDocking(final Alite alite, final GraphicObject ship, final List <DepthBucket> sortedObjectsToDraw) {
+
+	static void debugDocking(final Alite alite, final GraphicObject ship, final List<DepthBucket> sortedObjectsToDraw) {
 		for (DepthBucket depthBucket: sortedObjectsToDraw) {
 			for (AliteObject object: depthBucket.sortedObjects) {
 				if (object instanceof SpaceObject && ((SpaceObject) object).getType() == ObjectType.SpaceStation) {
-					float distanceSq = ObjectUtils.computeDistanceSq(object, ship); 
+					float distanceSq = ObjectUtils.computeDistanceSq(object, ship);
 					if (distanceSq < 64000000) {
 						displayDockingAlignment(alite, ship, (SpaceObject) object, distanceSq);
 					}
@@ -70,39 +70,40 @@ public class OnScreenDebug {
 				}
 			}
 		}
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		alite.getGraphics().setColor(AliteColor.WHITE);
 	}
-	
-	public static final void debugHitArea(final Alite alite, final SpaceObject enemy, float scaleFactor) {
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		alite.getFont().drawText("Hit area of " + enemy.getName() + ": " + 
+
+	public static void debugHitArea(final Alite alite, final SpaceObject enemy, float scaleFactor) {
+		alite.getGraphics().setColor(AliteColor.WHITE);
+		alite.getFont().drawText("Hit area of " + enemy.getName() + ": " +
 		String.format("%3.2f", (scaleFactor * 100.0f)) + "%", 960, 50, false, 1.0f);
 	}
-	
-	public static final void debugBuckets(Alite alite, final List <DepthBucket> sortedObjectsToDraw) {
+
+	public static void debugBuckets(Alite alite, final List <DepthBucket> sortedObjectsToDraw) {
 		int depthBucketIndex = 1;
 		for (DepthBucket depthBucket: sortedObjectsToDraw) {
 			String objectsString = "";
 			for (AliteObject o: depthBucket.sortedObjects) {
 				objectsString += o.getName() + ", ";
 			}
-			String debugString = "Bucket " + depthBucketIndex + ": " + String.format("%7.2f", depthBucket.near) + ", " + String.format("%7.2f", depthBucket.far) + ": " + objectsString;
-			GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+			String debugString = "Bucket " + depthBucketIndex + ": " + String.format("%7.2f", depthBucket.near) + ", " +
+				String.format("%7.2f", depthBucket.far) + ": " + objectsString;
+			alite.getGraphics().setColor(AliteColor.WHITE);
 			alite.getFont().drawText(debugString, 200, 10 + 40 * (depthBucketIndex - 1), false, 0.8f);
 			depthBucketIndex++;
 		}
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		alite.getGraphics().setColor(AliteColor.WHITE);
 	}
 
-	public static final void debugFPS(Alite alite) {
-		GLES11.glColor4f(0.9f, 0.7f, 0.0f, 1.0f);
+	static void debugFPS(Alite alite) {
+		alite.getGraphics().setColor(0xFFE6B300);
 		alite.getFont().drawText(String.format("FPS: %3.1f", AndroidGame.fps), 400, 10, false, 1.0f);
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		alite.getGraphics().setColor(AliteColor.WHITE);
 	}
-	
-	public static final void debugMessage(Alite alite, String msg) {
-		GLES11.glColor4f(0.9f, 0.7f, 0.0f, 1.0f);
+
+	public static void debugMessage(Alite alite, String msg) {
+		alite.getGraphics().setColor(0xFFE6B300);
 		alite.getFont().drawText(msg, 400, 10, false, 1.0f);
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	}	
+		alite.getGraphics().setColor(AliteColor.WHITE);
+	}
 }

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.missions;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -35,7 +35,7 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
@@ -49,10 +49,10 @@ import de.phbouillon.android.games.alite.screens.canvas.TextData;
 @SuppressWarnings("serial")
 public class ThargoidDocumentsScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
-	
+
 	private final String attentionCommander = "Attention Commander!";
-	
-	private final String missionDescription = 
+
+	private final String missionDescription =
 			"The Navy has managed to obtain rare blueprints of a Thargoid " +
 	        "battle ship giving details of the drive and weapon systems. " +
 	        "These documents need to be taken as soon as possible to the " +
@@ -61,12 +61,12 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 	        "should proceed without any trouble.";
 
 	private final String accept = "Do you accept this mission?";
-	
-	private final String fullyServiced = 
+
+	private final String fullyServiced =
 			"The documents have been placed in your cargo hold. Your ship " +
 			"has been fully serviced and is ready for takeoff. Good luck " +
 			"Commander!";
-				
+
 	private final String success =
 			"We are (again) forever in your debt for bringing these very " +
 			"important documents to us. As a reward we have fitted your " +
@@ -76,13 +76,13 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 			"probably find it rather useful. The GIA also wishes to " +
 			"apologize for the security leak to the Thargoids. They are " +
 			"carrying out intensive investigations and the culprit will " +
-			"soon be found.";	
+			"soon be found.";
 
 	private MissionLine attCommander;
-	private MissionLine missionLine;	
+	private MissionLine missionLine;
 	private MissionLine acceptMission;
 	private int lineIndex = 0;
-	private TextData [] missionText;
+	private TextData[] missionText;
 	private Button acceptButton;
 	private Button declineButton;
 	private Pixmap acceptIcon;
@@ -90,13 +90,13 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 	private SystemData targetSystem = null;
 	private final ThargoidDocumentsMission mission;
 	private final int givenState;
-	
+
 	public ThargoidDocumentsScreen(Game game, int state) {
 		super(game);
-		this.givenState = state;
-		mission = ((ThargoidDocumentsMission) MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
-		this.mediaPlayer = new MediaPlayer();
-		AndroidFileIO fio = (AndroidFileIO) ((Alite) game).getFileIO();
+		givenState = state;
+		mission = (ThargoidDocumentsMission) MissionManager.getInstance().get(ThargoidDocumentsMission.ID);
+		mediaPlayer = new MediaPlayer();
+		AndroidFileIO fio = (AndroidFileIO) game.getFileIO();
 		String path = "sound/mission/2/";
 		try {
 			attCommander = new MissionLine(fio, path + "01.mp3", attentionCommander);
@@ -106,7 +106,7 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 				mission.setTarget(((Alite) game).getGenerator().getCurrentSeed(), targetSystem.getIndex(), state);
 				acceptMission = new MissionLine(fio, path + "03.mp3", accept);
 			} else if (state == 1) {
-				missionLine = new MissionLine(fio, path + "04.mp3", fullyServiced);								
+				missionLine = new MissionLine(fio, path + "04.mp3", fullyServiced);
 			} else if (state == 2) {
 				missionLine = new MissionLine(fio, path + "05.mp3", success);
 			 	mission.onMissionComplete();
@@ -121,8 +121,8 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 		} catch (IOException e) {
 			AliteLog.e("Error reading mission", "Could not read mission audio.", e);
 		}
-	}	
-		
+	}
+
 	@Override
 	public void update(float deltaTime) {
 		if (acceptButton == null && declineButton == null) {
@@ -141,7 +141,7 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 			lineIndex++;
 		}
 	}
-	
+
 	@Override
 	protected void processTouch(TouchEvent touch) {
 		super.processTouch(touch);
@@ -161,19 +161,19 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 			}
 		}
 	}
-	
+
 	@Override
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
-		g.clear(AliteColors.get().background());		
+		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle("Mission #2 - Deliver Thargoid Documents");
-		
-		g.drawText(attentionCommander, 50, 200, AliteColors.get().informationText(), Assets.regularFont);
+
+		g.drawText(attentionCommander, 50, 200, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		if (missionText != null) {
 			displayText(g, missionText);
 		}
 		if (acceptMission != null) {
-			g.drawText(accept, 50, 800, AliteColors.get().informationText(), Assets.regularFont);
+			g.drawText(accept, 50, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 			if (acceptButton != null) {
 				acceptButton.render(g);
 			}
@@ -181,17 +181,17 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 				declineButton.render(g);
 			}
 		}
-		
+
 		if (targetSystem != null) {
 			displayStarMap();
-		} 
+		}
 	}
 
-	private Point toScreen(SystemData systemData, int centerX, int centerY, float zoomFactor) {		
+	private Point toScreen(SystemData systemData, int centerX, int centerY, float zoomFactor) {
 		int offsetX = (int) (centerX * zoomFactor * ConstrictorScreen.STRETCH_X) - 400;
 		int offsetY = (int) (centerY * zoomFactor * ConstrictorScreen.STRETCH_Y) - 550;
-		return new Point(((int) (systemData.getX() * zoomFactor)) * ConstrictorScreen.STRETCH_X + 900 - offsetX,
-				         ((int) (systemData.getY() * zoomFactor)) * ConstrictorScreen.STRETCH_Y + 100 - offsetY);
+		return new Point((int) (systemData.getX() * zoomFactor) * ConstrictorScreen.STRETCH_X + 900 - offsetX,
+				         (int) (systemData.getY() * zoomFactor) * ConstrictorScreen.STRETCH_Y + 100 - offsetY);
 	}
 
 	private void drawSystem(SystemData system, int centerX, int centerY, float zoomFactor, boolean clearBackground) {
@@ -200,51 +200,49 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 		if (p.x < 900 || p.x > 1700 || p.y < 100 || p.y > 1000) {
 			return;
 		}
-		g.fillCircle(p.x, p.y, (int) (3 * zoomFactor), getColor(system.getEconomy()), 32);						
+		g.fillCircle(p.x, p.y, (int) (3 * zoomFactor), getColor(system.getEconomy()), 32);
 		int nameWidth = g.getTextWidth(system.getName(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
 		int nameHeight = g.getTextHeight(system.getName(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
 		int positionX = (int) (3 * zoomFactor) + 2;
 		int positionY = 40;
-		if (p.x + nameWidth > (GalaxyScreen.HALF_WIDTH << 1)) {
+		if (p.x + nameWidth > GalaxyScreen.HALF_WIDTH << 1) {
 			positionX = -positionX - nameWidth;
 		}
-		if (p.y + 40 > (GalaxyScreen.HALF_HEIGHT << 1)) {
+		if (p.y + 40 > GalaxyScreen.HALF_HEIGHT << 1) {
 			positionY = -40;
 		}
 		if (clearBackground) {
-			g.fillRect(p.x + positionX, p.y + positionY - nameHeight, nameWidth, nameHeight, AliteColors.get().background());
+			g.fillRect(p.x + positionX, p.y + positionY - nameHeight, nameWidth, nameHeight, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		}
 		g.drawText(system.getName(), p.x + positionX, p.y + positionY, getColor(system.getEconomy()), system == targetSystem ? Assets.regularFont : Assets.smallFont);
 		if (system == targetSystem) {
-			g.drawLine(p.x, p.y - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.x, p.y - GalaxyScreen.CROSS_DISTANCE, AliteColors.get().baseInformation());
-			g.drawLine(p.x, p.y + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.x, p.y + GalaxyScreen.CROSS_DISTANCE, AliteColors.get().baseInformation());
-			g.drawLine(p.x - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.y, p.x - GalaxyScreen.CROSS_DISTANCE, p.y, AliteColors.get().baseInformation());
-			g.drawLine(p.x + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.y, p.x + GalaxyScreen.CROSS_DISTANCE, p.y, AliteColors.get().baseInformation());				
+			g.drawLine(p.x, p.y - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.x, p.y - GalaxyScreen.CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+			g.drawLine(p.x, p.y + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.x, p.y + GalaxyScreen.CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+			g.drawLine(p.x - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.y, p.x - GalaxyScreen.CROSS_DISTANCE, p.y, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+			g.drawLine(p.x + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.y, p.x + GalaxyScreen.CROSS_DISTANCE, p.y, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
 		}
 	}
-	
+
 	private void displayStarMap() {
 		int centerX = targetSystem.getX();
 		int centerY = targetSystem.getY();
-		
+
 		for (SystemData system: ((Alite) game).getGenerator().getSystems()) {
 			drawSystem(system, centerX, centerY, 3.0f, false);
 		}
 		// Make sure the target system is rendered on top...
 		drawSystem(targetSystem, centerX, centerY, 3.0f, true);
 	}
-	
+
 	@Override
 	public void activate() {
-		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, AliteColors.get().mainText(), Assets.regularFont, false);
+		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		if (acceptMission != null) {
-			acceptButton = new Button(50, 860, 200, 200, acceptIcon);
-			acceptButton.setGradient(true);
-			declineButton = new Button(650, 860, 200, 200, declineIcon);
-			declineButton.setGradient(true);			
+			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, acceptIcon);
+			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, declineIcon);
 		}
 	}
-	
+
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		try {
 			int state = dis.readInt();
@@ -252,9 +250,9 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 		} catch (Exception e) {
 			AliteLog.e("Thargoid Documents Screen Initialize", "Error in initializer.", e);
 			return false;
-		}		
+		}
 		return true;
-	}		
+	}
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
@@ -263,10 +261,10 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 
 	@Override
 	public void loadAssets() {
-		acceptIcon = game.getGraphics().newPixmap("yes_icon.png", true);
-		declineIcon = game.getGraphics().newPixmap("no_icon.png", true);
+		acceptIcon = game.getGraphics().newPixmap("yes_icon.png");
+		declineIcon = game.getGraphics().newPixmap("no_icon.png");
 	}
-	
+
 	@Override
 	public void dispose() {
 		super.dispose();
@@ -282,7 +280,7 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 			declineIcon = null;
 		}
 	}
-	
+
 	@Override
 	public void pause() {
 		super.pause();
@@ -294,5 +292,5 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.THARGOID_DOCUMENTS_SCREEN;
-	}		
+	}
 }

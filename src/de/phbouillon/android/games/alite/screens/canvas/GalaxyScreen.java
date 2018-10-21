@@ -39,7 +39,7 @@ import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.Button.TextPosition;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.Rating;
 import de.phbouillon.android.games.alite.model.generator.Raxxla;
@@ -57,23 +57,23 @@ public class GalaxyScreen extends AliteScreen {
 	private static final int SCALE_CONST = 7;
 
 	protected float zoomFactor;
-	protected float pendingZoomFactor = -1.0f;
+	float pendingZoomFactor = -1.0f;
 	protected String title;
-	protected MappedSystemData [] systemData;
+	private MappedSystemData[] systemData;
 
-	private final HashSet <Integer> doubles = new HashSet<Integer>();
+	private final HashSet <Integer> doubles = new HashSet<>();
 	private final SparseIntArray doubleCount = new SparseIntArray(70000);
 
 	private Button findButton;
 	private Button homeButton;
 	private Pixmap findIcon;
 	private Pixmap homeIcon;
-	protected int centerX = 0;
-	protected int centerY = 0;
-	protected int pendingCenterX = -1;
-	protected int pendingCenterY = -1;
-	protected int targetX = 0;
-	protected int targetY = 0;
+	int centerX = 0;
+	int centerY = 0;
+	int pendingCenterX = -1;
+	int pendingCenterY = -1;
+	int targetX = 0;
+	int targetY = 0;
 	private int deltaX = 0;
 	private int deltaY = 0;
 	private boolean zoom = false;
@@ -139,11 +139,11 @@ public class GalaxyScreen extends AliteScreen {
 		}
 		return closestSystem;
 	}
-	
-	private String capitalize(String t) {		
+
+	private String capitalize(String t) {
 		return t == null || t.length() < 1 ? "" : t.length() < 2 ? t : Character.toUpperCase(t.charAt(0)) + t.substring(1).toLowerCase(Locale.getDefault());
 	}
-	
+
 	private void findSystem() {
 		final Alite alite = (Alite) game;
 		TextInputScreen textInput = new TextInputScreen(alite, "Find Planet", "Enter planet name", "", this,
@@ -169,10 +169,10 @@ public class GalaxyScreen extends AliteScreen {
 							setMessage("Planet " + capitalize(text) + " is unknown.");
 							SoundManager.play(Assets.error);
 						} else {
-							setMessage("Planet " + capitalize(text) + " is in Galaxy " + galaxy + 
+							setMessage("Planet " + capitalize(text) + " is in Galaxy " + galaxy +
 									". You are currently in Galaxy " + alite.getGenerator().getCurrentGalaxy() + ".");
 							SoundManager.play(Assets.alert);
-						}						
+						}
 					}
 				}
 
@@ -197,8 +197,8 @@ public class GalaxyScreen extends AliteScreen {
 			if (scalingReferenceSystem == null) {
 				scalingReferenceSystem = findClosestSystem(touch.x2, touch.y2);
 			}
-			int dx = scalingReferenceSystem.x - (int) (((scalingReferenceSystem.system.getX() - 128) * SCALE_CONST * touch.zoomFactor) + centerX);
-			int dy = scalingReferenceSystem.y - (int) (((scalingReferenceSystem.system.getY() -  64) * SCALE_CONST * touch.zoomFactor) + centerY);
+			int dx = scalingReferenceSystem.x - (int) ((scalingReferenceSystem.system.getX() - 128) * SCALE_CONST * touch.zoomFactor + centerX);
+			int dy = scalingReferenceSystem.y - (int) ((scalingReferenceSystem.system.getY() -  64) * SCALE_CONST * touch.zoomFactor + centerY);
 			centerX += dx;
 			centerY += dy;
 			targetX = centerX;
@@ -223,11 +223,11 @@ public class GalaxyScreen extends AliteScreen {
 			lastY = touch.y;
 		}
 		if (touch.type == TouchEvent.TOUCH_DRAGGED && touch.pointer == 0) {
-			if (zoom || touch.x > (1920 - NavigationBar.SIZE)) {
+			if (zoom || touch.x > 1920 - NavigationBar.SIZE) {
 				return;
 			}
-			centerX += (touch.x - lastX);
-			centerY += (touch.y - lastY);
+			centerX += touch.x - lastX;
+			centerY += touch.y - lastY;
 			targetX = centerX;
 			targetY = centerY;
 			normalizeSystems();
@@ -235,7 +235,7 @@ public class GalaxyScreen extends AliteScreen {
 			lastX = touch.x;
 		}
 		if (touch.type == TouchEvent.TOUCH_UP && touch.pointer == 0) {
-			if (touch.x > (1920 - NavigationBar.SIZE)) {
+			if (touch.x > 1920 - NavigationBar.SIZE) {
 				return;
 			}
 			if (zoom) {
@@ -276,24 +276,24 @@ public class GalaxyScreen extends AliteScreen {
 	private void computeBorders() {
 		int tmp = (int) (-128 * SCALE_CONST * zoomFactor + centerX);
 		if (tmp > 20) {
-			centerX -= (tmp - 20);
+			centerX -= tmp - 20;
 			targetX = centerX;
 		}
 		tmp = (int) (-64 * SCALE_CONST * zoomFactor + centerY);
 		if (tmp > 100) {
-			centerY -= (tmp - 100);
+			centerY -= tmp - 100;
 			targetY = centerY;
 		}
 
 		tmp = (int) (127 * SCALE_CONST * zoomFactor + centerX);
 		if (tmp < 1700) {
-			centerX += (1700 - tmp);
+			centerX += 1700 - tmp;
 			targetX = centerX;
 		}
 
 		tmp = (int) ( 63 * SCALE_CONST * zoomFactor + centerY);
 		if (tmp < 1000) {
-			centerY += (1000 - tmp);
+			centerY += 1000 - tmp;
 			targetY = centerY;
 		}
 	}
@@ -306,15 +306,15 @@ public class GalaxyScreen extends AliteScreen {
 		return (int) ((y -  64) * SCALE_CONST * zoomFactor) + centerY;
 	}
 
-	protected int computeCenterX(int x) {
+	int computeCenterX(int x) {
 		return (int) (HALF_WIDTH - (x - 128) * SCALE_CONST * zoomFactor) + 150;
 	}
 
-	protected int computeCenterY(int y) {
+	int computeCenterY(int y) {
 		return (int) (HALF_HEIGHT - (y - 64) * SCALE_CONST * zoomFactor) + 100;
 	}
 
-	protected void normalizeSystems() {
+	void normalizeSystems() {
 		// x ranges from 0 to 255,
 		// y ranges from 0 to 127.
 		computeBorders();
@@ -340,16 +340,16 @@ public class GalaxyScreen extends AliteScreen {
 		int nameWidth = g.getTextWidth(system.system.getName(), Assets.regularFont);
 		int positionX = (int) (3 * zoomFactor) + 2;
 		int positionY = 40;
-		if (system.x + nameWidth > (HALF_WIDTH << 1)) {
+		if (system.x + nameWidth > HALF_WIDTH << 1) {
 			positionX = -positionX - nameWidth;
 		}
-		if (system.y + 40 > (HALF_HEIGHT << 1)) {
+		if (system.y + 40 > HALF_HEIGHT << 1) {
 			positionY = -40;
 		}
 		g.drawText(system.system.getName(), system.x + positionX, system.y + positionY, getColor(system.system.getEconomy()), Assets.regularFont);
 	}
 
-	public void updateMap(float deltaTime) {
+	public void updateMap() {
 		int dx = (centerX - targetX) >> 4;
 		int dy = (centerY - targetY) >> 3;
 		centerX -= dx;
@@ -372,7 +372,7 @@ public class GalaxyScreen extends AliteScreen {
 	@Override
 	public void update(float deltaTime) {
 		super.update(deltaTime);
-		updateMap(deltaTime);
+		updateMap();
 	}
 
 	private void renderCurrentPositionCross() {
@@ -382,10 +382,10 @@ public class GalaxyScreen extends AliteScreen {
 
 		int px = transformX(hyperspaceSystem == null ? player.getPosition().x : hyperspaceSystem.getX());
 		int py = transformY(hyperspaceSystem == null ? player.getPosition().y : hyperspaceSystem.getY());
-		g.drawLine(px, py - CROSS_SIZE - CROSS_DISTANCE, px, py - CROSS_DISTANCE, AliteColors.get().baseInformation());
-		g.drawLine(px, py + CROSS_SIZE + CROSS_DISTANCE, px, py + CROSS_DISTANCE, AliteColors.get().baseInformation());
-		g.drawLine(px - CROSS_SIZE - CROSS_DISTANCE, py, px - CROSS_DISTANCE, py, AliteColors.get().baseInformation());
-		g.drawLine(px + CROSS_SIZE + CROSS_DISTANCE, py, px + CROSS_DISTANCE, py, AliteColors.get().baseInformation());
+		g.drawLine(px, py - CROSS_SIZE - CROSS_DISTANCE, px, py - CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+		g.drawLine(px, py + CROSS_SIZE + CROSS_DISTANCE, px, py + CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+		g.drawLine(px - CROSS_SIZE - CROSS_DISTANCE, py, px - CROSS_DISTANCE, py, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+		g.drawLine(px + CROSS_SIZE + CROSS_DISTANCE, py, px + CROSS_DISTANCE, py, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
 	}
 
 	private void renderCurrentFuelCircle() {
@@ -397,21 +397,21 @@ public class GalaxyScreen extends AliteScreen {
 
 		if (hyperspaceSystem != null) {
 			int xp = hyperspaceSystem.getX();
-			int x1 = transformX((int) ((float) xp - 17.5f));
-			int x2 = transformX((int) ((float) xp + 17.5f));
+			int x1 = transformX((int) (xp - 17.5f));
+			int x2 = transformX((int) (xp + 17.5f));
 			int px = transformX(xp);
 			int py = transformY(hyperspaceSystem.getY());
-			g.drawDashedCircle(px, py, (x2 - x1) >> 1, AliteColors.get().dashedFuelCircle(), 64);
+			g.drawDashedCircle(px, py, (x2 - x1) >> 1, ColorScheme.get(ColorScheme.COLOR_DASHED_FUEL_CIRCLE), 64);
 		}
 
-		float fuel = (float) player.getCobra().getFuel();
+		float fuel = player.getCobra().getFuel();
 		int xp = player.getCurrentSystem() == null ? player.getPosition().x : player.getCurrentSystem().getX();
-		int x1 = transformX((int) ((float) xp - 17.5f * fuel / 70.0f));
-        int x2 = transformX((int) ((float) xp + 17.5f * fuel / 70.0f));
+		int x1 = transformX((int) (xp - 17.5f * fuel / 70.0f));
+        int x2 = transformX((int) (xp + 17.5f * fuel / 70.0f));
 
         int px = transformX(currentSystem == null ? player.getPosition().x : player.getCurrentSystem().getX());
         int py = transformY(currentSystem == null ? player.getPosition().y : player.getCurrentSystem().getY());
-        g.drawCircle(px, py, (x2 - x1) >> 1, AliteColors.get().fuelCircle(), 64);
+        g.drawCircle(px, py, (x2 - x1) >> 1, ColorScheme.get(ColorScheme.COLOR_FUEL_CIRCLE), 64);
 
 	}
 
@@ -429,7 +429,7 @@ public class GalaxyScreen extends AliteScreen {
         	int distance = player.getCurrentSystem() == null ? computeDistance(player.getHyperspaceSystem(), player.getPosition())
 				 : player.getHyperspaceSystem().computeDistance(player.getCurrentSystem());
         	g.drawText(String.format("%s: %d.%d Light Years",
-				player.getHyperspaceSystem() == null ? "Unknown" : player.getHyperspaceSystem().getName(), distance / 10, distance % 10), 100, 1060, AliteColors.get().baseInformation(), Assets.regularFont);
+				player.getHyperspaceSystem() == null ? "Unknown" : player.getHyperspaceSystem().getName(), distance / 10, distance % 10), 100, 1060, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
         }
 	}
 
@@ -437,7 +437,7 @@ public class GalaxyScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 
-		g.clear(AliteColors.get().background());
+		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle(title);
 
 		g.setClip(0, -1, -1, 1000);
@@ -458,19 +458,17 @@ public class GalaxyScreen extends AliteScreen {
 		findButton.render(g);
 	}
 
-	protected void setupUi() {
+	void setupUi() {
 		initializeSystems();
 		findDoubles();
 
-		findButton = new Button(1375, 980, 320, 100, "Find", Assets.regularFont, null);
-		findButton.setTextPosition(TextPosition.RIGHT);
-		findButton.setGradient(true);
-		findButton.setPixmap(findIcon);
+		findButton = Button.createGradientRegularButton(1375, 980, 320, 100, "Find")
+			.setPixmap(findIcon)
+			.setTextPosition(TextPosition.RIGHT);
 
-		homeButton = new Button(1020, 980, 320, 100, "Home", Assets.regularFont, null);
-		homeButton.setTextPosition(TextPosition.RIGHT);
-		homeButton.setGradient(true);
-		homeButton.setPixmap(homeIcon);
+		homeButton = Button.createGradientRegularButton(1020, 980, 320, 100, "Home")
+			.setPixmap(homeIcon)
+			.setTextPosition(TextPosition.RIGHT);
 	}
 
 	@Override
@@ -501,8 +499,8 @@ public class GalaxyScreen extends AliteScreen {
 		setupUi();
 	}
 
-	private final void findDoubles() {
-		HashSet <Integer> usedCoords = new HashSet<Integer>();
+	private void findDoubles() {
+		HashSet <Integer> usedCoords = new HashSet<>();
 		for (MappedSystemData s: systemData) {
 			int key = (s.system.getX() << 8) + s.system.getY();
 			if (usedCoords.contains(key)) {
@@ -516,22 +514,22 @@ public class GalaxyScreen extends AliteScreen {
 	private void initializeSystems() {
 		Player player = ((Alite) game).getPlayer();
 		if (player.getRating() == Rating.ELITE && ((Alite) game).getGenerator().getCurrentGalaxyFromSeed() == 8) {
-			ArrayList <SystemData> temp = new ArrayList<SystemData>(Arrays.asList(((Alite) game).getGenerator().getSystems()));
+			ArrayList <SystemData> temp = new ArrayList<>(Arrays.asList(((Alite) game).getGenerator().getSystems()));
 			Raxxla raxxla = new Raxxla();
 			temp.add(raxxla.getSystem());
 			systemData = new MappedSystemData[temp.size()];
 			int count = 0;
 			for (SystemData system: temp) {
-				int x = (int) ((system.getX() - 128) * SCALE_CONST + HALF_WIDTH);
-				int y = (int) ((system.getY() -  64) * SCALE_CONST + HALF_HEIGHT);
+				int x = (system.getX() - 128) * SCALE_CONST + HALF_WIDTH;
+				int y = (system.getY() -  64) * SCALE_CONST + HALF_HEIGHT;
 				systemData[count++] = new MappedSystemData(system, x, y);
 			}
 		} else {
 			systemData = new MappedSystemData[256];
 			int count = 0;
 			for (SystemData system: ((Alite) game).getGenerator().getSystems()) {
-				int x = (int) ((system.getX() - 128) * SCALE_CONST + HALF_WIDTH);
-				int y = (int) ((system.getY() -  64) * SCALE_CONST + HALF_HEIGHT);
+				int x = (system.getX() - 128) * SCALE_CONST + HALF_WIDTH;
+				int y = (system.getY() -  64) * SCALE_CONST + HALF_HEIGHT;
 				systemData[count++] = new MappedSystemData(system, x, y);
 			}
 		}
@@ -564,8 +562,8 @@ public class GalaxyScreen extends AliteScreen {
 
 	@Override
 	public void loadAssets() {
-		findIcon = game.getGraphics().newPixmap("search_icon.png", true);
-		homeIcon = game.getGraphics().newPixmap("home_icon.png", true);
+		findIcon = game.getGraphics().newPixmap("search_icon.png");
+		homeIcon = game.getGraphics().newPixmap("home_icon.png");
 		super.loadAssets();
 	}
 

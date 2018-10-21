@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.missions;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -27,9 +27,8 @@ import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.missions.EndMission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
@@ -39,35 +38,34 @@ import de.phbouillon.android.games.alite.screens.canvas.TextData;
 @SuppressWarnings("serial")
 public class EndMissionScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
-	
+
 	private final String welcomeCommander = "Welcome to Raxxla, Commander.";
-		
-	private final String missionDescription = 
+
+	private final String missionDescription =
 			"You have proven yourself worthy and now you have finally come " +
 	        "to a place where you can rest and find peace. We welcome you " +
 	        "here. Take a look around and enjoy Raxxla. You are free to " +
 	        "leave at any time, of course, but most pilots stay. There just " +
 	        "isn't anything new out in the universe.";
 
-	private final String congratulations = 
+	private final String congratulations =
 			"Congratulations, Commander. Now you are truly among the Elite.";
-	
-	private final EndMission mission;
+
 	private MissionLine welcomeLine;
 	private MissionLine missionLine;
 	private MissionLine congratulationsLine;
-	private TextData [] welcomeText;
-	private TextData [] missionText;
-	private TextData [] congratulationsText;
+	private TextData[] welcomeText;
+	private TextData[] missionText;
+	private TextData[] congratulationsText;
     private int state = 0;
-    
+
 	public EndMissionScreen(Game game, int state) {
 		super(game);
-		mission = ((EndMission) MissionManager.getInstance().get(EndMission.ID));
-		this.mediaPlayer = new MediaPlayer();
-		AndroidFileIO fio = (AndroidFileIO) ((Alite) game).getFileIO();
+		EndMission mission = (EndMission) MissionManager.getInstance().get(EndMission.ID);
+		mediaPlayer = new MediaPlayer();
+		AndroidFileIO fio = (AndroidFileIO) game.getFileIO();
 		String path = "sound/mission/";
-		try {			
+		try {
 			if (state == 0) {
 				welcomeLine = new MissionLine(fio, path + "01.mp3", welcomeCommander);
 				missionLine = new MissionLine(fio, null, missionDescription);
@@ -79,8 +77,8 @@ public class EndMissionScreen extends AliteScreen {
 			AliteLog.e("Error reading mission", "Could not read mission audio.", e);
 		}
 		mission.setPlayerAccepts(true);
-	}	
-	
+	}
+
 	@Override
 	public void update(float deltaTime) {
 		super.update(deltaTime);
@@ -89,13 +87,13 @@ public class EndMissionScreen extends AliteScreen {
 			state = 1;
 		}
 	}
-		
+
 	@Override
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
-		g.clear(AliteColors.get().background());	
+		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle("Congratulations");
-		
+
 		if (welcomeText != null) {
 			displayText(g, welcomeText);
 		}
@@ -106,26 +104,26 @@ public class EndMissionScreen extends AliteScreen {
 			displayText(g, congratulationsText);
 		}
 	}
-	
+
 	@Override
 	public void activate() {
 		if (welcomeLine != null) {
-			welcomeText = computeTextDisplay(game.getGraphics(), welcomeLine.getText(), 50, 200, 800, 40, AliteColors.get().informationText(), Assets.regularFont, false);
-			missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, AliteColors.get().mainText(), Assets.regularFont, false);
-			congratulationsText = computeTextDisplay(game.getGraphics(), congratulationsLine.getText(), 50, 800, 800, 40, AliteColors.get().informationText(), Assets.regularFont, false);
+			welcomeText = computeTextDisplay(game.getGraphics(), welcomeLine.getText(), 50, 200, 800, 40, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT));
+			missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+			congratulationsText = computeTextDisplay(game.getGraphics(), congratulationsLine.getText(), 50, 800, 800, 40, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT));
 		}
 	}
-	
+
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		try {
 			alite.setScreen(new EndMissionScreen(alite, 0));
 		} catch (Exception e) {
 			AliteLog.e("End Screen Initialize", "Error in initializer.", e);
 			return false;
-		}		
+		}
 		return true;
-	}		
-	
+	}
+
 	@Override
 	public void dispose() {
 		super.dispose();
@@ -133,7 +131,7 @@ public class EndMissionScreen extends AliteScreen {
 			mediaPlayer.reset();
 		}
 	}
-	
+
 	@Override
 	public void pause() {
 		super.pause();
@@ -145,5 +143,5 @@ public class EndMissionScreen extends AliteScreen {
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.END_MISSION_SCREEN;
-	}		
+	}
 }

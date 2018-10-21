@@ -33,7 +33,6 @@ import de.phbouillon.android.framework.Geometry;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.AccelerometerHandler;
-import de.phbouillon.android.framework.impl.AndroidGraphics;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -74,13 +73,13 @@ public class InGameManager implements Serializable {
 	private static final long serialVersionUID = -7222644863845482563L;
 	private static final boolean DEBUG_OBJECT_DRAW_ORDER = false;
 
-	public static final float RADAR_CENTER_X = AliteHud.RADAR_X1 + ((AliteHud.RADAR_X2 - AliteHud.RADAR_X1) >> 1);
-	public static final float RADAR_CENTER_Y = AliteHud.RADAR_Y1 + ((AliteHud.RADAR_Y2 - AliteHud.RADAR_Y1) >> 1);
-	public static final float RADAR_RADIUS_X = AliteHud.RADAR_X2 - RADAR_CENTER_X;
-	public static final float RADAR_RADIUS_Y = AliteHud.RADAR_Y2 - RADAR_CENTER_Y;
+	private static final float RADAR_CENTER_X = AliteHud.RADAR_X1 + ((AliteHud.RADAR_X2 - AliteHud.RADAR_X1) >> 1);
+	private static final float RADAR_CENTER_Y = AliteHud.RADAR_Y1 + ((AliteHud.RADAR_Y2 - AliteHud.RADAR_Y1) >> 1);
+	private static final float RADAR_RADIUS_X = AliteHud.RADAR_X2 - RADAR_CENTER_X;
+	private static final float RADAR_RADIUS_Y = AliteHud.RADAR_Y2 - RADAR_CENTER_Y;
 
-	public static final long  SAFE_ZONE_RADIUS_SQ     = 19752615936l; // 140544m
-	public static final long  EXT_SAFE_ZONE_RADIUS_SQ = 21025000000l; // 145000m
+	private static final long  SAFE_ZONE_RADIUS_SQ     = 19752615936L; // 140544m
+	private static final long  EXT_SAFE_ZONE_RADIUS_SQ = 21025000000L; // 145000m
 
 	public static boolean     OVERRIDE_SPEED = false;
 	public static boolean     playerInSafeZone = false;
@@ -108,15 +107,15 @@ public class InGameManager implements Serializable {
 	private final ObjectPicker          objectPicker;
 	private final SkySphereSpaceObject  skysphere;
 
-	private List <AliteObject>          objectsToBeAdded = new ArrayList<AliteObject>();
-	private List <DepthBucket>          sortedObjectsToDraw = new ArrayList<DepthBucket>();
-	private List <TimedEvent>           timedEvents = new ArrayList<TimedEvent>();
-	private List <TimedEvent>           removedTimedEvents = new ArrayList<TimedEvent>();
+	private List <AliteObject>          objectsToBeAdded = new ArrayList<>();
+	private List <DepthBucket>          sortedObjectsToDraw = new ArrayList<>();
+	private List <TimedEvent>           timedEvents = new ArrayList<>();
+	private List <TimedEvent>           removedTimedEvents = new ArrayList<>();
 
 	private InGameHelper                helper;
 	private AliteHud                    hud;
 	private SystemData                  initialHyperspaceSystem;
-	private LaserManager                laserManager = null;
+	private LaserManager                laserManager;
 	private OnScreenMessage             message = new OnScreenMessage();
 	private OnScreenMessage             oldMessage;
 	private SpaceObject                 missileLock = null;
@@ -159,8 +158,8 @@ public class InGameManager implements Serializable {
 		helper = new InGameHelper(alite, this);
 		this.hud = hud;
 		this.lightPosition = lightPosition;
-		this.spawnManager = new ObjectSpawnManager(alite, this);
-		this.dockingComputerAI = new DockingComputerAI(alite, this);
+		spawnManager = new ObjectSpawnManager(alite, this);
+		dockingComputerAI = new DockingComputerAI(alite, this);
 		alite.getPlayer().getCobra().resetEnergy();
 
 		skysphere = new SkySphereSpaceObject(alite, "skysphere", 8000.0f, 16, 16, skyMap);
@@ -182,11 +181,11 @@ public class InGameManager implements Serializable {
 		if (initStarDust && Settings.particleDensity > 0) {
 			starDust = new StarDust(alite, ship.getPosition());
 		}
-		this.buttons = hud != null ? new AliteButtons(alite, ship, this) : null;
+		buttons = hud != null ? new AliteButtons(alite, ship, this) : null;
 		laserManager = new LaserManager(alite, this);
 		timedEvents.addAll(laserManager.registerTimedEvents());
-		Rect visibleArea = ((AndroidGraphics) alite.getGraphics()).getVisibleArea();
-		aspectRatio = (float) visibleArea.width() / (float) visibleArea.height();
+		Rect visibleArea = alite.getGraphics().getVisibleArea();
+		aspectRatio = visibleArea.width() / (float) visibleArea.height();
 		spawnManager.startSimulation(alite.getPlayer().getCurrentSystem());
 		alite.getCobra().setMissileLocked(false);
 		objectPicker = new ObjectPicker(this, visibleArea);
@@ -239,7 +238,7 @@ public class InGameManager implements Serializable {
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
 			in.defaultReadObject();
-			this.alite     = Alite.get();
+			alite = Alite.get();
 			if (spawnManager != null && timedEvents != null) {
 				spawnManager.initTimedEvents(this);
 			}
@@ -300,7 +299,7 @@ public class InGameManager implements Serializable {
 	}
 
 	public void repeatMessage(String text, int times) {
-		message.repeatText(text, 1000000000l, times);
+		message.repeatText(text, 1000000000L, times);
 	}
 
 	public AliteHud getHud() {
@@ -437,10 +436,10 @@ public class InGameManager implements Serializable {
 	}
 
 	public void killHud() {
-		this.hud = null;
+		hud = null;
 	}
 
-	public boolean isPlayerAlive() {
+	boolean isPlayerAlive() {
 		return hud != null;
 	}
 
@@ -452,9 +451,8 @@ public class InGameManager implements Serializable {
 		timedEvents.add(event);
 	}
 
-	private final float clamp(float val, float min, float max) {
-		float result = val < min ? min : val > max ? max : val;
-		return result;
+	private float clamp(float val, float min, float max) {
+		return val < min ? min : val > max ? max : val;
 	}
 
 	public CobraMkIII getShip() {
@@ -474,9 +472,9 @@ public class InGameManager implements Serializable {
 			zero.z = alite.getInput().getAccelZ();
 			calibrated = true;
 		} else {
-			deltaOrientation.x = -clamp(((int) ((alite.getInput().getAccelX() - zero.x) * 10.0f)) / 4.0f, -2.0f, 2.0f);
-			deltaOrientation.y =  clamp(((int) ((alite.getInput().getAccelY() - zero.y) * 50.0f)) / 10.0f, -2.0f, 2.0f);
-			deltaOrientation.z = -clamp(((int) ((alite.getInput().getAccelZ() - zero.z) * 50.0f)) / 10.0f, -2.0f, 2.0f);
+			deltaOrientation.x = -clamp((int) ((alite.getInput().getAccelX() - zero.x) * 10.0f) / 4.0f, -2.0f, 2.0f);
+			deltaOrientation.y =  clamp((int) ((alite.getInput().getAccelY() - zero.y) * 50.0f) / 10.0f, -2.0f, 2.0f);
+			deltaOrientation.z = -clamp((int) ((alite.getInput().getAccelZ() - zero.z) * 50.0f) / 10.0f, -2.0f, 2.0f);
 
 			deltaYawRollPitch.z = /*(float) (30.0f * Math.PI / 180.0f) **/ deltaOrientation.z;
 			if (Settings.reversePitch) {
@@ -559,7 +557,7 @@ public class InGameManager implements Serializable {
 
 	private synchronized void spawnMissile(SpaceObject so) {
 		Missile missile = helper.spawnMissile(so, getShip());
-        message.repeatText("Incoming Missile", 2000000000l);
+        message.repeatText("Incoming Missile", 2000000000L);
         missile.addDestructionCallback(new DestructionCallback() {
 			private static final long serialVersionUID = -4168441227358105959L;
 
@@ -750,7 +748,7 @@ public class InGameManager implements Serializable {
 			allObjects.add(eo);
 		}
 		objectsToBeAdded.clear();
-		if ((!isPlayerControl() && dockingComputerAI.isActive()) || needsSpeedAdjustment) {
+		if (!isPlayerControl() && dockingComputerAI.isActive() || needsSpeedAdjustment) {
 			if (!isPlayerAlive()) {
 				dockingComputerAI.disengage();
 			}
@@ -789,9 +787,8 @@ public class InGameManager implements Serializable {
 	private int computeNewViewport(int x, int y) {
 		if (Math.abs(x - RADAR_CENTER_X) / RADAR_RADIUS_X > Math.abs(y - RADAR_CENTER_Y) / RADAR_RADIUS_Y) {
 			return x > RADAR_CENTER_X ? PlayerCobra.DIR_RIGHT : PlayerCobra.DIR_LEFT;
-		} else {
-			return y > RADAR_CENTER_Y ? PlayerCobra.DIR_REAR : PlayerCobra.DIR_FRONT;
 		}
+		return y > RADAR_CENTER_Y ? PlayerCobra.DIR_REAR : PlayerCobra.DIR_FRONT;
 	}
 
 	public void handleMissileIcons() {
@@ -910,14 +907,13 @@ public class InGameManager implements Serializable {
 							}
 							lastX = e.x;
 							return vd;
-						} else {
-							int vd = viewDirection - 1;
-							if (vd < 0) {
-								vd = 3;
-							}
-							lastX = e.x;
-							return vd;
 						}
+						int vd = viewDirection - 1;
+						if (vd < 0) {
+							vd = 3;
+						}
+						lastX = e.x;
+						return vd;
 					}
 				}
 			}
@@ -1020,7 +1016,7 @@ public class InGameManager implements Serializable {
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glPushMatrix();
 		GLES11.glLoadIdentity();
-		Rect visibleArea = ((AndroidGraphics) alite.getGraphics()).getVisibleArea();
+		Rect visibleArea = alite.getGraphics().getVisibleArea();
 		GlUtils.ortho(alite, visibleArea);
 
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
@@ -1057,10 +1053,7 @@ public class InGameManager implements Serializable {
 		if (type == ObjectType.EnemyShip || type == ObjectType.Thargoid || type == ObjectType.Viper) {
 			return true;
 		}
-		if (type == ObjectType.Thargon && (((Thargon) so).getMother() != null && ((Thargon) so).getMother().getHullStrength() > 0)) {
-			return true;
-		}
-		return false;
+		return type == ObjectType.Thargon && ((Thargon) so).getMother() != null && ((Thargon) so).getMother().getHullStrength() > 0;
 	}
 
 	private void renderHudObject(float deltaTime, AliteObject go) {
@@ -1134,8 +1127,8 @@ public class InGameManager implements Serializable {
 		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
 		GLES11.glDepthFunc(GLES11.GL_LESS);
 		GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT);
-		Rect visibleArea = ((AndroidGraphics) alite.getGraphics()).getVisibleArea();
-		float aspectRatio = (float) visibleArea.width() / (float) visibleArea.height();
+		Rect visibleArea = alite.getGraphics().getVisibleArea();
+		float aspectRatio = visibleArea.width() / (float) visibleArea.height();
 
 		GLES11.glPushMatrix();
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
@@ -1201,9 +1194,7 @@ public class InGameManager implements Serializable {
 						distSq = ship.getPosition().distanceSq(go.getPosition());
 					}
 					if (go instanceof Billboard) {
-						if (go instanceof Billboard) {
-							((Billboard) go).update(ship);
-						}
+						((Billboard) go).update(ship);
 						GLES11.glEnable(GLES11.GL_BLEND);
 					    GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE_MINUS_SRC_ALPHA);
 						GLES11.glDisable(GLES11.GL_CULL_FACE);
@@ -1222,7 +1213,7 @@ public class InGameManager implements Serializable {
 					((Geometry) go).setDisplayMatrix(tempMatrix[2]);
 					if (alite.getCobra().getLaser(viewDirection) != null) {
 						if (go instanceof SpaceObject) {
-							if ((targetMissile && alite.getCobra().getMissiles() > 0) || (Settings.autoId && !((SpaceObject) go).isIdentified())) {
+							if (targetMissile && alite.getCobra().getMissiles() > 0 || Settings.autoId && !((SpaceObject) go).isIdentified()) {
 								if (laserManager.isUnderCross((SpaceObject) go, ship, viewDirection)) {
 									if (targetMissile) {
 										AliteLog.d("Targetted", "Targetted " + go.getName());
@@ -1271,7 +1262,7 @@ public class InGameManager implements Serializable {
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glPushMatrix();
 		GLES11.glLoadIdentity();
-		Rect visibleArea = ((AndroidGraphics) alite.getGraphics()).getVisibleArea();
+		Rect visibleArea = alite.getGraphics().getVisibleArea();
 		GlUtils.ortho(alite, visibleArea);
 
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
@@ -1355,7 +1346,7 @@ public class InGameManager implements Serializable {
 			GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 			GLES11.glPushMatrix();
 			GLES11.glLoadIdentity();
-			Rect visibleArea = ((AndroidGraphics) alite.getGraphics()).getVisibleArea();
+			Rect visibleArea = alite.getGraphics().getVisibleArea();
 			GlUtils.ortho(alite, visibleArea);
 
 			GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
@@ -1403,11 +1394,7 @@ public class InGameManager implements Serializable {
 		return false;
 	}
 
-	InGameHelper getHelper() {
-		return helper;
-	}
-
-	public void enterWitchSpace() {
+	void enterWitchSpace() {
 		witchSpace = new WitchSpaceRender(alite, this);
 		witchSpace.enterWitchSpace();
 	}
@@ -1416,7 +1403,7 @@ public class InGameManager implements Serializable {
 		return witchSpace != null;
 	}
 
-	public void escapeWitchSpace() {
+	private void escapeWitchSpace() {
 		witchSpace = null;
 	}
 
@@ -1425,11 +1412,11 @@ public class InGameManager implements Serializable {
 	}
 
 	public boolean isInSafeZone() {
-		return hud != null ? hud.isInSafeZone() : false;
+		return hud != null && hud.isInSafeZone();
 	}
 
 	public boolean isInExtendedSafeZone() {
-		return hud != null ? hud.isInExtendedSafeZone() : false;
+		return hud != null && hud.isInExtendedSafeZone();
 	}
 
 	int getNumberOfObjects(ObjectType type) {
@@ -1460,7 +1447,7 @@ public class InGameManager implements Serializable {
 	}
 
 	void setPaused(boolean p) {
-		this.paused = p;
+		paused = p;
 		spawnManager.setPaused(p);
 		if (p) {
 			if (oldMessage == null) {
@@ -1473,7 +1460,7 @@ public class InGameManager implements Serializable {
 				scrollingText = new ScrollingText(alite);
 			}
 			message = new OnScreenMessage();
-			message.repeatText("Alite is Paused (tap screen to continue)...", 5000000000l, -1, 3000000000l);
+			message.repeatText("Alite is Paused (tap screen to continue)...", 5000000000L, -1, 3000000000L);
 		} else {
 			scrollingText = null;
 			message.clearRepetition();
@@ -1508,7 +1495,7 @@ public class InGameManager implements Serializable {
 		}
 	}
 
-	public void killHyperspaceJump() {
+	void killHyperspaceJump() {
 		if (hyperspaceTimer != null) {
 			hyperspaceTimer.pause();
 			hyperspaceTimer.setRemove(true);
@@ -1523,12 +1510,11 @@ public class InGameManager implements Serializable {
 			hyperspaceTimer = null;
 			message.setText("Hyperspace jump aborted.");
 			return false;
-		} else {
-			initialHyperspaceSystem = alite.getPlayer().getHyperspaceSystem();
-			hyperspaceTimer = new HyperspaceTimer(this, isIntergalactic);
-			timedEvents.add(hyperspaceTimer);
-			return true;
 		}
+		initialHyperspaceSystem = alite.getPlayer().getHyperspaceSystem();
+		hyperspaceTimer = new HyperspaceTimer(this, isIntergalactic);
+		timedEvents.add(hyperspaceTimer);
+		return true;
 	}
 
 	public void setCloak(boolean cloaked) {
@@ -1567,7 +1553,7 @@ public class InGameManager implements Serializable {
 		laserManager.gameOver(getShip());
 	}
 
-	public void computeBounty(SpaceObject destroyedObject, WeaponType weaponType) {
+	void computeBounty(SpaceObject destroyedObject, WeaponType weaponType) {
 		laserManager.computeBounty(destroyedObject, weaponType);
 	}
 
@@ -1645,11 +1631,11 @@ public class InGameManager implements Serializable {
 		return missileLock;
 	}
 
-	public boolean isVipersWillEngage() {
+	boolean isVipersWillEngage() {
 		return vipersWillEngage;
 	}
 
-	public void setVipersWillEngage(boolean b) {
+	void setVipersWillEngage(boolean b) {
 		vipersWillEngage = b;
 	}
 }

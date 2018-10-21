@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.tutorial;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -28,7 +28,7 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -41,17 +41,15 @@ public class TutorialSelectionScreen extends AliteScreen {
 	private Button hud;
 	private Button basicFlying;
 	private Button advancedFlying;
-	
+
 	public TutorialSelectionScreen(Game game) {
-		super(game);		
+		super(game);
 	}
 
-	protected Button createButton(int row, String text) {
-		Button b = new Button(50, 130 * (row + 1), 1620, 100, text, Assets.titleFont, null);
-		b.setGradient(true);
-		return b;
+	private Button createButton(int row, String text) {
+		return Button.createGradientTitleButton(50, 130 * (row + 1), 1620, 100, text);
 	}
-	
+
 	@Override
 	public void activate() {
 		introduction   = createButton(0, "Introduction");
@@ -62,15 +60,15 @@ public class TutorialSelectionScreen extends AliteScreen {
 		basicFlying    = createButton(5, "Basic Flying");
 		advancedFlying = createButton(6, "Advanced Flying");
 	}
-			
+
 	@Override
-	public void present(float deltaTime) {		
+	public void present(float deltaTime) {
 		if (disposed) {
 			return;
 		}
 		Graphics g = game.getGraphics();
-		g.clear(AliteColors.get().background());
-		
+		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
+
 		displayTitle("Training Academy");
 		introduction.render(g);
 		trading.render(g);
@@ -86,7 +84,7 @@ public class TutorialSelectionScreen extends AliteScreen {
 		super.processTouch(touch);
 		if (getMessage() != null) {
 			return;
-		}		
+		}
 
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (introduction.isTouched(touch.x, touch.y)) {
@@ -97,30 +95,30 @@ public class TutorialSelectionScreen extends AliteScreen {
 				newScreen = new TutTrading((Alite) game);
 			} else if (equipment.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutEquipment((Alite) game);				
+				newScreen = new TutEquipment((Alite) game);
 			} else if (navigation.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutNavigation((Alite) game);				
+				newScreen = new TutNavigation((Alite) game);
 			} else if (hud.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutHud((Alite) game);								
+				newScreen = new TutHud((Alite) game);
 			} else if (basicFlying.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutBasicFlying((Alite) game);												
+				newScreen = new TutBasicFlying((Alite) game);
 			} else if (advancedFlying.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutAdvancedFlying((Alite) game, 0);																
+				newScreen = new TutAdvancedFlying((Alite) game, 0);
 			}
 		}
 	}
-		
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.TUTORIAL_SELECTION_SCREEN;
 	}
-	
+
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		alite.setScreen(new TutorialSelectionScreen(alite));
 		return true;
-	}			
+	}
 }

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -29,7 +29,7 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -38,28 +38,26 @@ public class DiskScreen extends AliteScreen {
 	private static final int X_OFFSET = 150;
 	private static final int X_GAP    =  50;
 	private static final int Y_OFFSET = 315;
-	
+
 	private static Pixmap loadIcon;
 	private static Pixmap saveIcon;
 	private static Pixmap catalogIcon;
-		
-	private Button [] button = new Button[3];
-	private final String [] text = new String [] {"Load", "Save", "Catalog"};
-	
+
+	private Button[] button = new Button[3];
+	private final String[] text = new String[] {"Load", "Save", "Catalog"};
+
+	// public constructor(Game) is required for navigation bar
 	public DiskScreen(Game game) {
 		super(game);
 	}
-	
+
 	@Override
-	public void activate() {	
-		button[0] = new Button(X_OFFSET, Y_OFFSET, SIZE, SIZE, loadIcon);
-		button[1] = new Button(X_OFFSET + X_GAP + SIZE, Y_OFFSET, SIZE, SIZE, saveIcon);
-		button[2] = new Button(X_OFFSET + X_GAP * 2 + SIZE * 2, Y_OFFSET, SIZE, SIZE, catalogIcon);
-		for (int i = 0; i < 3; i++) {
-			button[i].setUseBorder(false);
-		}
+	public void activate() {
+		button[0] = Button.createPictureButton(X_OFFSET, Y_OFFSET, SIZE, SIZE, loadIcon);
+		button[1] = Button.createPictureButton(X_OFFSET + X_GAP + SIZE, Y_OFFSET, SIZE, SIZE, saveIcon);
+		button[2] = Button.createPictureButton(X_OFFSET + X_GAP * 2 + SIZE * 2, Y_OFFSET, SIZE, SIZE, catalogIcon);
 	}
-	
+
 	public static boolean initialize(Alite alite, final DataInputStream dis) {
 		alite.setScreen(new DiskScreen(alite));
 		return true;
@@ -71,15 +69,15 @@ public class DiskScreen extends AliteScreen {
 			return;
 		}
 		Graphics g = game.getGraphics();
-		g.clear(AliteColors.get().background());
+		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle("Disk Menu");
-		
+
 		int index = 0;
 		for (Button b: button) {
 			if (b != null) {
 				b.render(g);
 				int halfWidth = g.getTextWidth(text[index], Assets.regularFont) >> 1;
-				g.drawText(text[index], b.getX() + (b.getWidth() >> 1) - halfWidth, b.getY() + b.getHeight() + 35, AliteColors.get().mainText(), Assets.regularFont);
+				g.drawText(text[index], b.getX() + (b.getWidth() >> 1) - halfWidth, b.getY() + b.getHeight() + 35, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
 			}
 			index++;
 		}
@@ -128,29 +126,29 @@ public class DiskScreen extends AliteScreen {
 	public void loadAssets() {
 		Graphics g = game.getGraphics();
 		if (loadIcon == null) {
-			loadIcon = g.newPixmap("load_symbol.png", true);
+			loadIcon = g.newPixmap("load_symbol.png");
 		}
 		if (saveIcon == null) {
-			saveIcon = g.newPixmap("save_symbol.png", true);
+			saveIcon = g.newPixmap("save_symbol.png");
 		}
 		if (catalogIcon == null) {
-			catalogIcon = g.newPixmap("catalog_symbol.png", true);
+			catalogIcon = g.newPixmap("catalog_symbol.png");
 		}
 		super.loadAssets();
 	}
-	
+
 	@Override
 	public void pause() {
 		super.pause();
 	}
-	
+
 	@Override
 	public void resume() {
 		super.resume();
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.DISK_SCREEN;
-	}		
+	}
 }

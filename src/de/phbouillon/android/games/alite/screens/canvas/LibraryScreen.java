@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import android.graphics.Color;
 import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -38,7 +37,8 @@ import de.phbouillon.android.games.alite.Button.TextPosition;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.AliteColor;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.library.LibraryPage;
 import de.phbouillon.android.games.alite.model.library.Toc;
 import de.phbouillon.android.games.alite.model.library.TocEntry;
@@ -48,9 +48,9 @@ import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
 public class LibraryScreen extends AliteScreen {
-	private final List <Button> button = new ArrayList<Button>();
-	private final List <TocEntryData> entries = new ArrayList<TocEntryData>();
-	private final List <TocEntryData> filteredEntries = new ArrayList<TocEntryData>();
+	private final List <Button> button = new ArrayList<>();
+	private final List <TocEntryData> entries = new ArrayList<>();
+	private final List <TocEntryData> filteredEntries = new ArrayList<>();
 	private Pixmap buttonBackground;
 	private Pixmap buttonBackgroundPushed;
 	private Pixmap searchIcon;
@@ -61,31 +61,35 @@ public class LibraryScreen extends AliteScreen {
 	private int lastY;
 	private int maxY;
 	private float deltaY = 0.0f;
-	private String currentFilter = null;
-	
+	private String currentFilter;
+
 	private class TocEntryData {
 		TocEntry entry;
 		int level;
-		
+
 		TocEntryData(TocEntry entry, int level) {
 			this.entry = entry;
 			this.level = level;
 		}
 	}
-	
-	public LibraryScreen(Game game, String currentFilter) {
+
+	// public constructor(Game) is required for navigation bar
+	public LibraryScreen(Game game) {
+		this(game, null);
+	}
+
+	LibraryScreen(Game game, String currentFilter) {
 		super(game);
 		this.currentFilter = currentFilter;
 	}
-	
-	
-	@Override 
+
+
+	@Override
 	public void activate() {
-		searchButton = new Button(1375, 980, 320, 100, "Search", Assets.regularFont, null);
-		searchButton.setTextPosition(TextPosition.RIGHT);
-		searchButton.setGradient(true);
-		searchButton.setPixmap(searchIcon);
-		
+		searchButton = Button.createGradientRegularButton(1375, 980, 320, 100, "Search")
+			.setPixmap(searchIcon)
+			.setTextPosition(TextPosition.RIGHT);
+
 		try {
 			button.clear();
 			entries.clear();
@@ -102,9 +106,9 @@ public class LibraryScreen extends AliteScreen {
 			}
 		} catch (IOException e) {
 			AliteLog.e("[ALITE] Library", "Error reading Library TOC file.", e);
-		}		
+		}
 	}
-	
+
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		try {
 			int len = dis.readInt();
@@ -114,17 +118,17 @@ public class LibraryScreen extends AliteScreen {
 				for (int i = 0; i < len; i++) {
 					filter += dis.readChar();
 				}
-			}			
+			}
 			LibraryScreen ls = new LibraryScreen(alite, filter);
 			ls.yPosition = dis.readInt();
 			alite.setScreen(ls);
 		} catch (Exception e) {
 			AliteLog.e("Library Screen Initialize", "Error in initializer.", e);
-			return false;			
-		}					
+			return false;
+		}
 		return true;
 	}
-	
+
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeInt(currentFilter == null ? 0 : currentFilter.length());
@@ -133,7 +137,7 @@ public class LibraryScreen extends AliteScreen {
 		}
 		dos.writeInt(yPosition);
 	}
-	
+
 	private void filter() {
 		filteredEntries.clear();
 		button.clear();
@@ -158,65 +162,73 @@ public class LibraryScreen extends AliteScreen {
 			buildTocButtons(filteredEntries.toArray(new TocEntryData[0]));
 		}
 	}
-	
+
 	private boolean checkCheat(String text) {
 		Alite alite = (Alite) game;
 		String hash = alite.getFileUtils().computeSHAString(text);
-		boolean messageSet = false;
 		if ("3a6d64c24cf8b69ccda376546467e8266667b50cfd0b984beb3651b129ed7".equals(hash) ||
-			"53b1fb446230b347c3f6406cca4b1ddbac60905ba4ab1977179f44b8fb134447".equals(hash)) {
+			"53b1fb446230b347c3f6406cca4b1ddbac60905ba4ab1977179f44b8fb134447".equals(hash)) { // Sara
 			setMessage("Sorry, " + text + " does not work here, anymore.");
-			messageSet = true;
-		} else if ("d2a66247a6fad77347b676dedf6755cedbfbf8aef67cae4dc18ba53346577b5".equals(hash) ||
-				   "d3d291ec78221333acf4d79084efe49cebb42fc01ce9c681315745c50e1".equals(hash)) {
+			return true;
+		}
+		if ("d2a66247a6fad77347b676dedf6755cedbfbf8aef67cae4dc18ba53346577b5".equals(hash) ||
+				   "d3d291ec78221333acf4d79084efe49cebb42fc01ce9c681315745c50e1".equals(hash)) { // Suzanne
 			setMessage("No, " + text + " does not work here, either. Sorry.");
-			messageSet = true;
-		} else if ("5be5a31d90d073e11bd2362aa2336b7e902ea46dada1ec282ae6f4759a4d31ee".equals(hash)) {
+			return true;
+		}
+		if ("5be5a31d90d073e11bd2362aa2336b7e902ea46dada1ec282ae6f4759a4d31ee".equals(hash)) { // Klaudia
 			alite.activateHacker();
 			setMessage("Hacker activated.");
-			messageSet = true;
 			alite.getPlayer().setCheater(true);
-		} else if ("6efe6cb9668dc015e79a8bf751b543de841f1e824dd4f42c59d80f39a0bd61".equals(hash)) {
+			return true;
+		}
+		if ("6efe6cb9668dc015e79a8bf751b543de841f1e824dd4f42c59d80f39a0bd61".equals(hash)) { // Vianne
 			Settings.shieldPowerOverride = 40;
 			setMessage("Shield Power Booster activated.");
-			messageSet = true;
 			alite.getPlayer().setCheater(true);
-		} else if ("67e082893e848c8706431c32dea6c3ca86c488ae24ee6b0661489cb8b3bb78a".equals(hash)) {
+			return true;
+		}
+		if ("67e082893e848c8706431c32dea6c3ca86c488ae24ee6b0661489cb8b3bb78a".equals(hash)) { // Christian
 			Settings.unlimitedFuel = true;
 			setMessage("Hyperdrive Booster activated.");
-			messageSet = true;
 			alite.getPlayer().setCheater(true);
-		} else if ("dbadfc88144bc153a2d1bdf154681c857a237eb79d58df24e918bca6e17db5".equals(hash)) {
+			return true;
+		}
+		if ("dbadfc88144bc153a2d1bdf154681c857a237eb79d58df24e918bca6e17db5".equals(hash)) { // Alexander
 			Settings.laserPowerOverride = 15;
 			setMessage("Laser Power Booster activated.");
-			messageSet = true;
 			alite.getPlayer().setCheater(true);
-		} else if ("86cc9b0303fd0b29a61b4b5a0fa78bb5c5fd64aa7346fb35267bcfe5f41".equals(hash)) {
+			return true;
+		}
+		if ("86cc9b0303fd0b29a61b4b5a0fa78bb5c5fd64aa7346fb35267bcfe5f41".equals(hash)) {
 			Settings.laserPowerOverride = 5000;
 			setMessage("Maximum Laser Power.");
-			messageSet = true;
 			alite.getPlayer().setCheater(true);
-		} else if ("87ad16d301e439a57c6296968f1ebbd889d4a5cf58bd0bf1dc97d4259803af8".equals(hash)) {
+			return true;
+		}
+		if ("87ad16d301e439a57c6296968f1ebbd889d4a5cf58bd0bf1dc97d4259803af8".equals(hash)) {
 			Settings.invulnerable = true;
 			setMessage("Maximum Shield Power.");
-			messageSet = true;
 			alite.getPlayer().setCheater(true);
-		} else if ("3152a173cfd3efe739ba51b84937173cf3380fd6d39e49fb92623caa131b4f6".equals(hash)) {
+			return true;
+		}
+		if ("3152a173cfd3efe739ba51b84937173cf3380fd6d39e49fb92623caa131b4f6".equals(hash)) { // Philipp
 			Settings.freePath = true;
 			setMessage("Clear Path Ahead.");
-			messageSet = true;
 			alite.getPlayer().setCheater(true);
-		} else if ("8f9adc99291f20b6f4d91c2a4b6b834477b422c8e3d78b8f481c88f619694".equals(hash)) {
+			return true;
+		}
+		if ("8f9adc99291f20b6f4d91c2a4b6b834477b422c8e3d78b8f481c88f619694".equals(hash)) { // Franz Josef
 			OptionsScreen.SHOW_DEBUG_MENU = true;
 			setMessage("The Master Control Program is at your service.");
-			messageSet = true;
 			alite.getPlayer().setCheater(true);
+			return true;
 		}
-		return messageSet;
+		return false;
 	}
 
  	private void performSearch() {
-		newScreen = new TextInputScreen(game, "Search Library", "Enter search text", "", this, new TextCallback() {					
+		newScreen = new TextInputScreen(game, "Search Library", "Enter search text", "", this, new TextCallback() {
 			@Override
 			public void onOk(String text) {
 				currentFilter = text;
@@ -237,30 +249,30 @@ public class LibraryScreen extends AliteScreen {
 					currentFilter = null;
 					Alite.setDefiningScreen(LibraryScreen.this);
 					buildTocButtons(entries.toArray(new TocEntryData[0]));
-				} 
+				}
 			}
-			
+
 			@Override
 			public void onCancel() {
 			}
 		});
 	}
-	
+
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);	
+		super.processTouch(touch);
 		if (getMessage() != null) {
 			return;
 		}
 		if (touch.type == TouchEvent.TOUCH_DOWN && touch.pointer == 0) {
 			startX = touch.x;
-			startY = lastY = touch.y;		
+			startY = lastY = touch.y;
 			deltaY = 0;
 		}
 		if (touch.type == TouchEvent.TOUCH_DRAGGED && touch.pointer == 0) {
-			if (touch.x > (1920 - NavigationBar.SIZE)) {
+			if (touch.x > 1920 - NavigationBar.SIZE) {
 				return;
-			}			
+			}
 			yPosition += lastY - touch.y;
 			if (yPosition < 0) {
 				yPosition = 0;
@@ -268,10 +280,10 @@ public class LibraryScreen extends AliteScreen {
 			if (yPosition > maxY) {
 				yPosition = maxY;
 			}
-			lastY = touch.y;			
+			lastY = touch.y;
 		}
 		if (touch.type == TouchEvent.TOUCH_UP && touch.pointer == 0) {
-			if (touch.x > (1920 - NavigationBar.SIZE)) {
+			if (touch.x > 1920 - NavigationBar.SIZE) {
 				return;
 			}
 			if (Math.abs(startX - touch.x) < 20 &&
@@ -290,57 +302,56 @@ public class LibraryScreen extends AliteScreen {
 					}
 				}
 			}
-		}		
-		if (touch.type == TouchEvent.TOUCH_SWEEP && touch.x < (1920 - NavigationBar.SIZE)) {
+		}
+		if (touch.type == TouchEvent.TOUCH_SWEEP && touch.x < 1920 - NavigationBar.SIZE) {
 			deltaY = touch.y2;
 		}
 	}
 
-	private final void buildTocButtons(TocEntry [] entries, int level) {
+	private void buildTocButtons(TocEntry[] entries, int level) {
 		if (entries == null) {
 			return;
-		}	
+		}
 		for (TocEntry entry: entries) {
-			Button b = new Button(20 + level * 100, 80 + button.size() * 140, 1680 - level * 100, 120, buttonBackground);
-			b.setPushedBackground(buttonBackgroundPushed);
+			Button b = Button.createPictureButton(20 + level * 100, 80 + button.size() * 140, 1680 - level * 100, 120, buttonBackground)
+				.setPushedBackground(buttonBackgroundPushed)
+				.setText("")
+				.setFont(Assets.regularFont);
 			if (level != 0) {
 				b.setButtonEnd(50);
 			}
 			button.add(b);
 			this.entries.add(new TocEntryData(entry, level));
-			b.setText("");
-			b.setFont(Assets.regularFont);
-			b.setUseBorder(false);
 			buildTocButtons(entry.getChildren(), level + 1);
 		}
 	}
-	
-	private final void buildTocButtons(TocEntryData [] entries) {
+
+	private void buildTocButtons(TocEntryData[] entries) {
 		if (entries == null) {
 			return;
 		}
 		for (TocEntryData entry: entries) {
-			Button b = new Button(20 + entry.level * 100, 80 + button.size() * 140, 1680 - entry.level * 100, 120, buttonBackground);
-			b.setPushedBackground(buttonBackgroundPushed);
+			Button b = Button.createPictureButton(20 + entry.level * 100, 80 + button.size() * 140,
+				1680 - entry.level * 100, 120, buttonBackground)
+				.setPushedBackground(buttonBackgroundPushed)
+				.setText("")
+				.setFont(Assets.regularFont);
 			if (entry.level != 0) {
 				b.setButtonEnd(50);
 			}
 			button.add(b);
-			b.setText("");
-			b.setFont(Assets.regularFont);
-			b.setUseBorder(false);
 		}
 	}
 
 	@Override
-	public void present(float deltaTime) {		
+	public void present(float deltaTime) {
 		if (disposed) {
 			return;
 		}
 		Graphics g = game.getGraphics();
-		g.clear(Color.BLACK);
+		g.clear(AliteColor.BLACK);
 		displayTitle("Library");
-		
+
 		searchButton.render(g);
 		if (deltaY != 0) {
 			boolean neg = deltaY < 0;
@@ -363,7 +374,8 @@ public class LibraryScreen extends AliteScreen {
 			TocEntryData ted = currentFilter == null ? entries.get(i) : filteredEntries.get(i);
 			b.setYOffset(-yPosition);
 			b.render(g);
-			g.drawText(ted.entry.getName(), 50 + ted.level * 100, 150 - yPosition + i * 140, AliteColors.get().baseInformation(), Assets.regularFont);
+			g.drawText(ted.entry.getName(), 50 + ted.level * 100, 150 - yPosition + i * 140,
+				ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
 		}
 		g.setClip(-1, -1, -1, -1);
 	}
@@ -387,24 +399,24 @@ public class LibraryScreen extends AliteScreen {
 
 	@Override
 	public void loadAssets() {
-		buttonBackground = game.getGraphics().newPixmap("catalog_button.png", true);
-		searchIcon = game.getGraphics().newPixmap("search_icon.png", true);
-		buttonBackgroundPushed = game.getGraphics().newPixmap("catalog_button_pushed.png", true);
+		buttonBackground = game.getGraphics().newPixmap("catalog_button.png");
+		searchIcon = game.getGraphics().newPixmap("search_icon.png");
+		buttonBackgroundPushed = game.getGraphics().newPixmap("catalog_button_pushed.png");
 		super.loadAssets();
 	}
-	
+
 	@Override
 	public void pause() {
 		super.pause();
 	}
-	
+
 	@Override
 	public void resume() {
 		super.resume();
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.LIBRARY_SCREEN;
-	}	
+	}
 }

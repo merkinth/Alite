@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model.library;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -38,25 +38,25 @@ public class LibraryPage {
 	private String next;
 	private LibraryPage previousPage;
 	private LibraryPage nextPage;
-	
+
 	private String header;
 	private List <String> paragraphs;
 	private List <ItemDescriptor> objects;
 	private List <ItemDescriptor> images;
-	
+	private ItemDescriptor backgroundImage;
+
 	private static String getHeader(Element root) {
 		return root.getElementsByTagName("Header").item(0).getTextContent();
 	}
 
 	private static Element getPageText(Element root) {
-		Element text = (Element) ((Element) root.getElementsByTagName("Content").item(0)).
-						getElementsByTagName("Text").item(0);
-		return text;
+		return (Element) ((Element) root.getElementsByTagName("Content").item(0)).
+			getElementsByTagName("Text").item(0);
 	}
-	
+
 	private static List <String> getParagraphsFromText(Element text) {
-		ArrayList <String> result = new ArrayList<String>();
-		
+		ArrayList <String> result = new ArrayList<>();
+
 		NodeList children = text.getChildNodes();
 		if (children != null && children.getLength() > 0) {
 			for (int i = 0, n = children.getLength(); i < n; i++) {
@@ -72,16 +72,16 @@ public class LibraryPage {
 					}
 				}
 			}
-		} 
+		}
 		if (result.isEmpty()) {
 			result.add(text.getTextContent().replaceAll("\\s+", " "));
 		}
-		
+
 		return result;
 	}
-	
+
 	private static List <ItemDescriptor> extractItems(NodeList itemNodes) {
-		ArrayList <ItemDescriptor> result = new ArrayList<ItemDescriptor>();
+		ArrayList <ItemDescriptor> result = new ArrayList<>();
 		if (itemNodes != null && itemNodes.getLength() > 0) {
 			for (int i = 0, n = itemNodes.getLength(); i < n; i++) {
 				Element object = (Element) itemNodes.item(i);
@@ -90,7 +90,6 @@ public class LibraryPage {
 				if (texts != null && texts.getLength() > 0) {
 					List <String> desc = getParagraphsFromText((Element) texts.item(0));
 					if (!desc.isEmpty()) {
-						text = "";
 						for (String d: desc) {
 							text += d + "\n\n";
 						}
@@ -100,20 +99,26 @@ public class LibraryPage {
 				ItemDescriptor item = new ItemDescriptor(object.getAttribute("name"), text);
 				result.add(item);
 			}
-		}	
+		}
 		return result;
 	}
-		
+
 	private static List <ItemDescriptor> getObjects(Element root) {
-		NodeList objects = ((Element) root.getElementsByTagName("Content").item(0)).getElementsByTagName("Object");		
+		NodeList objects = ((Element) root.getElementsByTagName("Content").item(0)).getElementsByTagName("Object");
 		return extractItems(objects);
 	}
-	
+
 	private static List <ItemDescriptor> getImages(Element root) {
 		NodeList images = ((Element) root.getElementsByTagName("Content").item(0)).getElementsByTagName("Image");
 		return extractItems(images);
 	}
-		
+
+	private static ItemDescriptor getBackgroundImage(Element root) {
+		NodeList backgroundImage = ((Element) root.getElementsByTagName("Content").item(0)).getElementsByTagName("BackgroundImage");
+		List<ItemDescriptor> itemDescriptors = extractItems(backgroundImage);
+		return itemDescriptors.isEmpty() ? null : itemDescriptors.get(0);
+	}
+
 	private static String getNext(Element root) {
 		NodeList next = root.getElementsByTagName("Next");
 		if (next != null && next.getLength() > 0) {
@@ -121,13 +126,13 @@ public class LibraryPage {
 		}
 		return null;
 	}
-	
+
 	private static String getPrevious(Element root) {
 		NodeList previous = root.getElementsByTagName("Previous");
 		if (previous != null && previous.getLength() > 0) {
 			return previous.item(0).getTextContent();
 		}
-		return null;		
+		return null;
 	}
 
 	public static LibraryPage load(String fileName, InputStream is) {
@@ -143,6 +148,7 @@ public class LibraryPage {
 			result.paragraphs        = getParagraphsFromText(getPageText(root));
 			result.objects           = getObjects(root);
 			result.images            = getImages(root);
+			result.backgroundImage   = getBackgroundImage(root);
 			result.previous          = getPrevious(root);
 			result.next              = getNext(root);
 		} catch (Throwable t) {
@@ -150,13 +156,13 @@ public class LibraryPage {
 		} finally {
 			try {
 				is.close();
-			} catch (IOException e) {
+			} catch (IOException ignored) {
 			}
 		}
-		
+
 		return result;
 	}
-	
+
 	public String getParagraphs() {
 		StringBuilder builder = new StringBuilder();
 		for (String s: paragraphs) {
@@ -165,16 +171,16 @@ public class LibraryPage {
 		}
 		return builder.toString();
 	}
-	
+
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		
+
 		builder.append("Header: ");
 		builder.append(header == null ? "-" : header);
 		builder.append("\n");
 		builder.append("Content:\n");
 		builder.append(paragraphs == null || paragraphs.isEmpty() ? "-" : getParagraphs());
-		if (objects != null && objects.size() > 0) {
+		if (objects != null && !objects.isEmpty()) {
 			builder.append("Objects:\n");
 			for (ItemDescriptor id: objects) {
 				builder.append("  Name: " + id.getFileName() + "\n");
@@ -182,24 +188,28 @@ public class LibraryPage {
 			}
 			builder.append("\n");
 		}
-		if (images != null && images.size() > 0) {
+		if (images != null && !images.isEmpty()) {
 			builder.append("Images:\n");
 			for (ItemDescriptor id: images) {
 				builder.append("  Name: " + id.getFileName() + "\n");
 				builder.append("  Desc: " + id.getText() + "\n");
 			}
 			builder.append("\n");
-		}		
+		}
+		if (backgroundImage != null) {
+			builder.append("backgroundImage:\n");
+			builder.append("  Name: " + backgroundImage.getFileName() + "\n\n");
+		}
 		builder.append("Previous page: " + (previous == null ? "-" : previous) + "\n");
 		builder.append("Next page: " + (next == null ? "-" : next) + "\n");
-		
+
 		return builder.toString();
 	}
-	
+
 	private static LibraryPage parsePageRef(String fileNameAbbrev, FileIO io) {
 		LibraryPage linkedPage = null;
 		String fileName = "library/" + fileNameAbbrev + ".xml";
-		try {			
+		try {
 			if (io.existsPrivateFile(fileName)) {
 				linkedPage = LibraryPage.load(fileName, io.readPrivateFile(fileName));
 			}
@@ -209,26 +219,30 @@ public class LibraryPage {
 		}
 		return null;
 	}
-	
+
 	public LibraryPage getNextPage(FileIO io) {
 		if (nextPage == null && next != null) {
 			nextPage = parsePageRef(next, io);
 		}
 		return nextPage;
 	}
-	
+
 	public LibraryPage getPrevPage(FileIO io) {
 		if (previousPage == null && previous != null) {
 			previousPage = parsePageRef(previous, io);
 		}
 		return previousPage;
 	}
-	
+
 	public String getHeader() {
 		return header == null ? "" : header;
 	}
-	
+
 	public ItemDescriptor [] getImages() {
 		return images.toArray(new ItemDescriptor[0]);
+	}
+
+	public ItemDescriptor getBackgroundImage() {
+		return backgroundImage;
 	}
 }

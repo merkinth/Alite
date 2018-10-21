@@ -2,7 +2,7 @@ package de.phbouillon.android.framework.impl;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -23,20 +23,20 @@ import de.phbouillon.android.games.alite.Alite;
 
 public class PulsingHighlighter {
 	private static final long PULSE_UPDATE_FREQUENCY = 30000000l; // 0.3 s
-	
+
 	private final Alite alite;
 	private final int x;
 	private final int y;
 	private final int width;
 	private final int height;
 	private final int delta;
-	private final long lightColor;
-	private final long darkColor;
+	private final int lightColor;
+	private final int darkColor;
 	private int currentDelta;
 	private long lastDraw = -1;
 	private int expansion = 1;
-	
-	public PulsingHighlighter(final Alite alite, int x, int y, int width, int height, int delta, long lightColor, long darkColor) {
+
+	public PulsingHighlighter(final Alite alite, int x, int y, int width, int height, int delta, int lightColor, int darkColor) {
 		this.alite = alite;
 		this.x = x;
 		this.y = y;
@@ -47,16 +47,16 @@ public class PulsingHighlighter {
 		this.darkColor = darkColor;
 		currentDelta = 0;
 	}
-	
+
 	public void display(float deltaTime) {
 		Graphics g = alite.getGraphics();
-		g.gradientRect(x - currentDelta, y - currentDelta, width + 2 * currentDelta, height + 2 * currentDelta, true, true, lightColor, darkColor);
+		g.diagonalGradientRect(x - currentDelta, y - currentDelta, width + 2 * currentDelta, height + 2 * currentDelta, lightColor, darkColor);
 		g.rec3d(x - currentDelta, y - currentDelta, width + 2 * currentDelta, height + 2 * currentDelta, 3, darkColor, lightColor);
 		if (lastDraw == -1 || (System.nanoTime() - lastDraw) > PULSE_UPDATE_FREQUENCY) {
 			lastDraw = System.nanoTime();
 			currentDelta += expansion;
 			if (currentDelta < 0 || currentDelta > delta) {
-				expansion = -expansion;				
+				expansion = -expansion;
 			}
 		}
 	}

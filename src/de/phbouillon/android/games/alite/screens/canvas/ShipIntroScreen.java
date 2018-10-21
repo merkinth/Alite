@@ -33,7 +33,6 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Music;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Sound;
-import de.phbouillon.android.framework.impl.AndroidGraphics;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -42,7 +41,7 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.SkySphereSpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
@@ -94,16 +93,16 @@ public class ShipIntroScreen extends AliteScreen {
 	private static final boolean ONLY_CHANGE_SHIPS_AFTER_SWEEP = false;
 	private static final boolean SHOW_DOCKING = false;
 	private static final boolean DANCE = true;
-	
-	private final float [] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
-	private final float [] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
-	private final float [] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
-	private final float [] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
 
-	private final float [] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
+	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
+	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
+	private final float[] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
+	private final float[] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
+
+	private final float[] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
 
 	private SkySphereSpaceObject skysphere;
 	private AliteObject currentShip;
@@ -113,9 +112,12 @@ public class ShipIntroScreen extends AliteScreen {
 	private long startTime;
 	private long lastChangeTime;
 	private int currentShipIndex = 0;
-	private float currentDeltaX, targetDeltaX;
-	private float currentDeltaY, targetDeltaY;
-	private float currentDeltaZ, targetDeltaZ;
+	private float currentDeltaX;
+	private float targetDeltaX;
+	private float currentDeltaY;
+	private float targetDeltaY;
+	private float currentDeltaZ;
+	private float targetDeltaZ;
 
 	private Button yesButton;
 	private Button noButton;
@@ -124,11 +126,11 @@ public class ShipIntroScreen extends AliteScreen {
 	private Pixmap noIcon;
 	private boolean selectPreviousShip = false;
 	private Coriolis coriolis;
-	
+
 	enum DisplayMode {
 		ZOOM_IN,
 		DANCE,
-		ZOOM_OUT;
+		ZOOM_OUT
 	}
 
 	private DisplayMode displayMode = DisplayMode.ZOOM_IN;
@@ -137,28 +139,20 @@ public class ShipIntroScreen extends AliteScreen {
 
 	public ShipIntroScreen(Game game) {
 		super(game);
-		File [] commanders = null;
-		showLoadNewCommander = true;
+		File[] commanders = null;
 		try {
 			commanders = game.getFileIO().getFiles("commanders", "(.*)\\.cmdr");
-		} catch (IOException e) {
-		}
-		if (commanders == null || commanders.length == 0) {
-			showLoadNewCommander = false;
-		} else if (commanders != null && commanders.length == 1) {
-			showLoadNewCommander = !"__autosave.cmdr".equals(commanders[0].getName());
-		} else if (commanders != null && commanders.length > 1) {
-			showLoadNewCommander = true;
-		}
-
+		} catch (IOException ignored) { }
+		showLoadNewCommander = commanders != null && commanders.length > 0 &&
+			(commanders.length > 1 || !"__autosave.cmdr".equals(commanders[0].getName()));
 	}
 
 	private void initGl() {
-		Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
+		Rect visibleArea = game.getGraphics().getVisibleArea();
 		int windowWidth = visibleArea.width();
 		int windowHeight = visibleArea.height();
 
-		float ratio = (float) windowWidth / (float) windowHeight;
+		float ratio = windowWidth / (float) windowHeight;
 		GlUtils.setViewport(visibleArea);
 		GLES11.glDisable(GLES11.GL_FOG);
 		GLES11.glPointSize(1.0f);
@@ -208,7 +202,7 @@ public class ShipIntroScreen extends AliteScreen {
 		}
 		switch (displayMode) {
 			case ZOOM_IN:  zoomIn(deltaTime);  break;
-			case DANCE:    dance(deltaTime);   break;
+			case DANCE:    dance();   break;
 			case ZOOM_OUT: zoomOut(deltaTime); break;
 		}
 	}
@@ -229,7 +223,7 @@ public class ShipIntroScreen extends AliteScreen {
 			if (yesButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				newScreen = new LoadScreen(game, "Load Commander");
-				((Alite) game).getNavigationBar().moveToScreen(newScreen);
+				((Alite) game).getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK);
 			}
 			if (noButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
@@ -257,14 +251,9 @@ public class ShipIntroScreen extends AliteScreen {
 		if (DEBUG_EXHAUST) {
 			if (currentShip instanceof SpaceObject) {
 				SpaceObject so = (SpaceObject) currentShip;
-				boolean ok = false;
-				if (so.getNumberOfLasers() < 2) {
-					ok = true;
-				} else {
-					ok = so.getLaserX(0) > so.getLaserX(1);
-				}
+				boolean ok = so.getNumberOfLasers() < 2 || so.getLaserX(0) > so.getLaserX(1);
 				centerTextWide(ok ? "Ok!" : "NOT OK!", 150, Assets.titleFont,
-							   ok ? AliteColors.get().conditionGreen() : AliteColors.get().conditionRed());
+						ColorScheme.get(ok ? ColorScheme.COLOR_CONDITION_GREEN : ColorScheme.COLOR_CONDITION_RED));
 			}
 		}
 	}
@@ -275,14 +264,14 @@ public class ShipIntroScreen extends AliteScreen {
 			return;
 		}
 		final Graphics g = game.getGraphics();
-		g.clear(AliteColors.get().background());
+		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayShip();
 		if (showLoadNewCommander) {
-			g.drawText("Load New Commander?", 400, 1010, AliteColors.get().mainText(), Assets.titleFont);
+			g.drawText("Load New Commander?", 400, 1010, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
 		}
-		centerTextWide(currentShip.getName(), 80, Assets.titleFont, AliteColors.get().shipTitle());
-		g.drawText("Alite is inspired by classic Elite", 1450, 1020, AliteColors.get().mainText(), Assets.smallFont);
-		g.drawText("\u00a9 Acornsoft, Bell & Braben", 1450, 1050, AliteColors.get().mainText(), Assets.smallFont);
+		centerTextWide(currentShip.getName(), 80, Assets.titleFont, ColorScheme.get(ColorScheme.COLOR_SHIP_TITLE));
+		g.drawText("Alite is inspired by classic Elite", 1450, 1020, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.smallFont);
+		g.drawText("\u00a9 Acornsoft, Bell & Braben", 1450, 1050, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.smallFont);
 		debugExhausts();
 		((Alite) game).getTextureManager().setTexture(null);
 		yesButton.render(g);
@@ -291,7 +280,7 @@ public class ShipIntroScreen extends AliteScreen {
 	}
 
 	private void initDisplay(final Rect visibleArea) {
-		float aspectRatio = (float) visibleArea.width() / (float) visibleArea.height();
+		float aspectRatio = visibleArea.width() / (float) visibleArea.height();
 		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
 		GLES11.glEnable(GLES11.GL_CULL_FACE);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
@@ -327,8 +316,8 @@ public class ShipIntroScreen extends AliteScreen {
 		setUpForDisplay(visibleArea);
 	}
 
-	public void displayShip() {
-		Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
+	private void displayShip() {
+		Rect visibleArea = game.getGraphics().getVisibleArea();
 
 		initDisplay(visibleArea);
 
@@ -342,7 +331,7 @@ public class ShipIntroScreen extends AliteScreen {
 		  GLES11.glMultMatrixf(currentShip.getMatrix(), 0);
 		  ((Geometry) currentShip).render();
 		GLES11.glPopMatrix();
-		
+
 		endDisplay(visibleArea);
 	}
 
@@ -350,8 +339,8 @@ public class ShipIntroScreen extends AliteScreen {
 	public void activate() {
 		initGl();
 		skysphere = new SkySphereSpaceObject((Alite) game, "skysphere", 8000.0f, 16, 16, "textures/star_map.png");
-		AliteObject ao = getShipForCurrentIndex();
-		ao.setPosition(0.0f, 0.0f, -(((SpaceObject) ao).getMaxExtentWithoutExhaust()) * 2.0f);
+		SpaceObject ao = (SpaceObject)getShipForCurrentIndex();
+		ao.setPosition(0.0f, 0.0f, -ao.getMaxExtentWithoutExhaust() * 2.0f);
 
 		if (SHOW_DOCKING) {
 			coriolis = new Coriolis((Alite) game);
@@ -364,20 +353,15 @@ public class ShipIntroScreen extends AliteScreen {
 		currentShip = ao;
 		startTime = System.nanoTime();
 		displayMode = DisplayMode.DANCE;
-		if (ao instanceof SpaceObject) {
-			((SpaceObject) ao).setAIState(AIState.IDLE, (Object []) null);
-			ao.setSpeed(-((SpaceObject)ao).getMaxSpeed());
-		}
-		yesButton = new Button(1100, 940, 100, 100, yesIcon);
-		yesButton.setGradient(true);
-		yesButton.setVisible(showLoadNewCommander);
-		noButton = new Button(1250, 940, 100, 100, noIcon);
-		noButton.setGradient(true);
-		noButton.setVisible(showLoadNewCommander);
-		tapToStartButton = new Button(560, 960, 800, 100, "Tap to start", Assets.regularFont, null);
-		tapToStartButton.setTextColor(AliteColors.get().mainText());
-		tapToStartButton.setGradient(true);
-		tapToStartButton.setVisible(!showLoadNewCommander);
+		ao.setAIState(AIState.IDLE, (Object[]) null);
+		ao.setSpeed(-ao.getMaxSpeed());
+		yesButton = Button.createGradientPictureButton(1100, 940, 100, 100, yesIcon)
+			.setVisible(showLoadNewCommander);
+		noButton = Button.createGradientPictureButton(1250, 940, 100, 100, noIcon)
+			.setVisible(showLoadNewCommander);
+		tapToStartButton = Button.createGradientRegularButton(560, 960, 800, 100, "Tap to start")
+			.setTextColor(ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT))
+			.setVisible(!showLoadNewCommander);
 	}
 
 
@@ -388,8 +372,8 @@ public class ShipIntroScreen extends AliteScreen {
 	@Override
 	public void loadAssets() {
 		theChase = game.getAudio().newMusic("music/the_chase.mp3", Sound.SoundType.MUSIC);
-		yesIcon = game.getGraphics().newPixmap("yes_icon_small.png", true);
-		noIcon = game.getGraphics().newPixmap("no_icon_small.png", true);
+		yesIcon = game.getGraphics().newPixmap("yes_icon_small.png");
+		noIcon = game.getGraphics().newPixmap("no_icon_small.png");
 	}
 
 	@Override
@@ -444,7 +428,7 @@ public class ShipIntroScreen extends AliteScreen {
 		return ScreenCodes.SHIP_INTRO_SCREEN;
 	}
 
-	private final void zoomIn(float deltaTime) {
+	private void zoomIn(float deltaTime) {
 		if (currentShip == null) {
 			return;
 		}
@@ -453,8 +437,8 @@ public class ShipIntroScreen extends AliteScreen {
 		AliteObject ao = currentShip;
 		boolean end = false;
 		if (ao instanceof SpaceObject)  {
-			if (newZ >= -(((SpaceObject) ao).getMaxExtentWithoutExhaust()) * 2.0f) {
-				newZ = -(((SpaceObject) ao).getMaxExtentWithoutExhaust()) * 2.0f;
+			if (newZ >= -((SpaceObject) ao).getMaxExtentWithoutExhaust() * 2.0f) {
+				newZ = -((SpaceObject) ao).getMaxExtentWithoutExhaust() * 2.0f;
 				end = true;
 			}
 		} else {
@@ -471,27 +455,26 @@ public class ShipIntroScreen extends AliteScreen {
 		currentShip.setPosition(0, 0, newZ);
 	}
 
-	private final void dance(float deltaTime) {
-		if (DANCE && (System.nanoTime() - lastChangeTime) > 4000000000l) {
+	private void dance() {
+		if (DANCE && System.nanoTime() - lastChangeTime > 4000000000L) {
 			targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			lastChangeTime = System.nanoTime();
 		}
-		if ((System.nanoTime() - startTime) > 15000000000l && !ONLY_CHANGE_SHIPS_AFTER_SWEEP) {
+		if (System.nanoTime() - startTime > 15000000000L && !ONLY_CHANGE_SHIPS_AFTER_SWEEP) {
 			displayMode = DisplayMode.ZOOM_OUT;
 			startTime = System.nanoTime();
 		}
 	}
 
-	private final void zoomOut(float deltaTime) {
+	private void zoomOut(float deltaTime) {
 		if (currentShip == null) {
 			return;
 		}
 		Vector3f pos = currentShip.getPosition();
 		float newZ = pos.z - deltaTime * 30000.0f;
-		float threshold = START_Z;
-		if (newZ <= threshold) {
+		if (newZ <= START_Z) {
 			if (currentShip instanceof SpaceObject) {
 				((SpaceObject) currentShip).dispose();
 			}
@@ -503,7 +486,7 @@ public class ShipIntroScreen extends AliteScreen {
 		currentShip.setPosition(0, 0, newZ);
 	}
 
-	private final void updateAxes() {
+	private void updateAxes() {
 		if (Math.abs(currentDeltaX - targetDeltaX) > 0.0001) {
 			currentDeltaX += (targetDeltaX - currentDeltaX) / 8.0f;
 		}
@@ -566,7 +549,7 @@ public class ShipIntroScreen extends AliteScreen {
 			selectPreviousShip = false;
 			currentShipIndex--;
 			if (currentShipIndex < 0) {
-				currentShipIndex = (DEBUG_EXHAUST ? 37 : 17);
+				currentShipIndex = DEBUG_EXHAUST ? 37 : 17;
 			}
 		} else {
 			currentShipIndex++;
@@ -576,7 +559,7 @@ public class ShipIntroScreen extends AliteScreen {
 		}
 		AliteObject ao = getShipForCurrentIndex();
 		if (ao instanceof SpaceObject) {
-			((SpaceObject) ao).setAIState(AIState.IDLE, (Object []) null);
+			((SpaceObject) ao).setAIState(AIState.IDLE, (Object[]) null);
 			ao.setSpeed(-((SpaceObject)ao).getMaxSpeed());
 		}
 		return ao;

@@ -41,16 +41,14 @@ public class SaveScreen extends CatalogScreen {
 
 	public SaveScreen(Game game, String title) {
 		super(game, title);
-		saveNewCommanderButton = new Button(50, 950, 500, 100, "Save New Commander", Assets.regularFont, null);
-		saveNewCommanderButton.setGradient(true);
+		saveNewCommanderButton = Button.createGradientRegularButton(50, 950, 500, 100, "Save New Commander");
 		deleteButton = null;
 		pendingMessage = null;
 	}
 
 	public SaveScreen(Game game, String title, String msg) {
 		super(game, title);
-		saveNewCommanderButton = new Button(50, 950, 500, 100, "Save New Commander", Assets.regularFont, null);
-		saveNewCommanderButton.setGradient(true);
+		saveNewCommanderButton = Button.createGradientRegularButton(50, 950, 500, 100, "Save New Commander");
 		deleteButton = null;
 		pendingMessage = msg;
 	}
@@ -109,7 +107,7 @@ public class SaveScreen extends CatalogScreen {
 		}
 		if (selectedCommanderData.size() == 1) {
 			if (messageResult == 0) {
-				setMessage("Are you sure you want to overwrite Commander " + selectedCommanderData.get(0).getName() + "?", MessageType.YESNO);
+				setQuestionMessage("Are you sure you want to overwrite Commander " + selectedCommanderData.get(0).getName() + "?");
 				confirmDelete = false;
 				SoundManager.play(Assets.alert);
 			} else {

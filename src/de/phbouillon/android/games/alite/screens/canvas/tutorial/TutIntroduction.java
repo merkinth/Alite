@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.tutorial;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -42,10 +42,10 @@ public class TutIntroduction extends TutorialScreen {
 	private GalaxyScreen galaxy;
 	private int screenToInitialize = 0;
 	private Pixmap quelo;
-	
+
 	public TutIntroduction(final Alite alite) {
 		super(alite);
-			
+
 		initLine_00();
 		initLine_01();
 		initLine_02();
@@ -57,18 +57,18 @@ public class TutIntroduction extends TutorialScreen {
 		initLine_08();
 		initLine_09();
 		initLine_10();
-		initLine_11();		
+		initLine_11();
 		initLine_12();
 		initLine_13();
-		initLine_14();				
+		initLine_14();
 	}
-	
-	private void initLine_00() {		
+
+	private void initLine_00() {
 		addLine(1, "Welcome to your basic training, nugget. I am Commander " +
 				"Quelo and I'll make sure that you can handle that Cobra " +
 				"once you get out of my training. Remember kid: Owning a " +
 				"Cobra does not give you the ability to fly it. I will give " +
-				"you that ability.").setPostPresentMethod(new IMethodHook() {					
+				"you that ability.").setPostPresentMethod(new IMethodHook() {
 					@Override
 					public void execute(float deltaTime) {
 						game.getGraphics().drawPixmap(quelo, 642, 200);
@@ -77,7 +77,7 @@ public class TutIntroduction extends TutorialScreen {
 
 		status = new StatusScreen(alite);
 	}
-	
+
 	private void initLine_01() {
 		addLine(1, "What you see on the screen in front of you is the " +
 				"status screen. You can check all the details of your Cobra.");
@@ -87,21 +87,21 @@ public class TutIntroduction extends TutorialScreen {
 		addLine(1, "It tells you where you are currently docked and where " +
 				"you're headed.").addHighlight(makeHighlight(30, 120, 750, 90));
 	}
-	
+
 	private void initLine_03() {
 		addLine(1, "Watch that 'Condition' read-out: If it turns to red, " +
 				"there might be a chance for you to make a kill and get " +
 				"some bounty -- or get killed in the process.").addHighlight(
 						makeHighlight(30, 190, 750, 50));
 	}
-	
+
 	private void initLine_04() {
 		addLine(1, "Your legal status should be clean at all times, unless " +
 				"you plan to trade in illegal goods or can't tell friend " +
 				"from foe and destroy a friendly Python while targetting a " +
 				"Krait.").addHighlight(makeHighlight(30, 230, 750, 50));
 	}
-	
+
 	private void initLine_05() {
 		addLine(1, "Your rating tells others how dangerous you are. A " +
 				"fresh-meat like you should be concerned with surviving " +
@@ -112,19 +112,19 @@ public class TutIntroduction extends TutorialScreen {
 				"beyond, but you need to kill other ships for that, kiddo.").
 				addHighlight(makeHighlight(30, 270, 750, 50));
 	}
-	
+
 	private void initLine_06() {
 		addLine(1, "The fuel indicator tells you how many light years you " +
 				"can travel in hyperspace,").addHighlight(
 						makeHighlight(30, 310, 750, 50));
 	}
-	
+
 	private void initLine_07() {
 		addLine(1, "and finally you can check your current balance by " +
 				"looking at the cash read-out.").addHighlight(
 						makeHighlight(30, 350, 750, 50));
 	}
-	
+
 	private void initLine_08() {
 		addLine(1, "One more thing about the status screen is that it shows " +
 				"the equipment of your ship. You start with a measly pulse " +
@@ -133,76 +133,76 @@ public class TutIntroduction extends TutorialScreen {
 				"ASAP, greenhorn.").addHighlight(makeHighlight(970, 350, 200, 50)).
 				addHighlight(makeHighlight(1330, 540, 300, 50));
 	}
-	
+
 	private void initLine_09() {
-		final TutorialLine line = addLine(1, 
+		final TutorialLine line = addLine(1,
 				"On the right hand side, you find the command console. Put " +
 				"your finger on it and drag it all the way up.");
-		
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {			
+
+		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
-				(TutIntroduction.this).updateNavBar(deltaTime);
+				(TutIntroduction.this).updateNavBar();
 				if (alite.getNavigationBar().isAtBottom()) {
 					line.setFinished();
 				}
 			}
-		}).addHighlight(makeHighlight(1740, 20, 160, 1040));				
+		}).addHighlight(makeHighlight(1740, 20, 160, 1040));
 	}
-	
+
 	private void initLine_10() {
 		addLine(1, "Fascinating, eh? This console allows you to interact " +
 				"with the station you are docked with and do all the " +
 				"trading and improving your ship -- so you don't even have " +
 				"to leave your ship anymore.");
 	}
-	
+
 	private void initLine_11() {
-		final TutorialLine line = addLine(1, 
+		final TutorialLine line = addLine(1,
 				"Want to see what there is to do in the console? Ok, so go " +
 				"ahead, kiddo. Push the \"Buy\" button on the console. If " +
 				"you can't find it, that's because you have to drag the " +
 				"console back down first.");
-		
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {			
+
+		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
-				if ((TutIntroduction.this).updateNavBar(deltaTime) instanceof BuyScreen) {
+				if ((TutIntroduction.this).updateNavBar() instanceof BuyScreen) {
 					status.dispose();
 					status = null;
-					alite.getNavigationBar().setActiveIndex(3);
+					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
 					buy = new BuyScreen(alite);
 					buy.loadAssets();
-					buy.activate();					
+					buy.activate();
 					line.setFinished();
-				}				
+				}
 			}
-		});		
+		});
 	}
-	
+
 	private void initLine_12() {
-		final TutorialLine line = addLine(1, 
+		final TutorialLine line = addLine(1,
 				"I see, you have got that one right. Now, for today's final " +
 				"exercise, try to find the \"Galaxy\" button and marvel at " +
 				"the vastness of the universe you and I are living in.");
-		
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {			
+
+		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
-				Screen result = (TutIntroduction.this).updateNavBar(deltaTime); 
+				Screen result = (TutIntroduction.this).updateNavBar();
 				if (result instanceof GalaxyScreen && !(result instanceof LocalScreen)) {
 					buy.dispose();
 					buy = null;
-					alite.getNavigationBar().setActiveIndex(6);
+					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
 					galaxy = new GalaxyScreen(alite);
 					galaxy.loadAssets();
 					galaxy.activate();
 					line.setFinished();
-				}				
+				}
 			}
-		});		
+		});
 	}
-	
+
 	private void initLine_13() {
 		addLine(1, "Great. You have shown the ability to do as you are " +
 				"told. I like that. My dog does what I tell him. Maybe I " +
@@ -218,26 +218,26 @@ public class TutIntroduction extends TutorialScreen {
 	public void activate() {
 		super.activate();
 		switch (screenToInitialize) {
-			case 0: status.activate(); 
-					alite.getNavigationBar().moveToScreen(ScreenCodes.STATUS_SCREEN);
+			case 0: status.activate();
+					alite.getNavigationBar().setActiveIndex(ScreenCodes.STATUS_SCREEN);
 					break;
 			case 1: status.dispose();
 					status = null;
-					alite.getNavigationBar().moveToScreen(ScreenCodes.BUY_SCREEN);
+					alite.getNavigationBar().setActiveIndex(ScreenCodes.BUY_SCREEN);
 					buy = new BuyScreen(alite);
 					buy.loadAssets();
 					buy.activate();
 					break;
 			case 2: status.dispose();
 					status = null;
-					alite.getNavigationBar().moveToScreen(ScreenCodes.GALAXY_SCREEN);
+					alite.getNavigationBar().setActiveIndex(ScreenCodes.GALAXY_SCREEN);
 					galaxy = new GalaxyScreen(alite);
 					galaxy.loadAssets();
 					galaxy.activate();
 					break;
 		}
 	}
-	
+
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		TutIntroduction ti = new TutIntroduction(alite);
 		try {
@@ -245,18 +245,18 @@ public class TutIntroduction extends TutorialScreen {
 			ti.screenToInitialize = dis.readByte();
 		} catch (Exception e) {
 			AliteLog.e("Tutorial Introduction Screen Initialize", "Error in initializer.", e);
-			return false;			
+			return false;
 		}
 		alite.setScreen(ti);
 		return true;
 	}
-	
+
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeByte(currentLineIndex - 1);
 		dos.writeByte(status != null ? 0 : buy != null ? 1 : 2);
 	}
-	
+
 	@Override
 	public void loadAssets() {
 		super.loadAssets();
@@ -264,9 +264,9 @@ public class TutIntroduction extends TutorialScreen {
 		if (quelo != null) {
 			quelo.dispose();
 		}
-		quelo = game.getGraphics().newPixmap("quelo.png", true);
+		quelo = game.getGraphics().newPixmap("quelo.png");
 	}
-	
+
 	@Override
 	public void doPresent(float deltaTime) {
 		if (status != null) {
@@ -278,7 +278,7 @@ public class TutIntroduction extends TutorialScreen {
 		}
 		renderText();
 	}
-		
+
 	@Override
 	public void dispose() {
 		if (status != null) {
@@ -299,9 +299,9 @@ public class TutIntroduction extends TutorialScreen {
 			quelo = null;
 		}
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.TUT_INTRODUCTION_SCREEN;
-	}	
+	}
 }

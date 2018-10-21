@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -25,10 +25,10 @@ public class TextData {
 	public int y;
 	public String text;
 	public transient GLText font;
-	public long color;
+	public int color;
 	public float scale;
-	
-	public TextData(String text, int x, int y, long color, GLText font) {
+
+	public TextData(String text, int x, int y, int color, GLText font) {
 		this.text = text;
 		this.x = x;
 		this.y = y;

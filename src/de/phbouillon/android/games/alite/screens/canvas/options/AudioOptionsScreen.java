@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -31,7 +31,7 @@ import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.Slider;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -42,11 +42,11 @@ public class AudioOptionsScreen extends OptionsScreen {
 	private Slider voiceVolume;
 	private Slider vibrateLevel;
 	private Button back;
-	
+
 	public AudioOptionsScreen(Game game) {
-		super(game);		
+		super(game);
 	}
-	
+
 	@Override
 	public void activate() {
 		musicVolume = createFloatSlider(0, 0, 1, "Music Volume", Settings.volumes[Sound.SoundType.MUSIC.getValue()]);
@@ -56,16 +56,16 @@ public class AudioOptionsScreen extends OptionsScreen {
 		vibrateLevel = createFloatSlider(4, 0, 1, "Vibrate Level", Settings.vibrateLevel);
 		back = createButton(6, "Back");
 	}
-		
-	
+
+
 	@Override
-	public void present(float deltaTime) {		
+	public void present(float deltaTime) {
 		if (disposed) {
 			return;
 		}
 		Graphics g = game.getGraphics();
-		g.clear(AliteColors.get().background());
-		
+		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
+
 		displayTitle("Audio Options");
 		musicVolume.render(g);
 		soundFxVolume.render(g);
@@ -104,15 +104,15 @@ public class AudioOptionsScreen extends OptionsScreen {
 				newScreen = new OptionsScreen(game);
 			}
 		}
-	}	
-	
+	}
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.AUDIO_OPTIONS_SCREEN;
 	}
-	
+
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		alite.setScreen(new AudioOptionsScreen(alite));
 		return true;
-	}			
+	}
 }

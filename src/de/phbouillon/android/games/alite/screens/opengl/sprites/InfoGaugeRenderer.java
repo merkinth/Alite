@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -22,12 +22,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
-import android.opengl.GLES11;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.AliteColor;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.screens.opengl.ICoordinateTransformer;
 
@@ -35,7 +35,7 @@ public final class InfoGaugeRenderer implements Serializable {
 	private static final long serialVersionUID = -6680085992043102347L;
 
 	private static final float GAUGE_LENGTH = 350.0f;
-	
+
 	private transient Alite alite;
 	private final Sprite gaugeOverlay;
 	private final Sprite gaugeContent;
@@ -44,8 +44,7 @@ public final class InfoGaugeRenderer implements Serializable {
 	private final Sprite filledSlot;
 	private final Sprite targettingSlot;
 	private final Sprite lockedSlot;
-	private final String [] uiStrings = new String [] {"fs", "as", "fu", "ct", "lt", "al", "sp", "rl", "dc", "1", "2", "3", "4"};
-	private final Sprite [] uiTexts = new Sprite[13];
+	private final Sprite[] uiTexts = new Sprite[13];
 	private final ICoordinateTransformer ct;
 	private float pitchPos = 175.0f;
 	private float rollPos = 175.0f;
@@ -53,14 +52,15 @@ public final class InfoGaugeRenderer implements Serializable {
 	InfoGaugeRenderer(final Alite alite, final AliteHud hud, final ICoordinateTransformer ct) {
 		this.alite = alite;
 		this.ct = ct;
-		gaugeOverlay   = hud.genSprite("gauge_overlay", 150, 700); 
-		gaugeContent   = hud.genSprite("gauge_content", 150, 700);	
+		gaugeOverlay   = hud.genSprite("gauge_overlay", 150, 700);
+		gaugeContent   = hud.genSprite("gauge_content", 150, 700);
 		missile        = hud.genSprite("missile", 60, 994);
 		emptySlot      = hud.genSprite("missile_empty", 0, 0);
 		filledSlot     = hud.genSprite("missile_loaded", 0, 0);
 		targettingSlot = hud.genSprite("missile_targetting", 0, 0);
 		lockedSlot     = hud.genSprite("missile_targeted", 0, 0);
 		int sy = 700;
+		String[] uiStrings = new String[]{"fs", "as", "fu", "ct", "lt", "al", "sp", "rl", "dc", "1", "2", "3", "4"};
 		for (int i = 0; i < 13; i++) {
 			int sx = i < 6 ? 80 : 1792;
 			uiTexts[i] = hud.genSprite(uiStrings[i], sx, sy);
@@ -73,152 +73,149 @@ public final class InfoGaugeRenderer implements Serializable {
 			}
 		}
 	}
-	
+
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
 			AliteLog.e("readObject", "InfoGaugeRenderer.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "InfoGaugeRenderer.readObject I");
-			this.alite     = Alite.get();
+			alite = Alite.get();
 			AliteLog.e("readObject", "InfoGaugeRenderer.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}
 	}
 
-	private final float extractFrontShield(float alpha) {
-		float shieldValue = (float) alite.getCobra().getFrontShield();
+	private float extractFrontShield() {
+		float shieldValue = alite.getCobra().getFrontShield();
 		if (shieldValue > PlayerCobra.MAX_SHIELD) {
 			shieldValue = PlayerCobra.MAX_SHIELD;
 		}
-		AliteColors.setGlColor(AliteColors.get().frontShield(shieldValue / PlayerCobra.MAX_SHIELD, alpha), Settings.alpha);
-	    return shieldValue / PlayerCobra.MAX_SHIELD * GAUGE_LENGTH;		
+		alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_FRONT_SHIELD, shieldValue / PlayerCobra.MAX_SHIELD), Settings.alpha);
+	    return shieldValue / PlayerCobra.MAX_SHIELD * GAUGE_LENGTH;
 	}
-	
-	private final float extractRearShield(float alpha) {
-		float shieldValue = (float) alite.getCobra().getRearShield();
+
+	private float extractRearShield() {
+		float shieldValue = alite.getCobra().getRearShield();
 		if (shieldValue > PlayerCobra.MAX_SHIELD) {
 			shieldValue = PlayerCobra.MAX_SHIELD;
 		}
-		AliteColors.setGlColor(AliteColors.get().aftShield(shieldValue / PlayerCobra.MAX_SHIELD, alpha), Settings.alpha);
-	    return shieldValue / PlayerCobra.MAX_SHIELD * GAUGE_LENGTH;		
+		alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_AFT_SHIELD, shieldValue / PlayerCobra.MAX_SHIELD), Settings.alpha);
+	    return shieldValue / PlayerCobra.MAX_SHIELD * GAUGE_LENGTH;
 	}
-	
-	private final float extractFuel(float alpha) {
-		float fuel = (float) alite.getCobra().getFuel();		
-		AliteColors.setGlColor(AliteColors.get().fuel(fuel / PlayerCobra.MAX_FUEL, alpha), Settings.alpha);
+
+	private float extractFuel() {
+		float fuel = alite.getCobra().getFuel();
+		alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_FUEL, fuel / PlayerCobra.MAX_FUEL), Settings.alpha);
 	    return fuel / PlayerCobra.MAX_FUEL * GAUGE_LENGTH;
 	}
-	
-	private final float extractCabinTemperature(float alpha) {
-		float cabinTemperature = (float) alite.getCobra().getCabinTemperature();		
-		AliteColors.setGlColor(AliteColors.get().cabinTemperature(cabinTemperature / PlayerCobra.MAX_CABIN_TEMPERATURE, alpha), Settings.alpha);
+
+	private float extractCabinTemperature() {
+		float cabinTemperature = alite.getCobra().getCabinTemperature();
+		alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_CABIN_TEMPERATURE, cabinTemperature / PlayerCobra.MAX_CABIN_TEMPERATURE), Settings.alpha);
 		return cabinTemperature / PlayerCobra.MAX_CABIN_TEMPERATURE * GAUGE_LENGTH;
 	}
-	
-	private final float extractLaserTemperature(float alpha) {
-		float laserTemperature = (float) alite.getCobra().getLaserTemperature();		
-		AliteColors.setGlColor(AliteColors.get().laserTemperature(laserTemperature / PlayerCobra.MAX_LASER_TEMPERATURE, alpha), Settings.alpha);
-	    return laserTemperature / PlayerCobra.MAX_LASER_TEMPERATURE * GAUGE_LENGTH;	
+
+	private float extractLaserTemperature() {
+		float laserTemperature = alite.getCobra().getLaserTemperature();
+		alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_LASER_TEMPERATURE, laserTemperature / PlayerCobra.MAX_LASER_TEMPERATURE), Settings.alpha);
+	    return laserTemperature / PlayerCobra.MAX_LASER_TEMPERATURE * GAUGE_LENGTH;
 	}
-	
-	private final float extractAltitude(float alpha) {
-		float altitude = (float) alite.getCobra().getAltitude();
-		AliteColors.setGlColor(AliteColors.get().altitude(altitude / PlayerCobra.MAX_ALTITUDE, alpha), Settings.alpha);		
+
+	private float extractAltitude() {
+		float altitude = alite.getCobra().getAltitude();
+		alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_ALTITUDE, altitude / PlayerCobra.MAX_ALTITUDE), Settings.alpha);
 	    return altitude / PlayerCobra.MAX_ALTITUDE * GAUGE_LENGTH;
 	}
-	
-	private final float extractSpeed(float alpha) {
-		float speed = (float) alite.getCobra().getSpeed();
+
+	private float extractSpeed() {
+		float speed = alite.getCobra().getSpeed();
 		if (-speed > PlayerCobra.MAX_SPEED) {
 			speed = -PlayerCobra.MAX_SPEED;
 		}
 		if (speed > 0) { // Retro rockets fired
 			speed = -PlayerCobra.MAX_SPEED;
 		}
-		AliteColors.setGlColor(AliteColors.get().speed(-speed / PlayerCobra.MAX_SPEED, alpha), Settings.alpha);
-	    return (-speed / PlayerCobra.MAX_SPEED) * GAUGE_LENGTH;
+		alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_SPEED, -speed / PlayerCobra.MAX_SPEED), Settings.alpha);
+	    return -speed / PlayerCobra.MAX_SPEED * GAUGE_LENGTH;
 	}
-	
-	private final float extractEnergyBank(float alpha, int bank) {
-		float energyValue = (float) alite.getCobra().getEnergy(bank);
-		AliteColors.setGlColor(AliteColors.get().energyBank(energyValue / PlayerCobra.MAX_ENERGY_BANK, alpha), Settings.alpha);		
+
+	private float extractEnergyBank(int bank) {
+		float energyValue = alite.getCobra().getEnergy(bank);
+		alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_ENERGY_BANK_WHOLE) == AliteColor.TRANSPARENT ?
+			ColorScheme.get(ColorScheme.COLOR_ENERGY_BANK_X + bank, energyValue / PlayerCobra.MAX_ENERGY_BANK) :
+			ColorScheme.get(ColorScheme.COLOR_ENERGY_BANK_WHOLE, alite.getCobra().getEnergy() / 4.0f /
+				PlayerCobra.MAX_ENERGY_BANK), Settings.alpha);
 		return energyValue / PlayerCobra.MAX_ENERGY_BANK * GAUGE_LENGTH;
 	}
-	
-	private final float extractLastEnergyBank(float alpha) {
-		float energyValue = (float) alite.getCobra().getEnergy(3);
-		AliteColors.setGlColor(AliteColors.get().lastEnergyBank(energyValue / PlayerCobra.MAX_ENERGY_BANK, alpha), Settings.alpha);		
-	    return energyValue / PlayerCobra.MAX_ENERGY_BANK * GAUGE_LENGTH;
-	}
-	
+
 	private float computeDataValueAndSetColor(int index, float alpha) {
-		switch (index) {		
-			case  0: return extractFrontShield(alpha);
-			case  1: return extractRearShield(alpha);
-			case  2: return extractFuel(alpha);
-			case  3: return extractCabinTemperature(alpha);
-			case  4: return extractLaserTemperature(alpha);
-			case  5: return extractAltitude(alpha);
-			case  6: return extractSpeed(alpha);
-			case  7: AliteColors.setGlColor(AliteColors.get().indicatorBar(alpha), Settings.alpha); 
+		switch (index) {
+			case  0: return extractFrontShield();
+			case  1: return extractRearShield();
+			case  2: return extractFuel();
+			case  3: return extractCabinTemperature();
+			case  4: return extractLaserTemperature();
+			case  5: return extractAltitude();
+			case  6: return extractSpeed();
+			case  7: alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_INDICATOR_BAR, alpha), Settings.alpha);
 					 return 0; // Roll dummy
-			case  8: AliteColors.setGlColor(AliteColors.get().indicatorBar(alpha), Settings.alpha);
+			case  8: alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_INDICATOR_BAR, alpha), Settings.alpha);
 					 return 0; // Pitch dummy
-			case  9: return extractEnergyBank(alpha, 0);
-			case 10: return extractEnergyBank(alpha, 1);
-			case 11: return extractEnergyBank(alpha, 2);			
-			case 12: return extractLastEnergyBank(alpha); 
+			case  9: return extractEnergyBank(0);
+			case 10: return extractEnergyBank(1);
+			case 11: return extractEnergyBank(2);
+			case 12: return extractEnergyBank(3);
 		}
 		return GAUGE_LENGTH;
 	}
-	
+
 	private void renderPitch(float sy) {
-		float pitchValue = ((alite.getCobra().getPitch() + 2.0f) / 4.0f) * 350.0f; 
+		float pitchValue = (alite.getCobra().getPitch() + 2.0f) / 4.0f * 350.0f;
 		if (pitchValue > 346.0f) {
 			pitchValue = 346.0f;
 		}
 		if (pitchPos < pitchValue) {
-			pitchPos += ((pitchValue - pitchPos) / 3.0f);
+			pitchPos += (pitchValue - pitchPos) / 3.0f;
 		} else if (pitchPos > pitchValue) {
-			pitchPos -= ((pitchPos - pitchValue) / 3.0f);
+			pitchPos -= (pitchPos - pitchValue) / 3.0f;
 		}
 		gaugeContent.setPosition(ct.getTextureCoordX(1420 + pitchPos),
 				 ct.getTextureCoordY(sy),
 				 ct.getTextureCoordX(1420 + pitchPos + 4.0f),
-				 ct.getTextureCoordY(sy + 36));							
+				 ct.getTextureCoordY(sy + 36));
 	}
-	
+
 	private void renderRoll(float sy) {
-		float rollValue = ((-alite.getCobra().getRoll() + 2.0f) / 4.0f) * 350.0f; 
+		float rollValue = (-alite.getCobra().getRoll() + 2.0f) / 4.0f * 350.0f;
 		if (rollValue > 346.0f) {
 			rollValue = 346.0f;
 		}
 		if (rollPos < rollValue) {
-			rollPos += ((rollValue - rollPos) / 3.0f);
+			rollPos += (rollValue - rollPos) / 3.0f;
 		} else if (rollPos > rollValue) {
-			rollPos -= ((rollPos - rollValue) / 3.0f);
+			rollPos -= (rollPos - rollValue) / 3.0f;
 		}
 		gaugeContent.setPosition(ct.getTextureCoordX(1420 + rollPos),
 				 ct.getTextureCoordY(sy),
 				 ct.getTextureCoordX(1420 + rollPos + 4.0f),
-				 ct.getTextureCoordY(sy + 36));							
+				 ct.getTextureCoordY(sy + 36));
 	}
 
-	public void renderMissiles() {
+	private void renderMissiles() {
 		int installedMissiles = alite.getCobra().getMissiles();
-		GLES11.glColor4f(Settings.alpha, Settings.alpha, Settings.alpha, 0.2f * Settings.alpha);
+		alite.getGraphics().setColor(AliteColor.argb(0.2f * Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha));
 		missile.justRender();
 		for (int i = 0; i < 4; i++) {
 			if (i < installedMissiles) {
 				if (i == installedMissiles - 1 && alite.getCobra().isMissileLocked()) {
 					lockedSlot.setPosition(ct.getTextureCoordX(165 + i * 80), ct.getTextureCoordY(990),
 							   ct.getTextureCoordX(165 + i * 80 + 80), ct.getTextureCoordY(1027));
-					lockedSlot.justRender();					
+					lockedSlot.justRender();
 				} else if (i == installedMissiles - 1 && alite.getCobra().isMissileTargetting()) {
 					targettingSlot.setPosition(ct.getTextureCoordX(165 + i * 80), ct.getTextureCoordY(990),
 							   ct.getTextureCoordX(165 + i * 80 + 80), ct.getTextureCoordY(1027));
-					targettingSlot.justRender();										
+					targettingSlot.justRender();
 				} else {
 					filledSlot.setPosition(ct.getTextureCoordX(165 + i * 80), ct.getTextureCoordY(990),
   										   ct.getTextureCoordX(165 + i * 80 + 80), ct.getTextureCoordY(1027));
@@ -227,27 +224,27 @@ public final class InfoGaugeRenderer implements Serializable {
 			} else {
 				emptySlot.setPosition(ct.getTextureCoordX(165 + i * 80), ct.getTextureCoordY(990),
 			               ct.getTextureCoordX(165 + i * 80 + 80), ct.getTextureCoordY(1027));
-				emptySlot.justRender();				
+				emptySlot.justRender();
 			}
 		}
 	}
-	
-	public void render() {	
+
+	public void render() {
 		int sy = 700;
-		float dataValue = GAUGE_LENGTH;
+		float dataValue;
 
 		for (int i = 0, n = uiTexts.length; i < n; i++) {
 			Sprite s = uiTexts[i];
 			s.justRender();
-			
+
 			gaugeOverlay.setPosition(ct.getTextureCoordX(i < 6 ? 150 : 1420),
 	                 ct.getTextureCoordY(sy),
 	                 ct.getTextureCoordX((i < 6 ? 150 : 1420) + 350),
 	                 ct.getTextureCoordY(sy + 36));
-			GLES11.glColor4f(Settings.alpha, Settings.alpha, Settings.alpha, 0.2f * Settings.alpha);
+			alite.getGraphics().setColor(AliteColor.argb(0.2f * Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha));
 			gaugeOverlay.justRender();
 
-			dataValue = computeDataValueAndSetColor(i, Settings.alpha); 
+			dataValue = computeDataValueAndSetColor(i, Settings.alpha);
 			if (i == 7) {
 				renderRoll(sy);
 			} else if (i == 8) {
@@ -262,11 +259,11 @@ public final class InfoGaugeRenderer implements Serializable {
 				gaugeContent.setPosition(ct.getTextureCoordX(i < 6 ? 149 : 1419),
 						 ct.getTextureCoordY(sy),
 						 ct.getTextureCoordX((i < 6 ? 149 : 1419) + dataValue),
-						 ct.getTextureCoordY(sy + 36));									
+						 ct.getTextureCoordY(sy + 36));
 			}
 			gaugeContent.justRender();
 
-			GLES11.glColor4f(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha);
+			alite.getGraphics().setColor(AliteColor.argb(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha));
 			sy += 40;
 			if (i == 1 || i == 8) {
 				sy += 25;
@@ -274,7 +271,7 @@ public final class InfoGaugeRenderer implements Serializable {
 			if (i == 5) {
 				sy = 700;
 			}
-		}	
+		}
 		renderMissiles();
 	}
 }

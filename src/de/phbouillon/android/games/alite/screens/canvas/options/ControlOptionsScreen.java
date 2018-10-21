@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -33,7 +33,7 @@ import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.ShipControl;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.tutorial.TutIntroduction;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -43,79 +43,79 @@ public class ControlOptionsScreen extends OptionsScreen {
 	private Button controlDisplaySide;
 	private Button reverseDiveClimb;
 
-	private Button radarTapZoom;		
+	private Button radarTapZoom;
 	private Button buttonPositionOptions;
-	private Button linearLayout;    
+	private Button linearLayout;
 	private Button back;
 	private boolean forwardToIntroduction;
 
 	public ControlOptionsScreen(Game game, boolean forwardToIntroduction) {
 		super(game);
 		this.forwardToIntroduction = forwardToIntroduction;
-		((Alite) game).getNavigationBar().moveToScreen(getScreenCode());
+		((Alite) game).getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_OPTIONS);
 	}
-	
+
 	@Override
 	public void activate() {
 		shipControlMode       = createButton(0, "Ship Control: " + Settings.controlMode.getDescription());
-		controlDisplaySide    = createButton(1, computeControlDisplaySideText()); 
-		
-		buttonPositionOptions = createButton(2, "Configure Button Positions");
+		controlDisplaySide    = createButton(1, computeControlDisplaySideText())
+			.setVisible(Settings.controlMode != ShipControl.ACCELEROMETER &&
+				Settings.controlMode != ShipControl.ALTERNATIVE_ACCELEROMETER);
+
+		buttonPositionOptions = createButton(2, "Configure Button Positions")
+			.setVisible(!forwardToIntroduction);
 		reverseDiveClimb      = createButton(3, "Reverse Climb: " + (Settings.reversePitch ? "Yes" : "No"));
-		radarTapZoom          = createButton(4, "Change View: " + (Settings.tapRadarToChangeView ? "Tap" : "Slide"));				
+		radarTapZoom          = createButton(4, "Change View: " + (Settings.tapRadarToChangeView ? "Tap" : "Slide"));
 		linearLayout          = createButton(5, "Linear Layout: " + (Settings.flatButtonDisplay ? "Yes" : "No"));
-		
+
 		back                  = createButton(6, forwardToIntroduction ? "Start Training" : "Back");
-		
-		buttonPositionOptions.setVisible(!forwardToIntroduction);
-		controlDisplaySide.setVisible(Settings.controlMode != ShipControl.ACCELEROMETER &&
-				                      Settings.controlMode != ShipControl.ALTERNATIVE_ACCELEROMETER);
+
 	}
-			
+
 	private String computeControlDisplaySideText() {
 		switch (Settings.controlMode) {
 			case ACCELEROMETER: return "";
 			case ALTERNATIVE_ACCELEROMETER: return "";
-			case CONTROL_PAD: return "Position: " + (Settings.controlPosition == 0 ? "Left" : "Right"); 
+			case CONTROL_PAD: return "Position: " + (Settings.controlPosition == 0 ? "Left" : "Right");
 			case CURSOR_BLOCK: return "Position: " + (Settings.controlPosition == 0 ? "Left" : "Right");
 			case CURSOR_SPLIT_BLOCK: return "Dive/Climb is: " + (Settings.controlPosition == 0 ? "Left" : "Right");
 		}
 		return "";
 	}
-	
+
 	@Override
-	public void present(float deltaTime) {		
+	public void present(float deltaTime) {
 		if (disposed) {
 			return;
 		}
 		Graphics g = game.getGraphics();
-		g.clear(AliteColors.get().background());
-		
+		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
+
 		displayTitle("Control Options");
 		shipControlMode.render(g);
 		controlDisplaySide.render(g);
 		buttonPositionOptions.render(g);
-		reverseDiveClimb.render(g);		
+		reverseDiveClimb.render(g);
 		radarTapZoom.render(g);
 		linearLayout.render(g);
-		
+
 		back.render(g);
 		if (forwardToIntroduction) {
 			centerText("Please review your Control Settings before we begin your training.",
-					115, Assets.regularFont, AliteColors.get().mainText());
+					115, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		}
 		if (Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER) {
 			centerText("Use this option, if Accelerometer controls don't work for you (Nexus 10 for example).",
-					275, Assets.regularFont, AliteColors.get().mainText());			
+					275, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 			centerText("Note however that alternative Accelerometer controls only work sitting up (Sorry!).",
-					315, Assets.regularFont, AliteColors.get().mainText());			
+					315, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		}
 	}
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
 		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (shipControlMode.isTouched(touch.x, touch.y)) { 
+			if (shipControlMode.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				int val = Settings.controlMode.ordinal();
 				val++;
@@ -130,8 +130,8 @@ public class ControlOptionsScreen extends OptionsScreen {
 				}
 				shipControlMode.setText("Ship Control: " + Settings.controlMode.getDescription());
 				controlDisplaySide.setVisible(Settings.controlMode != ShipControl.ACCELEROMETER &&
-						                      Settings.controlMode != ShipControl.ALTERNATIVE_ACCELEROMETER);
-				controlDisplaySide.setText(computeControlDisplaySideText());
+						Settings.controlMode != ShipControl.ALTERNATIVE_ACCELEROMETER)
+					.setText(computeControlDisplaySideText());
 				Settings.save(game.getFileIO());
 			} else if (controlDisplaySide.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
@@ -140,7 +140,7 @@ public class ControlOptionsScreen extends OptionsScreen {
 				Settings.save(game.getFileIO());
 			} else if (buttonPositionOptions.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new InFlightButtonsOptionsScreen(game);				
+				newScreen = new InFlightButtonsOptionsScreen(game);
 			} else if (linearLayout.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.flatButtonDisplay = !Settings.flatButtonDisplay;
@@ -158,16 +158,16 @@ public class ControlOptionsScreen extends OptionsScreen {
 				SoundManager.play(Assets.click);
 				Settings.tapRadarToChangeView = !Settings.tapRadarToChangeView;
 				radarTapZoom.setText("Change View: " + (Settings.tapRadarToChangeView ? "Tap" : "Slide"));
-				Settings.save(game.getFileIO());								
+				Settings.save(game.getFileIO());
 			}
 		}
-	}	
-	
+	}
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.CONTROL_OPTIONS_SCREEN;
 	}
-	
+
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeBoolean(forwardToIntroduction);
@@ -182,5 +182,5 @@ public class ControlOptionsScreen extends OptionsScreen {
 		}
 		alite.setScreen(new ControlOptionsScreen(alite, forward));
 		return true;
-	}		
+	}
 }

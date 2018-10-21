@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -27,7 +27,6 @@ import android.opengl.GLES11;
 import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.impl.AndroidGraphics;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -67,13 +66,13 @@ import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteHud;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
-public class ControlledShipIntroScreen extends GlScreen {	
+public class ControlledShipIntroScreen extends GlScreen {
 	enum DisplayMode {
 		ZOOM_IN,
 		CONTROL,
 		ZOOM_OUT;
 	}
-	
+
 	private static final float START_Z = -10000.0f;
 
 	private int windowWidth;
@@ -83,20 +82,20 @@ public class ControlledShipIntroScreen extends GlScreen {
 	private long startTime;
 	private long screenStartTime;
 	private int currentShipIndex = 0;
-	
+
 	private final float [] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
 	private final float [] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
 	private final float [] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
 	private final float [] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
-	
+
 	private final float [] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
 	private final float [] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
 	private final float [] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};	
-		
+	private final float [] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
+
 	private DisplayMode displayMode = DisplayMode.ZOOM_IN;
 	private float [] matrix = null;
-	
+
 	public ControlledShipIntroScreen(Game game) {
 		super(game);
 		AliteLog.d("Ship Intro Screen", "Constructor. Now loading background image... glError: " + GLES11.glGetError());
@@ -107,7 +106,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 	@Override
 	public void onActivation() {
 		AliteLog.d("Ship Intro Screen", "On Activation. glError: " + GLES11.glGetError());
-		Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
+		Rect visibleArea = game.getGraphics().getVisibleArea();
 		windowWidth = visibleArea.width();
 		windowHeight = visibleArea.height();
 		initializeGl(visibleArea);
@@ -124,11 +123,11 @@ public class ControlledShipIntroScreen extends GlScreen {
 		displayMode = DisplayMode.ZOOM_IN;
 		AliteLog.d("Ship Intro Screen", "On Activation done. glError: " + GLES11.glGetError());
 	}
-			
+
 	private void initializeGl(final Rect visibleArea) {
 		AliteLog.d("Ship Intro Screen", "Initialize GL. glError: " + GLES11.glGetError());
-		
-		float ratio = (float) windowWidth / (float) windowHeight;
+
+		float ratio = windowWidth / (float) windowHeight;
 		GlUtils.setViewport(visibleArea);
 		GLES11.glDisable(GLES11.GL_FOG);
 		GLES11.glPointSize(1.0f);
@@ -138,18 +137,18 @@ public class ControlledShipIntroScreen extends GlScreen {
         GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
         GLES11.glDisable(GLES11.GL_BLEND);
         AliteLog.d("SIS", "Blending: " + GLES11.glGetError());
-        
+
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
 		GlUtils.gluPerspective(game, 45.0f, ratio, 1.0f, 900000.0f);
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
 		AliteLog.d("SIS", "Matrix Setup: " + GLES11.glGetError());
-		
+
 		GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		GLES11.glShadeModel(GLES11.GL_SMOOTH);
 		AliteLog.d("SIS", "Clear Color & Shading Model: " + GLES11.glGetError());
-		
+
 		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_AMBIENT, lightAmbient, 0);
 		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_DIFFUSE, lightDiffuse, 0);
 		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_SPECULAR, lightSpecular, 0);
@@ -163,54 +162,54 @@ public class ControlledShipIntroScreen extends GlScreen {
 		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_POSITION, sunLightPosition, 0);
 		GLES11.glEnable(GLES11.GL_LIGHT2);
 		AliteLog.d("SIS", "Defined Light 2: " + GLES11.glGetError());
-		
+
 		GLES11.glEnable(GLES11.GL_LIGHTING);
 		AliteLog.d("SIS", "After Enable Lighting: " + GLES11.glGetError());
-		
+
 	    AliteLog.d("SIS", "After Lighting: " + GLES11.glGetError());
-	    
+
 		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT);
 		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
 		GLES11.glEnable(GLES11.GL_CULL_FACE);
-		
-		
+
+
 		AliteLog.d("SIS", "End of Init: " + GLES11.glGetError());
 	}
-	
-	private final void zoomIn(float deltaTime) {
+
+	private void zoomIn(float deltaTime) {
 		if (allObjects.isEmpty()) {
 			return;
 		}
 		Vector3f pos = allObjects.get(0).getPosition();
 		float newZ = pos.z + deltaTime * 5000.0f;
-		if (newZ >= -(((SpaceObject) allObjects.get(0)).getMaxExtent()) * 2.2f) {
-			newZ = -(((SpaceObject) allObjects.get(0)).getMaxExtent()) * 2.2f;
-			displayMode = DisplayMode.CONTROL;		
+		if (newZ >= -((SpaceObject) allObjects.get(0)).getMaxExtent() * 2.2f) {
+			newZ = -((SpaceObject) allObjects.get(0)).getMaxExtent() * 2.2f;
+			displayMode = DisplayMode.CONTROL;
 			startTime = System.nanoTime();
 		}
 		allObjects.get(0).setPosition(0, 0, newZ);
 	}
-		
-	private final void zoomOut(float deltaTime) {
+
+	private void zoomOut(float deltaTime) {
 		if (allObjects.isEmpty()) {
 			return;
 		}
 		Vector3f pos = allObjects.get(0).getPosition();
 		float newZ = pos.z - deltaTime * 5000.0f;
 		if (newZ <= START_Z) {
-			newZ = START_Z;			
+			newZ = START_Z;
 			((SpaceObject) allObjects.get(0)).dispose();
 			allObjects.clear();
 			allObjects.add(getNextShip());
 			if (matrix != null) {
 				allObjects.get(0).setMatrix(matrix);
-			}		
+			}
 			displayMode = DisplayMode.ZOOM_IN;
 			startTime = System.nanoTime();
 		}
 		allObjects.get(0).setPosition(0, 0, newZ);
 	}
-		
+
 	@Override
 	public void performUpdate(float deltaTime) {
 		switch (displayMode) {
@@ -225,21 +224,19 @@ public class ControlledShipIntroScreen extends GlScreen {
 				if (matrix == null) {
 					matrix = new float[16];
 				}
-				for (int i = 0; i < 16; i++) {
-					matrix[i] = temp[i];
-				}
+				System.arraycopy(temp, 0, matrix, 0, 16);
 				if (displayMode == DisplayMode.CONTROL) {
 					displayMode = DisplayMode.ZOOM_OUT;
 				}
 				// Make sure that a sweep event is correctly processed and not
 				// mistaken for a touch_up
 				return;
-			}	
+			}
 		}
-		if ((System.nanoTime() - screenStartTime) < 1000000000l) {
+		if (System.nanoTime() - screenStartTime < 1000000000L) {
 			return;
 		}
-		for (TouchEvent event: touchEvents) {	
+		for (TouchEvent event: touchEvents) {
 			if (event.type == TouchEvent.TOUCH_UP) {
 				if (event.x < 640) {
 					if (event.y < 540) {
@@ -258,12 +255,12 @@ public class ControlledShipIntroScreen extends GlScreen {
 						allObjects.get(0).applyDeltaRotation(0, 0, -2.0f);
 					} else {
 						allObjects.get(0).applyDeltaRotation(0, 0, 2.0f);
-					}					
+					}
 				}
 			}
 		}
 	}
-	
+
 	private SpaceObject getNextShip() {
 		currentShipIndex++;
 		if (currentShipIndex == 28) {
@@ -288,7 +285,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 			case 14: return new Sidewinder(alite);
 			case 15: return new WolfMkII(alite);
 			case 16: return new OrbitShuttle(alite);
-			case 17: return new Transporter(alite);		
+			case 17: return new Transporter(alite);
 			case 18: return new Thargon(alite);
 			case 19: return new Constrictor(alite);
 			case 20: return new Asteroid1(alite);
@@ -302,25 +299,25 @@ public class ControlledShipIntroScreen extends GlScreen {
 		}
 		return new CobraMkIII(alite);
 	}
-	
+
 	@Override
 	public void performPresent(float deltaTime) {
 		inGame.render(deltaTime, allObjects);
 		if (!allObjects.isEmpty()) {
 			GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-			GLES11.glPushMatrix();		
+			GLES11.glPushMatrix();
 			GLES11.glLoadIdentity();
-			Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
+			Rect visibleArea = game.getGraphics().getVisibleArea();
 			GlUtils.ortho(game, visibleArea);
 			GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 			GLES11.glLoadIdentity();
 			GLES11.glColor4f(0.937f, 0.396f, 0.0f, 1.0f);
 			GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 			GLES11.glPopMatrix();
-			GLES11.glMatrixMode(GLES11.GL_MODELVIEW);			
+			GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		}
 	}
-	
+
 	@Override
 	public void dispose() {
 	}
@@ -328,17 +325,17 @@ public class ControlledShipIntroScreen extends GlScreen {
 	@Override
 	public void loadAssets() {
 	}
-	
+
 	@Override
 	public void pause() {
 		super.pause();
 		inGame.destroy();
 	}
-	
+
 	@Override
 	public void resume() {
 		super.resume();
-		Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
+		Rect visibleArea = game.getGraphics().getVisibleArea();
 		initializeGl(visibleArea);
 		((Alite) game).getTextureManager().reloadAllTextures();
 	}
@@ -346,7 +343,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 	@Override
 	public void postPresent(float deltaTime) {
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return -1;

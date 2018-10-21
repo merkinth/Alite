@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.tutorial;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -30,7 +30,6 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.AndroidFileIO;
-import de.phbouillon.android.framework.impl.AndroidGraphics;
 import de.phbouillon.android.framework.impl.PulsingHighlighter;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteConfig;
@@ -38,7 +37,7 @@ import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
@@ -48,56 +47,55 @@ import de.phbouillon.android.games.alite.screens.canvas.TextData;
 @SuppressWarnings("serial")
 public abstract class TutorialScreen extends AliteScreen {
 	private static final int TEXT_LINE_HEIGHT = 50;
-	
+
 	protected final transient Alite alite;
-	protected final transient List <TutorialLine> lines = new ArrayList<TutorialLine>();
-	protected transient TutorialLine currentLine;
-	protected int currentLineIndex;
-	protected transient TextData [] textData;
+	protected final transient List <TutorialLine> lines = new ArrayList<>();
+	private transient TutorialLine currentLine;
+	int currentLineIndex;
+	private transient TextData[] textData;
 	protected final transient MediaPlayer mediaPlayer;
-	protected final boolean isGl;
-	protected boolean hideCloseButton = false;
-	
+	private final boolean isGl;
+	boolean hideCloseButton = false;
+
 	private boolean tutorialAborted = false;
 	private transient Button closeButton;
 	private transient Pixmap closeIcon;
-	
+
 	private int currentX = -1;
 	private int currentY = -1;
 	private int currentWidth = -1;
 	private int currentHeight = -1;
-	
-	public TutorialScreen(Alite alite) {
+
+	TutorialScreen(Alite alite) {
 		super(alite);
 		isGl = false;
 		this.alite = alite;
-		this.currentLineIndex = -1;
-		this.currentLine = null;
-		this.mediaPlayer = new MediaPlayer();
+		currentLineIndex = -1;
+		currentLine = null;
+		mediaPlayer = new MediaPlayer();
 	}
-	
-	public TutorialScreen(Alite alite, boolean gl) {
+
+	TutorialScreen(Alite alite, boolean gl) {
 		super(alite);
 		isGl = gl;
 		this.alite = alite;
-		this.currentLineIndex = -1;
-		this.currentLine = null;
-		this.mediaPlayer = new MediaPlayer();
+		currentLineIndex = -1;
+		currentLine = null;
+		mediaPlayer = new MediaPlayer();
 	}
 
 	@Override
 	public void activate() {
-		closeButton = new Button(0, 980, 100, 100, closeIcon);
-		closeButton.setUseBorder(false);
+		closeButton = Button.createPictureButton(0, 980, 100, 100, closeIcon);
 	}
-	
-	protected PulsingHighlighter makeHighlight(int x, int y, int width, int height) {
-		return new PulsingHighlighter(alite, x, y, width, height, 20, 
-				AliteColors.get().pulsingHighlighterLight(), 
-				AliteColors.get().pulsingHighlighterDark());
+
+	PulsingHighlighter makeHighlight(int x, int y, int width, int height) {
+		return new PulsingHighlighter(alite, x, y, width, height, 20,
+			ColorScheme.get(ColorScheme.COLOR_PULSING_HIGHLIGHTER_LIGHT),
+			ColorScheme.get(ColorScheme.COLOR_PULSING_HIGHLIGHTER_DARK));
 	}
-	
-	protected void renderText() {
+
+	void renderText() {
 		if (currentLine != null) {
 			currentY = currentLine.getY();
 			currentHeight = currentLine.getHeight();
@@ -111,44 +109,32 @@ public abstract class TutorialScreen extends AliteScreen {
 			currentX = currentLine.getX();
 			currentWidth = currentLine.getWidth();
 		}
-		
+
 		if (currentLine == null || currentLine.getText().isEmpty()) {
 			return;
 		}
-		
+
 		Graphics g = alite.getGraphics();
 		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
 		GLES11.glEnable(GLES11.GL_BLEND);
 		if (currentX != -1 && currentY != -1) {
-			g.gradientRect(currentX, currentY, currentWidth, currentHeight, true, true, AliteColors.get().tutorialBubbleDark(), AliteColors.get().tutorialBubbleLight());
+			g.diagonalGradientRect(currentX, currentY, currentWidth, currentHeight,
+				ColorScheme.get(ColorScheme.COLOR_TUTORIAL_BUBBLE_DARK),
+				ColorScheme.get(ColorScheme.COLOR_TUTORIAL_BUBBLE_LIGHT));
 		}
 		GLES11.glDisable(GLES11.GL_BLEND);
 		if (currentX != -1 && currentY != -1) {
-			g.rec3d(currentX, currentY, currentWidth, currentHeight, 4, AliteColors.get().tutorialBubbleLight(), AliteColors.get().tutorialBubbleDark());
+			g.rec3d(currentX, currentY, currentWidth, currentHeight, 4,
+				ColorScheme.get(ColorScheme.COLOR_TUTORIAL_BUBBLE_LIGHT),
+				ColorScheme.get(ColorScheme.COLOR_TUTORIAL_BUBBLE_DARK));
 		}
 		if (currentLine != null && textData != null) {
 			displayText(g, textData);
-		}		
-	}
-	
-	protected void initLines(int tutorialIndex, String... texts) {
-		int index = 1;
-		String path = "sound/tutorial/" + tutorialIndex + "/";
-		try {
-			AndroidFileIO afi = (AndroidFileIO) alite.getFileIO();
-			String audioName = path + (index < 10 ? "0" + index : index) + ".mp3";
-			for (String t: texts) {
-				lines.add(new TutorialLine(AliteConfig.HAS_EXTENSION_APK ? afi.getPrivatePath(audioName) :
-					                                                             afi.getFileDescriptor(audioName), t));
-				index++;
-			} 
-		} catch (IOException e) {
-			AliteLog.e("Error Reading Tutorial", "Error reading Tutorial", e);
 		}
 	}
-	
-	protected TutorialLine addLine(int tutorialIndex, String line) {
-		String path = "sound/tutorial/" + tutorialIndex + "/";		
+
+	TutorialLine addLine(int tutorialIndex, String line) {
+		String path = "sound/tutorial/" + tutorialIndex + "/";
 		try {
 			int index = lines.size() + 1;
 			AndroidFileIO afi = (AndroidFileIO) alite.getFileIO();
@@ -160,11 +146,11 @@ public abstract class TutorialScreen extends AliteScreen {
 		} catch (IOException e) {
 			AliteLog.e("Error Reading Tutorial", "Error reading Tutorial", e);
 			return null;
-		}				
+		}
 	}
-		
-	protected TutorialLine addLine(int tutorialIndex, String line, String option) {
-		String path = "sound/tutorial/" + tutorialIndex + "/";		
+
+	TutorialLine addLine(int tutorialIndex, String line, String option) {
+		String path = "sound/tutorial/" + tutorialIndex + "/";
 		int index = lines.size() + 1;
 		AndroidFileIO afi = (AndroidFileIO) alite.getFileIO();
 		String audioName = path + (index < 10 ? "0" + index : index);
@@ -181,20 +167,20 @@ public abstract class TutorialScreen extends AliteScreen {
 		}
 	}
 
-	protected TutorialLine addEmptyLine() {
+	TutorialLine addEmptyLine() {
 		TutorialLine result = new TutorialLine(null, "").setHeight(0).setWidth(0);
 		lines.add(result);
 		return result;
 	}
 
-	public Screen updateNavBar(float deltaTime) {	
+	Screen updateNavBar() {
 		NavigationBar navBar = ((Alite) game).getNavigationBar();
 		for (TouchEvent event: game.getInput().getTouchEvents()) {
-			if (event.type == TouchEvent.TOUCH_DOWN && event.x >= (1920 - NavigationBar.SIZE)) {
+			if (event.type == TouchEvent.TOUCH_DOWN && event.x >= 1920 - NavigationBar.SIZE) {
 				startX = event.x;
 				startY = lastY = event.y;
 			}
-			if (event.type == TouchEvent.TOUCH_DRAGGED && event.x >= (1920 - NavigationBar.SIZE)) {
+			if (event.type == TouchEvent.TOUCH_DRAGGED && event.x >= 1920 - NavigationBar.SIZE) {
 				if (event.y < lastY) {
 					navBar.increasePosition(lastY - event.y);
 				} else {
@@ -210,30 +196,30 @@ public abstract class TutorialScreen extends AliteScreen {
 					return screen;
 				}
 			}
-		}		
+		}
 		return null;
 	}
-	
+
 	protected abstract void doPresent(float deltaTime);
-	
-	protected void renderGlPart(float deltaTime, final Rect visibleArea) {		
+
+	protected void renderGlPart(float deltaTime, final Rect visibleArea) {
 	}
-	
-	protected void doUpdate(float deltaTime) {		
+
+	protected void doUpdate(float deltaTime) {
 	}
-	
-	@Override 
+
+	@Override
 	public void renderNavigationBar() {
 		if (isGl) {
 			return;
 		}
 		super.renderNavigationBar();
 	}
-	
+
 	@Override
 	public void present(float deltaTime) {
 		if (isGl) {
-			Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
+			Rect visibleArea = game.getGraphics().getVisibleArea();
 			renderGlPart(deltaTime, visibleArea);
 			setUpForDisplay(visibleArea);
 		}
@@ -251,7 +237,7 @@ public abstract class TutorialScreen extends AliteScreen {
 			currentLine.postPresent(deltaTime);
 		}
 	}
-	
+
 	@Override
 	public void postNavigationRender(float deltaTime) {
 		if (currentLine != null) {
@@ -259,14 +245,14 @@ public abstract class TutorialScreen extends AliteScreen {
 			GLES11.glEnable(GLES11.GL_BLEND);
 			currentLine.renderHighlights(deltaTime);
 			GLES11.glDisable(GLES11.GL_BLEND);
-		}		
+		}
 	}
 
-	protected void checkTutorialClose(TouchEvent touch) {
+	private void checkTutorialClose(TouchEvent touch) {
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (closeButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				setMessage("Are you sure you want to quit this tutorial?", MessageType.YESNO);
+				setQuestionMessage("Are you sure you want to quit this tutorial?");
 			}
 		}
 	}
@@ -278,13 +264,13 @@ public abstract class TutorialScreen extends AliteScreen {
 			if (currentLine != null) {
 				mediaPlayer.reset();
 			}
-			newScreen = new TutorialSelectionScreen(alite);			
+			newScreen = new TutorialSelectionScreen(alite);
 			performScreenChange();
-			postScreenChange();			
+			postScreenChange();
 			tutorialAborted = true;
 		}
 	}
-	
+
 	@Override
 	public void update(float deltaTime) {
 		if (tutorialAborted) {
@@ -300,7 +286,7 @@ public abstract class TutorialScreen extends AliteScreen {
 				checkTutorialClose(event);
 			}
 		}
-		
+
 		if (currentLine == null) {
 			currentLineIndex++;
 			if (currentLineIndex >= lines.size()) {
@@ -313,27 +299,27 @@ public abstract class TutorialScreen extends AliteScreen {
 			currentLine.reset();
 			currentLine.play(mediaPlayer);
 			textData = computeTextDisplay(game.getGraphics(), currentLine.getText(),
-										  currentLine.getX() + 50, 
-										  currentLine.getY() + 50, 
-										  currentLine.getWidth() - 100, 
-										  TEXT_LINE_HEIGHT, 
-										  AliteColors.get().mainText(), Assets.regularFont, false);
+										  currentLine.getX() + 50,
+										  currentLine.getY() + 50,
+										  currentLine.getWidth() - 100,
+										  TEXT_LINE_HEIGHT,
+										  ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		} else {
 			if (!currentLine.isPlaying(mediaPlayer)) {
 				currentLine.executeFinishHook();
 				currentLine = null;
-			}		
-		}	
-		
+			}
+		}
+
 		if (currentLine != null) {
 			currentLine.update(deltaTime);
 		}
-		
+
 		if (currentLine == null || !currentLine.mustRetainEvents()) {
 			for (TouchEvent event: game.getInput().getTouchEvents()) {
 				if (event.type == TouchEvent.TOUCH_UP && currentLine != null) {
-					if (event.x > currentLine.getX() && event.x < (currentLine.getX() + currentLine.getWidth()) && 
-						event.y > currentLine.getY() && event.y < (currentLine.getY() + currentLine.getHeight()) && 
+					if (event.x > currentLine.getX() && event.x < currentLine.getX() + currentLine.getWidth() &&
+						event.y > currentLine.getY() && event.y < currentLine.getY() + currentLine.getHeight() &&
 						currentLine.isSkippable()) {
 						mediaPlayer.reset();
 						currentLine.executeFinishHook();
@@ -344,13 +330,13 @@ public abstract class TutorialScreen extends AliteScreen {
 		}
 		doUpdate(deltaTime);
 	}
-	
+
 	@Override
 	public void loadAssets() {
-		closeIcon = game.getGraphics().newPixmap("no_icon_small.png", true); //close_icon.png", true);
+		closeIcon = game.getGraphics().newPixmap("no_icon_small.png"); //close_icon.png", true);
 		super.loadAssets();
 	}
-	
+
 	@Override
 	public void dispose() {
 		super.dispose();
@@ -359,7 +345,7 @@ public abstract class TutorialScreen extends AliteScreen {
 			closeIcon.dispose();
 			closeIcon = null;
 		}
-		alite.getNavigationBar().setActiveIndex(9); // Disk Screen
+		alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK);
 	}
 
 	@Override

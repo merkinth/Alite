@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -32,7 +32,7 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -41,17 +41,17 @@ public class QuantityPadScreen extends AliteScreen {
 	private static final int OFFSET_Y = 20;
 	private static final int BUTTON_SIZE = 150;
 	private static final int GAP = 10;
-	
+
 	private final int xPos;
 	private final int yPos;
 	private final int row;
 	private final int column;
-	private final String [] buttonTexts = new String [] {"7", "8", "9", "4", "5", "6", "1", "2", "3", "0", "<-", "OK"};
-	private Button [] pads;
+	private final String[] buttonTexts = new String[] {"7", "8", "9", "4", "5", "6", "1", "2", "3", "0", "<-", "OK"};
+	private Button[] pads;
 	private final String maxAmountString;
 	private String currentAmountString = "";
 	private final BuyScreen marketScreen;
-	
+
 	public QuantityPadScreen(BuyScreen marketScreen, Game game, String maxAmountString, int x, int y, int row, int column) {
 		super(game);
 		this.xPos = x;
@@ -59,7 +59,7 @@ public class QuantityPadScreen extends AliteScreen {
 		this.row = row;
 		this.column = column;
 		this.maxAmountString = maxAmountString;
-		this.marketScreen = marketScreen;		
+		this.marketScreen = marketScreen;
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class QuantityPadScreen extends AliteScreen {
 		pads = new Button[12];
 		initializeButtons();
 	}
-	
+
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeInt(xPos);
@@ -114,34 +114,34 @@ public class QuantityPadScreen extends AliteScreen {
 		return true;
 	}
 
-	private void initializeButtons() {		
+	private void initializeButtons() {
 		for (int y = 0; y < 4; y++) {
 			for (int x = 0; x < 3; x++) {
-				pads[y * 3 + x] = new Button(xPos + x * (BUTTON_SIZE + GAP) + OFFSET_X,
-						                     yPos + y * (BUTTON_SIZE + GAP) + OFFSET_Y,
-						                     BUTTON_SIZE, BUTTON_SIZE,
-						                     buttonTexts[y * 3 + x], Assets.regularFont, null);
+				pads[y * 3 + x] = Button.createRegularButton(xPos + x * (BUTTON_SIZE + GAP) + OFFSET_X,
+					 yPos + y * (BUTTON_SIZE + GAP) + OFFSET_Y,
+					 BUTTON_SIZE, BUTTON_SIZE,
+					 buttonTexts[y * 3 + x]);
 			}
 		}
 	}
-	
+
 	@Override
 	public void present(float deltaTime) {
 		if (disposed) {
 			return;
 		}
 		Graphics g = game.getGraphics();
-		
+
 		marketScreen.present(deltaTime);
 		int width = (BUTTON_SIZE + GAP) * 3 + 2 * OFFSET_X;
 		int height =  (BUTTON_SIZE + GAP) * 4 + 2 * OFFSET_Y;
-		g.gradientRect(xPos, yPos, width, height, false, true, AliteColors.get().backgroundLight(), AliteColors.get().backgroundDark());
-		g.rec3d(xPos, yPos, width, height, 10, AliteColors.get().backgroundLight(), AliteColors.get().backgroundDark());
+		g.verticalGradientRect(xPos, yPos, width, height, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
+		g.rec3d(xPos, yPos, width, height, 10, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
 		for (Button b: pads) {
 			b.render(g);
 		}
-		g.fillRect(50, 1018, 1670, 56, AliteColors.get().background());
-		g.drawText("Amount to buy (up to " + maxAmountString + ")? " + currentAmountString, 50, 1050, AliteColors.get().message(), Assets.regularFont);		
+		g.fillRect(50, 1018, 1670, 56, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
+		g.drawText("Amount to buy (up to " + maxAmountString + ")? " + currentAmountString, 50, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
 
 	@Override
@@ -149,11 +149,11 @@ public class QuantityPadScreen extends AliteScreen {
 		super.processTouch(touch);
 		if (getMessage() != null) {
 			return;
-		}		
+		}
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			int width = (BUTTON_SIZE + GAP) * 3 + 2 * OFFSET_X;
 			int height =  (BUTTON_SIZE + GAP) * 4 + 2 * OFFSET_Y;
-			if (touch.x < xPos || touch.y < yPos || touch.x > (xPos + width) || touch.y > (yPos + height)) {
+			if (touch.x < xPos || touch.y < yPos || touch.x > xPos + width || touch.y > yPos + height) {
 				marketScreen.setBoughtAmountString("0");
 				newScreen = marketScreen;
 				Alite.setDefiningScreen(marketScreen);
@@ -180,16 +180,16 @@ public class QuantityPadScreen extends AliteScreen {
  			}
 		}
 	}
-	
+
 	public void clearAmount() {
 		currentAmountString = "";
 		newScreen = null;
 	}
-	
+
 	public Screen getNewScreen() {
 		return newScreen;
 	}
-	
+
 	@Override
 	protected void performScreenChange() {
 		dispose();
@@ -197,7 +197,7 @@ public class QuantityPadScreen extends AliteScreen {
 		marketScreen.performTrade(row, column);
 		((Alite) game).getNavigationBar().performScreenChange();
 	}
-	
+
 	@Override
 	public void dispose() {
 		super.dispose();
@@ -207,9 +207,9 @@ public class QuantityPadScreen extends AliteScreen {
 	public void loadAssets() {
 		super.loadAssets();
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.QUANTITY_PAD_SCREEN;
-	}	
+	}
 }

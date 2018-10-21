@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -31,7 +31,6 @@ import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Music;
 import de.phbouillon.android.framework.Sound;
-import de.phbouillon.android.framework.impl.AndroidGraphics;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.Alite;
@@ -40,7 +39,7 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteFont;
@@ -50,15 +49,15 @@ import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteFont;
 //                 - Jabberwocky          - Dugite
 //                 - TIE-Fighter          - TIE-Fighter
 //                 - Tiger                - Lyre
-// ADCK            - Eagle Mk IV          - Rattlesnake   - Michael Francis             
+// ADCK            - Eagle Mk IV          - Rattlesnake   - Michael Francis
 // Captain Beatnik - Coluber Pitviper     - Harlequin     - captain.beatnik@gmx.de (Robert Triflinger)
 // Wyvern
-// Clym Angus      - Kirin                - Yellowbelly   -  
+// Clym Angus      - Kirin                - Yellowbelly   -
 // Galileo         - Huntsman             - Mussurana     - Eric Walsh
 // Murgh           - Bandy-Bandy Courier  - Coral         - ??
 //                 - Cat                  - Cougar        - ??
-// Wolfwood        - Drake Mk II          - Bushmaster    - ??             
-  
+// Wolfwood        - Drake Mk II          - Bushmaster    - ??
+
 
 // This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -79,28 +78,28 @@ public class AboutScreen extends GlScreen {
 	private boolean end = false;
 	private boolean returnToOptions = false;
 	private float musicVolume = Settings.volumes[Sound.SoundType.MUSIC.getValue()];
-	
+
 	private int pendingMode = -1;
-	
+
 	private final String credits = "[  03.0y]Alite\n" +
 	                               "[3001.5w]A Game By\n" +
 			                       "[ 602.0y]Philipp Bouillon\n" +
 			                       "[ 902.0y]Duane McDonnell\n" +
-			                       
+
 			                       "[2501.5w]Programming\n" +
 	                               "[ 602.0y]Philipp Bouillon\n" +
-			                       
+
 			                       "[2501.5w]Additional Programming\n" +
 			                       "[ 602.0y]Steven Phillips\n" +
 
 	                               "[2501.5y]Alite is inspired by classic Elite\n" +
 			                       "[ 601.5y]\u00a9 Acornsoft, Bell & Braben\n" +
-	                               
+
 	                               "[2501.5w]Intro Movie\n" +
 	                               "[1001.5w]Production, Modeling, Rendering\n" +
 			                       "[ 602.0y]James Scott\n" +
 	                               "[ 902.0o]jscottmedia.com\n" +
-	                               
+
 	                               "[2001.5w]Docking Computer Music\n" +
 	                               "[ 601.5w]The Blue Danube (Op. 314)\n" +
 	                               "[ 601.5w]by Johann Strauss\n" +
@@ -112,10 +111,10 @@ public class AboutScreen extends GlScreen {
 	                               "[ 902.0o]anttimartikainen.bandcamp.com/track/the-chase\n" +
 			                       "[ 902.0y]To Valhalla\n" +
 			                       "[ 902.0o]anttimartikainen.bandcamp.com/track/to-valhalla\n" +
-			                       
+
 			                       "[2001.5w]Voice Acting\n" +
 	                               "[1001.5w]Commander Quelo\n" +
-			                       "[ 602.0y]R.J. O'Connell\n" +			                       
+			                       "[ 602.0y]R.J. O'Connell\n" +
 	                               "[1501.5w]Lave Station Commander\n" +
 			                       "[ 602.0y]Amy Perkins\n" +
 	                               "[1001.5w]Commander Ripley (Viper 4)\n" +
@@ -138,7 +137,7 @@ public class AboutScreen extends GlScreen {
 			                       "[1001.5w]Thargoid Station General\n" +
 			                       "[ 602.0y]Adoxographist\n" +
 			                       "[ 902.0o]http://adoxtalks.tumblr.com\n" +
-	                               
+
 			                       "[2001.5w]Modeling\n" +
 	                               "[ 602.0y]Phil Griff\n" +
 	                               "[ 902.0y]Rolf Schuetteler\n" +
@@ -147,10 +146,10 @@ public class AboutScreen extends GlScreen {
 	                               "[ 902.0y]Clym Angus\n" +
 	                               "[ 902.0y]Marko Susimets\u00e4\n" +
 	                               "[ 902.0y]ADCK\n" +
-	                               "[ 902.0y]Captain Beatnik\n" +	                               
+	                               "[ 902.0y]Captain Beatnik\n" +
 	                               "[ 902.0y]DeepSpace\n" +
 	                               "[ 902.0y]Galileo\n" +
-	                               "[ 902.0y]Murgh\n" +	                               
+	                               "[ 902.0y]Murgh\n" +
 
 	                               "[2001.5w]Icon and Alien Graphics\n" +
 	                               "[ 602.0y]Stan Stoyanov\n" +
@@ -162,8 +161,8 @@ public class AboutScreen extends GlScreen {
 	                               "[2001.5w]Star Textures\n" +
 	                               "[ 602.0y]From Celestia User gradius_fanatic\n" +
 	                               "[2001.5w]Cobra Mk III Image\n" +
-	                               "[ 602.0y]From www.kennyscrap.com\n" + 
-	                               
+	                               "[ 602.0y]From www.kennyscrap.com\n" +
+
 	                               "[2001.5w]Game Testers\n" +
 	                               "[ 602.0y]Arnd Houben\n" +
 	                               "[ 902.0y]Cornelius Dirmeier\n" +
@@ -171,16 +170,16 @@ public class AboutScreen extends GlScreen {
 	                               "[ 902.0y]Franz-Josef Bongartz\n" +
 	                               "[ 902.0y]Gunnar Tacke\n" +
 	                               "[ 902.0y]Hussein Baagil\n" +
-	                               "[ 902.0y]Jens-Peter Hack\n" +	
+	                               "[ 902.0y]Jens-Peter Hack\n" +
 	                               "[ 902.0y]Manuel Schupp\n" +
 	                               "[ 902.0y]Mathias Busche\n" +
 	                               "[ 902.0y]Michael Breuer\n" +
 	                               "[ 902.0y]Michael Raue\n" +
 	                               "[ 902.0y]Olav Riediger\n" +
 	                               "[ 902.0y]Rolf Paulsen\n" +
-	                               "[ 902.0y]Scott McGeachie\n" + 
+	                               "[ 902.0y]Scott McGeachie\n" +
 	                               "[ 902.0y]Stefan Widmaier\n" +
-	                               
+
 	                               "[2001.5w]Special Thanks To\n" +
 	                               "[ 602.0y]Duane McDonnell\n" +
 	                               "[ 902.0o]This game would not have been completed\n" +
@@ -188,7 +187,7 @@ public class AboutScreen extends GlScreen {
 	                               "[ 902.0o]Elite wizard\n" +
 	                               "[ 902.0o]and you taught me everything I know about 3D.\n" +
 	                               "[2002.0y]The Oolite Community\n" +
-	                               "[ 902.0o]Alite would not have been possible without\n" + 
+	                               "[ 902.0o]Alite would not have been possible without\n" +
 	                               "[ 902.0o]the support of the Oolite fan community.\n" +
 	                               "[2002.0y]Ian Bell and David Braben\n" +
 	                               "[ 902.0o]Thank you for Elite.\n" +
@@ -201,24 +200,24 @@ public class AboutScreen extends GlScreen {
 	                               "[ 902.0o]Thank you for letting me write this game\n" +
 	                               "[ 902.0o]during all those long hours in the night.\n" +
 	                               "[ 902.0o]For this, and so much more, I love you!";
-	                               	                               	                              	                               
+
 	private final List <TextData> texts;
-	
+
 	public AboutScreen(Game game) {
 		super(game);
-		visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
+		visibleArea = game.getGraphics().getVisibleArea();
 		background = new Sprite((Alite) game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom, 0.0f, 0.0f, 1.0f, 1.0f, "textures/star_map_title.png");
 		aliteLogo  = new Sprite((Alite) game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom, 0.0f, 0.0f, 1615.0f / 2048.0f, 1080.0f / 2048.0f, "title_logo.png");
 		aliteLogo.scale(0.96f, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom);
 		windowWidth = visibleArea.width();
 		windowHeight = visibleArea.height();
-		startTime = System.nanoTime();		
+		startTime = System.nanoTime();
 		lastTime = startTime;
 		endCreditsMusic = game.getAudio().newMusic("music/end_credits.mp3", Sound.SoundType.MUSIC);
 		texts = new ArrayList<TextData>();
 		int curY = 0;
 		for (String s: credits.split("\n")) {
-			TextData td = new TextData("", 960, curY, AliteColors.get().message(), null);
+			TextData td = new TextData("", 960, curY, ColorScheme.get(ColorScheme.COLOR_MESSAGE), null);
 			if (s.startsWith("[")) {
 				curY += parseControlSequence(td, s.substring(1, s.indexOf("]")), s.substring(s.indexOf("]") + 1));
 			} else {
@@ -226,7 +225,7 @@ public class AboutScreen extends GlScreen {
 				curY += 40;
 			}
 			td.y = curY;
-			texts.add(td);			
+			texts.add(td);
 		}
 		font = ((Alite) game).getFont();
 	}
@@ -237,15 +236,15 @@ public class AboutScreen extends GlScreen {
 		td.scale = Float.parseFloat(sequence.substring(3, 6));
 		char c = sequence.charAt(6);
 		if (c == 'w') {
-			td.color = AliteColors.get().creditsDescription();
+			td.color = ColorScheme.get(ColorScheme.COLOR_CREDITS_DESCRIPTION);
 		} else if (c == 'y') {
-			td.color = AliteColors.get().creditsPerson();
+			td.color = ColorScheme.get(ColorScheme.COLOR_CREDITS_PERSON);
 		} else if (c == 'o') {
-			td.color = AliteColors.get().creditsAddition();
+			td.color = ColorScheme.get(ColorScheme.COLOR_CREDITS_ADDITION);
 		}
 		return height;
 	}
-	
+
 	@Override
 	public void onActivation() {
 		endCreditsMusic.setLooping(true);
@@ -263,30 +262,30 @@ public class AboutScreen extends GlScreen {
 			as.alpha = dis.readFloat();
 		} catch (Exception e) {
 			AliteLog.e("About Screen Initialize", "Error in initializer.", e);
-			return false;			
+			return false;
 		}
 		alite.setScreen(as);
 		return true;
 	}
-	
+
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeInt(mode);
 		dos.writeInt(y);
 		dos.writeFloat(alpha);
 	}
-	
+
 	private void initializeGl() {
-		float ratio = (float) windowWidth / (float) windowHeight;	     
+		float ratio = (float) windowWidth / (float) windowHeight;
         GLES11.glMatrixMode(GLES11.GL_PROJECTION);
         GlUtils.setViewport(visibleArea);
         GLES11.glLoadIdentity();
         GlUtils.gluPerspective(game, 45.0f, ratio, 10.0f, 1000.0f);
         GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-        GLES11.glLoadIdentity();        
+        GLES11.glLoadIdentity();
         GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT | GLES11.GL_DEPTH_BUFFER_BIT);
-        GLES11.glHint(GLES11.GL_PERSPECTIVE_CORRECTION_HINT, GLES11.GL_NICEST);		        
+        GLES11.glHint(GLES11.GL_PERSPECTIVE_CORRECTION_HINT, GLES11.GL_NICEST);
         GLES11.glEnable(GLES11.GL_DEPTH_TEST);
         GLES11.glDepthFunc(GLES11.GL_LEQUAL);
 		GLES11.glEnable(GLES11.GL_BLEND);
@@ -294,47 +293,47 @@ public class AboutScreen extends GlScreen {
 	}
 
 	private void performFadeIn(float deltaTime) {
-        if (System.nanoTime() - lastTime > 50000) {        	        
+        if (System.nanoTime() - lastTime > 50000) {
         	y -= 2;
         }
-        if (System.nanoTime() - lastTime > 1000000) {        	        
+        if (System.nanoTime() - lastTime > 1000000) {
         	alpha *= 1.1f;
         	lastTime = System.nanoTime();
         	if (alpha >= 1.0f) {
         		alpha = 1.0f;
-        		startTime = System.nanoTime();        		
+        		startTime = System.nanoTime();
         		mode = 1;
         	}
         }
 	}
-	
+
 	private void performWait(long timeToWait) {
-        if (System.nanoTime() - lastTime > 50000) {        	        
+        if (System.nanoTime() - lastTime > 50000) {
         	y -= 2;
         }
 		if (System.nanoTime() - startTime > timeToWait) {
-			lastTime = System.nanoTime();		
+			lastTime = System.nanoTime();
 			mode++;
 		}
 	}
 
 	private void performFadeOut(float deltaTime) {
-        if (System.nanoTime() - lastTime > 50000) {        	        
+        if (System.nanoTime() - lastTime > 50000) {
         	y -= 2;
         }
-        if (System.nanoTime() - lastTime > 1000000) {        	        
+        if (System.nanoTime() - lastTime > 1000000) {
         	alpha *= 0.99f;
         	lastTime = System.nanoTime();
         	if (alpha <= 0.3f) {
         		alpha = 0.3f;
-        		startTime = System.nanoTime();        		
+        		startTime = System.nanoTime();
         		mode = 3;
         	}
         }
 	}
-	
+
 	private void performUpdateLines(float deltaTime) {
-        if (System.nanoTime() - lastTime > 50000) {        	        
+        if (System.nanoTime() - lastTime > 50000) {
         	if (mode == 4) {
         		int n = texts.size();
         		// Leave the Thanks to Klaudia part on the screen,
@@ -347,7 +346,7 @@ public class AboutScreen extends GlScreen {
         	if (end) {
         		mode = 4;
         	}
-        }						
+        }
 	}
 
 	@Override
@@ -360,7 +359,7 @@ public class AboutScreen extends GlScreen {
 			performFadeOut(deltaTime);
 		} else if (mode == 3 || mode == 4) {
 			performUpdateLines(deltaTime);
-		} 
+		}
 		if (returnToOptions) {
 			globalAlpha *= 0.95f;
 			musicVolume *= 0.95f;
@@ -372,22 +371,12 @@ public class AboutScreen extends GlScreen {
 				returnToOptions = true;
 			}
 		}
-		if (returnToOptions && globalAlpha < 0.01) {		
+		if (returnToOptions && globalAlpha < 0.01) {
 			GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT | GLES11.GL_COLOR_BUFFER_BIT);
 			GLES11.glDisable(GLES11.GL_DEPTH_TEST);
 			game.setScreen(new OptionsScreen(game));
 		}
 	}
-	
-	private void setGlColor(long color) {
-		int alpha = (int) ((color & 0xFF000000l) >> 24);
-		int red   = (int) (color & 0x00FF0000) >> 16;
-		int green = (int) (color & 0x0000FF00) >>  8;
-		int blue  = (int) (color & 0x000000FF);
-		
-		GLES11.glColor4f(red / 255.0f * globalAlpha, green / 255.0f * globalAlpha, blue / 255.0f * globalAlpha, alpha / 255.0f * globalAlpha);
-	}
-
 
 	@Override
 	public void performPresent(float deltaTime) {
@@ -398,18 +387,18 @@ public class AboutScreen extends GlScreen {
         GLES11.glClearDepthf(1.0f);
 
         GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-        GLES11.glLoadIdentity();                    
+        GLES11.glLoadIdentity();
 
         GLES11.glEnable(GLES11.GL_TEXTURE_2D);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-		GLES11.glPushMatrix();		
+		GLES11.glPushMatrix();
 		GLES11.glLoadIdentity();
-		Rect visibleArea = ((AndroidGraphics) ((Alite) game).getGraphics()).getVisibleArea();
-		GlUtils.ortho(game, visibleArea);		
-		
+		Rect visibleArea = game.getGraphics().getVisibleArea();
+		GlUtils.ortho(game, visibleArea);
+
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
-		GLES11.glDisable(GLES11.GL_DEPTH_TEST);		
+		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
 		GLES11.glColor4f(globalAlpha, globalAlpha, globalAlpha, globalAlpha);
 		background.render();
         GLES11.glColor4f(globalAlpha * alpha, globalAlpha * alpha, globalAlpha * alpha, globalAlpha * alpha);
@@ -422,7 +411,7 @@ public class AboutScreen extends GlScreen {
             		if (y + text.y > 1080) {
             			break;
             		}
-            		setGlColor(text.color);
+					game.getGraphics().setColor(text.color, globalAlpha);
             		font.drawText(text.text, text.x, y + text.y, true, text.scale);
             		if (y + text.y < 525 && i == texts.size() - 1) {
             			end = true;
@@ -437,7 +426,7 @@ public class AboutScreen extends GlScreen {
 		GLES11.glPopMatrix();
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
-		
+
         GLES11.glDisable(GLES11.GL_TEXTURE_2D);
 		GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, 0);
 	}
@@ -449,7 +438,7 @@ public class AboutScreen extends GlScreen {
 	@Override
 	public void pause() {
 		super.pause();
-		if (endCreditsMusic != null) {			
+		if (endCreditsMusic != null) {
 			endCreditsMusic.stop();
 			endCreditsMusic.dispose();
 			endCreditsMusic = null;
@@ -470,16 +459,16 @@ public class AboutScreen extends GlScreen {
 		if (endCreditsMusic != null) {
 			endCreditsMusic.stop();
 			endCreditsMusic.dispose();
-			endCreditsMusic = null;			
+			endCreditsMusic = null;
 		}
 	}
 
 	@Override
 	public void loadAssets() {
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.ABOUT_SCREEN;
-	}	
+	}
 }

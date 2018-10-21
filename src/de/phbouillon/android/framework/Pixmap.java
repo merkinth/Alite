@@ -2,7 +2,7 @@ package de.phbouillon.android.framework;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,11 +18,19 @@ package de.phbouillon.android.framework;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import android.graphics.Bitmap;
 import de.phbouillon.android.framework.Graphics.PixmapFormat;
 
 public interface Pixmap {
-	public int getWidth();
-	public int getHeight();
-	public PixmapFormat getFormat();
-	public void dispose();
+	int getWidth();
+	int getHeight();
+	PixmapFormat getFormat();
+	void dispose();
+	Bitmap getBitmap();
+	void setBitmap(Bitmap bitmap);
+	void setTextureCoordinates(int left, int top, int right, int bottom);
+	void setCoordinates(int left, int top, int right, int bottom);
+	void resetTextureCoordinates();
+	void render();
+	void render(int x, int y);
 }

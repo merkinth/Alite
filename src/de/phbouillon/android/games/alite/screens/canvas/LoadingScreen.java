@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -31,13 +31,13 @@ import de.phbouillon.android.games.alite.Settings;
 @SuppressWarnings("serial")
 public class LoadingScreen extends AliteScreen {
 	public LoadingScreen(Game game) {
-		super(game);	
+		super(game);
 	}
-		
+
 	@Override
 	public void activate() {
 	}
-		
+
 	private void loadSounds() {
 		Assets.click                         = game.getAudio().newSound("sound/guiclick.ogg",Sound.SoundType.SOUND_FX);
 		Assets.alert                         = game.getAudio().newSound("sound/beep.ogg",Sound.SoundType.SOUND_FX);
@@ -52,7 +52,7 @@ public class LoadingScreen extends AliteScreen {
 		Assets.temperatureHigh               = Assets.energyLow;
 		Assets.criticalCondition             = Assets.energyLow;
 		Assets.error                         = game.getAudio().newSound("sound/witchabort.ogg",Sound.SoundType.SOUND_FX);
-		
+
 		Assets.shipDestroyed                 = game.getAudio().newSound("sound/explosion.ogg",Sound.SoundType.COMBAT_FX);
 		Assets.scooped                       = game.getAudio().newSound("sound/scoop.ogg",Sound.SoundType.SOUND_FX);
 		Assets.fireMissile                   = game.getAudio().newSound("sound/missile.ogg",Sound.SoundType.SOUND_FX);
@@ -73,10 +73,10 @@ public class LoadingScreen extends AliteScreen {
 		Assets.com_incomingMissile           = game.getAudio().newSound("sound/computer/incoming_missile.ogg",Sound.SoundType.VOICE);
 		Assets.com_laserTemperatureCritical  = game.getAudio().newSound("sound/computer/laser_temperature.ogg",Sound.SoundType.VOICE);
 		Assets.com_cabinTemperatureCritical  = game.getAudio().newSound("sound/computer/cabin_temperature.ogg",Sound.SoundType.VOICE);
-		Assets.com_targetDestroyed           = game.getAudio().newSound("sound/computer/target_destroyed.ogg",Sound.SoundType.VOICE);		
+		Assets.com_targetDestroyed           = game.getAudio().newSound("sound/computer/target_destroyed.ogg",Sound.SoundType.VOICE);
 		Assets.com_fuelSystemMalfunction     = game.getAudio().newSound("sound/mission/3/00.mp3",Sound.SoundType.VOICE);
 		Assets.com_accessDeclined            = game.getAudio().newSound("sound/computer/access_declined.ogg",Sound.SoundType.VOICE);
-		
+
 		Assets.com_lostDockingComputer       = game.getAudio().newSound("sound/computer/lost_docking.ogg",Sound.SoundType.VOICE);
 		Assets.com_lostEcm                   = game.getAudio().newSound("sound/computer/lost_ecm.ogg",Sound.SoundType.VOICE);
 		Assets.com_lostEnergyBomb            = game.getAudio().newSound("sound/computer/lost_bomb.ogg",Sound.SoundType.VOICE);
@@ -86,17 +86,17 @@ public class LoadingScreen extends AliteScreen {
 		Assets.com_lostGalacticHyperdrive    = game.getAudio().newSound("sound/computer/lost_galactic.ogg",Sound.SoundType.VOICE);
 		Assets.com_lostRetroRockets          = game.getAudio().newSound("sound/computer/lost_retro_rockets.ogg",Sound.SoundType.VOICE);
 	}
-	
+
 	@Override
 	public void update(float deltaTime) {
 		AliteLog.d("Starting LoadingScreen", "Starting loading screen");
 		long m1 = System.currentTimeMillis();
 		AliteLog.d("Debug-1", "Now loading Alite Logo");
-		Assets.aliteLogoSmall = game.getGraphics().newPixmap("alite_logo_small.png", true);
-		AliteLog.d("Debug-2", "Logo loaded; skipping sound load");		
+		Assets.aliteLogoSmall = game.getGraphics().newPixmap("alite_logo_small.png");
+		AliteLog.d("Debug-2", "Logo loaded; skipping sound load");
 		Thread t = new Thread(){
 			public void run() {
-				loadSounds();		
+				loadSounds();
 			}
 		};
 		t.start();
@@ -104,8 +104,8 @@ public class LoadingScreen extends AliteScreen {
 		Settings.load(game.getFileIO());
 		AliteLog.d("Debug-4", "Settings loaded");
 		game.getGraphics().setClip(-1, -1, -1, -1);
-		AliteLog.d("Debug-5", "Clip reset");	
-		
+		AliteLog.d("Debug-5", "Clip reset");
+
 		AliteLog.d("End LoadingScreen", "End LoadingScreen. Resource load took: " + (System.currentTimeMillis() - m1));
 		try {
 			AliteLog.d("Debug-6", "Now loading Alite Game State (if present)");
@@ -118,11 +118,11 @@ public class LoadingScreen extends AliteScreen {
 			AliteLog.d("Debug-9", "IO-Ex, defaulting to SIS");
 			game.setScreen(new ShipIntroScreen(game));
 			AliteLog.d("Debug-10", "SIS set.");
-		}		
+		}
 	}
-	
+
 	@Override
-	public void present(float deltaTime) {		
+	public void present(float deltaTime) {
 	}
 
 	@Override
@@ -132,21 +132,21 @@ public class LoadingScreen extends AliteScreen {
 	@Override
 	public void loadAssets() {
 	}
-	
+
 	@Override
 	public void pause() {
 	}
-	
+
 	@Override
 	public void resume() {
 	}
-	
+
 	@Override
-	public void postLayout(Object dataObject) {		
+	public void postLayout(Object dataObject) {
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return -1;
-	}		
+	}
 }

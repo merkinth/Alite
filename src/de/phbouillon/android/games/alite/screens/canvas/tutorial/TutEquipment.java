@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.tutorial;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -41,13 +41,13 @@ public class TutEquipment extends TutorialScreen {
 	private int savedFuel;
 	private long savedCash;
 	private int screenToInitialize = 0;
-	
+
 	public TutEquipment(final Alite alite) {
 		super(alite);
 
 		savedFuel = alite.getCobra().getFuel();
 		savedCash = alite.getPlayer().getCash();
-		
+
 		initLine_00();
 		initLine_01();
 		initLine_02();
@@ -55,52 +55,52 @@ public class TutEquipment extends TutorialScreen {
 		initLine_04();
 		initLine_05();
 	}
-	
+
 	private void initLine_00() {
 		addLine(3, "Back so soon? Ok, I'll make this lesson brief and " +
 				"simple. Consider it a favor, especially for you.").setY(700);
-		
+
 		status = new StatusScreen(alite);
 	}
-	
+
 	private void initLine_01() {
-		final TutorialLine line = 
+		final TutorialLine line =
 				addLine(3,  "Go to the Equipment screen now.").setY(700);
-						
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {			
+
+		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
-				Screen newScreen = (TutEquipment.this).updateNavBar(deltaTime); 
+				Screen newScreen = (TutEquipment.this).updateNavBar();
 				if (newScreen instanceof EquipmentScreen) {
 					status.dispose();
 					status = null;
-					alite.getNavigationBar().setActiveIndex(5);
+					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP);
 					equip = new EquipmentScreen(alite);
 					equip.loadAssets();
-					equip.activate();					
+					equip.activate();
 					line.setFinished();
 					currentLineIndex++;
 				} else if (newScreen != null) {
 					line.setFinished();
 				}
 			}
-		});	
+		});
 	}
 
 	private void initLine_02() {
 		final TutorialLine line = addLine(3, "No, I said \"Equipment\" screen.").setY(700);
-		
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {			
+
+		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
 			public void execute(float deltaTime) {
-				Screen newScreen = (TutEquipment.this).updateNavBar(deltaTime); 
+				Screen newScreen = (TutEquipment.this).updateNavBar();
 				if (newScreen instanceof EquipmentScreen) {
 					status.dispose();
 					status = null;
-					alite.getNavigationBar().setActiveIndex(5);
+					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP);
 					equip = new EquipmentScreen(alite);
 					equip.loadAssets();
-					equip.activate();					
+					equip.activate();
 					line.setFinished();
 				} else if (newScreen != null) {
 					line.setFinished();
@@ -111,17 +111,17 @@ public class TutEquipment extends TutorialScreen {
 	}
 
 	private void initLine_03() {
-		final TutorialLine line = addLine(3, 
+		final TutorialLine line = addLine(3,
 				"Yes, here we are. This one works just as the buy screen: " +
 				"Tap an item once to get information about the item and " +
 				"tap it again to install it on your ship -- provided of " +
 				"course you have enough credits. I have drained your " +
 				"hyperspace fuel as a training exercise, so go ahead. Buy " +
                 "some fuel.").setY(700).addHighlight(makeHighlight(150, 100, 225, 225));
-		
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {			
+
+		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
-			public void execute(float deltaTime) {				
+			public void execute(float deltaTime) {
 				for (TouchEvent event : game.getInput().getTouchEvents()) {
 					equip.processTouch(event);
 				}
@@ -141,14 +141,14 @@ public class TutEquipment extends TutorialScreen {
 	}
 
 	private void initLine_04() {
-		final TutorialLine line = addLine(3, 
+		final TutorialLine line = addLine(3,
 				"Fuel, nugget. Fuel! That's the upper left icon. Tap it " +
 				"twice. Is it really that hard for you?").setY(700).
 					addHighlight(makeHighlight(150, 100, 225, 225));
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {			
+		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
 			@Override
-			public void execute(float deltaTime) {				
+			public void execute(float deltaTime) {
 				for (TouchEvent event : game.getInput().getTouchEvents()) {
 					equip.processTouch(event);
 				}
@@ -160,9 +160,9 @@ public class TutEquipment extends TutorialScreen {
 					line.setFinished();
 				}
 			}
-		});		
+		});
 	}
-	
+
 	private void initLine_05() {
 		addLine(3, "Wow. I'm impressed. You have now refueled your ship. " +
 				"Well done! You can tap on the other icons if you must, " +
@@ -170,28 +170,28 @@ public class TutEquipment extends TutorialScreen {
 				"Today, I am busy. I need to go to that amazing -- um " +
 				"-- shipyard. Now.").setY(700).setPause(5000);
 	}
-	
+
 	@Override
 	public void activate() {
 		super.activate();
 		switch (screenToInitialize) {
 			case 0: status.activate();
-			        alite.getNavigationBar().moveToScreen(ScreenCodes.STATUS_SCREEN);
+			        alite.getNavigationBar().setActiveIndex(ScreenCodes.STATUS_SCREEN);
 			        break;
 			case 1: status.dispose();
 					status = null;
-					alite.getNavigationBar().moveToScreen(ScreenCodes.EQUIP_SCREEN);
+					alite.getNavigationBar().setActiveIndex(ScreenCodes.EQUIP_SCREEN);
 					equip = new EquipmentScreen(alite);
 					equip.loadAssets();
 					equip.activate();
-					break;			        
+					break;
 		}
 		if (currentLineIndex <= 0) {
 			alite.getCobra().setFuel(0);
 			alite.getPlayer().setCash(1000);
 		}
 	}
-	
+
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		TutEquipment te = new TutEquipment(alite);
 		try {
@@ -201,12 +201,12 @@ public class TutEquipment extends TutorialScreen {
 			te.savedFuel = dis.readInt();
 		} catch (Exception e) {
 			AliteLog.e("Tutorial Equipment Screen Initialize", "Error in initializer.", e);
-			return false;			
+			return false;
 		}
 		alite.setScreen(te);
 		return true;
 	}
-	
+
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeInt(currentLineIndex - 1);
@@ -214,28 +214,28 @@ public class TutEquipment extends TutorialScreen {
 			dos.writeByte(0);
 		} else if (equip != null) {
 			dos.writeByte(1);
-		} 		
+		}
 		dos.writeLong(savedCash);
 		dos.writeInt(savedFuel);
 	}
-	
+
 	@Override
 	public void loadAssets() {
 		super.loadAssets();
 		status.loadAssets();
 	}
-	
+
 	@Override
 	public void doPresent(float deltaTime) {
 		if (status != null) {
 			status.present(deltaTime);
 		} else if (equip != null) {
 			equip.present(deltaTime);
-		} 
-		
+		}
+
 		renderText();
 	}
-		
+
 	@Override
 	public void dispose() {
 		if (status != null) {
@@ -250,9 +250,9 @@ public class TutEquipment extends TutorialScreen {
 		alite.getPlayer().setCash(savedCash);
 		super.dispose();
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.TUT_EQUIPMENT_SCREEN;
-	}	
+	}
 }

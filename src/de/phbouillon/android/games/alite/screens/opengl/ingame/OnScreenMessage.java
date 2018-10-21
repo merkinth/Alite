@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -22,9 +22,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.opengl.GLES11;
-import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
+import de.phbouillon.android.games.alite.colors.AliteColor;
 
 class OnScreenMessage implements Serializable {
 	private static final long serialVersionUID = 1948958480746165833L;
@@ -36,24 +35,16 @@ class OnScreenMessage implements Serializable {
 		long time;
 		long duration;
 		float scale;
-		
+
 		DelayedText(String text, long time) {
 			this.text = text;
 			this.time = time;
-			this.duration = 5000000000l;
-			this.scale = 1.0f;
-		}
-		
-		DelayedText(String text, long time, long duration) {
-			this.text = text;
-			this.time = time;
-			this.duration = duration;
-			this.scale = 1.0f;
+			duration = 5000000000L;
+			scale = 1.0f;
 		}
 	}
-	
+
 	private String text = "";
-	private final Vector3f color = new Vector3f(0.94f, 0.94f, 0.0f);
 	private long activationTime = 0;
 	private long duration;
 	private long repetitionTime;
@@ -63,28 +54,16 @@ class OnScreenMessage implements Serializable {
 	private long repetitionDuration;
 	private String repetitionText;
 	private float scale = 1.0f;
-	private final List <DelayedText> delayedTexts = new ArrayList<DelayedText>();
-	
+	private final List <DelayedText> delayedTexts = new ArrayList<>();
+
 	void setText(String text) {
 		this.text = text;
-		this.scale = 1.0f;
+		scale = 1.0f;
 		activate(System.nanoTime());
 	}
-	
-	void setScaledText(String text, float scale) {
-		this.scale = scale;
-		this.text = text;
-		activate(System.nanoTime());		
-	}
-	
+
 	void setText(String text, long activationTimeDelay) {
 		delayedTexts.add(new DelayedText(text, System.nanoTime() + activationTimeDelay));
-	}
-
-	void setTextForDuration(String text, long duration) {
-		this.text = text;
-		this.scale = 1.0f;
-		activate(System.nanoTime(), duration);
 	}
 
 	void setScaledTextForDuration(String text, long duration, float scale) {
@@ -97,20 +76,20 @@ class OnScreenMessage implements Serializable {
 		if (repetitionText != null && repetitionText.equals(text)) {
 			return;
 		}
-		this.scale = 1.0f;
+		scale = 1.0f;
 		this.text = text;
-		activate(System.nanoTime(), 1000000000l);
-		repetitionDuration = 1000000000l;
+		activate(System.nanoTime(), 1000000000L);
+		repetitionDuration = 1000000000L;
 		repetitionInterval = interval;
 		repetitionText = text;
 		repetitionTimes = -1;
 	}
-	
+
 	void repeatText(String text, long interval, int times, long duration) {
 		if (repetitionText != null && repetitionText.equals(text)) {
 			return;
 		}
-		this.scale = 1.0f;
+		scale = 1.0f;
 		this.text = text;
 		activate(System.nanoTime(), duration);
 		repetitionDuration = duration;
@@ -123,43 +102,39 @@ class OnScreenMessage implements Serializable {
 		if (repetitionText != null && repetitionText.equals(text)) {
 			return;
 		}
-		this.scale = 1.0f;
+		scale = 1.0f;
 		this.text = text;
-		activate(System.nanoTime(), 1000000000l);
-		repetitionDuration = 1000000000l;
+		activate(System.nanoTime(), 1000000000L);
+		repetitionDuration = 1000000000L;
 		repetitionInterval = interval;
 		repetitionText = text;
 		repetitionTimes = times;
 	}
 
-	String getRepetitionText() {
-		return repetitionText;
-	}
-	
 	void clearRepetition() {
-		this.repetitionText = null;
-		this.repetitionTime = 0;
-	}
-	
-	void activate(long nanoTime) {
-		activate(nanoTime, 5000000000l);
+		repetitionText = null;
+		repetitionTime = 0;
 	}
 
-	void activate(long nanoTime, long duration) {
-		this.activationTime = nanoTime;
+	private void activate(long nanoTime) {
+		activate(nanoTime, 5000000000L);
+	}
+
+	private void activate(long nanoTime, long duration) {
+		activationTime = nanoTime;
 		this.duration = duration;
 	}
-	
+
 	boolean isActive() {
 		return activationTime > 0 && System.nanoTime() - activationTime < duration;
 	}
-	
+
 	void render(Alite alite) {
 		long time = System.nanoTime();
 		DelayedText toBeRemoved = null;
 		for (DelayedText dt: delayedTexts) {
 			if (time >= dt.time) {
-				this.text = dt.text;
+				text = dt.text;
 				scale = 1.0f;
 				activate(time, dt.duration);
 				toBeRemoved = dt;
@@ -187,8 +162,8 @@ class OnScreenMessage implements Serializable {
 			return;
 		}
 		lastRepetitionInactive = 0;
-		GLES11.glColor4f(color.x, color.y, color.z, 0.6f);
+		alite.getGraphics().setColor(0x99F0F000);
 		alite.getFont().drawText(text, 960, 650, true, scale);
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		alite.getGraphics().setColor(AliteColor.WHITE);
 	}
 }

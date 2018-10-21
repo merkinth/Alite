@@ -1,0 +1,157 @@
+{
+  "fileInfo": {
+    "info": [
+      "The entire fileInfo object only contains explanation of the color definition",
+      "and has no role in the color definitions at all"
+    ],
+    "intent": "User-defined color scheme file for Alite",
+    "install": [
+      "Extension of color scheme file has to be '.acs' and simple copied to folder",
+      "Android/data/de.phbouillon.android.games.alite/files/color_schemes."
+    ],
+    "author": {
+      "name": "Tamás MOLNÁR",
+      "country": "Hungary",
+      "mail": "merkinth@gmail.com"
+    },
+    "colorOfItemsDefinition": {
+      "info": [
+        "Color of items can be defined in section colors in case-insensitive way with #<hexadecimal value>",
+        "where hexadecimal value contains the values in order alpha-red-green-blue.",
+        "Range of all parts can be between 00 and ff.",
+        "Beside hexadecimal format predefined color names listed in section fileInfo.builtinColorNames also can be used.",
+        "Own color names can be defined in section colorDefinition."
+      ],
+      "builtinColorNames": {
+        "Transparent": "#00000000",
+        "Gray": "#ff888888",
+        "Yellow": "#ffffff00",
+        "Blue": "#ff0000ff",
+        "GrayishBlue": "#ff8caaef",
+        "White": "#ffffffff",
+        "Black": "#ff000000",
+        "LightGreen": "#ff8cef00",
+        "Green": "#ff00ef00",
+        "Red": "#ffff0000",
+        "Orange": "#ffef6500",
+        "Magenta": "#ffff00ff",
+        "ElectricBlue": "#ff0892d0",
+        "DarkElectricBlue": "#ff085290",
+        "LightOrange": "#ffeeacac",
+        "DarkOrange": "#ff885555",
+        "DkGray": "#ff444444",
+        "DkGrayMedAlpha": "#aa444444",
+        "GrayMedAlpha": "#aa888888",
+        "LightGreenLowAlpha": "#5500aa00",
+        "DarkGreenLowAlpha": "#55007700",
+        "LightBlue": "#ffacacee",
+        "DarkBlue": "#ff555588",
+        "LightRedLowAlpha": "#55aa0000",
+        "DarkRedLowAlpha": "#55770000"
+      }
+    },
+    "itemDefinitionInfo": [
+      "Gradient is allowed with defining start and end color at the following items:",
+      "FrontShield, AftShield, Fuel, CabinTemperature, LaserTemperature, Altitude, Speed",
+      "EnergyBank1, EnergyBank2, EnergyBank3, EnergyBank4, EnergyBankWhole.",
+      "At the other items gradient is skipped.",
+      "Energy banks 1..4 and energy bank whole are in exclusive or relation:",
+      "if color of energy bank whole is defined (not TRANSPARENT) color of individual energy banks are ignored."
+    ]
+  },
+  "colorDefinition": {
+    "DarkSlateGray": "#ff2f4858"
+  },
+  "colors": {
+    "ConditionGreen": "LightGreen",
+    "ConditionYellow": "Yellow",
+    "ConditionRed": "Red",
+    "Background": "Black",
+    "BaseInformation": "White",
+    "MainText": "Yellow",
+    "InformationText": "Magenta",
+    "AdditionalText": "LightGreen",
+    "Message": "White",
+    "WarningMessage": "Orange",
+    "FuelCircle": "Red",
+    "DashedFuelCircle": "GrayishBlue",
+    "InhabitantInformation": "Orange",
+    "Arrow": "Gray",
+    "Economy": "GrayishBlue",
+    "Government": "Orange",
+    "TechLevel": "White",
+    "Population": "Yellow",
+    "ShipDistance": "Orange",
+    "Diameter": "Orange",
+    "Gnp": "White",
+    "CurrentSystemName": "Orange",
+    "HyperspaceSystemName": "Orange",
+    "LegalStatus": "White",
+    "RemainingFuel": "Yellow",
+    "Balance": "Yellow",
+    "Rating": "GrayishBlue",
+    "MissionObjective": "Orange",
+    "EquipmentDescription": "GrayishBlue",
+    "RichIndustrial": "GrayishBlue",
+    "AverageIndustrial": "LightGreen",
+    "PoorIndustrial": "Magenta",
+    "MainIndustrial": "Red",
+    "MainAgricultural": "Yellow",
+    "RichAgricultural": "White",
+    "AverageAgricultural": "Orange",
+    "PoorAgricultural": "Gray",
+    "BackgroundLight": "LightBlue",
+    "BackgroundDark": "DarkBlue",
+    "FrameLight": "White",
+    "FrameDark": "Gray",
+    "SelectedColoredFrameLight": "LightOrange",
+    "SelectedColoredFrameDark": "DarkOrange",
+    "PulsingHighlighterDark": "DarkRedLowAlpha",
+    "PulsingHighlighterLight": "LightRedLowAlpha",
+    "TutorialBubbleDark": "DkGrayMedAlpha",
+    "TutorialBubbleLight": "GrayMedAlpha",
+    "ShipTitle": "Orange",
+    "TextAreaBackground": "Gray",
+    "Cursor": "LightBlue",
+    "Price": "Orange",
+    "ScrollingText": "Orange",
+    "SelectedText": "Orange",
+    "CreditsDescription": "White",
+    "CreditsPerson": "Yellow",
+    "CreditsAddition": "Orange",
+    "FrontShield": {
+      "startColor": "Magenta",
+      "endColor": "Red"
+    },
+    "AftShield": {
+      "startColor": "Magenta",
+      "endColor": "Red"
+    },
+    "Fuel": {
+      "startColor": "Green",
+      "endColor": "Red"
+    },
+    "CabinTemperature": {
+      "startColor": "Green",
+      "endColor": "Red"
+    },
+    "LaserTemperature": {
+      "startColor": "Green",
+      "endColor": "Red"
+    },
+    "Altitude": {
+      "startColor": "Green",
+      "endColor": "Red"
+    },
+    "Speed": {
+      "startColor": "Red",
+      "endColor": "Green"
+    },
+    "EnergyBankWhole": {
+      "startColor": "DarkSlateGray",
+      "endColor": "Red"
+    },
+    "IndicatorBar": "Magenta",
+    "HighlightColor": "DarkRedLowAlpha"
+  }
+}

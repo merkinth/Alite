@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -27,7 +27,6 @@ import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.framework.impl.AndroidGraphics;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.Alite;
@@ -35,7 +34,8 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ButtonRegistry;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.AliteColor;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.generator.enums.Economy;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen.Direction;
@@ -48,7 +48,7 @@ public abstract class AliteScreen extends Screen {
 	protected int startY = -1;
 	protected int lastX = -1;
 	protected int lastY = -1;
-	
+
 	private String message = null;
 	private MessageType msgType = MessageType.OK;
 	private Button ok = null;
@@ -57,115 +57,119 @@ public abstract class AliteScreen extends Screen {
 	protected Screen newScreen;
 	protected boolean disposed = false;
 	protected int messageResult = 0;
-	private final List <String> textToDisplay = new ArrayList<String>();
 	private TextData[] messageTextData;
-	protected boolean messageIsModal = false;
-	protected boolean largeMessage = false;
-	
-	public static enum MessageType {
+	private boolean messageIsModal = false;
+	private boolean largeMessage = false;
+
+	public enum MessageType {
 		OK,
-		YESNO
+		YES_NO
 	}
-	
+
 	public AliteScreen(Game game) {
 		super(game);
 		Alite.setDefiningScreen(this);
-		Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
-	
+		Rect visibleArea = game.getGraphics().getVisibleArea();
+
 		setUpForDisplay(visibleArea);
 	}
-			
+
 	public void setMessage(String msg) {
-		this.msgType = MessageType.OK;
-		this.message = msg;	
-		Graphics g = game.getGraphics();
-		messageTextData = computeTextDisplay(g, message, 530, 410, 660, 60, AliteColors.get().message(), Assets.titleFont, false);
+		setMessage(msg, MessageType.OK, Assets.titleFont);
 	}
 
-	public void setMessage(String msg, MessageType messageType) {
-		this.msgType = messageType;
-		this.message = msg;		
-		Graphics g = game.getGraphics();
-		messageTextData = computeTextDisplay(g, message, 530, 410, 660, 60, AliteColors.get().message(), Assets.titleFont, false);
-	}
-	
-	public void setMessage(String msg, MessageType messageType, GLText font) {
-		this.msgType = messageType;
-		this.message = msg;		
-		Graphics g = game.getGraphics();
-		messageTextData = computeTextDisplay(g, message, 530, 410, 660, 60, AliteColors.get().message(), font, false);
+	protected void setQuestionMessage(String msg) {
+		setMessage(msg, MessageType.YES_NO, Assets.titleFont);
 	}
 
-	public void setLargeMessage(String msg, MessageType messageType, GLText font) {
-		this.msgType = messageType;
-		this.message = msg;		
+	private void setMessage(String msg, MessageType messageType, GLText font) {
+		msgType = messageType;
+		message = msg;
+		Graphics g = game.getGraphics();
+		messageTextData = computeTextDisplay(g, message, 530, 410, 660, 60,
+			ColorScheme.get(ColorScheme.COLOR_MESSAGE), font, false);
+	}
+
+	void setModalQuestionMessage(String msg) {
+		setMessage(msg, MessageType.YES_NO, Assets.regularFont);
+		messageIsModal = true;
+	}
+
+		void setLargeModalMessage(String msg) {
+		msgType = MessageType.YES_NO;
+		message = msg;
 		Graphics g = game.getGraphics();
 		largeMessage = true;
-		messageTextData = computeTextDisplay(g, message, 380, 310, 960, 60, AliteColors.get().message(), font, false);
+		messageTextData = computeTextDisplay(g, message, 380, 310, 960, 60,
+			ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont, false);
+		messageIsModal = true;
 	}
 
 	public String getMessage() {
 		return message;
 	}
-	
-	protected void centerText(String text, int y, GLText f, long color) {
+
+	protected void centerText(String text, int y, GLText f, int color) {
 		int center = ((1920 - NavigationBar.SIZE) >> 1) - (game.getGraphics().getTextWidth(text, f) >> 1);
-		game.getGraphics().drawText(text, center, y, color, f);		
+		game.getGraphics().drawText(text, center, y, color, f);
 	}
 
-	protected void centerText(String text, int minX, int maxX, int y, GLText f, long color) {
+	void centerText(String text, int minX, int maxX, int y, GLText f, int color) {
 		int center = ((maxX - minX) >> 1) + minX - (game.getGraphics().getTextWidth(text, f) >> 1);
-		game.getGraphics().drawText(text, center, y, color, f);		
+		game.getGraphics().drawText(text, center, y, color, f);
 	}
 
-	protected void centerTextWide(String text, int y, GLText f, long color) {
+	void centerTextWide(String text, int y, GLText f, int color) {
 		int center = (1920 >> 1) - (game.getGraphics().getTextWidth(text, f) >> 1);
-		game.getGraphics().drawText(text, center, y, color, f);		
+		game.getGraphics().drawText(text, center, y, color, f);
 	}
 
 	protected void displayTitle(String title) {
 		Graphics g = game.getGraphics();
-		g.gradientRect(0, 0, 1719, 80, false, true, AliteColors.get().backgroundDark(), AliteColors.get().backgroundLight());
+		g.verticalGradientRect(0, 0, 1719, 80, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT));
 		g.drawPixmap(Assets.aliteLogoSmall, 20, 5);
 		g.drawPixmap(Assets.aliteLogoSmall, 1600, 5);
-		centerText(title, 60, Assets.titleFont, AliteColors.get().message());
+		centerText(title, 60, Assets.titleFont, ColorScheme.get(ColorScheme.COLOR_MESSAGE));
 	}
-		
-	protected void displayWideTitle(String title) {
+
+	void displayWideTitle(String title) {
 		Graphics g = game.getGraphics();
-		g.gradientRect(0, 0, 1919, 80, false, true, AliteColors.get().backgroundDark(), AliteColors.get().backgroundLight());
+		g.verticalGradientRect(0, 0, 1919, 80, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT));
 		g.drawPixmap(Assets.aliteLogoSmall, 20, 5);
 		g.drawPixmap(Assets.aliteLogoSmall, 1800, 5);
-		centerTextWide(title, 60, Assets.titleFont, AliteColors.get().message());
+		centerTextWide(title, 60, Assets.titleFont, ColorScheme.get(ColorScheme.COLOR_MESSAGE));
 	}
 
 	private void renderMessage(AliteScreen screen) {
 		if (message != null) {
 			Graphics g = game.getGraphics();
 			if (largeMessage) {
-				g.gradientRect(360, 240, 1000, 600, false, true, AliteColors.get().backgroundLight(), AliteColors.get().backgroundDark());
-				g.rec3d(360, 240, 1000, 600, 5, AliteColors.get().backgroundLight(), AliteColors.get().backgroundDark());
+				g.verticalGradientRect(360, 240, 1000, 600, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
+				g.rec3d(360, 240, 1000, 600, 5, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
 			} else {
-				g.gradientRect(510, 340, 700, 400, false, true, AliteColors.get().backgroundLight(), AliteColors.get().backgroundDark());
-				g.rec3d(510, 340, 700, 400, 5, AliteColors.get().backgroundLight(), AliteColors.get().backgroundDark());				
+				g.verticalGradientRect(510, 340, 700, 400, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
+				g.rec3d(510, 340, 700, 400, 5, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
 			}
 			displayText(g, messageTextData);
 			if (msgType == MessageType.OK) {
 				if (ok == null) {
 					Alite.setDefiningScreen(screen);
-					ok = largeMessage ? new Button(1210, 690, 150, 150, "OK", Assets.regularFont, null) : new Button(1060, 590, 150, 150, "OK", Assets.regularFont, null);
+					ok = largeMessage ? Button.createRegularButton(1210, 690, 150, 150, "OK") :
+						Button.createRegularButton(1060, 590, 150, 150, "OK");
 					ButtonRegistry.get().addMessageButton(ok);
 				}
 				ok.render(g);
-			} else if (msgType == MessageType.YESNO) {
+			} else if (msgType == MessageType.YES_NO) {
 				if (yes == null) {
 					Alite.setDefiningScreen(screen);
-					yes = largeMessage ? new Button(1010, 690, 150, 150, "Yes", Assets.regularFont, null) : new Button(860, 590, 150, 150, "Yes", Assets.regularFont, null);
+					yes = largeMessage ? Button.createRegularButton(1010, 690, 150, 150, "Yes") :
+						Button.createRegularButton(860, 590, 150, 150, "Yes");
 					ButtonRegistry.get().addMessageButton(yes);
 				}
 				if (no == null) {
 					Alite.setDefiningScreen(screen);
-					no = largeMessage ? new Button(1210, 690, 150, 150, "No", Assets.regularFont, null) : new Button(1060, 590, 150, 150, "No", Assets.regularFont, null);
+					no = largeMessage ? Button.createRegularButton(1210, 690, 150, 150, "No") :
+						Button.createRegularButton(1060, 590, 150, 150, "No");
 					ButtonRegistry.get().addMessageButton(no);
 				}
 				yes.render(g);
@@ -179,11 +183,11 @@ public abstract class AliteScreen extends Screen {
 		NavigationBar navBar = ((Alite) game).getNavigationBar();
 		newScreen = null;
 		for (TouchEvent event: game.getInput().getTouchEvents()) {
-			if (event.type == TouchEvent.TOUCH_DOWN && event.x >= (1920 - NavigationBar.SIZE)) {
+			if (event.type == TouchEvent.TOUCH_DOWN && event.x >= 1920 - NavigationBar.SIZE) {
 				startX = event.x;
 				startY = lastY = event.y;
 			}
-			if (event.type == TouchEvent.TOUCH_DRAGGED && event.x >= (1920 - NavigationBar.SIZE)) {
+			if (event.type == TouchEvent.TOUCH_DRAGGED && event.x >= 1920 - NavigationBar.SIZE) {
 				if (event.y < lastY) {
 					navBar.increasePosition(lastY - event.y);
 				} else {
@@ -194,31 +198,31 @@ public abstract class AliteScreen extends Screen {
 			if (event.type == TouchEvent.TOUCH_UP) {
 				if (Math.abs(startX - event.x) < 20 &&
 					Math.abs(startY - event.y) < 20) {
-					newScreen = navBar.touched((Alite) game, event.x, event.y);					
+					newScreen = navBar.touched((Alite) game, event.x, event.y);
 				}
 			}
 			ButtonRegistry.get().processTouch(event);
 			processTouch(event);
-		}		
+		}
 		if (newScreen != null) {
 			performScreenChange();
 			postScreenChange();
-		}		
-	}	
-	
-	public synchronized void updateWithoutNavigation(float deltaTime) {
+		}
+	}
+
+	protected synchronized void updateWithoutNavigation(float deltaTime) {
 		newScreen = null;
 		for (TouchEvent event: game.getInput().getTouchEvents()) {
 			ButtonRegistry.get().processTouch(event);
 			processTouch(event);
-		}		
+		}
 		if (newScreen != null) {
 			performScreenChange();
 			postScreenChange();
-		}		
-	}	
-	
-	protected boolean inFlightScreenChange() {
+		}
+	}
+
+	boolean inFlightScreenChange() {
 		Screen oldScreen = game.getCurrentScreen();
 		if (oldScreen instanceof FlightScreen) {
 			// We're in flight, so do not dispose the flight screen,
@@ -226,24 +230,24 @@ public abstract class AliteScreen extends Screen {
 			FlightScreen flightScreen = (FlightScreen) oldScreen;
 			Screen oldInformationScreen = flightScreen.getInformationScreen();
 			if (oldInformationScreen != null) {
-				oldInformationScreen.dispose();				
+				oldInformationScreen.dispose();
 			}
 			newScreen.loadAssets();
 			newScreen.activate();
 			newScreen.resume();
 			newScreen.update(0);
-			((Alite) game).getGraphics().setClip(-1, -1, -1, -1);
+			game.getGraphics().setClip(-1, -1, -1, -1);
 			flightScreen.setInformationScreen((AliteScreen) newScreen);
 			((Alite) game).getNavigationBar().performScreenChange();
 			return true;
-		}		
+		}
 		return false;
 	}
-	
+
 	protected void performScreenChange() {
 		if (inFlightScreenChange()) {
 			return;
-		}		
+		}
 		Screen oldScreen = game.getCurrentScreen();
 		if (!(newScreen instanceof TextInputScreen)) {
 			oldScreen.dispose();
@@ -253,8 +257,8 @@ public abstract class AliteScreen extends Screen {
 		postScreenChange();
 		oldScreen = null;
 	}
-	
-	protected void processTouch(TouchEvent touch) {		
+
+	protected void processTouch(TouchEvent touch) {
 		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
@@ -268,58 +272,53 @@ public abstract class AliteScreen extends Screen {
 				touch.x = -1;
 				touch.y = -1;
 				game.getInput().getTouchEvents();
-				ButtonRegistry.get().clearMessageButtons();				
+				ButtonRegistry.get().clearMessageButtons();
 			}
 		}
-		if (ok != null) {
-			if (ok.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				message = null;
-				ok = null;
-				touch.x = -1;
-				touch.y = -1;
-				game.getInput().getTouchEvents();
-				ButtonRegistry.get().clearMessageButtons();
-				messageIsModal = false;
-				largeMessage = false;
-				return;
-			}			
+		if (ok != null && ok.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			message = null;
+			ok = null;
+			touch.x = -1;
+			touch.y = -1;
+			game.getInput().getTouchEvents();
+			ButtonRegistry.get().clearMessageButtons();
+			messageIsModal = false;
+			largeMessage = false;
+			return;
 		}
-		if (yes != null) {
-			if (yes.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				message = null;
-				yes = null;
-				no = null;
-				messageResult = 1;
-				touch.x = -1;
-				touch.y = -1;
-				game.getInput().getTouchEvents();
-				ButtonRegistry.get().clearMessageButtons();
-				messageIsModal = false;
-				largeMessage = false;
-				return;
-			}			
+
+		if (yes != null && yes.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			message = null;
+			yes = null;
+			no = null;
+			messageResult = 1;
+			touch.x = -1;
+			touch.y = -1;
+			game.getInput().getTouchEvents();
+			ButtonRegistry.get().clearMessageButtons();
+			messageIsModal = false;
+			largeMessage = false;
+			return;
 		}
-		if (no != null) {		
-			if (no.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				message = null;
-				yes = null;
-				no = null;
-				messageResult = -1;
-				touch.x = -1;
-				touch.y = -1;
-				game.getInput().getTouchEvents();
-				ButtonRegistry.get().clearMessageButtons();
-				messageIsModal = false;
-				largeMessage = false;
-				return;			
-			}			
+
+		if (no != null && no.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			message = null;
+			yes = null;
+			no = null;
+			messageResult = -1;
+			touch.x = -1;
+			touch.y = -1;
+			game.getInput().getTouchEvents();
+			ButtonRegistry.get().clearMessageButtons();
+			messageIsModal = false;
+			largeMessage = false;
 		}
 	}
-	
-	protected void drawArrow(final Graphics g, int x1, int y1, int x2, int y2, long color, Direction arrowHead) {
+
+	void drawArrow(final Graphics g, int x1, int y1, int x2, int y2, int color, Direction arrowHead) {
 		int temp;
 		if (x1 > x2) {
 			temp = x1;
@@ -338,55 +337,64 @@ public abstract class AliteScreen extends Screen {
 				case DIR_RIGHT: g.drawLine(x2 - i, y1 - i, x2 - i, y1 + i, color); break;
 				case DIR_UP:    g.drawLine(x1 - i, y1 + i, x1 + i, y1 + i, color); break;
 				case DIR_DOWN:  g.drawLine(x1 - i, y2 - i, x1 + i, y2 - i, color); break;
-			}			
-		}		
-	}
-	
-	protected long getColor(Economy economy) {
-		switch (economy) {
-			case RICH_INDUSTRIAL:      return AliteColors.get().richIndustrial();
-			case AVERAGE_INDUSTRIAL:   return AliteColors.get().averageIndustrial();
-			case POOR_INDUSTRIAL:      return AliteColors.get().poorIndustrial();
-			case MAINLY_INDUSTRIAL:    return AliteColors.get().mainIndustrial();
-			case MAINLY_AGRICULTURAL:  return AliteColors.get().mainAgricultural();
-			case RICH_AGRICULTURAL:    return AliteColors.get().richAgricultural();
-			case AVERAGE_AGRICULTURAL: return AliteColors.get().averageAgricultural();
-			case POOR_AGRICULTURAL:    return AliteColors.get().poorAgricultural();
+			}
 		}
-		return 0;
 	}
-	
-	protected final TextData [] computeTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int deltaY, long color, GLText font, boolean centered) {
-		String [] textWords = text.split(" ");
-		textToDisplay.clear();
+
+	protected int getColor(Economy economy) {
+		switch (economy) {
+			case RICH_INDUSTRIAL:      return ColorScheme.get(ColorScheme.COLOR_RICH_INDUSTRIAL);
+			case AVERAGE_INDUSTRIAL:   return ColorScheme.get(ColorScheme.COLOR_AVERAGE_INDUSTRIAL);
+			case POOR_INDUSTRIAL:      return ColorScheme.get(ColorScheme.COLOR_POOR_INDUSTRIAL);
+			case MAINLY_INDUSTRIAL:    return ColorScheme.get(ColorScheme.COLOR_MAIN_INDUSTRIAL);
+			case MAINLY_AGRICULTURAL:  return ColorScheme.get(ColorScheme.COLOR_MAIN_AGRICULTURAL);
+			case RICH_AGRICULTURAL:    return ColorScheme.get(ColorScheme.COLOR_RICH_AGRICULTURAL);
+			case AVERAGE_AGRICULTURAL: return ColorScheme.get(ColorScheme.COLOR_AVERAGE_AGRICULTURAL);
+			case POOR_AGRICULTURAL:    return ColorScheme.get(ColorScheme.COLOR_POOR_AGRICULTURAL);
+		}
+		return AliteColor.BLACK;
+	}
+
+	final TextData[] computeCenteredTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int color) {
+		return computeTextDisplay(g, text, x, y, fieldWidth, 40, color, Assets.regularFont, true);
+	}
+
+	protected final TextData[] computeTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int deltaY, int color) {
+		return computeTextDisplay(g, text, x, y, fieldWidth, deltaY, color, Assets.regularFont, false);
+	}
+
+	private TextData[] computeTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int deltaY, int color, GLText font, boolean centered) {
+		String[] textWords = text.split(" ");
+		List <TextData> resultList = new ArrayList<>();
 		String result = "";
+		int width = 0;
+		int count = 0;
 		for (String word: textWords) {
-			if (result.length() == 0) {
-				result += word;
+			if (result.isEmpty()) {
+				result = word;
+				width = g.getTextWidth(result, font);
 			} else {
 				String test = result + " " + word;
-				int width = g.getTextWidth(test, font);
-				if (width > fieldWidth) {
-					textToDisplay.add(result);
+				int testWidth = g.getTextWidth(test, font);
+				if (testWidth > fieldWidth) {
+					int offset = centered ? fieldWidth - width >> 1 : 0;
+					resultList.add(new TextData(result, x + offset, y + deltaY * count++, color, font));
 					result = word;
+					width = g.getTextWidth(result, font);
 				} else {
-					result += " " + word;
+					result = test;
+					width = testWidth;
 				}
 			}
 		}
-		if (result.length() > 0) {
-			textToDisplay.add(result);
-		}			
-		int count = 0;
-		ArrayList <TextData> resultList = new ArrayList<TextData>();
-		for (String t: textToDisplay) {
-			int halfWidth = centered ? (g.getTextWidth(t, font) >> 1) : (fieldWidth >> 1);
-			resultList.add(new TextData(t, x + (fieldWidth >> 1) - halfWidth, y + deltaY * count++, color, font));		
+		if (!result.isEmpty()) {
+			int offset = centered ? fieldWidth - width >> 1 : 0;
+			resultList.add(new TextData(result, x + offset, y + deltaY * count, color, font));
 		}
 		return resultList.toArray(new TextData[0]);
 	}
-	
-	protected final void displayText(Graphics g, TextData [] textToDisplay) {
+
+	protected final void displayText(Graphics g, TextData[] textToDisplay) {
 		if (textToDisplay == null) {
 			return;
 		}
@@ -394,35 +402,35 @@ public abstract class AliteScreen extends Screen {
 			g.drawText(td.text, td.x, td.y, td.color, td.font);
 		}
 	}
-			
+
 	@Override
 	public void dispose() {
 		disposed = true;
 		ButtonRegistry.get().removeButtons(this);
 	}
-	
+
 	@Override
 	public void loadAssets() {
 		disposed = false;
 	}
-	
+
 	@Override
 	public void pause() {
 	}
-	
+
 	@Override
 	public void resume() {
-	}	
-	
-	@Override
-	public void postLayout(Object dataObject) {		
 	}
-	
+
 	@Override
-	public void postNavigationRender(float deltaTime) {	
+	public void postLayout(Object dataObject) {
 	}
-	
-	protected final void setUpForDisplay(Rect visibleArea) {		
+
+	@Override
+	public void postNavigationRender(float deltaTime) {
+	}
+
+	protected final void setUpForDisplay(Rect visibleArea) {
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
 		GLES11.glDisable(GLES11.GL_LIGHTING);
 		GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, 0);
@@ -435,20 +443,20 @@ public abstract class AliteScreen extends Screen {
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
 
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);	
+		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	}
-		
+
 	@Override
 	public void renderNavigationBar() {
 		((Alite) game).getNavigationBar().render(game.getGraphics());
 	}
-	
+
 	@Override
 	public void postPresent(float deltaTime) {
 		renderMessage(this);
 	}
-	
+
 	@Override
-	public void postScreenChange() {		
+	public void postScreenChange() {
 	}
 }

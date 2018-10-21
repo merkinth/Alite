@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -22,13 +22,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
-import android.opengl.GLES11;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.ShipControl;
+import de.phbouillon.android.games.alite.colors.AliteColor;
 
 public class ControlPad implements Serializable {
 	private static final long serialVersionUID = -3050741925963060286L;
@@ -39,7 +39,7 @@ public class ControlPad implements Serializable {
 
 	private final Sprite [] controlPad = new Sprite[9];
 	private transient Alite alite;
-	
+
 	private int fingerDown = 0;
 	private int activeIndex = 0;
 	private float accelY = 0.0f;
@@ -55,9 +55,9 @@ public class ControlPad implements Serializable {
 		controlPad[5] = genSprite("cpd", CPX, CPY, WIDTH, HEIGHT);
 		controlPad[6] = genSprite("cpld", CPX, CPY, WIDTH, HEIGHT);
 		controlPad[7] = genSprite("cpl", CPX, CPY, WIDTH, HEIGHT);
-		controlPad[8] = genSprite("cplu", CPX, CPY, WIDTH, HEIGHT);		
+		controlPad[8] = genSprite("cplu", CPX, CPY, WIDTH, HEIGHT);
 	}
-	
+
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
 			AliteLog.e("readObject", "ControlPad.readObject");
@@ -69,12 +69,12 @@ public class ControlPad implements Serializable {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}
 	}
-	
+
 	Sprite genSprite(String name, int x, int y, int width, int height) {
 		SpriteData spriteData = alite.getTextureManager().getSprite(AliteHud.TEXTURE_FILE, name);
 		return new Sprite(alite, AliteHud.ct.getTextureCoordX(x), AliteHud.ct.getTextureCoordY(y),
 				                 AliteHud.ct.getTextureCoordX(x + width - 1), AliteHud.ct.getTextureCoordY(y + height - 1),
-				   spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, AliteHud.TEXTURE_FILE);	
+				   spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, AliteHud.TEXTURE_FILE);
 	}
 
 	public void fingerDown(int pointer) {
@@ -83,7 +83,7 @@ public class ControlPad implements Serializable {
 			fingerDown += val;
 		}
 	}
-	
+
 	public boolean fingerUp(int pointer) {
 		int val = 1 << pointer;
 		if ((fingerDown & val) != 0) {
@@ -96,21 +96,21 @@ public class ControlPad implements Serializable {
 	public float getZ() {
 		return accelZ;
 	}
-	
+
 	public float getY() {
 		return accelY;
 	}
-	
-	private void calculateActiveIndex(int x, int y) {		
+
+	private void calculateActiveIndex(int x, int y) {
 		boolean left = x < 125;
 		boolean right = x > 225;
 		boolean up = y < 125;
 		boolean down = y > 225;
-		
+
 		setActiveIndex(left, right, up, down);
 	}
-	
-	private void computeSpeeds(float deltaTime) {		
+
+	private void computeSpeeds(float deltaTime) {
 		if (activeIndex > 5) { // left
 			accelY += deltaTime * (accelY < 0 ? 5 : 1.66f);
 			if (accelY > 2) {
@@ -120,7 +120,7 @@ public class ControlPad implements Serializable {
 			accelY -= deltaTime * (accelY > 0 ? 5 : 1.66f);
 			if (accelY < -2) {
 				accelY = -2;
-			}			
+			}
 		} else {
 			if (accelY > 0) {
 				accelY -= deltaTime * 3.33f;
@@ -131,7 +131,7 @@ public class ControlPad implements Serializable {
 				accelY += deltaTime * 3.33f;
 				if (accelY > 0) {
 					accelY = 0.0f;
-				}				
+				}
 			}
 		}
 		if (activeIndex == 1 || activeIndex == 2 || activeIndex == 8) { // up
@@ -154,18 +154,18 @@ public class ControlPad implements Serializable {
 				accelZ += deltaTime * 3.33f;
 				if (accelZ > 0) {
 					accelZ = 0.0f;
-				}				
-			}			
+				}
+			}
 		}
 	}
-	
+
 	public void update(float deltaTime) {
-		computeSpeeds(deltaTime);		
+		computeSpeeds(deltaTime);
 	}
 
 	private boolean handleControlPad(TouchEvent event) {
 		boolean result = false;
-		
+
 		if (event.x >= CPX && event.y >= CPY && event.x <= (CPX + WIDTH) && event.y <= (CPY + HEIGHT)) {
 			if (event.type == TouchEvent.TOUCH_DOWN) {
 				fingerDown(event.pointer);
@@ -183,11 +183,11 @@ public class ControlPad implements Serializable {
 		}
 		if (fingerDown == 0) {
 			activeIndex = 0;
-		}		
-		
-		return result;		
+		}
+
+		return result;
 	}
-	
+
 	public boolean handleUI(TouchEvent event) {
 		boolean result = false;
 		if (Settings.controlMode == ShipControl.CONTROL_PAD) {
@@ -195,7 +195,7 @@ public class ControlPad implements Serializable {
 		}
 		return result;
 	}
-	
+
 	public void setActiveIndex(boolean left, boolean right, boolean up, boolean down) {
 		if (left) {
 			if (up) {
@@ -212,7 +212,7 @@ public class ControlPad implements Serializable {
 				activeIndex = 4;
 			} else {
 				activeIndex = 3;
-			}			
+			}
 		} else {
 			if (up) {
 				activeIndex = 1;
@@ -220,14 +220,14 @@ public class ControlPad implements Serializable {
 				activeIndex = 5;
 			} else {
 				activeIndex = 0;
-			}						
-		}		
+			}
+		}
 	}
-	
+
 	void render() {
 		float a = Settings.alpha * Settings.controlAlpha;
-		GLES11.glColor4f(a, a, a, a);
+		alite.getGraphics().setColor(AliteColor.argb(a, a, a, a));
 		controlPad[activeIndex].justRender();
-		GLES11.glColor4f(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha);
-	}	
+		alite.getGraphics().setColor(AliteColor.argb(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha));
+	}
 }

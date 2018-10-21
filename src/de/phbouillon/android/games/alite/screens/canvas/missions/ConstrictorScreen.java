@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.missions;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -31,7 +31,6 @@ import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.impl.AndroidFileIO;
-import de.phbouillon.android.framework.impl.AndroidGraphics;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -39,7 +38,7 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColors;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.ConstrictorMission;
@@ -53,40 +52,40 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cons
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
 public class ConstrictorScreen extends AliteScreen {
-	public static final int STRETCH_X = 7;
-	public static final int STRETCH_Y = 7;
+	static final int STRETCH_X = 7;
+	static final int STRETCH_Y = 7;
 
 	private transient MediaPlayer mediaPlayer;
-	
+
 	private final String attentionCommander = "Attention Commander!";
-	
-	private final String missionDescription = 
+
+	private final String missionDescription =
 			"A prototype model of the new top-secret military ship, the " +
 			"Constrictor, has been stolen by unknown agents from a Navy " +
 			"research base. Due to the capabilities of this ship the " +
-			"Galactic Co-operative of Worlds is offering a large reward " + 
+			"Galactic Co-operative of Worlds is offering a large reward " +
 			"to anyone who destroys the Constrictor before it falls into " +
 			"enemy hands.";
 
 	private final String accept = "Do you accept this mission?";
-	
-	private final String reportToBase = 
+
+	private final String reportToBase =
 			"For full mission briefing, please report to the space station " +
 			"at this system here. Due to the sensitive nature of this " +
 			"assignment, it is vital that you keep details of the " +
 			"Constrictor to yourself. Good luck Commander!";
-			
+
 	private final String intergalacticJump =
 			"The Galactic Intelligence Agency (GIA) reports that the " +
 	        "Constrictor made an intergalactic jump out of this system a " +
 			"short while ago. It is suggested that you make the same jump " +
 	        "and report to the nearest space station for further details.";
-	
+
 	private final String hyperspaceJump =
 			"GIA reports that after causing havoc, the Constrictor made a " +
 			"hyperspace jump out of this system. The deep space tracking " +
 			"station suggests that its destination is this system here.";
-	
+
 	private final String success =
 			"The Galactic Co-operative of Worlds is forever in your debt, " +
 	        "oh mighty trader! As a small token of our appreciation, please " +
@@ -94,27 +93,30 @@ public class ConstrictorScreen extends AliteScreen {
 	        "have your attention, the Galactic Police would like me to " +
 			"remind you about the small matter of several hundred unpaid " +
 	        "parking tickets!";
-	
-	private final float [] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
-	private final float [] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
-	private final float [] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
-	private final float [] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
-	
-	private final float [] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};	
+
+	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
+	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
+	private final float[] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
+	private final float[] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
+
+	private final float[] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
 
 	private MissionLine attCommander;
-	private MissionLine missionLine;	
+	private MissionLine missionLine;
 	private MissionLine acceptMission;
 	private int lineIndex = 0;
 	private Constrictor constrictor;
-	private TextData [] missionText;
+	private TextData[] missionText;
 	private long lastChangeTime;
-	private float currentDeltaX, targetDeltaX;
-	private float currentDeltaY, targetDeltaY;
-	private float currentDeltaZ, targetDeltaZ;
+	private float currentDeltaX;
+	private float targetDeltaX;
+	private float currentDeltaY;
+	private float targetDeltaY;
+	private float currentDeltaZ;
+	private float targetDeltaZ;
 	private Button acceptButton;
 	private Button declineButton;
 	private Pixmap acceptIcon;
@@ -122,13 +124,13 @@ public class ConstrictorScreen extends AliteScreen {
 	private SystemData targetSystem = null;
 	private final ConstrictorMission mission;
 	private final int givenState;
-	
+
 	public ConstrictorScreen(Game game, int state) {
 		super(game);
-		this.givenState = state;
-		mission = ((ConstrictorMission) MissionManager.getInstance().get(ConstrictorMission.ID));
-		this.mediaPlayer = new MediaPlayer();
-		AndroidFileIO fio = (AndroidFileIO) ((Alite) game).getFileIO();
+		givenState = state;
+		mission = (ConstrictorMission) MissionManager.getInstance().get(ConstrictorMission.ID);
+		mediaPlayer = new MediaPlayer();
+		AndroidFileIO fio = (AndroidFileIO) game.getFileIO();
 		String path = "sound/mission/1/";
 		try {
 			attCommander = new MissionLine(fio, path + "01.mp3", attentionCommander);
@@ -136,7 +138,7 @@ public class ConstrictorScreen extends AliteScreen {
 				missionLine = new MissionLine(fio, path + "02.mp3", missionDescription);
 				acceptMission = new MissionLine(fio, path + "03.mp3", accept);
 				constrictor = new Constrictor((Alite) game);
-				constrictor.setPosition(200, 0, -700.0f);				
+				constrictor.setPosition(200, 0, -700.0f);
 			} else if (state == 1) {
 				missionLine = new MissionLine(fio, path + "04.mp3", reportToBase);
 				targetSystem = mission.findMostDistantSystem();
@@ -162,10 +164,10 @@ public class ConstrictorScreen extends AliteScreen {
 		} catch (IOException e) {
 			AliteLog.e("Error reading mission", "Could not read mission audio.", e);
 		}
-	}	
-	
-	private final void dance(float deltaTime) {
-		if ((System.nanoTime() - lastChangeTime) > 4000000000l) {
+	}
+
+	private void dance() {
+		if (System.nanoTime() - lastChangeTime > 4000000000L) {
 			targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
@@ -173,22 +175,22 @@ public class ConstrictorScreen extends AliteScreen {
 		}
 		if (Math.abs(currentDeltaX - targetDeltaX) > 0.0001) {
 			currentDeltaX += (targetDeltaX - currentDeltaX) / 8.0f;
-		} 
+		}
 		if (Math.abs(currentDeltaY - targetDeltaY) > 0.0001) {
 			currentDeltaY += (targetDeltaY - currentDeltaY) / 8.0f;
-		} 
+		}
 		if (Math.abs(currentDeltaZ - targetDeltaZ) > 0.0001) {
 			currentDeltaZ += (targetDeltaZ - currentDeltaZ) / 8.0f;
 		}
 		constrictor.applyDeltaRotation(currentDeltaX, currentDeltaY, currentDeltaZ);
 	}
-	
+
 	private void initGl() {
-		Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
+		Rect visibleArea = game.getGraphics().getVisibleArea();
 		int windowWidth = visibleArea.width();
 		int windowHeight = visibleArea.height();
 
-		float ratio = (float) windowWidth / (float) windowHeight;
+		float ratio = windowWidth / (float) windowHeight;
 		GlUtils.setViewport(visibleArea);
 		GLES11.glDisable(GLES11.GL_FOG);
 		GLES11.glPointSize(1.0f);
@@ -196,7 +198,7 @@ public class ConstrictorScreen extends AliteScreen {
 
         GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
         GLES11.glDisable(GLES11.GL_BLEND);
-        
+
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
 		GlUtils.gluPerspective(game, 45.0f, ratio, 1.0f, 900000.0f);
@@ -205,7 +207,7 @@ public class ConstrictorScreen extends AliteScreen {
 
 		GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		GLES11.glShadeModel(GLES11.GL_SMOOTH);
-		
+
 		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_AMBIENT, lightAmbient, 0);
 		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_DIFFUSE, lightDiffuse, 0);
 		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_SPECULAR, lightSpecular, 0);
@@ -219,11 +221,11 @@ public class ConstrictorScreen extends AliteScreen {
 		GLES11.glEnable(GLES11.GL_LIGHT2);
 
 		GLES11.glEnable(GLES11.GL_LIGHTING);
-		
+
 		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT);
 		GLES11.glHint(GLES11.GL_PERSPECTIVE_CORRECTION_HINT, GLES11.GL_NICEST);
 		GLES11.glHint(GLES11.GL_POLYGON_SMOOTH_HINT, GLES11.GL_NICEST);
-		GLES11.glEnable(GLES11.GL_CULL_FACE);	
+		GLES11.glEnable(GLES11.GL_CULL_FACE);
 	}
 
 	@Override
@@ -244,12 +246,12 @@ public class ConstrictorScreen extends AliteScreen {
 			lineIndex++;
 		}
 		if (constrictor != null) {
-			dance(deltaTime);
+			dance();
 		}
 	}
-	
+
 	@Override
-	protected void processTouch(TouchEvent touch) {				
+	protected void processTouch(TouchEvent touch) {
 		super.processTouch(touch);
 		if (acceptButton == null && declineButton == null) {
 			return;
@@ -267,19 +269,19 @@ public class ConstrictorScreen extends AliteScreen {
 			}
 		}
 	}
-	
+
 	@Override
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
-		g.clear(AliteColors.get().background());		
+		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle("Mission #1 - Destroy the Constrictor");
-		
-		g.drawText(attentionCommander, 50, 200, AliteColors.get().informationText(), Assets.regularFont);
+
+		g.drawText(attentionCommander, 50, 200, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		if (missionText != null) {
 			displayText(g, missionText);
 		}
 		if (acceptMission != null) {
-			g.drawText(accept, 50, 800, AliteColors.get().informationText(), Assets.regularFont);
+			g.drawText(accept, 50, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 			if (acceptButton != null) {
 				acceptButton.render(g);
 			}
@@ -287,22 +289,22 @@ public class ConstrictorScreen extends AliteScreen {
 				declineButton.render(g);
 			}
 		}
-		
+
 		if (constrictor != null) {
 			displayShip();
 		} else if (targetSystem != null) {
 			displayStarMap();
 		} else {
-			Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
+			Rect visibleArea = game.getGraphics().getVisibleArea();
 			setUpForDisplay(visibleArea);
 		}
 	}
 
-	private Point toScreen(SystemData systemData, int centerX, int centerY, float zoomFactor) {		
+	private Point toScreen(SystemData systemData, int centerX, int centerY, float zoomFactor) {
 		int offsetX = (int) (centerX * zoomFactor * STRETCH_X) - 400;
 		int offsetY = (int) (centerY * zoomFactor * STRETCH_Y) - 550;
-		return new Point(((int) (systemData.getX() * zoomFactor)) * STRETCH_X + 900 - offsetX,
-				         ((int) (systemData.getY() * zoomFactor)) * STRETCH_Y + 100 - offsetY);
+		return new Point((int) (systemData.getX() * zoomFactor) * STRETCH_X + 900 - offsetX,
+				         (int) (systemData.getY() * zoomFactor) * STRETCH_Y + 100 - offsetY);
 	}
 
 	private void drawSystem(SystemData system, int centerX, int centerY, float zoomFactor, boolean clearBackground) {
@@ -311,7 +313,7 @@ public class ConstrictorScreen extends AliteScreen {
 		if (p.x < 900 || p.x > 1700 || p.y < 100 || p.y > 1000) {
 			return;
 		}
-		g.fillCircle(p.x, p.y, (int) (3 * zoomFactor), getColor(system.getEconomy()), 32);						
+		g.fillCircle(p.x, p.y, (int) (3 * zoomFactor), getColor(system.getEconomy()), 32);
 		int nameWidth = g.getTextWidth(system.getName(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
 		int nameHeight = g.getTextHeight(system.getName(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
 		int positionX = (int) (3 * zoomFactor) + 2;
@@ -323,42 +325,42 @@ public class ConstrictorScreen extends AliteScreen {
 			positionY = -40;
 		}
 		if (clearBackground) {
-			g.fillRect(p.x + positionX, p.y + positionY - nameHeight, nameWidth, nameHeight, AliteColors.get().background());
+			g.fillRect(p.x + positionX, p.y + positionY - nameHeight, nameWidth, nameHeight, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		}
 		g.drawText(system.getName(), p.x + positionX, p.y + positionY, getColor(system.getEconomy()), system == targetSystem ? Assets.regularFont : Assets.smallFont);
 		if (system == targetSystem) {
-			g.drawLine(p.x, p.y - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.x, p.y - GalaxyScreen.CROSS_DISTANCE, AliteColors.get().baseInformation());
-			g.drawLine(p.x, p.y + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.x, p.y + GalaxyScreen.CROSS_DISTANCE, AliteColors.get().baseInformation());
-			g.drawLine(p.x - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.y, p.x - GalaxyScreen.CROSS_DISTANCE, p.y, AliteColors.get().baseInformation());
-			g.drawLine(p.x + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.y, p.x + GalaxyScreen.CROSS_DISTANCE, p.y, AliteColors.get().baseInformation());				
+			g.drawLine(p.x, p.y - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.x, p.y - GalaxyScreen.CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+			g.drawLine(p.x, p.y + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.x, p.y + GalaxyScreen.CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+			g.drawLine(p.x - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.y, p.x - GalaxyScreen.CROSS_DISTANCE, p.y, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+			g.drawLine(p.x + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.y, p.x + GalaxyScreen.CROSS_DISTANCE, p.y, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
 		}
 	}
-	
+
 	private void displayStarMap() {
 		int centerX = targetSystem.getX();
 		int centerY = targetSystem.getY();
-		
+
 		for (SystemData system: ((Alite) game).getGenerator().getSystems()) {
 			drawSystem(system, centerX, centerY, 3.0f, false);
 		}
 		// Make sure the target system is rendered on top...
 		drawSystem(targetSystem, centerX, centerY, 3.0f, true);
-		
-		Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
+
+		Rect visibleArea = game.getGraphics().getVisibleArea();
 		setUpForDisplay(visibleArea);
 	}
-	
-	public void displayShip() {
-		Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
-		float aspectRatio = (float) visibleArea.width() / (float) visibleArea.height();
+
+	private void displayShip() {
+		Rect visibleArea = game.getGraphics().getVisibleArea();
+		float aspectRatio = visibleArea.width() / (float) visibleArea.height();
 		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
-		GLES11.glEnable(GLES11.GL_CULL_FACE);				
+		GLES11.glEnable(GLES11.GL_CULL_FACE);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
 		GlUtils.gluPerspective(game, 45.0f, aspectRatio, 1.0f, 100000.0f);
-		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);		
+		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
-		
+
 		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
@@ -371,8 +373,8 @@ public class ConstrictorScreen extends AliteScreen {
 		GLES11.glMultMatrixf(constrictor.getMatrix(), 0);
 		constrictor.render();
 		GLES11.glPopMatrix();
-		
-		GLES11.glDisable(GLES11.GL_DEPTH_TEST);		
+
+		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
 		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
 		setUpForDisplay(visibleArea);
 	}
@@ -380,19 +382,17 @@ public class ConstrictorScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		initGl();
-		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, AliteColors.get().mainText(), Assets.regularFont, false);
+		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 		targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 		targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 		lastChangeTime = System.nanoTime();
 		if (acceptMission != null) {
-			acceptButton = new Button(50, 860, 200, 200, acceptIcon);
-			acceptButton.setGradient(true);
-			declineButton = new Button(650, 860, 200, 200, declineIcon);
-			declineButton.setGradient(true);			
+			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, acceptIcon);
+			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, declineIcon);
 		}
 	}
-	
+
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		try {
 			int state = dis.readInt();
@@ -408,9 +408,9 @@ public class ConstrictorScreen extends AliteScreen {
 		} catch (Exception e) {
 			AliteLog.e("Constrictor Screen Initialize", "Error in initializer.", e);
 			return false;
-		}		
+		}
 		return true;
-	}		
+	}
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
@@ -422,10 +422,10 @@ public class ConstrictorScreen extends AliteScreen {
 
 	@Override
 	public void loadAssets() {
-		acceptIcon = game.getGraphics().newPixmap("yes_icon.png", true);
-		declineIcon = game.getGraphics().newPixmap("no_icon.png", true);
+		acceptIcon = game.getGraphics().newPixmap("yes_icon.png");
+		declineIcon = game.getGraphics().newPixmap("no_icon.png");
 	}
-	
+
 	@Override
 	public void pause() {
 		super.pause();
@@ -433,7 +433,7 @@ public class ConstrictorScreen extends AliteScreen {
 			mediaPlayer.reset();
 		}
 	}
-	
+
 	@Override
 	public void dispose() {
 		super.dispose();
@@ -453,9 +453,9 @@ public class ConstrictorScreen extends AliteScreen {
 			declineIcon = null;
 		}
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.CONSTRICTOR_SCREEN;
-	}	
+	}
 }

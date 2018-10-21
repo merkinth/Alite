@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -28,7 +28,6 @@ import android.opengl.GLES11;
 import android.opengl.Matrix;
 import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.GlScreen;
-import de.phbouillon.android.framework.impl.AndroidGraphics;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -42,14 +41,14 @@ import de.phbouillon.android.games.alite.screens.canvas.tutorial.IMethodHook;
 public class HyperspaceScreen extends GlScreen {
 	private long startTime;
 	private static final float[] sScratch = new float[32];
-	
+
 	private int windowWidth;
 	private int windowHeight;
-	
+
     private boolean intergal;
-    
+
     protected FloatBuffer vertexBuffer;
-    protected FloatBuffer textureBuffer;
+    private FloatBuffer textureBuffer;
     private float counter = 0.0f;
     private int totalIndices;
     private int crossSectionSides = 20;
@@ -62,10 +61,10 @@ public class HyperspaceScreen extends GlScreen {
     private IMethodHook finishHook = null;
     private boolean restartedSound = true;
     private transient boolean screenLoad = false;
-    
+
 	public HyperspaceScreen(Game game, boolean intergal) {
 		super(game);
-		this.intergal = intergal;		
+		this.intergal = intergal;
 	}
 
 	public static HyperspaceScreen createScreen(Alite alite, DataInputStream dis) throws IOException {
@@ -80,18 +79,18 @@ public class HyperspaceScreen extends GlScreen {
 		hs.screenLoad = true;
 		return hs;
 	}
-	
-	public static boolean initialize(Alite alite, DataInputStream dis) {		
+
+	public static boolean initialize(Alite alite, DataInputStream dis) {
 		try {
 			HyperspaceScreen hs = createScreen(alite, dis);
 			alite.setScreen(hs);
 		} catch (Exception e) {
 			AliteLog.e("Hyperspace Screen Initialize", "Error in initializer.", e);
-			return false;			
-		}		
+			return false;
+		}
 		return true;
 	}
-	
+
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeBoolean(intergal);
@@ -106,7 +105,7 @@ public class HyperspaceScreen extends GlScreen {
 	public void setNeedsSoundRestart() {
 		restartedSound = false;
 	}
-	
+
 	public void onActivation() {
 		int [] size = game.getSize();
 		windowWidth = size[0];
@@ -114,7 +113,7 @@ public class HyperspaceScreen extends GlScreen {
 		startTime = System.nanoTime();
 		((Alite) game).getTextureManager().addTexture(textureFilename);
 		makeTorus(wholeTorusSides, crossSectionSides, torusRadius, crossSectionRadius);
-		Rect visibleArea = ((AndroidGraphics) game.getGraphics()).getVisibleArea();
+		Rect visibleArea = game.getGraphics().getVisibleArea();
 		initializeGl(visibleArea);
 		if (!screenLoad) {
 			increase = (int) (Math.random() * 3.0f);
@@ -126,7 +125,7 @@ public class HyperspaceScreen extends GlScreen {
 		SoundManager.stop(Assets.hyperspace);
 		SoundManager.play(Assets.hyperspace);
 	}
-	
+
 	@Override
 	public void performUpdate(float deltaTime) {
 		if (!restartedSound) {
@@ -134,7 +133,7 @@ public class HyperspaceScreen extends GlScreen {
 			SoundManager.play(Assets.hyperspace);
 			restartedSound = true;
 		}
-		if (System.nanoTime() - startTime > 8000000000l){
+		if (System.nanoTime() - startTime > 8000000000L){
 			if (finishHook != null) {
 				finishHook.execute(deltaTime);
 			} else {
@@ -147,16 +146,16 @@ public class HyperspaceScreen extends GlScreen {
 		}
 	}
 
-	public void initializeGl(Rect visibleArea) {				
-		float ratio = (float) windowWidth / (float) windowHeight;
-	     
+	public void initializeGl(Rect visibleArea) {
+		float ratio = windowWidth / (float) windowHeight;
+
 		GlUtils.setViewport(visibleArea);
         GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
         GLES11.glPointSize(2.0f);
 
         GLES11.glTexEnvf(GLES11.GL_TEXTURE_ENV, GLES11.GL_TEXTURE_ENV_MODE, GLES11.GL_MODULATE);
-        
+
 	    GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE_MINUS_SRC_ALPHA);
         GLES11.glDisable(GLES11.GL_BLEND);
 
@@ -164,32 +163,32 @@ public class HyperspaceScreen extends GlScreen {
         GLES11.glLoadIdentity();
         GlUtils.gluPerspective(game, 120f, ratio, 0.01f, 100f);
         GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-        GLES11.glLoadIdentity();        
+        GLES11.glLoadIdentity();
         GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
         GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
-        
+
         GLES11.glEnable(GLES11.GL_TEXTURE_2D);
-        GLES11.glEnable(GLES11.GL_DEPTH_TEST);        
+        GLES11.glEnable(GLES11.GL_DEPTH_TEST);
         ((Alite) game).getTextureManager().setTexture(textureFilename);
         GLES11.glDisable(GLES11.GL_LIGHTING);
 	}
-	
+
 	private void makeTorus(int sides, int csSides, float radius, float csRadius) {
 		totalIndices = 2 * (csSides + 1) * sides;
 
 		vertexBuffer  = GlUtils.allocateFloatBuffer(4 * 3 * totalIndices);
 		textureBuffer = GlUtils.allocateFloatBuffer(4 * 2 * totalIndices);
-		
-		float TAU = (float) (2.0f * Math.PI);		
+
+		float TAU = (float) (2.0f * Math.PI);
 		for (int i = 0; i < sides; i++) {
 			for (int j = 0; j <= csSides; j++) {
 				for (int k = 0; k <= 1; k++) {
 					double s = (i + k) % sides + 0.5;
 					double t = j % (csSides + 1);
-					
+
 					double x = (radius + csRadius * Math.cos(s * TAU / sides)) * Math.cos(t * TAU / csSides);
 					double y = (radius + csRadius * Math.cos(s * TAU / sides)) * Math.sin(t * TAU / csSides);
-					
+
 					double z = csRadius * Math.sin(s * TAU / sides);
 					double u = (i + k) / (float) sides;
 					double v = t / (float) csSides;
@@ -205,7 +204,7 @@ public class HyperspaceScreen extends GlScreen {
 		vertexBuffer.position(0);
 		textureBuffer.position(0);
 	}
-	
+
 	private static void lookAt(float eyeX, float eyeY, float eyeZ,
 			float centerX, float centerY, float centerZ, float upX, float upY,
 			float upZ) {
@@ -222,7 +221,7 @@ public class HyperspaceScreen extends GlScreen {
 		}
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
         GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT | GLES11.GL_DEPTH_BUFFER_BIT);
-        
+
         counter += 0.72f;
         if (counter > 360) {
         	counter = 0;
@@ -236,11 +235,11 @@ public class HyperspaceScreen extends GlScreen {
         lookAt(-3.5f, 0, 0,
         	   -3.5f, 1.0f, 0,
         	   (float) Math.sin(Math.toRadians(counter)), 0.0f, (float) Math.cos(Math.toRadians(counter)));
-        
+
         GLES11.glRotatef(counter * 2, 0.0f, 0.0f, 1.0f);
     	GLES11.glVertexPointer(3, GLES11.GL_FLOAT, 0, vertexBuffer);
-    	GLES11.glTexCoordPointer(2, GLES11.GL_FLOAT, 0, textureBuffer); 
-    	
+    	GLES11.glTexCoordPointer(2, GLES11.GL_FLOAT, 0, textureBuffer);
+
     	GLES11.glMatrixMode(GLES11.GL_TEXTURE);
     	GLES11.glTranslatef(0.0f, -0.015f, 0.0f);
     	GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
@@ -264,15 +263,15 @@ public class HyperspaceScreen extends GlScreen {
 	@Override
 	public void postPresent(float deltaTime) {
 	}
-	
+
 	public void setFinishHook(IMethodHook finishHook) {
 		this.finishHook = finishHook;
 	}
-	
+
 	public IMethodHook getFinishHook() {
 		return finishHook;
 	}
-	
+
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.HYPERSPACE_SCREEN;

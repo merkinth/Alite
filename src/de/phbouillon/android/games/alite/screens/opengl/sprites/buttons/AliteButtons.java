@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites.buttons;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
-import android.opengl.GLES11;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
@@ -32,6 +31,7 @@ import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
@@ -56,23 +56,23 @@ public class AliteButtons implements Serializable {
 	public static boolean OVERRIDE_LASER       = false;
 	public static boolean OVERRIDE_MISSILE     = false;
 	public static boolean OVERRIDE_TORUS       = false;
-	
+
 	private static final int TORUS_DRIVE      =  0;
 	private static final int HYPERSPACE       =  1;
-	private static final int GAL_HYPERSPACE   =  2;	
+	private static final int GAL_HYPERSPACE   =  2;
 	private static final int STATUS           =  3;
 	private static final int DOCKING_COMPUTER =  4;
 	private static final int ECM              =  5;
 	private static final int ESCAPE_CAPSULE   =  6;
-	private static final int ENERGY_BOMB      =  7;	
-	private static final int RETRO_ROCKETS    =  8;	
-	private static final int ECM_JAMMER       =  9;	
+	private static final int ENERGY_BOMB      =  7;
+	private static final int RETRO_ROCKETS    =  8;
+	private static final int ECM_JAMMER       =  9;
 	private static final int CLOAKING_DEVICE  = 10;
 	private static final int MISSILE          = 11;
 	private static final int FIRE             = 12;
 	private static final int TIME_DRIVE       = 13;
-    
-	private ButtonData [] buttons = new ButtonData[15];	
+
+	private ButtonData [] buttons = new ButtonData[15];
 	private Sprite overlay;
 	private Sprite yellowOverlay;
 	private Sprite redOverlay;
@@ -88,7 +88,7 @@ public class AliteButtons implements Serializable {
 	private Screen newScreen;
 	private final InGameManager inGame;
 	private ButtonData source = null;
-	private ButtonGroup [] buttonGroup;	
+	private ButtonGroup [] buttonGroup;
 	private boolean sweepLeftPossible = false;
 	private boolean sweepRightPossible = false;
 	private boolean actionPerformed = false;
@@ -99,28 +99,28 @@ public class AliteButtons implements Serializable {
 	private long downTime = -1;
 	private transient int [] sweepLeftPos = new int[2];
 	private transient int [] sweepRightPos = new int[2];
-	
+
 	private final TorusBlockingTraverser torusTraverser;
 	private final EnergyBombTraverser energyBombTraverser;
 	private final ECMTraverser ecmTraverser;
 	private int fireButtonPressed = -1;
-	
+
 	public AliteButtons(Alite alite, GraphicObject ship, InGameManager inGame) {
 		ct = new DefaultCoordinateTransformer(alite);
 		this.alite = alite;
 		this.ship = ship;
 		this.inGame = inGame;
-		
+
 		textureFilename = "textures/ui4.png";
 		alite.getTextureManager().addTexture(textureFilename);
 		createButtonGroups();
 		createButtons();
-						
+
 		sweepLeftPos[0]  = Settings.flatButtonDisplay ?  800 :  250;
 		sweepLeftPos[1]  = Settings.flatButtonDisplay ?   50 :  400;
 		sweepRightPos[0] = Settings.flatButtonDisplay ? 1020 : 1560;
 		sweepRightPos[1] = Settings.flatButtonDisplay ?   50 :  400;
-		
+
 		overlay       = new Sprite(alite, 0, 0, 20, 20, 200.0f / 1024.0f, 600.0f / 1024.0f, 400.0f / 1024.0f,  800.0f / 1024.0f, textureFilename);
 		yellowOverlay = new Sprite(alite, 0, 0, 20, 20, 600.0f / 1024.0f,             0.0f, 800.0f / 1024.0f,  200.0f / 1024.0f, textureFilename);
 		redOverlay    = new Sprite(alite, 0, 0, 20, 20, 400.0f / 1024.0f, 800.0f / 1024.0f, 600.0f / 1024.0f, 1000.0f / 1024.0f, textureFilename);
@@ -129,7 +129,7 @@ public class AliteButtons implements Serializable {
 		yesButton     = new Sprite(alite, ct.getTextureCoordX(500), ct.getTextureCoordY(250), ct.getTextureCoordX(700), ct.getTextureCoordY(450), 600.0f / 1024.0f, 600.0f / 1024.0f, 800.0f / 1024.0f,  800.0f / 1024.0f, textureFilename);
 		noButton      = new Sprite(alite, ct.getTextureCoordX(1220), ct.getTextureCoordY(250), ct.getTextureCoordX(1420), ct.getTextureCoordY(450), 600.0f / 1024.0f, 800.0f / 1024.0f, 800.0f / 1024.0f, 1000.0f / 1024.0f, textureFilename);
 		newScreen     = null;
-		
+
 		torusTraverser = new TorusBlockingTraverser(inGame);
 		energyBombTraverser = new EnergyBombTraverser(inGame);
 		ecmTraverser = new ECMTraverser(inGame);
@@ -137,7 +137,7 @@ public class AliteButtons implements Serializable {
 
 	public void reset() {
 		createButtonGroups();
-		createButtons();		
+		createButtons();
 		sweepLeftPos[0]  = Settings.flatButtonDisplay ?  800 :  250;
 		sweepLeftPos[1]  = Settings.flatButtonDisplay ?   50 :  400;
 		sweepRightPos[0] = Settings.flatButtonDisplay ? 1020 : 1560;
@@ -145,13 +145,13 @@ public class AliteButtons implements Serializable {
 		cycleLeft     = new Sprite(alite, ct.getTextureCoordX(sweepLeftPos[0]), ct.getTextureCoordY(sweepLeftPos[1]), ct.getTextureCoordX(sweepLeftPos[0] + 100), ct.getTextureCoordY(sweepLeftPos[1] + 100), 800.0f / 1024.0f, 800.0f / 1024.0f, 900.0f / 1024.0f,  900.0f / 1024.0f, textureFilename);
 		cycleRight    = new Sprite(alite, ct.getTextureCoordX(sweepRightPos[0]), ct.getTextureCoordY(sweepRightPos[1]), ct.getTextureCoordX(sweepRightPos[0] + 100), ct.getTextureCoordY(sweepRightPos[1] + 100), 800.0f / 1024.0f, 800.0f / 1024.0f, 900.0f / 1024.0f,  900.0f / 1024.0f, textureFilename);
 	}
-	
+
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
 			AliteLog.e("readObject", "AliteButtons.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "AliteButtons.readObject I");
-			this.alite     = Alite.get();
+			alite = Alite.get();
 			sweepLeftPos = new int[2];
 			sweepRightPos = new int[2];
 			sweepLeftPos[0]  = Settings.flatButtonDisplay ?  800 :  250;
@@ -176,7 +176,7 @@ public class AliteButtons implements Serializable {
 		buttons[ESCAPE_CAPSULE].active   = alite.getPlayer().getCobra().isEquipmentInstalled(EquipmentStore.escapeCapsule);
 		buttons[ENERGY_BOMB]             = genButtonData(1, 1, Settings.buttonPosition[Settings.ENERGY_BOMB], "Energy Bomb");
 		buttons[ENERGY_BOMB].active      = alite.getPlayer().getCobra().isEquipmentInstalled(EquipmentStore.energyBomb);
-		
+
 		buttons[STATUS]                  = genButtonData(2, 2, Settings.buttonPosition[Settings.STATUS], "Status");
 		// Torus drive, time drive and docking computer buttons are always in the same position, as they're mutually exclusive.
 		buttons[TORUS_DRIVE]             = genButtonData(2, 1, Settings.buttonPosition[Settings.TORUS], "Torus Drive");
@@ -189,26 +189,27 @@ public class AliteButtons implements Serializable {
 		buttons[HYPERSPACE].active       = alite.isHyperspaceTargetValid();
 
 		buttons[GAL_HYPERSPACE]          = genButtonData(0, 2, Settings.buttonPosition[Settings.GALACTIC_HYPERSPACE], "Galactic Hyperspace");
-		buttons[GAL_HYPERSPACE].active   = alite.getPlayer().getCobra().isEquipmentInstalled(EquipmentStore.galacticHyperdrive);		
+		buttons[GAL_HYPERSPACE].active   = alite.getPlayer().getCobra().isEquipmentInstalled(EquipmentStore.galacticHyperdrive);
 		buttons[CLOAKING_DEVICE]         = genButtonData(3, 2, Settings.buttonPosition[Settings.CLOAKING_DEVICE], "Cloaking Device");
-		buttons[CLOAKING_DEVICE].active  = alite.getPlayer().getCobra().isEquipmentInstalled(EquipmentStore.cloakingDevice);						
-		buttons[ECM_JAMMER]              = genButtonData(1, 0, Settings.buttonPosition[Settings.ECM_JAMMER], "ECM Jammer");	
+		buttons[CLOAKING_DEVICE].active  = alite.getPlayer().getCobra().isEquipmentInstalled(EquipmentStore.cloakingDevice);
+		buttons[ECM_JAMMER]              = genButtonData(1, 0, Settings.buttonPosition[Settings.ECM_JAMMER], "ECM Jammer");
 		buttons[ECM_JAMMER].active       = alite.getPlayer().getCobra().isEquipmentInstalled(EquipmentStore.ecmJammer);
 	}
-	
+
 	private void createButtonGroups() {
 		buttonGroup = new ButtonGroup[4];
-		
+
 		buttonGroup[0] = new ButtonGroup(0, true, true);
 		buttonGroup[1] = new ButtonGroup(1, true, false);
-		buttonGroup[2] = new ButtonGroup(2, false, true);		
+		buttonGroup[2] = new ButtonGroup(2, false, true);
 		buttonGroup[3] = new ButtonGroup(3, false, false);
 	}
-	
+
 	private ButtonData genButtonData(float x, float y, int positionIndex, String name) {
 		// Left Side: (0, 0), (1, 1), (0, 2)
 		// Right Side: (11.4, 0), (10.4, 1), (11.4, 2)
-		float xt, yt;
+		float xt;
+		float yt;
 		int groupIndex;
 		if (Settings.flatButtonDisplay) {
 			if (positionIndex < 6) {
@@ -224,48 +225,50 @@ public class AliteButtons implements Serializable {
 		} else {
 			if (positionIndex < 6) {
 				// Left Side
-				xt = ((positionIndex % 3) % 2) == 0 ? 0.0f : 1.0f;
+				xt = positionIndex % 3 % 2 == 0 ? 0.0f : 1.0f;
 				groupIndex = positionIndex < 3 ? 0 : 1;
 			} else {
 				// Right Side
-				xt = ((positionIndex % 3) % 2) == 0 ? 11.4f : 10.4f;
+				xt = positionIndex % 3 % 2 == 0 ? 11.4f : 10.4f;
 				groupIndex = positionIndex < 9 ? 2 : 3;
 			}
 			yt = positionIndex % 3;
 		}
-		
-		
-		ButtonData result = new ButtonData(new Sprite(alite, ct.getTextureCoordX(xt * 150.0f), ct.getTextureCoordY(yt * 150.0f), ct.getTextureCoordX(xt * 150.0f + 200.0f), ct.getTextureCoordY(yt * 150.0f + 200.0f),
-                (x * 200.0f) / 1024.0f, (y * 200.0f) / 1024.0f, ((x + 1.0f) * 200.0f) / 1024.0f, ((y + 1.0f) * 200.0f) / 1024.0f, textureFilename),
-						   xt * 150.0f + 100.0f, yt * 150.0f + 100.0f, name);
+
+
+		ButtonData result = new ButtonData(new Sprite(alite, ct.getTextureCoordX(xt * 150.0f),
+			ct.getTextureCoordY(yt * 150.0f), ct.getTextureCoordX(xt * 150.0f + 200.0f),
+			ct.getTextureCoordY(yt * 150.0f + 200.0f), x * 200.0f / 1024.0f, y * 200.0f / 1024.0f,
+			(x + 1.0f) * 200.0f / 1024.0f, (y + 1.0f) * 200.0f / 1024.0f, textureFilename),
+			xt * 150.0f + 100.0f, yt * 150.0f + 100.0f, name);
 		buttonGroup[groupIndex].addButton(result);
 		return result;
 	}
-		
+
 	private void check(int button, Equipment equip) {
 		if (buttons[button] != null) {
 			buttons[button].active = alite.getCobra().isEquipmentInstalled(equip);
 		}
 	}
-	
+
 	private void updateFireButton() {
 		if (buttons[FIRE] == null) {
 			return;
 		}
 		buttons[FIRE].active = alite.getCobra().getLaser(inGame.getViewDirection()) != null;
 		buttons[FIRE].yellow = alite.getLaserManager() != null && alite.getLaserManager().isAutoFire();
-		if (!Settings.laserButtonAutofire) {
+		if (!Settings.laserButtonAutoFire) {
 			// Hack to prevent a green highlight if some other button was pressed
 			// during single shot finger-down...
 			buttons[FIRE].selected = false;
 		}
 	}
-	
+
 	private void updateMissileButton() {
 		if (buttons[MISSILE] == null) {
 			return;
 		}
-		if (downTime != -1 && (System.nanoTime() - downTime) > 1500000000l && buttons[MISSILE].red) {
+		if (downTime != -1 && System.nanoTime() - downTime > 1500000000L && buttons[MISSILE].red) {
 			inGame.handleMissileIcons();
 			downTime = -1;
 			buttons[MISSILE].red = false;
@@ -282,10 +285,10 @@ public class AliteButtons implements Serializable {
 			inGame.setMessage("Target lost");
 		}
 		buttons[MISSILE].active = alite.getCobra().getMissiles() > 0;
-		buttons[MISSILE].yellow = alite.getCobra().isMissileTargetting();			
-		buttons[MISSILE].red = alite.getCobra().isMissileLocked();			
+		buttons[MISSILE].yellow = alite.getCobra().isMissileTargetting();
+		buttons[MISSILE].red = alite.getCobra().isMissileLocked();
 	}
-	
+
 	private void updateDockingComputerButton() {
 		if (buttons[DOCKING_COMPUTER] == null) {
 			return;
@@ -297,16 +300,16 @@ public class AliteButtons implements Serializable {
 			buttons[DOCKING_COMPUTER].active = false;
 		}
 	}
-	
+
 	private void updateTorusDriveButton() {
 		if (buttons[TORUS_DRIVE] == null) {
 			return;
 		}
-		if (((buttons[DOCKING_COMPUTER] == null) || !buttons[DOCKING_COMPUTER].active) &&
-		    (alite.getCobra().getSpeed() <= -PlayerCobra.MAX_SPEED) &&
-		    !inGame.isInExtendedSafeZone() && !inGame.isWitchSpace() &&
-		    (alite.getCobra().getCabinTemperature() == 0) &&
-		    !inGame.traverseObjects(torusTraverser)) {
+		if ((buttons[DOCKING_COMPUTER] == null || !buttons[DOCKING_COMPUTER].active) &&
+				alite.getCobra().getSpeed() <= -PlayerCobra.MAX_SPEED &&
+				!inGame.isInExtendedSafeZone() && !inGame.isWitchSpace() &&
+				alite.getCobra().getCabinTemperature() == 0 &&
+				!inGame.traverseObjects(torusTraverser)) {
 			buttons[TORUS_DRIVE].active = true;
 			if (alite.getCobra().getSpeed() < -PlayerCobra.TORUS_TEST_SPEED) {
 				buttons[TORUS_DRIVE].yellow = true;
@@ -325,15 +328,15 @@ public class AliteButtons implements Serializable {
 			}
 		}
 	}
-	
+
 	private void updateTimeDriveButton() {
 		if (buttons[TIME_DRIVE] == null) {
 			return;
 		}
-		if (((buttons[DOCKING_COMPUTER] == null) || !buttons[DOCKING_COMPUTER].active) &&
-		    ((buttons[TORUS_DRIVE] == null) || !buttons[TORUS_DRIVE].active) &&			   
-		    alite.getPlayer().getCondition() != Condition.RED &&
-		    inGame.getHud() != null && !inGame.isInSafeZone()) {
+		if ((buttons[DOCKING_COMPUTER] == null || !buttons[DOCKING_COMPUTER].active) &&
+				(buttons[TORUS_DRIVE] == null || !buttons[TORUS_DRIVE].active) &&
+				alite.getPlayer().getCondition() != Condition.RED &&
+				inGame.getHud() != null && !inGame.isInSafeZone()) {
 			// Check for Hud to compensate for brief flickering if come back from Information screen
 			buttons[TIME_DRIVE].active = true;
 			buttons[TIME_DRIVE].yellow = alite.getTimeFactor() > 1;
@@ -347,15 +350,15 @@ public class AliteButtons implements Serializable {
 			}
 		}
 	}
-	
+
 	private void updateHyperspaceButton() {
 		if (buttons[HYPERSPACE] == null) {
 			return;
 		}
-		buttons[HYPERSPACE].active = alite.isHyperspaceTargetValid() && 
+		buttons[HYPERSPACE].active = alite.isHyperspaceTargetValid() &&
 				!inGame.isHyperdriveMalfunction();
 	}
-	
+
 	private void updateGalHyperspaceButton() {
 		if (buttons[GAL_HYPERSPACE] == null) {
 			return;
@@ -363,14 +366,14 @@ public class AliteButtons implements Serializable {
 		buttons[GAL_HYPERSPACE].active = alite.getCobra().isEquipmentInstalled(EquipmentStore.galacticHyperdrive) &&
 				!inGame.isHyperdriveMalfunction();
 	}
-	
+
 	private void updateRetroRocketsButton() {
 		if (buttons[RETRO_ROCKETS] == null) {
 			return;
 		}
 		buttons[RETRO_ROCKETS].active = alite.getCobra().isEquipmentInstalled(EquipmentStore.retroRockets) && alite.getCobra().getSpeed() <= 0.0f;
 	}
-	
+
 	private void updateSweep() {
 		int countLeft = 0;
 		int countRight = 0;
@@ -402,7 +405,7 @@ public class AliteButtons implements Serializable {
 			sweepRight();
 		}
 	}
-	
+
 	public void update() {
 		updateFireButton();
 		updateMissileButton();
@@ -416,14 +419,14 @@ public class AliteButtons implements Serializable {
 		check(ECM, EquipmentStore.ecmSystem);
 		check(ESCAPE_CAPSULE, EquipmentStore.escapeCapsule);
 		check(ENERGY_BOMB, EquipmentStore.energyBomb);
-		
+
 		updateRetroRocketsButton();
-		
+
 		updateSweep();
 	}
-	
+
 	public void render() {
-		GLES11.glColor4f(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha);
+		alite.getGraphics().setColor(AliteColor.argb(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha));
 		for (ButtonGroup bg: buttonGroup) {
 			if (bg.active) {
 				for (ButtonData bd: bg.buttons) {
@@ -451,11 +454,11 @@ public class AliteButtons implements Serializable {
 		if (sweepRightPossible) {
 			cycleRight.render();
 		}
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		alite.getGraphics().setColor(AliteColor.WHITE);
 	}
-		
+
 	public void renderYesNoButtons() {
-		GLES11.glColor4f(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha);
+		alite.getGraphics().setColor(AliteColor.argb(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha));
 		yesButton.render();
 		noButton.render();
 		if (yesTouched) {
@@ -466,9 +469,9 @@ public class AliteButtons implements Serializable {
 			overlay.setPosition(noButton.getPosition());
 			overlay.render();
 		}
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		alite.getGraphics().setColor(AliteColor.WHITE);
 	}
-	
+
 	private void sweepLeft() {
 		int activeIndex = 0;
 		for (int i = 0, n = buttonGroup.length; i < n; i++) {
@@ -476,7 +479,7 @@ public class AliteButtons implements Serializable {
 				activeIndex = i;
 				buttonGroup[i].active = false;
 			}
-		}		
+		}
 		int iterations = 0;
 		do {
 			activeIndex++;
@@ -491,7 +494,7 @@ public class AliteButtons implements Serializable {
 			buttonGroup[0].active = true;
 		}
 	}
-		
+
 	private void sweepRight() {
 		int activeIndex = 0;
 		int firstRight = -1;
@@ -503,7 +506,7 @@ public class AliteButtons implements Serializable {
 				activeIndex = i;
 				buttonGroup[i].active = false;
 			}
-		}		
+		}
 		int iterations = 0;
 		do {
 			activeIndex++;
@@ -520,14 +523,14 @@ public class AliteButtons implements Serializable {
 	}
 
 	public void checkFireRelease(TouchEvent e) {
-		if (e.pointer == fireButtonPressed && e.type == TouchEvent.TOUCH_UP) {		
+		if (e.pointer == fireButtonPressed && e.type == TouchEvent.TOUCH_UP) {
 			fireButtonPressed = -1;
-		} 
-		if (fireButtonPressed == -1 && !Settings.laserButtonAutofire) {
+		}
+		if (fireButtonPressed == -1 && !Settings.laserButtonAutoFire) {
 			deactivateFire();
-		} 
+		}
 	}
-	
+
 	public boolean handleTouch(TouchEvent e) {
 		boolean result = false;
 		if (e.type == TouchEvent.TOUCH_DOWN) {
@@ -537,7 +540,7 @@ public class AliteButtons implements Serializable {
 			yesTouched = false;
 			noTouched = false;
 			if ((e.x - 600) * (e.x - 600) + (e.y - 350) * (e.y - 350) <= 10000.0f) {
-				inGame.yesSelected();				
+				inGame.yesSelected();
 			}
 			if ((e.x - 1320) * (e.x - 1320) + (e.y - 350) * (e.y - 350) <= 10000.0f) {
 				inGame.noSelected();
@@ -555,18 +558,18 @@ public class AliteButtons implements Serializable {
 					if (source == buttons[MISSILE] && buttons[MISSILE].red) {
 						downTime = System.nanoTime();
 					}
-					if (source == buttons[FIRE] && !Settings.laserButtonAutofire) {
+					if (source == buttons[FIRE] && !Settings.laserButtonAutoFire) {
 						fireButtonPressed = e.pointer;
 						alite.getLaserManager().setAutoFire(true);
 					}
-				} else if (e.type == TouchEvent.TOUCH_UP) {					
+				} else if (e.type == TouchEvent.TOUCH_UP) {
 					if (source != null) {
 						source.selected = false;
 					}
 					if (source != bd) {
 						source = null;
 						return true;
-					}					
+					}
 					source = null;
 					SoundManager.play(Assets.click);
 					switch (i) {
@@ -585,9 +588,9 @@ public class AliteButtons implements Serializable {
 						case MISSILE:          updateMissileState();       break;
 						case CLOAKING_DEVICE:  toggleCloakingDevice();     break;
 					}
-				} 
+				}
 				result = true;
-			} 
+			}
 		}
 		if (e.type == TouchEvent.TOUCH_DOWN) {
 			if (sweepLeftPossible && e.x >= sweepLeftPos[0] && e.x <= sweepLeftPos[0] + 100 && e.y >= sweepLeftPos[1] && e.y <= sweepLeftPos[1] + 100) {
@@ -595,7 +598,7 @@ public class AliteButtons implements Serializable {
 			}
 			if (sweepRightPossible && e.x >= sweepRightPos[0] && e.x <= sweepRightPos[0] + 100 && e.y >= sweepRightPos[1] && e.y <= sweepRightPos[1] + 100) {
 				sweepRightDown = true;
-			}			
+			}
 		}
 		if (e.type == TouchEvent.TOUCH_UP) {
 			downTime = -1;
@@ -605,11 +608,11 @@ public class AliteButtons implements Serializable {
 			}
 			if (sweepLeftDown && e.x >= sweepLeftPos[0] && e.x <= sweepLeftPos[0] + 100 && e.y >= sweepLeftPos[1] && e.y <= sweepLeftPos[1] + 100) {
 				sweepLeft();
-				actionPerformed = true;				
+				actionPerformed = true;
 			}
 			if (sweepRightDown && e.x >= sweepRightPos[0] && e.x <= sweepRightPos[0] + 100 && e.y >= sweepRightPos[1] && e.y <= sweepRightPos[1] + 100) {
 				sweepRight();
-				actionPerformed = true;				
+				actionPerformed = true;
 			}
 			sweepLeftDown = false;
 			sweepRightDown = false;
@@ -626,29 +629,25 @@ public class AliteButtons implements Serializable {
 		}
 		if (alite.getLaserManager() != null) {
 			alite.getLaserManager().setAutoFire(false);
-		}		
+		}
 	}
-	
+
 	private void toggleAutoFire() {
-		if (OVERRIDE_LASER || !Settings.laserButtonAutofire) {
+		if (OVERRIDE_LASER || !Settings.laserButtonAutoFire) {
 			return;
 		}
 		if (alite.getLaserManager() != null) {
 			alite.getLaserManager().setAutoFire(!alite.getLaserManager().isAutoFire());
 		}
 	}
-	
+
 	private void toggleCloakingDevice() {
 		ButtonData cloak = buttons[CLOAKING_DEVICE];
 		inGame.getShip().setCloaked(!inGame.getShip().isCloaked());
-		if (inGame.getShip().isCloaked()) {
-			cloak.yellow = true;
-		} else {
-			cloak.yellow = false;
-		}
+		cloak.yellow = inGame.getShip().isCloaked();
 		inGame.setCloak(inGame.getShip().isCloaked());
 	}
-	
+
 	private void updateMissileState() {
 		if (OVERRIDE_MISSILE) {
 			return;
@@ -663,33 +662,29 @@ public class AliteButtons implements Serializable {
 		} else if (missile.yellow) {
 			missile.yellow = false;
 			inGame.handleMissileIcons();
-		} else if (missile.red) {
+		} else {
 			missile.red = false;
 			inGame.fireMissile();
 		}
 	}
-	
+
 	private void toggleECMJammer() {
 		ButtonData ecmJammer = buttons[ECM_JAMMER];
 		inGame.toggleECMJammer();
-		if (inGame.isECMJammer()) {
-			ecmJammer.yellow = true;
-		} else {
-			ecmJammer.yellow = false;
-		}
+		ecmJammer.yellow = inGame.isECMJammer();
 	}
 
 	private void engageEscapeCapsule() {
 		if (inGame.isWitchSpace()) {
-// TODO add computer voice file			
+// TODO add computer voice file
 //			SoundManager.play(Assets.escapeCapsuleMalfunction);
 			inGame.setMessage("Escape Capsule Malfunction");
 			return;
 		}
 		alite.getCobra().removeEquipment(EquipmentStore.escapeCapsule);
 		for (TradeGood g: TradeGoodStore.get().goods()) {
-			alite.getCobra().removeTradeGood(g);	
-		}		
+			alite.getCobra().removeTradeGood(g);
+		}
 		SoundManager.stop(Assets.energyLow);
 		SoundManager.stop(Assets.criticalCondition);
 		SoundManager.play(Assets.retroRocketsOrEscapeCapsuleFired);
@@ -699,7 +694,7 @@ public class AliteButtons implements Serializable {
 			((FlightScreen) alite.getCurrentScreen()).setInformationScreen(null);
 		}
 		inGame.forceForwardView();
-		inGame.killHud();			
+		inGame.killHud();
 		ship.setUpdater(new EscapeCapsuleUpdater(alite, inGame, ship, System.nanoTime()));
 		alite.getPlayer().setCondition(Condition.DOCKED);
 		// The police track record is identified by the ship's id,
@@ -715,8 +710,7 @@ public class AliteButtons implements Serializable {
 	}
 
 	private void engageGalacticHyperspace() {
-		boolean active = inGame.toggleHyperspaceCountdown(true);
-		buttons[GAL_HYPERSPACE].yellow = active;
+		buttons[GAL_HYPERSPACE].yellow = inGame.toggleHyperspaceCountdown(true);
 	}
 
 	private void goToStatusView() {
@@ -725,24 +719,23 @@ public class AliteButtons implements Serializable {
 		}
 		if (alite.getCurrentScreen() instanceof FlightScreen) {
 			deactivateFire();
-			StatusScreen screen = new StatusScreen(alite);		
+			StatusScreen screen = new StatusScreen(alite);
 			alite.getNavigationBar().setFlightMode(true);
-			alite.getNavigationBar().setActiveIndex(2);
+			alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
 			screen.loadAssets();
 			screen.activate();
 			screen.resume();
 			screen.update(0);
 			alite.getGraphics().setClip(-1, -1, -1, -1);
 			((FlightScreen) alite.getCurrentScreen()).setInformationScreen(screen);
-		}		
+		}
 	}
-	
+
 	private void engageHyperspace() {
 		if (OVERRIDE_HYPERSPACE) {
 			return;
 		}
-		boolean active = inGame.toggleHyperspaceCountdown(false);	
-		buttons[HYPERSPACE].yellow = active;
+		buttons[HYPERSPACE].yellow = inGame.toggleHyperspaceCountdown(false);
 	}
 
 	private void engageTorusDrive() {
@@ -761,32 +754,32 @@ public class AliteButtons implements Serializable {
 		if (OVERRIDE_TORUS || alite.getCurrentScreen() instanceof TutorialScreen) {
 			return;
 		}
-		if ((alite.getTimeFactor() > 1) || (ship.getSpeed() < -PlayerCobra.TORUS_TEST_SPEED)) {
+		if (alite.getTimeFactor() > 1 || ship.getSpeed() < -PlayerCobra.TORUS_TEST_SPEED) {
 			alite.setTimeFactor(1);
 		} else {
 			alite.setTimeFactor(PlayerCobra.SPEED_UP_FACTOR);
 		}
 	}
-	
-	private void engageDockingComputer() {	
+
+	private void engageDockingComputer() {
 		if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.dockingComputer)) {
 			inGame.toggleStationHandsDocking();
 		} else {
 			inGame.toggleDockingComputer(true);
 		}
 	}
-	
+
 	private void engageEnergyBomb() {
 		alite.getCobra().removeEquipment(EquipmentStore.energyBomb);
 		inGame.traverseObjects(energyBombTraverser);
 	}
-	
+
 	private void engageRetroRockets() {
-		alite.getCobra().setRetroRocketsUseCount(alite.getCobra().getRetroRocketsUseCount() - 1);		
+		alite.getCobra().setRetroRocketsUseCount(alite.getCobra().getRetroRocketsUseCount() - 1);
 		SoundManager.play(Assets.retroRocketsOrEscapeCapsuleFired);
 		ship.setSpeed(RETRO_ROCKET_SPEED);
 	}
-	
+
 	public Screen getNewScreen() {
 		return newScreen;
 	}
