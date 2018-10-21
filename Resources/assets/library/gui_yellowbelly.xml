@@ -18,7 +18,7 @@
 	Home Galaxy:,6;
         </table>
     </Text>
-    <Image name="yellowbelly"/>
+    <BackgroundImage name="yellowbelly"/>
   </Content>
   <Previous>gui_wolf</Previous>
 </Page>

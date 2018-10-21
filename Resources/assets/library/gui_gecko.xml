@@ -16,7 +16,7 @@
         Armaments:,Ingram 1919 A4 laser[c];
         ,LM Homing missile;
 	Maximum Velocity:,0.30 LM;
-	Inservice Date:,2852 (Ace &amp; Faber HullWorks, Lerelace);
+	Inservice Date:,2852 (Ace &amp; Faber HullWorks[c] Lerelace);
 	Crew Number:,1 or 2;
 	Hull Stress Factor:,Tto 48-94;
 	Manouevrability:,CF 7;
@@ -24,7 +24,7 @@
 	Hyperspace Capability:,Not available;
         </table>
     </Text>
-    <Image name="gecko"/>
+    <BackgroundImage name="gecko"/>
   </Content>
   <Next>gui_gopher</Next>
   <Previous>gui_ferdelance</Previous>

@@ -23,7 +23,7 @@
 	Home Galaxy:,5;
         </table>
     </Text>
-    <Image name="bushmaster"/>
+    <BackgroundImage name="bushmaster"/>
   </Content>
   <Next>gui_cobrai</Next>
   <Previous>gui_boa</Previous>

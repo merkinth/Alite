@@ -24,7 +24,7 @@
 	Home Galaxy:,3;
         </table>
     </Text>
-    <Image name="lora"/>
+    <BackgroundImage name="lora"/>
   </Content>
   <Next>gui_lyre</Next>
   <Previous>gui_krait</Previous>

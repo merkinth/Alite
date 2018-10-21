@@ -18,7 +18,7 @@
 	Home Galaxy:,4;
         </table>
     </Text>
-    <Image name="mussurana"/>
+    <BackgroundImage name="mussurana"/>
   </Content>
   <Next>gui_shuttle</Next>
   <Previous>gui_moray</Previous>

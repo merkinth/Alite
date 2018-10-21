@@ -22,7 +22,7 @@
 	Home Galaxy:,3;
         </table>
     </Text>
-    <Image name="boomslang"/>
+    <BackgroundImage name="boomslang"/>
   </Content>
   <Next>gui_hognose</Next>
   <Previous>gui_harlequin</Previous>

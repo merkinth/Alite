@@ -24,7 +24,7 @@
 	Hyperspace Capability:,Yes;
         </table>
     </Text>
-    <Image name="cobramki"/>
+    <BackgroundImage name="cobramki"/>
   </Content>
   <Next>gui_cobraiii</Next>
   <Previous>gui_bushmaster</Previous>

@@ -10,7 +10,7 @@
 	unfamiliar hands. Integument has chameleon properties enabling the
 	ship to assume effective camouflage in any type of environment.
 	Intended for reconnaissance and the transport of high-ranking
-	military personnel from cobat it is very fast and manoeuvrable.
+	military personnel from combat it is very fast and manoeuvrable.
 	Despite its hazardous nature it makes an ideal pirate vessel,
 	primarily because of the speed, camouflage and high intensity
 	Hassoni-Kruger Burst-lasers. The Asp Mk II has room for powerful
@@ -28,7 +28,7 @@
 	Hyperspace Capability:,Yes;
         </table>
     </Text>
-    <Image name="aspmkii"/>
+    <BackgroundImage name="aspmkii"/>
   </Content>
   <Next>gui_boa</Next>
   <Previous>gui_anaconda</Previous>

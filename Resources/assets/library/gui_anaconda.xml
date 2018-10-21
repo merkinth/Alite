@@ -28,7 +28,7 @@
 	Hyperspace Capability:,Yes;
         </table>
     </Text>
-    <Image name="anaconda"/>
+    <BackgroundImage name="anaconda"/>
   </Content>
   <Next>gui_asp</Next>
   <Previous>gui_adder</Previous>

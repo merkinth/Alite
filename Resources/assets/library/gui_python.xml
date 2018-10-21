@@ -9,7 +9,7 @@
 	cramped and spartan in contract to facilities for cargo and
 	&apos;alien environment&apos; transport. Though slow and ponderous,
 	the craft has powerful CC-Voltaire shields and Volt-Variscan Pulse
-	lasers, earning it the nichname of the &apos;space porcupine&apos;.
+	lasers, earning it the nickname of the &apos;space porcupine&apos;.
 	Not commonly attacked by pirate ships, but a popular craft for
 	freebooters, usually used as a way-station and storage hulk.</p>
 	<table>[o]Dimensions:[/o],[o]206x103x336m[/o];
@@ -24,7 +24,7 @@
 	Hyperspace Capability:,Yes;
         </table>
     </Text>
-    <Image name="python"/>
+    <BackgroundImage name="python"/>
   </Content>
   <Next>gui_rattlesnake</Next>
   <Previous>gui_shuttle</Previous>

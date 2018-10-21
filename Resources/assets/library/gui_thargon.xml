@@ -17,7 +17,7 @@
 	Hyperspace Capability:,Yes;
         </table>
     </Text>
-    <Image name="thargon"/>
+    <BackgroundImage name="thargon"/>
   </Content>
   <Next>gui_transporter</Next>
   <Previous>gui_thargoid</Previous>

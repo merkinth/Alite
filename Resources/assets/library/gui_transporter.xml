@@ -16,7 +16,7 @@
 	,SpaceLink Shipyards[c] Mars Orbit (Old Earth).
         </table>
     </Text>
-    <Image name="transporter"/>
+    <BackgroundImage name="transporter"/>
   </Content>
   <Next>gui_viper</Next>
   <Previous>gui_thargon</Previous>

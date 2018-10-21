@@ -18,7 +18,7 @@
 	Home Galaxy:,8;
         </table>
     </Text>
-    <Image name="harlequin"/>
+    <BackgroundImage name="harlequin"/>
   </Content>
   <Next>gui_boomslang</Next>
   <Previous>gui_gopher</Previous>

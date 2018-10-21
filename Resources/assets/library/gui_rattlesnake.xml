@@ -18,7 +18,7 @@
 	Home Galaxy:,8;
         </table>
     </Text>
-    <Image name="rattlesnake"/>
+    <BackgroundImage name="rattlesnake"/>
   </Content>
   <Next>gui_sidewinder</Next>
   <Previous>gui_python</Previous>

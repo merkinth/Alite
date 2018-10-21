@@ -17,7 +17,7 @@
 	Hyperspace Capability:,Yes;
         </table>
     </Text>
-    <Image name="wolfmkii"/>
+    <BackgroundImage name="wolfmkii"/>
   </Content>
   <Next>gui_yellowbelly</Next>
   <Previous>gui_viper</Previous>

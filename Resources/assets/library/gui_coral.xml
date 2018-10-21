@@ -18,7 +18,7 @@
 	Home Galaxy:,6;
         </table>
     </Text>
-    <Image name="coral"/>
+    <BackgroundImage name="coral"/>
   </Content>
   <Next>gui_cottonmouth</Next>
   <Previous>gui_cobraiii</Previous>

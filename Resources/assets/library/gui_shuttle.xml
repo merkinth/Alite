@@ -23,7 +23,7 @@
 	Hyperspace Capability:,No;
         </table>
     </Text>
-    <Image name="shuttle"/>
+    <BackgroundImage name="shuttle"/>
   </Content>
   <Next>gui_python</Next>
   <Previous>gui_mussurana</Previous>

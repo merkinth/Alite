@@ -23,7 +23,7 @@
 	Hyperspace Capability:,Yes;
         </table>
     </Text>
-    <Image name="adder"/>
+    <BackgroundImage name="adder"/>
   </Content>
   <Next>gui_anaconda</Next>
   <Previous>shipguide</Previous>

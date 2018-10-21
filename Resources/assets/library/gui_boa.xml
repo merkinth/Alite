@@ -25,7 +25,7 @@
 	Hyperspace Capability:,Yes;
         </table>
     </Text>
-    <Image name="boaclasscruiser"/>
+    <BackgroundImage name="boaclasscruiser"/>
   </Content>
   <Next>gui_bushmaster</Next>
   <Previous>gui_asp</Previous>

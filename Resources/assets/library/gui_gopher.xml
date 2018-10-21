@@ -18,7 +18,7 @@
 	Home Galaxy:,4;
         </table>
     </Text>
-    <Image name="gopher"/>
+    <BackgroundImage name="gopher"/>
   </Content>
   <Next>gui_harlequin</Next>
   <Previous>gui_gecko</Previous>

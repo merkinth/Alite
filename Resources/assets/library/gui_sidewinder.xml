@@ -8,7 +8,7 @@
 	Shipyards by Spalder and Starblaze Inc to Galactic Navy
 	specifications for a multi-purpose support craft. Mainly used for
 	atmosphere and planetary surface scouting, but extensively too for
-	city-strafing, reconnaisance and infantry air support (and by
+	city-strafing, reconnaissance and infantry air support (and by
 	pirates who favour speed and elusiveness, its primary advantage).
 	Has some interspatial capability, not including hyperspace, and
 	must be carried through hyperspace by jump-capable vessels. Hull is
@@ -27,7 +27,7 @@
 	Hyperspace Capability:,No;
         </table>
     </Text>
-    <Image name="sidewinder"/>
+    <BackgroundImage name="sidewinder"/>
   </Content>
   <Next>gui_thargoid</Next>
   <Previous>gui_rattlesnake</Previous>

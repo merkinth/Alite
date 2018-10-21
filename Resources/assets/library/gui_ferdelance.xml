@@ -9,7 +9,7 @@
 	corporations. A sophisticated craft, capable of both limited
 	trading, combat, and leisure function. The spacious hull is mainly
 	given over to sophisticated weaponry, defences and navigation
-	equipment at the expense of cargo capacity. Cabin accomodation is
+	equipment at the expense of cargo capacity. Cabin accommodation is
 	large and luxurious with extensive Owndirt Inc. recycling facilities,
 	encouraging extended live-in periods (useful whilst pursuing a
 	quarry). Fuel scoop is a standard fitting, ensuring complete
@@ -27,7 +27,7 @@
 	Hyperspace Capability:,Yes;
         </table>
     </Text>
-    <Image name="ferdelance"/>
+    <BackgroundImage name="ferdelance"/>
   </Content>
   <Next>gui_gecko</Next>
   <Previous>gui_dugite</Previous>

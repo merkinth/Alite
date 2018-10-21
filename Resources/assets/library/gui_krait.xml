@@ -21,7 +21,7 @@
 	Hyperspace Capability:,No;
         </table>
     </Text>
-    <Image name="krait_gui"/>
+    <BackgroundImage name="krait_gui"/>
   </Content>
   <Next>gui_lora</Next>
   <Previous>gui_indigo</Previous>

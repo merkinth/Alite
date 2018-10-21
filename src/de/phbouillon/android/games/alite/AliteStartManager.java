@@ -60,20 +60,20 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 					"I am very sorry for the inconvenience! You can either try to restart " +
 					"your device (seriously: It helped on a Nexus 4), or you can download " +
 					"the all-in-one-version of Alite, where this problem cannot occur, " +
-					"from http://alite.mobi");
+					"from " + AliteConfig.ALITE_WEBSITE);
 		}
 	}
 
 	private boolean expansionFilesDelivered() {
-        File oldObb = new File(Helpers.generateSaveFileName(this,
-			Helpers.getExpansionAPKFileName(this, true, AliteConfig.PREVIOUS_EXTENSION_FILE_VERSION)));
-		AliteLog.e("Check for old OBB", "Old OBB exists? " + oldObb.getAbsolutePath());
-        if (oldObb.exists()) {
-			AliteLog.e("Check for old OBB", "Old OBB exists, delete it.");
-        	oldObb.delete();
-        }
 	    String fileName = Helpers.getExpansionAPKFileName(this, true, AliteConfig.EXTENSION_FILE_VERSION);
-	    File fileForNewFile = new File(Helpers.generateSaveFileName(this, fileName));
+		for (File obb : fileIO.getFiles(Helpers.getSaveFilePath(this), "(.*)\\.obb")) {
+			if (!fileName.equals(obb.getName())) {
+				obb.delete();
+				AliteLog.e("Delete old OBB", "Old OBB '" + obb.getName() + "' deleted.");
+			}
+		}
+
+		File fileForNewFile = new File(Helpers.generateSaveFileName(this, fileName));
 	    AliteLog.e("Check for OBB", "OBB exists? " + fileForNewFile.getAbsolutePath());
 	    return Helpers.doesFileExist(this, fileName, AliteConfig.EXTENSION_FILE_LENGTH, false);
 	}
