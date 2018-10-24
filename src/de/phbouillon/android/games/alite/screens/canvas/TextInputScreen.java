@@ -22,7 +22,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Locale;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.Alite;
@@ -58,9 +57,9 @@ public class TextInputScreen extends AliteScreen {
 	private boolean keyEnteredWhileShiftPressed = false;
 	private boolean secondShift = false;
 
-	TextInputScreen(Game game, String title, String message, String currentText, AliteScreen source, TextCallback callback) {
+	TextInputScreen(Alite game, String title, String message, String currentText, AliteScreen source, TextCallback callback) {
 		super(game);
-		((Alite) game).getNavigationBar().setActive(false);
+		game.getNavigationBar().setActive(false);
 		this.title = title;
 		this.message = message;
 		this.currentText = currentText;
@@ -235,15 +234,15 @@ public class TextInputScreen extends AliteScreen {
 						secondShift = false;
 						keyEnteredWhileShiftPressed = false;
 					} else if (b.getText().equals("<-")) {
-						if (currentText.length() > 0) {
+						if (!currentText.isEmpty()) {
 							currentText = currentText.substring(0, currentText.length() - 1);
 						}
 					} else if (b.getText().equals("Ok")) {
-						((Alite) game).getNavigationBar().setActive(true);
+						game.getNavigationBar().setActive(true);
 						callback.onOk(currentText);
 						newScreen = sourceScreen;
 					} else if (b.getText().equals("Cancel")) {
-						((Alite) game).getNavigationBar().setActive(true);
+						game.getNavigationBar().setActive(true);
 						callback.onCancel();
 						newScreen = sourceScreen;
 					} else {

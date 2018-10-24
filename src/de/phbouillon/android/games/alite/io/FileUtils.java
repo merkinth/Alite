@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.io;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,20 +18,9 @@ package de.phbouillon.android.games.alite.io;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.List;
@@ -46,12 +35,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 import android.annotation.SuppressLint;
-import de.phbouillon.android.framework.FileIO;
-import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.AliteStartManager;
-import de.phbouillon.android.games.alite.ScreenBuilder;
 import de.phbouillon.android.games.alite.model.CommanderData;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
@@ -64,13 +49,16 @@ import de.phbouillon.android.games.alite.model.Rating;
 import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.Raxxla;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 
 public class FileUtils {
-	private static final String [] keys = new String [] {
+	private static final String ALITE_COMMANDER_EXTENSION = ".cmdr";
+
+	private static final String[] keys = new String[] {
         "JMz343q8dmb~yC5UUTf8w151GY99P15=iZ687O(Ae8473L39iz6x468l",
         "3+6~1cIWu2jdjP-OaxIq5W#nAf28YF{5H5Dgtf}1u64HfBrVyD8>8t{2",
         "Sn}6HeBJ13pJ&P0J5z1UY63GA1e8ni13O5yMw4FN2p1nIQx925WfE7f_",
@@ -169,17 +157,17 @@ public class FileUtils {
         "y%qAU6tAYiRT!5T4QUfH6ld#86598zj4fn74qly19Efx3mv/mc-xizkK",
         "fyPkB7Ow.j-e;lO2s0V1F2LWL6Wf+9W3DvR#WO0B*6zUyQBAOJE4d5H7",
         "n%ZSk68KKHbZUXfeAT*WD#v!4WR14oZUnhad-hoG;mHq-z3#0x4J=83w",
-        "UdlOpGev5G89_Cpis5Yn7EHEpZBH7Pb210Ii_ao#Ii74@?!xHPeKkQ*Q",
+        "UdlOpGev5G89_Cpis5Yn7EHEpZBH7Pb210Ii_ao#Ii74@?!xHPeKkQ*Q"
     };
-			
+
 	private static final String ENCRYPTION = "Blowfish";
-	public static final Charset CHARSET = Charset.forName("UTF-8");
 	private Cipher cipher;
-	
+	private Alite game;
+
 	private static final String AB = "0123456789abcdefghijklmnopqrstuvwxyz_";
 	private static final Random rnd = new Random();
 
-	private static final String generateRandomString(int length) {
+	private String generateRandomString(int length) {
 		StringBuilder sb = new StringBuilder(length);
 		for (int i = 0; i < length; i++) {
 			sb.append(AB.charAt(rnd.nextInt(AB.length())));
@@ -187,34 +175,36 @@ public class FileUtils {
 		return sb.toString();
 	}
 
-	public static final String generateRandomFilename(String path, String prefix, int length, String suffix, FileIO io) throws IOException {
+	private String generateRandomFilename() {
 		String fileName;
 		do {
-			fileName = path + "/" + prefix + generateRandomString(length) + suffix;
-		} while (io.exists(fileName));
+			fileName = CommanderData.DIRECTORY_COMMANDER + File.separator +
+				generateRandomString(12) + ALITE_COMMANDER_EXTENSION;
+		} while (game.getFileIO().exists(fileName));
 		return fileName;
 	}
-	
-	public FileUtils() {
+
+	public FileUtils(Alite game) {
+		this.game = game;
 		try {
 			cipher = Cipher.getInstance(ENCRYPTION);
-		} catch (NoSuchAlgorithmException e) {
+		} catch (NoSuchAlgorithmException ignored) {
 			AliteLog.e("FileUtils initializer", "Encryption not available");
-		} catch (NoSuchPaddingException e) {
+		} catch (NoSuchPaddingException ignored) {
 			AliteLog.e("FileUtils initialized", "Padding not available");
 		}
 	}
-	
+
 	@SuppressLint("TrulyRandom")
-	public final byte [] encrypt(byte [] toEncrypt, String strKey) {
-		byte [] result = toEncrypt;
+	private byte[] encrypt(byte[] toEncrypt, String strKey) {
+		byte[] result = toEncrypt;
 		if (cipher != null) {
 			try {
-				SecretKeySpec key = new SecretKeySpec(strKey.getBytes(CHARSET), ENCRYPTION);
+				SecretKeySpec key = new SecretKeySpec(strKey.getBytes(StringUtil.CHARSET), ENCRYPTION);
 				strKey = null;
 				cipher.init(Cipher.ENCRYPT_MODE, key);
 				result = cipher.doFinal(toEncrypt);
-			} catch (Exception e) {
+			} catch (GeneralSecurityException e) {
 				AliteLog.e("Encrypt", "Error During Encryption", e);
 			}
 		}
@@ -222,15 +212,15 @@ public class FileUtils {
 		return result;
 	}
 
-	public final byte [] decrypt(byte [] toDecrypt, String strKey) {
-		byte [] result = toDecrypt;
+	private byte[] decrypt(byte[] toDecrypt, String strKey) {
+		byte[] result = toDecrypt;
 		if (cipher != null) {
 			try {
-				SecretKeySpec key = new SecretKeySpec(strKey.getBytes(CHARSET), ENCRYPTION);
+				SecretKeySpec key = new SecretKeySpec(strKey.getBytes(StringUtil.CHARSET), ENCRYPTION);
 				strKey = null;
 				cipher.init(Cipher.DECRYPT_MODE, key);
 				result = cipher.doFinal(toDecrypt);
-			} catch (Exception e) {
+			} catch (GeneralSecurityException e) {
 				AliteLog.e("Decrypt", "Error During Decryption", e);
 			}
 		}
@@ -238,32 +228,32 @@ public class FileUtils {
 		return result;
 	}
 
-	public final byte [] encodeLongs(long [] toEncrypt, String strKey) {
+	private byte[] encodeLongs(long[] toEncrypt, String strKey) {
 		ByteBuffer buffer = ByteBuffer.allocateDirect(toEncrypt.length * 8);
 		for (long l: toEncrypt) {
 			buffer.putLong(l);
 		}
-		byte [] input = new byte[toEncrypt.length * 8];
+		byte[] input = new byte[toEncrypt.length * 8];
 		buffer.flip();
 		buffer.get(input);
 		return encrypt(input, strKey);
 	}
-	
-	public final long [] decodeLongs(byte [] toDecrypt, String strKey) {
-		byte [] decrypted = decrypt(toDecrypt, strKey);
-		
+
+	private long[] decodeLongs(byte[] toDecrypt, String strKey) {
+		byte[] decrypted = decrypt(toDecrypt, strKey);
+
 		ByteBuffer buffer = ByteBuffer.allocateDirect(decrypted.length);
 		buffer.put(decrypted);
 		buffer.flip();
-		long [] result = new long[buffer.limit() / 8];
+		long[] result = new long[buffer.limit() / 8];
 		for (int i = 0; i < buffer.limit() / 8; i++) {
 			result[i] = buffer.getLong(i);
 		}
 
 		return result;
 	}
-		
-	private final void writeString(DataOutputStream dos, String string, int size) {
+
+	private void writeString(DataOutputStream dos, String string, int size) {
 		int len = string.length();
 		while (len < size) {
 			string += " ";
@@ -273,58 +263,57 @@ public class FileUtils {
 			string = string.substring(0, size);
 		}
 		try {
-			dos.write(string.getBytes(CHARSET));
+			dos.write(string.getBytes(StringUtil.CHARSET));
 		} catch (IOException e) {
 			AliteLog.e("[ALITE] File Utils", "Cannot write String.", e);
 		}
 	}
 
-	private final String readString(DataInputStream dis, int size) {
-		byte [] input = new byte[size];
+	private String readString(DataInputStream dis, int size) {
+		byte[] input = new byte[size];
 		try {
 			dis.read(input);
-			return new String(input, CHARSET);
+			return new String(input, StringUtil.CHARSET);
 		} catch (IOException e) {
 			AliteLog.e("[ALITE] File Utils", "Cannot read String.", e);
 		}
 		return null;
 	}
-				
-	private final byte[] zipBytes(final byte[] input) throws IOException {
+
+	private byte[] zipBytes(final byte[] input) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ZipOutputStream zos = new ZipOutputStream(baos);
-		ZipEntry entry = new ZipEntry("_");
-		entry.setSize(input.length);
-		zos.putNextEntry(entry);
-		zos.write(input);
-		zos.closeEntry();
-		zos.close();
+		try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+			ZipEntry entry = new ZipEntry("_");
+			entry.setSize(input.length);
+			zos.putNextEntry(entry);
+			zos.write(input);
+			zos.closeEntry();
+		}
 		return baos.toByteArray();
 	}
-		
-	private final byte[] unzipBytes(final byte[] input) throws IOException {
-		ByteArrayInputStream bais = new ByteArrayInputStream(input);			 
-		byte [] buffer = new byte[1024];
-		ZipInputStream zip = new ZipInputStream(bais);
-		ByteArrayOutputStream baos = new ByteArrayOutputStream(input.length);
-		int read = 0;			 
-		if (zip.getNextEntry() != null) {
-			while ((read = zip.read(buffer)) != -1) {
-				baos.write(buffer, 0, read);
+
+	private byte[] unzipBytes(final byte[] input) throws IOException {
+		ByteArrayInputStream bais = new ByteArrayInputStream(input);
+		byte[] buffer = new byte[1024];
+		try (ZipInputStream zip = new ZipInputStream(bais);
+				ByteArrayOutputStream baos = new ByteArrayOutputStream(input.length)) {
+			int read;
+			if (zip.getNextEntry() != null) {
+				while ((read = zip.read(buffer)) != -1) {
+					baos.write(buffer, 0, read);
+				}
 			}
-		}			 
-		zip.close();
-		baos.close();			 
-		return baos.toByteArray();
+			return baos.toByteArray();
+		}
 	}
-		
-	private final void equipLaser(int where, Laser laser, PlayerCobra cobra) {
+
+	private void equipLaser(int where, Laser laser, PlayerCobra cobra) {
 		if ((where & 1) > 0) cobra.setLaser(PlayerCobra.DIR_FRONT, laser);
 		if ((where & 2) > 0) cobra.setLaser(PlayerCobra.DIR_RIGHT, laser);
 		if ((where & 4) > 0) cobra.setLaser(PlayerCobra.DIR_REAR,  laser);
 		if ((where & 8) > 0) cobra.setLaser(PlayerCobra.DIR_LEFT,  laser);
 	}
-	
+
 	private void setEquipped(PlayerCobra cobra, Equipment equip, boolean value) {
 		if (value) {
 			cobra.addEquipment(equip);
@@ -333,24 +322,20 @@ public class FileUtils {
 		}
 	}
 
-	private final int readByte(DataInputStream dis) throws IOException {
-		return ((int) dis.readByte()) & 0xFF;
+	private int readByte(DataInputStream dis) throws IOException {
+		return dis.readByte() & 0xFF;
 	}
-	
-	public final void loadCommander(Alite alite, DataInputStream dis) throws IOException {
-		Player player = alite.getPlayer();
-		GalaxyGenerator generator = alite.getGenerator();
+
+	public final void loadCommander(DataInputStream dis) throws IOException {
+		Player player = game.getPlayer();
+		GalaxyGenerator generator = game.getGenerator();
 		PlayerCobra cobra = player.getCobra();
 		cobra.reset();
 		player.setName(readString(dis, 16).trim());
 		generator.buildGalaxy(readByte(dis));
-		char [] seed = new char [] {
-				dis.readChar(),
-				dis.readChar(),
-				dis.readChar()
-		};
+		char[] seed = new char[] {dis.readChar(), dis.readChar(), dis.readChar()};
 		generator.buildGalaxy(seed[0], seed[1], seed[2]);
-		player.setCurrentSystem(generator.getSystem(readByte(dis)));		
+		player.setCurrentSystem(generator.getSystem(readByte(dis)));
 		player.setHyperspaceSystem(generator.getSystem(readByte(dis)));
 		if (player.getCurrentSystem() == null) {
 			if (player.getHyperspaceSystem() == null) {
@@ -364,7 +349,7 @@ public class FileUtils {
 		player.setCash(dis.readLong());
 		player.setRating(Rating.values()[readByte(dis)]);
 		player.setLegalStatus(LegalStatus.values()[readByte(dis)]);
-		alite.setGameTime(dis.readLong());
+		game.setGameTime(dis.readLong());
 		player.setScore(dis.readInt());
 		player.getMarket().setFluct(dis.read());
 		player.getMarket().generate();
@@ -380,10 +365,12 @@ public class FileUtils {
 		int currentSystem = dis.readInt();
 		int hyperspaceSystem = dis.readInt();
 		Raxxla raxxla = new Raxxla();
-		if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == 0 && generator.getCurrentGalaxyFromSeed() == 8 && currentSystem == 1 && player.getRating() == Rating.ELITE) {
+		if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == 0 &&
+			generator.getCurrentGalaxyFromSeed() == 8 && currentSystem == 1 && player.getRating() == Rating.ELITE) {
 			player.setCurrentSystem(raxxla.getSystem());
 		}
-		if (player.getHyperspaceSystem() != null && player.getHyperspaceSystem().getIndex() == 0 && generator.getCurrentGalaxyFromSeed() == 8 && hyperspaceSystem == 1 && player.getRating() == Rating.ELITE) {
+		if (player.getHyperspaceSystem() != null && player.getHyperspaceSystem().getIndex() == 0 &&
+			generator.getCurrentGalaxyFromSeed() == 8 && hyperspaceSystem == 1 && player.getRating() == Rating.ELITE) {
 			player.setHyperspaceSystem(raxxla.getSystem());
 		}
 		AliteLog.d("LOADING COMMANDER", "Getting IJC, JC, and SCs");
@@ -420,7 +407,6 @@ public class FileUtils {
 		setEquipped(cobra, EquipmentStore.energyBomb, (equipment & 16) > 0);
 		setEquipped(cobra, EquipmentStore.dockingComputer, (equipment & 32) > 0);
 		setEquipped(cobra, EquipmentStore.galacticHyperdrive, (equipment & 64) > 0);
-		alite.setIntergalActive((equipment & 64) > 0);
 		setEquipped(cobra, EquipmentStore.retroRockets, (equipment & 128) > 0);
 		int laser = readByte(dis);
 		equipLaser(laser & 15, EquipmentStore.pulseLaser, cobra);
@@ -435,13 +421,13 @@ public class FileUtils {
 		player.setCheater(readByte(dis) != 0);
 		readByte(dis);
 		readByte(dis);
-		dis.readInt();		
+		dis.readInt();
 		readByte(dis);
 		dis.readShort();
 		player.setKillCount(dis.readInt());
 
 		// Deprecated: Used to contain the statistics filename here...
-		byte [] buffer = new byte[23];
+		byte[] buffer = new byte[23];
 		dis.read(buffer, 0, 23);
 
 		player.clearMissions();
@@ -450,7 +436,7 @@ public class FileUtils {
 			int activeMissionCount = dis.readInt();
 			AliteLog.d("Loading Commander", "Active missions: " + activeMissionCount);
 			int completedMissionCount = dis.readInt();
-			Set <Integer> missionIds = new HashSet<Integer>();
+			Set<Integer> missionIds = new HashSet<>();
 			for (int i = 0; i < activeMissionCount; i++) {
 				int missionId = dis.readInt();
 				Mission m = MissionManager.getInstance().get(missionId);
@@ -465,7 +451,7 @@ public class FileUtils {
 					AliteLog.d("Loading Commander", "  Active mission: " + m.getClass().getName());
 				} else {
 					AliteLog.d("Warning: Duplicate mission", "  Duplicate mission: " + m.getClass().getName() + " -- ignoring.");
-				}								
+				}
 			}
 			for (int i = 0; i < completedMissionCount; i++) {
 				int missionId = dis.readInt();
@@ -484,7 +470,7 @@ public class FileUtils {
 			// Alite commander file version 1: Did not store mission data. Ignore...
 		}
 		try {
-			InventoryItem [] inventory = cobra.getInventory();
+			InventoryItem[] inventory = cobra.getInventory();
 			for (int i = 0; i < 18; i++) {
 				long price = dis.readLong();
 				cobra.setTradeGood(TradeGoodStore.get().fromNumber(i), inventory[i].getWeight(), price);
@@ -501,68 +487,83 @@ public class FileUtils {
 			AliteLog.e("[ALITE] loadCommander", "Old version. Cmdr data lacks unpunished data for inventory", e);
 		}
 
-		AliteLog.d("[ALITE] loadCommander", String.format("Loaded Commander '%s', galaxyNumber: %d, seed: %04x %04x %04x", player.getName(), generator.getCurrentGalaxy(), (int) generator.getCurrentSeed()[0], (int) generator.getCurrentSeed()[1], (int) generator.getCurrentSeed()[2]));		
+		AliteLog.d("[ALITE] loadCommander", String.format("Loaded Commander '%s', galaxyNumber: %d, seed: %04x %04x %04x", player.getName(), generator.getCurrentGalaxy(), (int) generator.getCurrentSeed()[0], (int) generator.getCurrentSeed()[1], (int) generator.getCurrentSeed()[2]));
 	}
-	
-	public final void loadCommander(Alite alite, String fileName) throws IOException {
+
+	public final void loadCommander(String fileName) throws IOException {
 		AliteLog.d("LOADING COMMANDER", "Filename = " + fileName);
-		byte [] commanderData = null;
-		ByteArrayInputStream bis = new ByteArrayInputStream(alite.getFileIO().readPartialFileContents(fileName, 2));
-		int length = bis.read() * 256 + bis.read();
-		commanderData = unzipBytes(decrypt(alite.getFileIO().readFileContents(fileName, 2 + length), 
-				getKey(fileName)));
+		byte[] commanderData = getCommanderData(fileName);
 		if (commanderData == null) {
 			throw new IOException("Ouch! Couldn't load commander " + fileName + ". No changes to current commander were made.");
 		}
-		bis = new ByteArrayInputStream(commanderData);
-		DataInputStream dis = new DataInputStream(bis);	
-		loadCommander(alite, dis);
-		dis.close();
+		try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(commanderData))) {
+			loadCommander(dis);
+		}
 		AliteLog.d("LOADING COMMANDER", "DONE...");
 	}
-		
-	public final void saveState(FileIO fileIO, Screen screen) throws IOException {
-		AliteLog.d("Saving state", "Saving state. Screen = " + (screen == null ? "<null>" : screen.getClass().getName()));		
-		int screenCode = screen == null ? -1 : screen.getScreenCode();
-		if (screenCode != -1) {
-			OutputStream stateFile = fileIO.writeFile(AliteStartManager.ALITE_STATE_FILE);
-			stateFile.write(screenCode);
-			screen.saveScreenState(new DataOutputStream(stateFile));
-			stateFile.close();
-			AliteLog.d("Saving state", "Saving state completed successfully.");
-		} else {
-			fileIO.deleteFile(AliteStartManager.ALITE_STATE_FILE);
-			AliteLog.d("Saving state", "Saving state could not identify current screen, hence the state file was deleted.");
-		}				
+
+	private byte[] getCommanderData(String fileName) throws IOException {
+		return unzipBytes(decrypt(game.getFileIO().readFileContents(fileName,
+			2 + getHeaderLength(fileName)), getKey(fileName)));
 	}
-	
-	public final void saveState(FileIO fileIO, byte screenCode, byte [] data) throws IOException {
-		AliteLog.d("Saving state", "Saving state. Screen = " + screenCode);
-		OutputStream stateFile = fileIO.writeFile(AliteStartManager.ALITE_STATE_FILE);
-		stateFile.write(screenCode);
-		stateFile.write(data);
-		stateFile.close();
-		AliteLog.d("Saving state", "Saving state completed successfully.");
-	}
-	
-	public final boolean readState(Alite alite, FileIO fileIO) throws IOException {		
-		byte [] state = fileIO.readFileContents(AliteStartManager.ALITE_STATE_FILE);
-		AliteLog.d("Reading state", "State == " + (state == null ? "" : ", " + (int) state[0]));
-		if (state != null && state.length > 0) {
-			return ScreenBuilder.createScreen(alite, state);
+
+	private int getHeaderLength(String fileName) throws IOException {
+		try(ByteArrayInputStream bis = new ByteArrayInputStream(game.getFileIO().readPartialFileContents(fileName, 2))) {
+			return bis.read() * 256 + bis.read();
 		}
-		return false;
 	}
-		
-	public final void saveCommander(final Alite alite, DataOutputStream dos) throws IOException {
-		Player player = alite.getPlayer();
-		GalaxyGenerator generator = alite.getGenerator();
+
+	public final void saveCommander(String commanderName) throws IOException {
+		saveCommander(commanderName, generateRandomFilename());
+	}
+
+	public final void saveCommander(String commanderName, String fileName) throws IOException {
+		Player player = game.getPlayer();
+		if (commanderName == null) {
+			commanderName = player.getName();
+		} else {
+			player.setName(commanderName);
+		}
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
+		DataOutputStream dos = new DataOutputStream(bos);
+		saveCommander(dos);
+		dos.close();
+		byte[] commanderData = encrypt(zipBytes(bos.toByteArray()), getKey(fileName));
+
+		bos = new ByteArrayOutputStream(1024);
+		dos = new DataOutputStream(bos);
+		writeString(dos, commanderName, 16);
+		writeString(dos, player.getCurrentSystem() == null ? "Unknown" : player.getCurrentSystem().getName(), 8);
+		dos.writeLong(game.getGameTime());
+		dos.writeInt(player.getScore());
+		bos.write(player.getRating().ordinal());
+		byte[] headerData = encrypt(bos.toByteArray(), getKey(fileName));
+
+		game.getFileIO().mkDir(CommanderData.DIRECTORY_COMMANDER);
+		try (OutputStream fos = game.getFileIO().writeFile(fileName)) {
+			fos.write(headerData.length >> 8);
+			fos.write(headerData.length & 255);
+			fos.write(headerData);
+			fos.write(commanderData);
+		} finally {
+			try {
+				bos.close();
+			} catch (IOException e) {
+				AliteLog.e("[Alite] saveCommander", "Error when writing commander.", e);
+			}
+		}
+		AliteLog.d("[Alite] saveCommander", "Saved Commander '" + player.getName() + "'.");
+	}
+
+	public final void saveCommander(DataOutputStream dos) throws IOException {
+		Player player = game.getPlayer();
+		GalaxyGenerator generator = game.getGenerator();
 		PlayerCobra cobra = player.getCobra();
 		int marketFluct = player.getMarket().getFluct();
-		List <Integer> quantities = player.getMarket().getQuantities();
+		List<Integer> quantities = player.getMarket().getQuantities();
 		writeString(dos, player.getName(), 16);
 		dos.writeByte(generator.getCurrentGalaxy());
-		char [] seed = generator.getCurrentSeed();
+		char[] seed = generator.getCurrentSeed();
 		dos.writeChar(seed[0]);
 		dos.writeChar(seed[1]);
 		dos.writeChar(seed[2]);
@@ -574,7 +575,7 @@ public class FileUtils {
 		dos.writeLong(player.getCash());
 		dos.writeByte(player.getRating().ordinal());
 		dos.writeByte(player.getLegalStatus().ordinal());
-		dos.writeLong(alite.getGameTime());
+		dos.writeLong(game.getGameTime());
 		dos.writeInt(player.getScore());
 		dos.write(marketFluct);
 		for (int quantity: quantities) {
@@ -592,27 +593,27 @@ public class FileUtils {
 		Weight w = cobra.getSpecialCargo("Thargoid Documents");
 		dos.writeInt(w == null ? 0 : (int) w.getWeightInGrams());
 		w = cobra.getSpecialCargo("Unhappy Refugees");
-		dos.writeInt(w == null ? 0 : (int) w.getWeightInGrams());	
+		dos.writeInt(w == null ? 0 : (int) w.getWeightInGrams());
 		if (player.getCurrentSystem() == null && player.getPosition() != null) {
 			dos.writeInt(player.getPosition().x);
 			dos.writeInt(player.getPosition().y);
 		} else {
-			dos.writeLong(0);			
+			dos.writeLong(0);
 		}
 		dos.writeLong(0); // Placeholder for "special cargo"
 		dos.writeLong(0); // Placeholder for "special cargo"
 		dos.writeLong(0); // Placeholder for "special cargo"
 		dos.writeByte(cobra.getMissiles() + (cobra.isEquipmentInstalled(EquipmentStore.extraEnergyUnit) ? 8 : 0));
 		int equipment = (cobra.isEquipmentInstalled(EquipmentStore.largeCargoBay)      ?   1 : 0) +
-						(cobra.isEquipmentInstalled(EquipmentStore.ecmSystem)          ?   2 : 0) +
-						(cobra.isEquipmentInstalled(EquipmentStore.fuelScoop)          ?   4 : 0) +
-						(cobra.isEquipmentInstalled(EquipmentStore.escapeCapsule)      ?   8 : 0) +
-						(cobra.isEquipmentInstalled(EquipmentStore.energyBomb)         ?  16 : 0) +
-						(cobra.isEquipmentInstalled(EquipmentStore.dockingComputer)    ?  32 : 0) +
-						(cobra.isEquipmentInstalled(EquipmentStore.galacticHyperdrive) ?  64 : 0) +
-						(cobra.isEquipmentInstalled(EquipmentStore.retroRockets)       ? 128 : 0);
+			(cobra.isEquipmentInstalled(EquipmentStore.ecmSystem)          ?   2 : 0) +
+			(cobra.isEquipmentInstalled(EquipmentStore.fuelScoop)          ?   4 : 0) +
+			(cobra.isEquipmentInstalled(EquipmentStore.escapeCapsule)      ?   8 : 0) +
+			(cobra.isEquipmentInstalled(EquipmentStore.energyBomb)         ?  16 : 0) +
+			(cobra.isEquipmentInstalled(EquipmentStore.dockingComputer)    ?  32 : 0) +
+			(cobra.isEquipmentInstalled(EquipmentStore.galacticHyperdrive) ?  64 : 0) +
+			(cobra.isEquipmentInstalled(EquipmentStore.retroRockets)       ? 128 : 0);
 		dos.writeByte(equipment);
-		int [] lasers = new int [] {0, 0, 0, 0};
+		int[] lasers = new int[] {0, 0, 0, 0};
 		Laser laser;
 		if ((laser = cobra.getLaser(PlayerCobra.DIR_FRONT)) != null) {lasers[laser.getIndex()]++;}
 		if ((laser = cobra.getLaser(PlayerCobra.DIR_RIGHT)) != null) {lasers[laser.getIndex()] += 2;}
@@ -621,8 +622,8 @@ public class FileUtils {
 		dos.writeByte(lasers[0] + (lasers[1] << 4));
 		dos.writeByte(lasers[2] + (lasers[3] << 4));
 		equipment = (cobra.isEquipmentInstalled(EquipmentStore.navalEnergyUnit) ? 1 : 0) +
-				    (cobra.isEquipmentInstalled(EquipmentStore.cloakingDevice) ? 2 : 0) +
-				    (cobra.isEquipmentInstalled(EquipmentStore.ecmJammer) ? 4 : 0);
+			(cobra.isEquipmentInstalled(EquipmentStore.cloakingDevice) ? 2 : 0) +
+			(cobra.isEquipmentInstalled(EquipmentStore.ecmJammer) ? 4 : 0);
 		dos.writeByte(equipment);
 		dos.writeByte(player.isCheater() ? 1 : 0);
 		dos.writeByte(0); // Placeholder for "special equipment"
@@ -630,9 +631,9 @@ public class FileUtils {
 		dos.writeInt(0); // Placeholder for "special equipment"
 		dos.writeByte(0); // Placeholder for number of kills to next "Right On, Commander"-Msg.
 		dos.writeShort(0); // Placeholder for number of kills to next "Good Shooting, Commander"-Msg.
-		dos.writeInt(player.getKillCount());		
+		dos.writeInt(player.getKillCount());
 		// Dummy String: Deprecated statistics filename
-		writeString(dos, "12345678901234567890123", 23);		
+		writeString(dos, "12345678901234567890123", 23);
 		dos.writeInt(player.getActiveMissions().size());
 		dos.writeInt(player.getCompletedMissions().size());
 		for (Mission m: player.getActiveMissions()) {
@@ -649,23 +650,19 @@ public class FileUtils {
 			dos.writeLong(item.getUnpunished().getWeightInGrams());
 		}
 	}
-	
-	private String determineOldestAutosaveSlot(Alite alite) throws IOException {
-		String autosaveFilename = "commanders/__autosave";		
+
+	private String determineOldestAutosaveSlot() {
 		long oldestDate = 0;
 		String oldestFilename = "";
 		for (int i = 0; i < 3; i++) {
-			String fileName = autosaveFilename;
-			if (i != 0) {
-				fileName += i;
-			}
-			fileName += ".cmdr";
-			long date = alite.getFileIO().fileLastModifiedDate(fileName);
+			String fileName = getAutoSavedFileName(i);
+			long date = game.getFileIO().fileLastModifiedDate(fileName);
+			// file does not exist
 			if (date == 0) {
 				return fileName;
 			}
 			// "date" returns the time passed since 1970.
-			// Hence, a smaller value means that the file is older, because it has been saved earlier. 
+			// Hence, a smaller value means that the file is older, because it has been saved earlier.
 			if (date < oldestDate || oldestDate == 0) {
 				oldestDate = date;
 				oldestFilename = fileName;
@@ -673,23 +670,23 @@ public class FileUtils {
 		}
 		return oldestFilename;
 	}
-	
-	private String determineYoungestAutosaveSlot(Alite alite) throws IOException {
-		String autosaveFilename = "commanders/__autosave";		
+
+	private String getAutoSavedFileName(int index) {
+		return CommanderData.DIRECTORY_COMMANDER + File.separator +
+			CommanderData.AUTO_SAVED_COMMANDER_FILENAME + (index != 0 ? index : "") + ALITE_COMMANDER_EXTENSION;
+	}
+
+	private String determineYoungestAutosaveSlot() {
 		long youngestDate = 0;
-		String youngestFilename = autosaveFilename + ".cmdr";
+		String youngestFilename = getAutoSavedFileName(0);
 		for (int i = 0; i < 3; i++) {
-			String fileName = autosaveFilename;
-			if (i != 0) {
-				fileName += i;
-			}
-			fileName += ".cmdr";
-			long date = alite.getFileIO().fileLastModifiedDate(fileName);
+			String fileName = getAutoSavedFileName(i);
+			long date = game.getFileIO().fileLastModifiedDate(fileName);
 			if (date == 0) {
 				continue;
 			}
 			// "date" returns the time passed since 1970.
-			// Hence, a larger value means that the file is younger, because it has been saved later. 
+			// Hence, a larger value means that the file is younger, because it has been saved later.
 			if (date > youngestDate) {
 				youngestDate = date;
 				youngestFilename = fileName;
@@ -698,204 +695,114 @@ public class FileUtils {
 		return youngestFilename;
 	}
 
-	private void copyCommander(Alite alite, String oldFileName, String newFileName, CommanderData info) throws IOException {
-		byte [] commanderData = null;
-		ByteArrayInputStream bis = new ByteArrayInputStream(alite.getFileIO().readPartialFileContents(oldFileName, 2));
-		int length = bis.read() * 256 + bis.read();
-		commanderData = unzipBytes(decrypt(alite.getFileIO().readFileContents(oldFileName, 2 + length), 
-				getKey(oldFileName)));
-		if (commanderData == null) {
-			throw new IOException("Ouch! Couldn't load commander " + oldFileName + ". No changes to current commander were made.");
+	private void backupCommander(String oldFileName) {
+		if (!game.getFileIO().exists(oldFileName)) {
+			return;
 		}
-		bis = new ByteArrayInputStream(commanderData);
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-		byte[] buffer = new byte[1024];
-		int len;
-		while ((len = bis.read(buffer)) != -1) {
-		    bos.write(buffer, 0, len);
+		CommanderData info = getQuickCommanderInfo(oldFileName);
+		if (info == null || info.getGameTime() <= game.getGameTime()) {
+			return;
 		}
-		bis.close();
-		commanderData = encrypt(zipBytes(bos.toByteArray()), getKey(newFileName));
-		
-		bos = new ByteArrayOutputStream(1024);
-		DataOutputStream dos = new DataOutputStream(bos);
-		writeString(dos, info.getName(), 16);
-		writeString(dos, info.getDockedSystem(), 8);
-		dos.writeLong(info.getGameTime());
-		dos.writeInt(info.getPoints());
-		bos.write(info.getRating().ordinal());	
-		byte [] headerData = encrypt(bos.toByteArray(), getKey(newFileName));
-		
+		String newFileName = generateRandomFilename();
+		ByteArrayInputStream bis = null;
 		OutputStream fos = null;
+		ByteArrayOutputStream bos = null;
 		try {
-			if (!alite.getFileIO().exists("commanders")) {
-				alite.getFileIO().mkDir("commanders");
+			byte[] commanderData = getCommanderData(oldFileName);
+			if (commanderData == null) {
+				AliteLog.e("[Alite] backupCommander",
+					"Ouch! Couldn't load commander " + oldFileName + ". No changes to current commander were made.");
+				return;
 			}
-			fos = alite.getFileIO().writeFile(newFileName);
-			fos.write(headerData.length >> 8);
-			fos.write(headerData.length & 255);
-			fos.write(headerData);
-			fos.write(commanderData);			
-		} finally {
-			try {
-				if (fos != null) {
-					fos.close();
-				}
-				bos.close();
-			} catch (IOException e) {
-				AliteLog.e("[Alite] saveCommander", "Error when writing commander.", e);
+			bis = new ByteArrayInputStream(commanderData);
+			bos = new ByteArrayOutputStream(1024);
+			byte[] buffer = new byte[1024];
+			int len;
+			while ((len = bis.read(buffer)) != -1) {
+				bos.write(buffer, 0, len);
 			}
-		}
-		AliteLog.d("[Alite] copyCommander", "Copied Commander '" + info.getName() + "'.");
-	}
-	
-	public final void autoSave(Alite alite) throws IOException {
-		String commanderName = determineOldestAutosaveSlot(alite);
-		if (alite.getFileIO().exists(commanderName)) {
-			try {
-				CommanderData commanderData = getQuickCommanderInfo(alite, commanderName);
-				if (commanderData != null && commanderData.getGameTime() > alite.getGameTime()) {
-					// Trying to overwrite an "older" commander. Backup first.
-					copyCommander(alite, commanderName, FileUtils.generateRandomFilename("commanders", "", 12, ".cmdr", alite.getFileIO()), commanderData);
-				}
-			} catch (Exception e) {
-				AliteLog.e("Error Occurred", "Error while creating backup.", e);
-			}
-		}
-		saveCommander(alite, null, commanderName);
-	}
-	
-	public final void autoLoad(Alite alite) throws IOException {
-		String autosaveFilename = determineYoungestAutosaveSlot(alite);
-		if (alite.getFileIO().exists(autosaveFilename)) {
-			loadCommander(alite, autosaveFilename);
-		}		
-	}
-		
-	public final void saveCommander(Alite alite, String newName, String fileName) throws IOException {
-		Player player = alite.getPlayer();
-		if (newName == null) {
-			newName = player.getName();
-		} else {
-			player.setName(newName);
-		}
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-		DataOutputStream dos = new DataOutputStream(bos);
-		saveCommander(alite, dos);
-		dos.close();
-		byte [] commanderData = encrypt(zipBytes(bos.toByteArray()), getKey(fileName));
-			
-		bos = new ByteArrayOutputStream(1024);
-		dos = new DataOutputStream(bos);
-		writeString(dos, newName, 16);
-		writeString(dos, player.getCurrentSystem() == null ? "Unknown" : player.getCurrentSystem().getName(), 8);
-		dos.writeLong(alite.getGameTime());
-		dos.writeInt(player.getScore());
-		bos.write(player.getRating().ordinal());	
-		byte [] headerData = encrypt(bos.toByteArray(), getKey(fileName));
-		
-		OutputStream fos = null;
-		try {
-			if (!alite.getFileIO().exists("commanders")) {
-				alite.getFileIO().mkDir("commanders");
-			}
-			fos = alite.getFileIO().writeFile(fileName);
-			fos.write(headerData.length >> 8);
-			fos.write(headerData.length & 255);
-			fos.write(headerData);
-			fos.write(commanderData);			
-		} finally {
-			try {
-				if (fos != null) {
-					fos.close();
-				}
-				bos.close();
-			} catch (IOException e) {
-				AliteLog.e("[Alite] saveCommander", "Error when writing commander.", e);
-			}
-		}
-		AliteLog.d("[Alite] saveCommander", "Saved Commander '" + player.getName() + "'.");
-	}
-	
-	public CommanderData getQuickCommanderInfo(Alite alite, String fileName) {
-		byte [] commanderData = null;
-		try {
-			ByteArrayInputStream bis = new ByteArrayInputStream(alite.getFileIO().readPartialFileContents(fileName, 2));
-			int length = bis.read() * 256 + bis.read();
-			commanderData = decrypt(alite.getFileIO().readPartialFileContents(fileName, 2, length), getKey(fileName));
 			bis.close();
+			commanderData = encrypt(zipBytes(bos.toByteArray()), getKey(newFileName));
+
+			bos = new ByteArrayOutputStream(1024);
+			DataOutputStream dos = new DataOutputStream(bos);
+			writeString(dos, info.getName(), 16);
+			writeString(dos, info.getDockedSystem(), 8);
+			dos.writeLong(info.getGameTime());
+			dos.writeInt(info.getPoints());
+			bos.write(info.getRating().ordinal());
+			byte[] headerData = encrypt(bos.toByteArray(), getKey(newFileName));
+
+			game.getFileIO().mkDir(CommanderData.DIRECTORY_COMMANDER);
+			fos = game.getFileIO().writeFile(newFileName);
+			fos.write(headerData.length >> 8);
+			fos.write(headerData.length & 255);
+			fos.write(headerData);
+			fos.write(commanderData);
 		} catch (IOException e) {
-			AliteLog.e("[ALITE] loadCommander", "Error when loading commander " + fileName + ".", e);
-			return null;
-		} 			
+			AliteLog.e("[Alite] backupCommander", "Error while creating backup.", e);
+		} finally {
+			closeResource(bis);
+			closeResource(fos);
+			closeResource(bos);
+		}
+		AliteLog.d("[Alite] backupCommander", "Copied Commander '" + info.getName() + "'.");
+	}
+
+	private void closeResource(Closeable res) {
 		try {
-			ByteArrayInputStream bis = new ByteArrayInputStream(commanderData);
-			DataInputStream dis = new DataInputStream(bis);
+			if (res != null) {
+				res.close();
+			}
+		} catch (IOException ignored) { }
+	}
+
+	public final void autoSave() throws IOException {
+		String fileName = determineOldestAutosaveSlot();
+		backupCommander(fileName);
+		saveCommander(null, fileName);
+	}
+
+	public final void autoLoad() throws IOException {
+		String autosaveFilename = determineYoungestAutosaveSlot();
+		if (game.getFileIO().exists(autosaveFilename)) {
+			loadCommander(autosaveFilename);
+		}
+	}
+
+	public CommanderData getQuickCommanderInfo(String fileName) {
+		try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(decrypt(
+				game.getFileIO().readPartialFileContents(fileName, 2, getHeaderLength(fileName)), getKey(fileName))))) {
 			String name = readString(dis, 16).trim();
 			String currentSystem = readString(dis, 8).trim();
 			long gameTime = dis.readLong();
 			int points = dis.readInt();
-			Rating rating = Rating.values()[bis.read()];	
-			bis.close();
+			Rating rating = Rating.values()[dis.read()];
 			return new CommanderData(name, currentSystem, gameTime, points, rating, fileName);
 		} catch (IOException e) {
-			AliteLog.e("[ALITE] loadCommander", "Error when loading commander "
-					+ fileName + ".", e);
+			AliteLog.e("[ALITE] loadCommander", "Error when loading commander " + fileName + ".", e);
 		}
 		return null;
 	}
-	
-	public final static String computeSHAString(File f) {
-		try {
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			InputStream is = new FileInputStream(f);
-			DigestInputStream dis = new DigestInputStream(is, md);
-			byte [] buffer = new byte[1024 * 1024];
-			while (dis.read(buffer) != -1) 
-				;
-			dis.close();
-	        byte[] mdbytes = md.digest();
-	   	 
-	        StringBuffer hexString = new StringBuffer();
-	    	for (int i = 0; i < mdbytes.length; i++) {
-	    	  hexString.append(Integer.toHexString(0xFF & mdbytes[i]));
-	    	}				
-	    	return hexString.toString();
-		} catch (NoSuchAlgorithmException e) {
-			AliteLog.e("[ALITE] computeSHAString", "No SHA-256 encryption!", e);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return ""; 		
+
+	public File[] getCommanderFiles() {
+		return game.getFileIO().getFiles(CommanderData.DIRECTORY_COMMANDER, "(.*)\\" + ALITE_COMMANDER_EXTENSION);
 	}
-	
-	public final String computeSHAString(String text) {
-		try {
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-	        md.update(text.getBytes(CHARSET));
-	        byte[] mdbytes = md.digest();
-	 
-	        StringBuffer hexString = new StringBuffer();
-	    	for (int i = 0; i < mdbytes.length; i++) {
-	    	  hexString.append(Integer.toHexString(0xFF & mdbytes[i]));
-	    	}				
-	    	return hexString.toString();
-		} catch (NoSuchAlgorithmException e) {
-			AliteLog.e("[ALITE] computeSHAString", "No SHA-256 encryption!", e);
-		}
-		return ""; 
+
+	public boolean existsSavedCommander() {
+		File[] commanders = getCommanderFiles();
+		return commanders != null && commanders.length > 0 &&
+			(commanders.length > 1 || !getAutoSavedFileName(0).equals(commanders[0].getName()));
 	}
-	
+
 	private String getKey(String fileName) {
-		int keyIndex = fileName.hashCode();		
+		int keyIndex = fileName.hashCode();
 		if (keyIndex == Integer.MIN_VALUE) {
 			keyIndex = Integer.MAX_VALUE;
 		} else {
 			keyIndex = Math.abs(keyIndex);
 		}
 		keyIndex %= keys.length;
-		return keys[keyIndex];		
+		return keys[keyIndex];
 	}
 }

@@ -28,7 +28,6 @@ import java.util.Locale;
 
 import android.graphics.Point;
 import android.util.SparseIntArray;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
@@ -93,7 +92,7 @@ public class GalaxyScreen extends AliteScreen {
 		}
 	}
 
-	public GalaxyScreen(Game game) {
+	public GalaxyScreen(Alite game) {
 		super(game);
 	}
 
@@ -104,9 +103,9 @@ public class GalaxyScreen extends AliteScreen {
 			gs.centerX = dis.readInt();
 			gs.centerY = dis.readInt();
 			gs.pendingZoomFactor = gs.zoomFactor;
-			gs.pendingCenterX    = gs.centerX;
-			gs.pendingCenterY    = gs.centerY;
-		} catch (Exception e) {
+			gs.pendingCenterX = gs.centerX;
+			gs.pendingCenterY = gs.centerY;
+		} catch (IOException e) {
 			AliteLog.e("Galaxy Screen Initialize", "Error in initializer.", e);
 			return false;
 		}
@@ -123,7 +122,7 @@ public class GalaxyScreen extends AliteScreen {
 
 	private MappedSystemData findClosestSystem(int x, int y) {
 		int minDist = -1;
-		Player player = ((Alite) game).getPlayer();
+		Player player = game.getPlayer();
 		int key;
 		MappedSystemData closestSystem = null;
 		for (MappedSystemData system: systemData) {
@@ -145,8 +144,7 @@ public class GalaxyScreen extends AliteScreen {
 	}
 
 	private void findSystem() {
-		final Alite alite = (Alite) game;
-		TextInputScreen textInput = new TextInputScreen(alite, "Find Planet", "Enter planet name", "", this,
+		TextInputScreen textInput = new TextInputScreen(game, "Find Planet", "Enter planet name", "", this,
 			new TextCallback() {
 				@Override
 				public void onOk(String text) {
@@ -156,7 +154,7 @@ public class GalaxyScreen extends AliteScreen {
 					boolean found = false;
 					for (MappedSystemData system: systemData) {
 						if (system.system.getName().equalsIgnoreCase(text)) {
-							alite.getPlayer().setHyperspaceSystem(system.system);
+							game.getPlayer().setHyperspaceSystem(system.system);
 							targetX = computeCenterX(system.system.getX());
 							targetY = computeCenterY(system.system.getY());
 							found = true;
@@ -164,13 +162,13 @@ public class GalaxyScreen extends AliteScreen {
 						}
 					}
 					if (!found) {
-						int galaxy = alite.getGenerator().findGalaxyOfPlanet(text);
+						int galaxy = game.getGenerator().findGalaxyOfPlanet(text);
 						if (galaxy == -1) {
 							setMessage("Planet " + capitalize(text) + " is unknown.");
 							SoundManager.play(Assets.error);
 						} else {
 							setMessage("Planet " + capitalize(text) + " is in Galaxy " + galaxy +
-									". You are currently in Galaxy " + alite.getGenerator().getCurrentGalaxy() + ".");
+									". You are currently in Galaxy " + game.getGenerator().getCurrentGalaxy() + ".");
 							SoundManager.play(Assets.alert);
 						}
 					}
@@ -246,11 +244,11 @@ public class GalaxyScreen extends AliteScreen {
 			if (Math.abs(startX - touch.x) < 20 &&
 				Math.abs(startY - touch.y) < 20) {
 				if (homeButton.isTouched(touch.x, touch.y)) {
-					SystemData homeSystem = ((Alite) game).getPlayer().getCurrentSystem();
-					((Alite) game).getPlayer().setHyperspaceSystem(homeSystem);
+					SystemData homeSystem = game.getPlayer().getCurrentSystem();
+					game.getPlayer().setHyperspaceSystem(homeSystem);
 					if (homeSystem == null) {
-						targetX = computeCenterX(((Alite) game).getPlayer().getPosition().x);
-						targetY = computeCenterY(((Alite) game).getPlayer().getPosition().y);
+						targetX = computeCenterX(game.getPlayer().getPosition().x);
+						targetY = computeCenterY(game.getPlayer().getPosition().y);
 					} else {
 						targetX = computeCenterX(homeSystem.getX());
 						targetY = computeCenterY(homeSystem.getY());
@@ -267,7 +265,7 @@ public class GalaxyScreen extends AliteScreen {
 				if (closestSystem.x > 1720 || closestSystem.x < 0 || closestSystem.y > 1080 || closestSystem.y < 20) {
 					return;
 				}
-				((Alite) game).getPlayer().setHyperspaceSystem(closestSystem.system);
+				game.getPlayer().setHyperspaceSystem(closestSystem.system);
 				SoundManager.play(Assets.click);
 			}
 		}
@@ -377,7 +375,7 @@ public class GalaxyScreen extends AliteScreen {
 
 	private void renderCurrentPositionCross() {
 		Graphics g = game.getGraphics();
-		Player player = ((Alite) game).getPlayer();
+		Player player = game.getPlayer();
 		SystemData hyperspaceSystem = player.getHyperspaceSystem();
 
 		int px = transformX(hyperspaceSystem == null ? player.getPosition().x : hyperspaceSystem.getX());
@@ -390,7 +388,7 @@ public class GalaxyScreen extends AliteScreen {
 
 	private void renderCurrentFuelCircle() {
 		Graphics g = game.getGraphics();
-		Player player = ((Alite) game).getPlayer();
+		Player player = game.getPlayer();
 
 		SystemData currentSystem = player.getCurrentSystem();
 		SystemData hyperspaceSystem = player.getHyperspaceSystem();
@@ -422,7 +420,7 @@ public class GalaxyScreen extends AliteScreen {
 	}
 
 	private void renderDistance() {
-		Player player = ((Alite) game).getPlayer();
+		Player player = game.getPlayer();
 		Graphics g = game.getGraphics();
 
         if (player.getHyperspaceSystem() != null) {
@@ -474,7 +472,7 @@ public class GalaxyScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		zoomFactor = 1.0f;
-		title = "Galactic Chart #" + ((Alite) game).getGenerator().getCurrentGalaxy();
+		title = "Galactic Chart #" + game.getGenerator().getCurrentGalaxy();
 		game.getInput().setZoomFactor(zoomFactor);
 		centerX = HALF_WIDTH;
 		centerY = HALF_HEIGHT;
@@ -512,9 +510,9 @@ public class GalaxyScreen extends AliteScreen {
 	}
 
 	private void initializeSystems() {
-		Player player = ((Alite) game).getPlayer();
-		if (player.getRating() == Rating.ELITE && ((Alite) game).getGenerator().getCurrentGalaxyFromSeed() == 8) {
-			ArrayList <SystemData> temp = new ArrayList<>(Arrays.asList(((Alite) game).getGenerator().getSystems()));
+		Player player = game.getPlayer();
+		if (player.getRating() == Rating.ELITE && game.getGenerator().getCurrentGalaxyFromSeed() == 8) {
+			ArrayList <SystemData> temp = new ArrayList<>(Arrays.asList(game.getGenerator().getSystems()));
 			Raxxla raxxla = new Raxxla();
 			temp.add(raxxla.getSystem());
 			systemData = new MappedSystemData[temp.size()];
@@ -527,7 +525,7 @@ public class GalaxyScreen extends AliteScreen {
 		} else {
 			systemData = new MappedSystemData[256];
 			int count = 0;
-			for (SystemData system: ((Alite) game).getGenerator().getSystems()) {
+			for (SystemData system: game.getGenerator().getSystems()) {
 				int x = (system.getX() - 128) * SCALE_CONST + HALF_WIDTH;
 				int y = (system.getY() -  64) * SCALE_CONST + HALF_HEIGHT;
 				systemData[count++] = new MappedSystemData(system, x, y);

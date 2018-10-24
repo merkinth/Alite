@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -26,7 +25,6 @@ import java.io.IOException;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Geometry;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -137,14 +135,9 @@ public class ShipIntroScreen extends AliteScreen {
 	private Music theChase;
 	private boolean showLoadNewCommander;
 
-	public ShipIntroScreen(Game game) {
+	public ShipIntroScreen(Alite game) {
 		super(game);
-		File[] commanders = null;
-		try {
-			commanders = game.getFileIO().getFiles("commanders", "(.*)\\.cmdr");
-		} catch (IOException ignored) { }
-		showLoadNewCommander = commanders != null && commanders.length > 0 &&
-			(commanders.length > 1 || !"__autosave.cmdr".equals(commanders[0].getName()));
+		showLoadNewCommander = game.existsSavedCommander();
 	}
 
 	private void initGl() {
@@ -223,7 +216,7 @@ public class ShipIntroScreen extends AliteScreen {
 			if (yesButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				newScreen = new LoadScreen(game, "Load Commander");
-				((Alite) game).getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK);
+				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK);
 			}
 			if (noButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
@@ -273,7 +266,7 @@ public class ShipIntroScreen extends AliteScreen {
 		g.drawText("Alite is inspired by classic Elite", 1450, 1020, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.smallFont);
 		g.drawText("\u00a9 Acornsoft, Bell & Braben", 1450, 1050, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.smallFont);
 		debugExhausts();
-		((Alite) game).getTextureManager().setTexture(null);
+		game.getTextureManager().setTexture(null);
 		yesButton.render(g);
 		noButton.render(g);
 		tapToStartButton.render(g);
@@ -338,12 +331,12 @@ public class ShipIntroScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		initGl();
-		skysphere = new SkySphereSpaceObject((Alite) game, "skysphere", 8000.0f, 16, 16, "textures/star_map.png");
+		skysphere = new SkySphereSpaceObject(game, "skysphere", 8000.0f, 16, 16, "textures/star_map.png");
 		SpaceObject ao = (SpaceObject)getShipForCurrentIndex();
 		ao.setPosition(0.0f, 0.0f, -ao.getMaxExtentWithoutExhaust() * 2.0f);
 
 		if (SHOW_DOCKING) {
-			coriolis = new Coriolis((Alite) game);
+			coriolis = new Coriolis(game);
 			coriolis.applyDeltaRotation(0, 0, 90);
 			coriolis.setPosition(0, 0, -1300);
 		}
@@ -367,6 +360,7 @@ public class ShipIntroScreen extends AliteScreen {
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
+		dos.writeInt(currentShipIndex);
 	}
 
 	@Override
@@ -383,15 +377,6 @@ public class ShipIntroScreen extends AliteScreen {
 			theChase.pause();
 			theChase = null;
 		}
-		try {
-			ByteArrayOutputStream bos = new ByteArrayOutputStream(4);
-			DataOutputStream dos = new DataOutputStream(bos);
-			dos.writeInt(currentShipIndex);
-			dos.close();
-			((Alite) game).getFileUtils().saveState(game.getFileIO(), ScreenCodes.SHIP_INTRO_SCREEN, bos.toByteArray());
-		} catch (IOException e) {
-			AliteLog.e("Error writing state file.", "Error writing state file.", e);
-		}
 	}
 
 	@Override
@@ -402,7 +387,7 @@ public class ShipIntroScreen extends AliteScreen {
 			theChase.play();
 		}
 		initGl();
-		((Alite) game).getTextureManager().reloadAllTextures();
+		game.getTextureManager().reloadAllTextures();
 	}
 
 	@Override
@@ -500,48 +485,47 @@ public class ShipIntroScreen extends AliteScreen {
 
 
 	private AliteObject getShipForCurrentIndex() {
-		Alite alite = (Alite) game;
 		switch (currentShipIndex) {
-			case  0: return new CobraMkIII(alite);
-			case  1: return new Krait(alite);
-			case  2: return new Thargoid(alite);
-			case  3: return new BoaClassCruiser(alite);
-			case  4: return new Gecko(alite);
-			case  5: return new MorayStarBoat(alite);
-			case  6: return new Adder(alite);
-			case  7: return new Mamba(alite);
-			case  8: return new Viper(alite);
-			case  9: return new FerDeLance(alite);
-			case 10: return new CobraMkI(alite);
-			case 11: return new Python(alite);
-			case 12: return new Anaconda(alite);
-			case 13: return new AspMkII(alite);
-			case 14: return new Sidewinder(alite);
-			case 15: return new WolfMkII(alite);
-			case 16: return new OrbitShuttle(alite);
-			case 17: return new Transporter(alite);
-			case 18: return new Boomslang(alite);
-			case 19: return new Constrictor(alite);
-			case 20: return new Cottonmouth(alite);
-			case 21: return new Cougar(alite);
-			case 22: return new EscapeCapsule(alite);
-			case 23: return new Hognose2(alite);
-			case 24: return new Lora(alite);
-			case 25: return new Missile(alite);
-			case 26: return new Gopher(alite);
-			case 27: return new Coral(alite);
-			case 28: return new Bushmaster(alite);
-			case 29: return new Rattlesnake(alite);
-			case 30: return new Mussurana(alite);
-			case 31: return new Dugite(alite);
-			case 32: return new Yellowbelly(alite);
-			case 33: return new Indigo(alite);
-			case 34: return new Harlequin(alite);
-			case 35: return new TieFighter(alite);
-			case 36: return new Lyre(alite);
-			case 37: return new Thargon(alite);
+			case  0: return new CobraMkIII(game);
+			case  1: return new Krait(game);
+			case  2: return new Thargoid(game);
+			case  3: return new BoaClassCruiser(game);
+			case  4: return new Gecko(game);
+			case  5: return new MorayStarBoat(game);
+			case  6: return new Adder(game);
+			case  7: return new Mamba(game);
+			case  8: return new Viper(game);
+			case  9: return new FerDeLance(game);
+			case 10: return new CobraMkI(game);
+			case 11: return new Python(game);
+			case 12: return new Anaconda(game);
+			case 13: return new AspMkII(game);
+			case 14: return new Sidewinder(game);
+			case 15: return new WolfMkII(game);
+			case 16: return new OrbitShuttle(game);
+			case 17: return new Transporter(game);
+			case 18: return new Boomslang(game);
+			case 19: return new Constrictor(game);
+			case 20: return new Cottonmouth(game);
+			case 21: return new Cougar(game);
+			case 22: return new EscapeCapsule(game);
+			case 23: return new Hognose2(game);
+			case 24: return new Lora(game);
+			case 25: return new Missile(game);
+			case 26: return new Gopher(game);
+			case 27: return new Coral(game);
+			case 28: return new Bushmaster(game);
+			case 29: return new Rattlesnake(game);
+			case 30: return new Mussurana(game);
+			case 31: return new Dugite(game);
+			case 32: return new Yellowbelly(game);
+			case 33: return new Indigo(game);
+			case 34: return new Harlequin(game);
+			case 35: return new TieFighter(game);
+			case 36: return new Lyre(game);
+			case 37: return new Thargon(game);
 		}
-		return new CobraMkIII(alite);
+		return new CobraMkIII(game);
 	}
 
 	private AliteObject getNextShip() {
@@ -569,7 +553,7 @@ public class ShipIntroScreen extends AliteScreen {
 		ShipIntroScreen sis = new ShipIntroScreen(alite);
 		try {
 			sis.currentShipIndex = dis.readInt();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Ship Intro Screen Initialize", "Error in initializer.", e);
 			return false;
 		}

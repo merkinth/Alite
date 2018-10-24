@@ -26,7 +26,6 @@ import java.nio.FloatBuffer;
 import android.graphics.Rect;
 import android.opengl.GLES11;
 import android.opengl.Matrix;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
@@ -61,9 +60,11 @@ public class HyperspaceScreen extends GlScreen {
     private IMethodHook finishHook = null;
     private boolean restartedSound = true;
     private transient boolean screenLoad = false;
+	private Alite game;
 
-	public HyperspaceScreen(Game game, boolean intergal) {
+	public HyperspaceScreen(Alite game, boolean intergal) {
 		super(game);
+		this.game = game;
 		this.intergal = intergal;
 	}
 
@@ -84,7 +85,7 @@ public class HyperspaceScreen extends GlScreen {
 		try {
 			HyperspaceScreen hs = createScreen(alite, dis);
 			alite.setScreen(hs);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Hyperspace Screen Initialize", "Error in initializer.", e);
 			return false;
 		}
@@ -107,11 +108,11 @@ public class HyperspaceScreen extends GlScreen {
 	}
 
 	public void onActivation() {
-		int [] size = game.getSize();
+		int[] size = game.getSize();
 		windowWidth = size[0];
 		windowHeight = size[1];
 		startTime = System.nanoTime();
-		((Alite) game).getTextureManager().addTexture(textureFilename);
+		game.getTextureManager().addTexture(textureFilename);
 		makeTorus(wholeTorusSides, crossSectionSides, torusRadius, crossSectionRadius);
 		Rect visibleArea = game.getGraphics().getVisibleArea();
 		initializeGl(visibleArea);
@@ -138,9 +139,9 @@ public class HyperspaceScreen extends GlScreen {
 				finishHook.execute(deltaTime);
 			} else {
 				if (intergal) {
-					((Alite) game).performIntergalacticJump();
+					game.performIntergalacticJump();
 				} else {
-					((Alite) game).performHyperspaceJump();
+					game.performHyperspaceJump();
 				}
 			}
 		}
@@ -169,7 +170,7 @@ public class HyperspaceScreen extends GlScreen {
 
         GLES11.glEnable(GLES11.GL_TEXTURE_2D);
         GLES11.glEnable(GLES11.GL_DEPTH_TEST);
-        ((Alite) game).getTextureManager().setTexture(textureFilename);
+        game.getTextureManager().setTexture(textureFilename);
         GLES11.glDisable(GLES11.GL_LIGHTING);
 	}
 

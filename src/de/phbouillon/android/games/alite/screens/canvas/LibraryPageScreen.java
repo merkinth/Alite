@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
@@ -84,7 +83,7 @@ public class LibraryPageScreen extends AliteScreen {
 		private int[] positions;
 		private Pixmap pixmap = null;
 
-		PageText(StyledText [] words, int [] positions) {
+		PageText(StyledText[] words, int[] positions) {
 			this.words = words;
 			this.positions = positions;
 		}
@@ -167,7 +166,7 @@ public class LibraryPageScreen extends AliteScreen {
 		}
 	}
 
-	LibraryPageScreen(Game game, TocEntry entry, String currentFilter) {
+	LibraryPageScreen(Alite game, TocEntry entry, String currentFilter) {
 		super(game);
 		tocEntry = entry;
 		this.currentFilter = currentFilter;
@@ -237,14 +236,14 @@ public class LibraryPageScreen extends AliteScreen {
 			LibraryPageScreen lps = new LibraryPageScreen(alite, entry, filter);
 			lps.yPosition = dis.readInt();
 			alite.setScreen(lps);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Library Screen Initialize", "Error in initializer.", e);
 			return false;
 		}
 		return true;
 	}
 
-	private int findTocEntryIndex(TocEntry [] entries, String name, int counter) {
+	private int findTocEntryIndex(TocEntry[] entries, String name, int counter) {
 		for (int i = 0; i < entries.length; i++) {
 			if (entries[i].getName().equals(name)) {
 				AliteLog.d("Found", "Found -- i = " + i);
@@ -262,7 +261,7 @@ public class LibraryPageScreen extends AliteScreen {
 		return -1;
 	}
 
-	private static TocEntry findTocEntryForIndex(TocEntry [] entries, int index, int counter) {
+	private static TocEntry findTocEntryForIndex(TocEntry[] entries, int index, int counter) {
 		for (int i = 0; i < entries.length; i++) {
 			if (i + counter == index) {
 				AliteLog.d("Found", "Found -- i = " + i);
@@ -500,7 +499,7 @@ public class LibraryPageScreen extends AliteScreen {
 			int diff = fieldWidth - sentenceWidth;
 			int enlarge = diff / spaces;
 			int extraEnlarge = diff - spaces * enlarge;
-			int [] pos = new int[words.length];
+			int[] pos = new int[words.length];
 			int currentWord = 0;
 			for (StyledText w: words) {
 				pos[currentWord++] = xPos;

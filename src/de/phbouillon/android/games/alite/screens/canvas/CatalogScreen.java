@@ -24,10 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
@@ -58,17 +56,14 @@ public class CatalogScreen extends AliteScreen {
 	List<Integer> pendingSelectionIndices = null;
 	private boolean pendingShowMessage = false;
 
-	CatalogScreen(Game game, String title) {
+	CatalogScreen(Alite game, String title) {
 		super(game);
 		this.title = title;
 	}
 
 	@Override
 	public void activate() {
-		File[] commanders = null;
-		try {
-			commanders = game.getFileIO().getFiles("commanders", "(.*)\\.cmdr");
-		} catch (IOException ignored) { }
+		File[] commanders = game.getCommanderFiles();
 		back = Button.createGradientRegularButton(1400, 950, 100, 100, "<");
 		more = Button.createGradientRegularButton(1550, 950, 100, 100, ">");
 
@@ -76,7 +71,7 @@ public class CatalogScreen extends AliteScreen {
 		commanderData.clear();
 		if (commanders != null) {
 			for (int i = 0; i < commanders.length; i++) {
-				CommanderData data = ((Alite) game).getFileUtils().getQuickCommanderInfo((Alite) game, "commanders/" + commanders[i].getName());
+				CommanderData data = game.getQuickCommanderInfo(commanders[i].getName());
 				if (data != null) {
 					Button b = Button.createPictureButton(20, 210 + (i % 5) * 140, 1680, 120, buttonBackground)
 						.setPushedBackground(buttonBackgroundPushed)
@@ -87,40 +82,26 @@ public class CatalogScreen extends AliteScreen {
 				}
 			}
 		}
-		Collections.sort(commanderData, new Comparator<CommanderData>() {
-			@Override
-			public int compare(CommanderData c1, CommanderData c2) {
-				if (c1 == null) {
-					return c2 == null ? 0 : -1;
-				}
-				if (c2 == null) {
-					return 1;
-				}
-				// Autosave always comes first
-				if (c1.getFileName().contains("commanders/__autosave")) {
-					if (c2.getFileName().contains("commanders/__autosave")) {
-						try {
-							return Long.compare(game.getFileIO().fileLastModifiedDate(c2.getFileName()),
-								game.getFileIO().fileLastModifiedDate(c1.getFileName()));
-						} catch (IOException e) {
-							return 0;
-						}
-					}
-					return -1;
-				}
-				if (c2.getFileName().contains("commanders/__autosave")) {
-					return 1;
-				}
-				String n1 = c1.getName() == null ? "" : c1.getName();
-				String n2 = c2.getName() == null ? "" : c2.getName();
-				int result = n1.compareTo(n2);
-				if (result == 0) {
-					long t1 = c1.getGameTime();
-					long t2 = c2.getGameTime();
-					result = t1 < t2 ? 1 : -1; // We want to display longer game times first.
-				}
-				return result;
+		Collections.sort(commanderData, (c1, c2) -> {
+			if (c1 == null) {
+				return c2 == null ? 0 : -1;
 			}
+			if (c2 == null) {
+				return 1;
+			}
+			// Autosave always comes first
+			if (c1.isAutoSaved()) {
+				return c2.isAutoSaved() ? Long.compare(game.getFileIO().fileLastModifiedDate(c2.getFileName()),
+					game.getFileIO().fileLastModifiedDate(c1.getFileName())) : -1;
+			}
+			if (c2.isAutoSaved()) {
+				return 1;
+			}
+			String n1 = c1.getName() == null ? "" : c1.getName();
+			String n2 = c2.getName() == null ? "" : c2.getName();
+			int result = n1.compareTo(n2);
+			// We want to display longer game times first.
+			return result == 0 ? c1.getGameTime() < c2.getGameTime() ? 1 : -1 : result;
 		});
 
 		deleteButton = Button.createGradientRegularButton(50, 950, 600, 100, "Delete selected Commander");
@@ -158,7 +139,7 @@ public class CatalogScreen extends AliteScreen {
 				}
 			}
 			cs.pendingShowMessage = dis.readBoolean();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Load Screen Initialize", "Error in initializer.", e);
 			return false;
 		}
@@ -218,11 +199,7 @@ public class CatalogScreen extends AliteScreen {
 				confirmDelete = false;
 				if (messageResult == 1) {
 					for (CommanderData cd: selectedCommanderData) {
-						try {
-							game.getFileIO().deleteFile(cd.getFileName());
-						} catch (IOException e) {
-							AliteLog.e("[ALITE] Delete file", "Cannot delete file " + cd.getFileName() + ".", e);
-						}
+						game.getFileIO().deleteFile(cd.getFileName());
 					}
 					newScreen = new CatalogScreen(game, "Catalog");
 				}
@@ -244,9 +221,9 @@ public class CatalogScreen extends AliteScreen {
 	}
 
 	void clearSelection() {
-		for (int i = 0; i < button.size(); i++) {
-			if (button.get(i).isSelected()) {
-				button.get(i).setPixmap(buttonBackground).setSelected(false);
+		for (Button aButton : button) {
+			if (aButton.isSelected()) {
+				aButton.setPixmap(buttonBackground).setSelected(false);
 			}
 		}
 		selectedCommanderData.clear();
@@ -280,7 +257,7 @@ public class CatalogScreen extends AliteScreen {
 			int color = ColorScheme.get(i % 2 == 0 ? ColorScheme.COLOR_MESSAGE : ColorScheme.COLOR_MAIN_TEXT);
 			String textToDisplay = data.getName();
 			String suffix = "";
-			if (data.getFileName().contains("commanders/__autosave")) {
+			if (data.isAutoSaved()) {
 				int no = 0;
 				if (data.getFileName().contains("1")) {
 					no = 1;
@@ -340,16 +317,6 @@ public class CatalogScreen extends AliteScreen {
 		buttonBackgroundSelected = game.getGraphics().newPixmap("catalog_button_selected.png");
 		buttonBackgroundPushed = game.getGraphics().newPixmap("catalog_button_pushed.png");
 		super.loadAssets();
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
 	}
 
 	@Override

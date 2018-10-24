@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.games.alite.Alite;
@@ -70,7 +69,7 @@ public class InventoryScreen extends TradeScreen {
 	private Pixmap unhappyRefugees;
 	private String pendingSelection = null;
 
-	public InventoryScreen(Game game) {
+	public InventoryScreen(Alite game) {
 		super(game, 0);
 		X_OFFSET = 50;
 		GAP_X = 270;
@@ -111,7 +110,7 @@ public class InventoryScreen extends TradeScreen {
 					selectionLength--;
 				}
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Inventory Screen Initialize", "Error in initializer.", e);
 			return false;
 		}
@@ -129,7 +128,7 @@ public class InventoryScreen extends TradeScreen {
 
 	@Override
 	protected void createButtons() {
-		PlayerCobra cobra = ((Alite) game).getPlayer().getCobra();
+		PlayerCobra cobra = game.getPlayer().getCobra();
 		InventoryItem[] inventory = cobra.getInventory();
 		inventoryList.clear();
 
@@ -162,7 +161,7 @@ public class InventoryScreen extends TradeScreen {
 	}
 
 	private void renderSpecialCargo(int x, int y) {
-		PlayerCobra cobra = ((Alite) game).getPlayer().getCobra();
+		PlayerCobra cobra = game.getPlayer().getCobra();
 		if (y >= ROWS) {
 			return;
 		}
@@ -199,7 +198,7 @@ public class InventoryScreen extends TradeScreen {
     }
 
 	private String computeCashString(InventoryPair pair) {
-		Market market = ((Alite) game).getPlayer().getMarket();
+		Market market = game.getPlayer().getMarket();
 
 		int factor = pair.good.getUnit() == Unit.TON ? 1000000 : pair.good.getUnit() == Unit.KILOGRAM ? 1000 : 1;
 		long price = computePrice(market, factor, pair.item.getWeight().getWeightInGrams(), pair.good);
@@ -208,7 +207,7 @@ public class InventoryScreen extends TradeScreen {
 	}
 
 	private String computeGainLossString(InventoryPair pair) {
-		Market market = ((Alite) game).getPlayer().getMarket();
+		Market market = game.getPlayer().getMarket();
 
 		int factor = pair.good.getUnit() == Unit.TON ? 1000000 : pair.good.getUnit() == Unit.KILOGRAM ? 1000 : 1;
 		long price = computePrice(market, factor, pair.item.getWeight().getWeightInGrams(), pair.good);
@@ -241,7 +240,7 @@ public class InventoryScreen extends TradeScreen {
 		displayTitle("Inventory");
 
 		if (inventoryList.isEmpty()) {
-			if (!((Alite) game).getCobra().containsSpecialCargo()) {
+			if (!game.getCobra().containsSpecialCargo()) {
 				g.drawText("Cargo hold is empty.", 180, 200, ColorScheme.get(ColorScheme.COLOR_WARNING_MESSAGE), Assets.regularFont);
 			}
 		}
@@ -274,8 +273,7 @@ public class InventoryScreen extends TradeScreen {
 		int widthComplete = width + game.getGraphics().getTextWidth(gainText, Assets.regularFont);
 		game.getGraphics().drawText(gainText, X_OFFSET + width, 1050, ColorScheme.get(gainText.startsWith("Loss") ?
 			ColorScheme.COLOR_CONDITION_RED : ColorScheme.COLOR_CONDITION_GREEN), Assets.regularFont);
-		Alite alite = (Alite) game;
-		if (alite.getCurrentScreen() instanceof FlightScreen && alite.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop)) {
+		if (game.getCurrentScreen() instanceof FlightScreen && game.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop)) {
 			game.getGraphics().drawText(EJECT_HINT, X_OFFSET + widthComplete, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 		} else {
 			game.getGraphics().drawText(INVENTORY_HINT, X_OFFSET + widthComplete, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
@@ -283,7 +281,7 @@ public class InventoryScreen extends TradeScreen {
 	}
 
 	protected void performTradeWhileInFlight(int row, int column) {
-		if (!((Alite) game).getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop)) {
+		if (!game.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop)) {
 			super.performTradeWhileInFlight(row, column);
 			return;
 		}
@@ -294,7 +292,7 @@ public class InventoryScreen extends TradeScreen {
 		}
 		InventoryPair pair = inventoryList.get(index);
 		TradeGood tradeGood = pair.good;
-    	Player player = ((Alite) game).getPlayer();
+    	Player player = game.getPlayer();
     	Weight ejectedWeight;
     	long ejectedPrice = pair.item.getPrice();
     	if (pair.item.getWeight().compareTo(Weight.tonnes(4)) < 0) {
@@ -319,7 +317,7 @@ public class InventoryScreen extends TradeScreen {
 		}
 		InventoryPair pair = inventoryList.get(index);
 		TradeGood tradeGood = pair.good;
-    	Player player = ((Alite) game).getPlayer();
+    	Player player = game.getPlayer();
     	for (Mission m: player.getActiveMissions()) {
     		if (m.performTrade(this, tradeGood)) {
     			return;
@@ -328,10 +326,10 @@ public class InventoryScreen extends TradeScreen {
     	Market market = player.getMarket();
 		int factor = pair.good.getUnit() == Unit.TON ? 1000000 : pair.good.getUnit() == Unit.KILOGRAM ? 1000 : 1;
 		long price = computePrice(market, factor, pair.item.getWeight().getWeightInGrams(), pair.good);
-		int chanceInPercent = ((Alite) game).getPlayer().getLegalProblemLikelihoodInPercent();
+		int chanceInPercent = game.getPlayer().getLegalProblemLikelihoodInPercent();
 		if (Math.random() * 100 < chanceInPercent) {
-			((Alite) game).getPlayer().setLegalValue(
-					((Alite) game).getPlayer().getLegalValue() + (int) (tradeGood.getLegalityType() * pair.item.getUnpunished().getQuantityInAppropriateUnit()));
+			game.getPlayer().setLegalValue(game.getPlayer().getLegalValue() +
+				(int) (tradeGood.getLegalityType() * pair.item.getUnpunished().getQuantityInAppropriateUnit()));
 		}
 		player.getCobra().removeTradeGood(tradeGood);
     	player.setCash(player.getCash() + price);
@@ -339,7 +337,7 @@ public class InventoryScreen extends TradeScreen {
 		SoundManager.play(Assets.kaChing);
     	createButtons();
 		try {
-			((Alite) game).getFileUtils().autoSave((Alite) game);
+			game.autoSave();
 		} catch (IOException e) {
 			AliteLog.e("Auto saving failed", e.getMessage(), e);
 		}
@@ -421,16 +419,6 @@ public class InventoryScreen extends TradeScreen {
 			unhappyRefugees.dispose();
 			unhappyRefugees = null;
 		}
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
 	}
 
 	@Override

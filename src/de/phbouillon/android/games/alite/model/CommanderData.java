@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,6 +18,8 @@ package de.phbouillon.android.games.alite.model;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import java.io.File;
+
 public class CommanderData {
 	private final String name;
 	private final String dockedSystem;
@@ -25,7 +27,11 @@ public class CommanderData {
 	private final int points;
 	private final Rating rating;
 	private final String fileName;
-	
+	private final boolean autoSaved;
+
+	public static final String AUTO_SAVED_COMMANDER_FILENAME = "__autosave";
+	public static final String DIRECTORY_COMMANDER = "commanders";
+
 	public CommanderData(String name, String dockedSystem, long gameTime, int points, Rating rating, String fileName) {
 		this.name = name;
 		this.dockedSystem = dockedSystem;
@@ -33,24 +39,25 @@ public class CommanderData {
 		this.points = points;
 		this.rating = rating;
 		this.fileName = fileName;
+		autoSaved = fileName.contains(DIRECTORY_COMMANDER + File.separator + AUTO_SAVED_COMMANDER_FILENAME);
 	}
-	
-	public String getName() { 
-		return name; 
+
+	public String getName() {
+		return name;
 	}
-	
+
 	public String getDockedSystem() {
 		return dockedSystem;
 	}
-	
+
 	public long getGameTime() {
 		return gameTime;
 	}
-	
+
 	public int getPoints() {
 		return points;
 	}
-	
+
 	public Rating getRating() {
 		return rating;
 	}
@@ -58,4 +65,9 @@ public class CommanderData {
 	public String getFileName() {
 		return fileName;
 	}
+
+	public boolean isAutoSaved() {
+		return autoSaved;
+	}
+
 }

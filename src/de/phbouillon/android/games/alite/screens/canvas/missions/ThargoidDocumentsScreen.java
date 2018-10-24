@@ -24,11 +24,10 @@ import java.io.IOException;
 
 import android.graphics.Point;
 import android.media.MediaPlayer;
-import de.phbouillon.android.framework.Game;
+import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
@@ -91,26 +90,26 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 	private final ThargoidDocumentsMission mission;
 	private final int givenState;
 
-	public ThargoidDocumentsScreen(Game game, int state) {
+	public ThargoidDocumentsScreen(Alite game, int state) {
 		super(game);
 		givenState = state;
 		mission = (ThargoidDocumentsMission) MissionManager.getInstance().get(ThargoidDocumentsMission.ID);
 		mediaPlayer = new MediaPlayer();
-		AndroidFileIO fio = (AndroidFileIO) game.getFileIO();
+		FileIO fio = game.getFileIO();
 		String path = "sound/mission/2/";
 		try {
 			attCommander = new MissionLine(fio, path + "01.mp3", attentionCommander);
 			if (state == 0) {
 				missionLine = new MissionLine(fio, path + "02.mp3", missionDescription);
 				targetSystem = mission.findMostDistantSystem();
-				mission.setTarget(((Alite) game).getGenerator().getCurrentSeed(), targetSystem.getIndex(), state);
+				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), state);
 				acceptMission = new MissionLine(fio, path + "03.mp3", accept);
 			} else if (state == 1) {
 				missionLine = new MissionLine(fio, path + "04.mp3", fullyServiced);
 			} else if (state == 2) {
 				missionLine = new MissionLine(fio, path + "05.mp3", success);
 			 	mission.onMissionComplete();
-				Player player = ((Alite) game).getPlayer();
+				Player player = game.getPlayer();
 				player.removeActiveMission(mission);
 				player.addCompletedMission(mission);
 				player.resetIntergalacticJumpCounter();
@@ -227,7 +226,7 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 		int centerX = targetSystem.getX();
 		int centerY = targetSystem.getY();
 
-		for (SystemData system: ((Alite) game).getGenerator().getSystems()) {
+		for (SystemData system: game.getGenerator().getSystems()) {
 			drawSystem(system, centerX, centerY, 3.0f, false);
 		}
 		// Make sure the target system is rendered on top...
@@ -247,7 +246,7 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 		try {
 			int state = dis.readInt();
 			alite.setScreen(new ThargoidDocumentsScreen(alite, state));
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Thargoid Documents Screen Initialize", "Error in initializer.", e);
 			return false;
 		}

@@ -24,7 +24,6 @@ import java.util.Vector;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
@@ -83,23 +82,25 @@ public class ControlledShipIntroScreen extends GlScreen {
 	private long screenStartTime;
 	private int currentShipIndex = 0;
 
-	private final float [] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
-	private final float [] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
-	private final float [] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
-	private final float [] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
+	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
+	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
+	private final float[] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
+	private final float[] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
 
-	private final float [] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
+	private final float[] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
 
 	private DisplayMode displayMode = DisplayMode.ZOOM_IN;
-	private float [] matrix = null;
+	private float[] matrix = null;
+	private Alite game;
 
-	public ControlledShipIntroScreen(Game game) {
+	public ControlledShipIntroScreen(Alite game) {
 		super(game);
+		this.game = game;
 		AliteLog.d("Ship Intro Screen", "Constructor. Now loading background image... glError: " + GLES11.glGetError());
-		inGame = new InGameManager((Alite) game, null, "textures/purple_screen.png", lightPosition, false, false);
+		inGame = new InGameManager(game, null, "textures/purple_screen.png", lightPosition, false, false);
 		AliteLog.d("Ship Intro Screen", "Constructor done. Background image should have been loaded. glError: " + GLES11.glGetError());
 	}
 
@@ -112,9 +113,9 @@ public class ControlledShipIntroScreen extends GlScreen {
 		initializeGl(visibleArea);
 
 		AliteLog.d("Ship Intro Screen", "On Activation. After init. glError: " + GLES11.glGetError());
-		AliteHud.ct = new DefaultCoordinateTransformer((Alite) game);
+		AliteHud.ct = new DefaultCoordinateTransformer(game);
 		allObjects.clear();
-		SpaceObject cobra = new CargoCanister((Alite) game);
+		SpaceObject cobra = new CargoCanister(game);
 		cobra.setPosition(0.0f, 0.0f, START_Z);
 		inGame.getShip().setPosition(0.0f, 0.0f, 0.0f);
 		allObjects.add(cobra);
@@ -220,7 +221,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 		Vector<TouchEvent> touchEvents = game.getInput().getTouchEvents();
 		for (TouchEvent event: touchEvents) {
 			if (event.type == TouchEvent.TOUCH_SWEEP) {
-				float [] temp = allObjects.get(0).getMatrix();
+				float[] temp = allObjects.get(0).getMatrix();
 				if (matrix == null) {
 					matrix = new float[16];
 				}
@@ -266,38 +267,37 @@ public class ControlledShipIntroScreen extends GlScreen {
 		if (currentShipIndex == 28) {
 			currentShipIndex = 0;
 		}
-		Alite alite = (Alite) game;
 		switch (currentShipIndex) {
-			case  0: return new CobraMkIII(alite);
-			case  1: return new Krait(alite);
-			case  2: return new Thargoid(alite);
-			case  3: return new BoaClassCruiser(alite);
-			case  4: return new Gecko(alite);
-			case  5: return new MorayStarBoat(alite);
-			case  6: return new Adder(alite);
-			case  7: return new Mamba(alite);
-			case  8: return new Viper(alite);
-			case  9: return new FerDeLance(alite);
-			case 10: return new CobraMkI(alite);
-			case 11: return new Python(alite);
-			case 12: return new Anaconda(alite);
-			case 13: return new AspMkII(alite);
-			case 14: return new Sidewinder(alite);
-			case 15: return new WolfMkII(alite);
-			case 16: return new OrbitShuttle(alite);
-			case 17: return new Transporter(alite);
-			case 18: return new Thargon(alite);
-			case 19: return new Constrictor(alite);
-			case 20: return new Asteroid1(alite);
-			case 21: return new Asteroid2(alite);
-			case 22: return new Coriolis(alite);
-			case 23: return new Dodec(alite);
-			case 24: return new Icosaeder(alite);
-			case 25: return new CargoCanister(alite);
-			case 26: return new EscapeCapsule(alite);
-			case 27: return new Missile(alite);
+			case  0: return new CobraMkIII(game);
+			case  1: return new Krait(game);
+			case  2: return new Thargoid(game);
+			case  3: return new BoaClassCruiser(game);
+			case  4: return new Gecko(game);
+			case  5: return new MorayStarBoat(game);
+			case  6: return new Adder(game);
+			case  7: return new Mamba(game);
+			case  8: return new Viper(game);
+			case  9: return new FerDeLance(game);
+			case 10: return new CobraMkI(game);
+			case 11: return new Python(game);
+			case 12: return new Anaconda(game);
+			case 13: return new AspMkII(game);
+			case 14: return new Sidewinder(game);
+			case 15: return new WolfMkII(game);
+			case 16: return new OrbitShuttle(game);
+			case 17: return new Transporter(game);
+			case 18: return new Thargon(game);
+			case 19: return new Constrictor(game);
+			case 20: return new Asteroid1(game);
+			case 21: return new Asteroid2(game);
+			case 22: return new Coriolis(game);
+			case 23: return new Dodec(game);
+			case 24: return new Icosaeder(game);
+			case 25: return new CargoCanister(game);
+			case 26: return new EscapeCapsule(game);
+			case 27: return new Missile(game);
 		}
-		return new CobraMkIII(alite);
+		return new CobraMkIII(game);
 	}
 
 	@Override
@@ -337,7 +337,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 		super.resume();
 		Rect visibleArea = game.getGraphics().getVisibleArea();
 		initializeGl(visibleArea);
-		((Alite) game).getTextureManager().reloadAllTextures();
+		game.getTextureManager().reloadAllTextures();
 	}
 
 	@Override

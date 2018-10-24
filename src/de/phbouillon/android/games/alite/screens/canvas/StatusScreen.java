@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 
 import android.content.Intent;
 import android.net.Uri;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
@@ -56,14 +55,14 @@ public class StatusScreen extends AliteScreen {
 		DIR_LEFT, DIR_UP, DIR_RIGHT, DIR_DOWN
 	}
 
-	public StatusScreen(Game game) {
+	public StatusScreen(Alite game) {
 		super(game);
 	}
 
 	@Override
 	public void activate() {
 		setUpForDisplay(game.getGraphics().getVisibleArea());
-		((Alite) game).getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
+		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
 		for (Mission m: MissionManager.getInstance().getMissions()) {
 			if (m.missionStarts()) {
 				forwardingScreen = m.getMissionScreen();
@@ -78,8 +77,8 @@ public class StatusScreen extends AliteScreen {
 			}
 		}
 		if (!Settings.hasBeenPlayedBefore) {
-			Player player = ((Alite) game).getPlayer();
-			if (((Alite) game).getGenerator().getCurrentGalaxyFromSeed() == 1) {
+			Player player = game.getPlayer();
+			if (game.getGenerator().getCurrentGalaxyFromSeed() == 1) {
 				if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == 7) {
 					askForTutorial = true;
 					requireAnswer = true;
@@ -91,7 +90,7 @@ public class StatusScreen extends AliteScreen {
 	}
 
 	private void drawInformation(final Graphics g) {
-		Player player = ((Alite) game).getPlayer();
+		Player player = game.getPlayer();
 
 		g.drawText("Present System:",    40, 150, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		g.drawText("Hyperspace:",        40, 190, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
@@ -128,8 +127,7 @@ public class StatusScreen extends AliteScreen {
 	}
 
 	private void drawLasers(final Graphics g) {
-		Alite alite = (Alite) game;
-		PlayerCobra cobra = alite.getCobra();
+		PlayerCobra cobra = game.getCobra();
 
 		int lineColor = ColorScheme.get(ColorScheme.COLOR_ARROW);
 		int textColor = ColorScheme.get(ColorScheme.COLOR_EQUIPMENT_DESCRIPTION);
@@ -166,9 +164,8 @@ public class StatusScreen extends AliteScreen {
 	}
 
 	private void drawEquipment(final Graphics g) {
-		Alite alite = (Alite) game;
-		List <Equipment> installedEquipment = alite.getCobra().getInstalledEquipment();
-		PlayerCobra cobra = alite.getCobra();
+		List <Equipment> installedEquipment = game.getCobra().getInstalledEquipment();
+		PlayerCobra cobra = game.getCobra();
 		int missileCount = cobra.getMissiles();
 
 		int counter = 0;
@@ -209,7 +206,7 @@ public class StatusScreen extends AliteScreen {
 		g.drawRect(SHIP_X + 800, SHIP_Y + 570, 300, 100, ColorScheme.get(ColorScheme.COLOR_MESSAGE));
 		int halfWidth = g.getTextWidth("Game Time:", Assets.regularFont) >> 1;
 		g.drawText("Game Time:", SHIP_X + 800 + 150 - halfWidth, SHIP_Y + 610, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
-		String text = getGameTime(((Alite) game).getGameTime());
+		String text = getGameTime(game.getGameTime());
 		halfWidth = g.getTextWidth(text, Assets.regularFont) >> 1;
 		g.drawText(text, SHIP_X + 800 + 150 - halfWidth, SHIP_Y + 650, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
@@ -240,7 +237,7 @@ public class StatusScreen extends AliteScreen {
 			if (!(game.getCurrentScreen() instanceof FlightScreen)) {
 				if (touch.x > 30 && touch.x < 960 && touch.y > 1020) {
 					Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(AliteConfig.ALITE_WEBSITE));
-					((Alite) game).startActivityForResult(browserIntent, 0);
+					game.startActivityForResult(browserIntent, 0);
 				}
 			}
 		}
@@ -264,7 +261,7 @@ public class StatusScreen extends AliteScreen {
 			return;
 		}
 		Graphics g = game.getGraphics();
-		Player player = ((Alite) game).getPlayer();
+		Player player = game.getPlayer();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle("Commander " + player.getName());
 		if (cobra == null) {
@@ -295,16 +292,6 @@ public class StatusScreen extends AliteScreen {
 		}
 		cobra = game.getGraphics().newPixmap("cobra_small.png");
 		super.loadAssets();
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
 	}
 
 	public static boolean initialize(Alite alite, final DataInputStream dis) {

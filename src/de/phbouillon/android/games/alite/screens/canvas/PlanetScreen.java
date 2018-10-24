@@ -27,7 +27,6 @@ import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.impl.ColorFilterGenerator;
@@ -67,8 +66,8 @@ public class PlanetScreen extends AliteScreen {
 	private Pixmap aig_temp1;
 	private Pixmap aig_temp2;
 
-	private TextData [] descriptionTextData;
-	private TextData [] inhabitantTextData;
+	private TextData[] descriptionTextData;
+	private TextData[] inhabitantTextData;
 	private SystemData system;
 	private int inhabitantGenerationStep = 0;
 
@@ -89,13 +88,13 @@ public class PlanetScreen extends AliteScreen {
 	private ColorFilter hig_lipModifier;
 	private ColorFilter hig_eyeModifier;
 
-	public PlanetScreen(Game game) {
+	public PlanetScreen(Alite game) {
 		super(game);
 	}
 
 	@Override
 	public void activate() {
-		Player player = ((Alite) game).getPlayer();
+		Player player = game.getPlayer();
 		final SystemData system = player.getHyperspaceSystem() == null ? player.getCurrentSystem() : player.getHyperspaceSystem();
 		this.system = system;
 		inhabitantTextData = computeCenteredTextDisplay(game.getGraphics(), system.getInhabitants(), 20, 800, 400,
@@ -446,9 +445,9 @@ public class PlanetScreen extends AliteScreen {
 	}
 
 	private int computeDistance() {
-		SystemData currentSystem = ((Alite) game).getPlayer().getCurrentSystem();
-		int dx = (currentSystem == null ? ((Alite) game).getPlayer().getPosition().x : currentSystem.getX()) - system.getX();
-		int dy = (currentSystem == null ? ((Alite) game).getPlayer().getPosition().y : currentSystem.getY()) - system.getY();
+		SystemData currentSystem = game.getPlayer().getCurrentSystem();
+		int dx = (currentSystem == null ? game.getPlayer().getPosition().x : currentSystem.getX()) - system.getX();
+		int dy = (currentSystem == null ? game.getPlayer().getPosition().y : currentSystem.getY()) - system.getY();
 		return (int) Math.sqrt(dx * dx + dy * dy) << 2;
 	}
 
@@ -513,7 +512,7 @@ public class PlanetScreen extends AliteScreen {
 			return;
 		}
 		Graphics g = game.getGraphics();
-		Player player = ((Alite) game).getPlayer();
+		Player player = game.getPlayer();
 		SystemData system = player.getHyperspaceSystem() == null ? player.getCurrentSystem() : player.getHyperspaceSystem();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle("Data on " + system.getName());
@@ -565,9 +564,7 @@ public class PlanetScreen extends AliteScreen {
 	}
 
 	private void createPlanet(final SystemData system) {
-		Alite alite = (Alite) game;
-
-		planet = new PlanetSpaceObject(alite, system, true);
+		planet = new PlanetSpaceObject(game, system, true);
 		planet.setPosition(PLANET_POSITION);
 		planet.applyDeltaRotation(16, 35, 8);
 	}

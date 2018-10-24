@@ -22,9 +22,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 import android.media.MediaPlayer;
-import de.phbouillon.android.framework.Game;
+import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
-import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.ScreenCodes;
@@ -59,11 +58,11 @@ public class EndMissionScreen extends AliteScreen {
 	private TextData[] congratulationsText;
     private int state = 0;
 
-	public EndMissionScreen(Game game, int state) {
+	public EndMissionScreen(Alite game, int state) {
 		super(game);
 		EndMission mission = (EndMission) MissionManager.getInstance().get(EndMission.ID);
 		mediaPlayer = new MediaPlayer();
-		AndroidFileIO fio = (AndroidFileIO) game.getFileIO();
+		FileIO fio = game.getFileIO();
 		String path = "sound/mission/";
 		try {
 			if (state == 0) {
@@ -115,12 +114,7 @@ public class EndMissionScreen extends AliteScreen {
 	}
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			alite.setScreen(new EndMissionScreen(alite, 0));
-		} catch (Exception e) {
-			AliteLog.e("End Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
+		alite.setScreen(new EndMissionScreen(alite, 0));
 		return true;
 	}
 

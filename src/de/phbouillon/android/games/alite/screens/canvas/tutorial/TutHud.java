@@ -142,12 +142,9 @@ public class TutHud extends TutorialScreen {
 	private void initLine_00() {
 		addTopLine("Welcome Back, 'Commander'. Well? How does it feel to be " +
 				"in the Cockpit of a Cobra, hm?").
-				setUpdateMethod(new IMethodHook() {
-					@Override
-					public void execute(float deltaTime) {
-						flight.getInGameManager().getShip().setSpeed(0);
-						flight.getInGameManager().setPlayerControl(false);
-					}
+				setUpdateMethod((IMethodHook) deltaTime -> {
+					flight.getInGameManager().getShip().setSpeed(0);
+					flight.getInGameManager().setPlayerControl(false);
 				});
 		if (flight == null) {
 			flight = new FlightScreen(alite, true);
@@ -190,20 +187,18 @@ public class TutHud extends TutorialScreen {
 	private void initLine_06() {
 		final TutorialLine line = addTopLine("Why don't you try it?");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
-					if (viewPort == 1) {
-						flight.getInGameManager().setViewport(1);
-						currentLineIndex++;
-						line.setFinished();
-						return;
-					} else if (viewPort >= 0) {
-						line.setFinished();
-						return;
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event: game.getInput().getTouchEvents()) {
+				int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
+				if (viewPort == 1) {
+					flight.getInGameManager().setViewport(1);
+					currentLineIndex++;
+					line.setFinished();
+					return;
+				}
+				if (viewPort >= 0) {
+					line.setFinished();
+					return;
 				}
 			}
 		});
@@ -218,20 +213,18 @@ public class TutHud extends TutorialScreen {
 					Settings.tapRadarToChangeView ? "a" : "b").
 				setX(250).setWidth(1420).setY(20).setHeight(180);
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
-					if (viewPort == 1) {
-						flight.getInGameManager().setViewport(1);
-						line.setFinished();
-						return;
-					} else if (viewPort >= 0) {
-						currentLineIndex--;
-						line.setFinished();
-						return;
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event: game.getInput().getTouchEvents()) {
+				int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
+				if (viewPort == 1) {
+					flight.getInGameManager().setViewport(1);
+					line.setFinished();
+					return;
+				}
+				if (viewPort >= 0) {
+					currentLineIndex--;
+					line.setFinished();
+					return;
 				}
 			}
 		});
@@ -251,20 +244,18 @@ public class TutHud extends TutorialScreen {
 	private void initLine_09() {
 		final TutorialLine line = addTopLine("Go ahead, try it...");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
-					if (viewPort == 2) {
-						flight.getInGameManager().setViewport(2);
-						currentLineIndex++;
-						line.setFinished();
-						return;
-					} else if (viewPort >= 0) {
-						line.setFinished();
-						return;
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event: game.getInput().getTouchEvents()) {
+				int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
+				if (viewPort == 2) {
+					flight.getInGameManager().setViewport(2);
+					currentLineIndex++;
+					line.setFinished();
+					return;
+				}
+				if (viewPort >= 0) {
+					line.setFinished();
+					return;
 				}
 			}
 		});
@@ -279,20 +270,18 @@ public class TutHud extends TutorialScreen {
 					Settings.tapRadarToChangeView ? "a" : "b").
 				setX(250).setWidth(1420).setY(20).setHeight(180);
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
-					if (viewPort == 2) {
-						flight.getInGameManager().setViewport(2);
-						line.setFinished();
-						return;
-					} else if (viewPort >= 0) {
-						currentLineIndex--;
-						line.setFinished();
-						return;
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event: game.getInput().getTouchEvents()) {
+				int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
+				if (viewPort == 2) {
+					flight.getInGameManager().setViewport(2);
+					line.setFinished();
+					return;
+				}
+				if (viewPort >= 0) {
+					currentLineIndex--;
+					line.setFinished();
+					return;
 				}
 			}
 		});
@@ -310,20 +299,18 @@ public class TutHud extends TutorialScreen {
 				"suppose you know how to do that on your own, don't you? Go " +
 				"ahead, look left...");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
-					if (viewPort == 3) {
-						flight.getInGameManager().setViewport(3);
-						currentLineIndex++;
-						line.setFinished();
-						return;
-					} else if (viewPort >= 0) {
-						line.setFinished();
-						return;
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event: game.getInput().getTouchEvents()) {
+				int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
+				if (viewPort == 3) {
+					flight.getInGameManager().setViewport(3);
+					currentLineIndex++;
+					line.setFinished();
+					return;
+				}
+				if (viewPort >= 0) {
+					line.setFinished();
+					return;
 				}
 			}
 		});
@@ -338,20 +325,18 @@ public class TutHud extends TutorialScreen {
 					Settings.tapRadarToChangeView ? "a" : "b").
 				setX(250).setWidth(1420).setY(20).setHeight(180);
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
-					if (viewPort == 3) {
-						flight.getInGameManager().setViewport(3);
-						line.setFinished();
-						return;
-					} else if (viewPort >= 0) {
-						currentLineIndex--;
-						line.setFinished();
-						return;
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event: game.getInput().getTouchEvents()) {
+				int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
+				if (viewPort == 3) {
+					flight.getInGameManager().setViewport(3);
+					line.setFinished();
+					return;
+				}
+				if (viewPort >= 0) {
+					currentLineIndex--;
+					line.setFinished();
+					return;
 				}
 			}
 		});
@@ -381,18 +366,15 @@ public class TutHud extends TutorialScreen {
 					Settings.tapRadarToChangeView ? "a" : "b").
 				setX(250).setWidth(1420).setY(20).setHeight(140);
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
-					if (viewPort == 3 && Settings.tapRadarToChangeView) {
-						flight.getInGameManager().setViewport(3);
-						line.setFinished();
-					} else if (viewPort == 4 && !Settings.tapRadarToChangeView) {
-						flight.getInGameManager().toggleZoom();
-						line.setFinished();
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event: game.getInput().getTouchEvents()) {
+				int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
+				if (viewPort == 3 && Settings.tapRadarToChangeView) {
+					flight.getInGameManager().setViewport(3);
+					line.setFinished();
+				} else if (viewPort == 4 && !Settings.tapRadarToChangeView) {
+					flight.getInGameManager().toggleZoom();
+					line.setFinished();
 				}
 			}
 		});
@@ -407,12 +389,9 @@ public class TutHud extends TutorialScreen {
 	private void initLine_18() {
 		addTopLine("We will get back to the radar in more detail in the " +
 				"next lesson, for now, let's focus on the gauges you see " +
-				"next to your radar.").setUpdateMethod(new IMethodHook() {
-					@Override
-					public void execute(float deltaTime) {
-						if (flight.getInGameManager().getViewDirection() != 0) {
-							flight.getInGameManager().setViewport(0);
-						}
+				"next to your radar.").setUpdateMethod((IMethodHook) deltaTime -> {
+					if (flight.getInGameManager().getViewDirection() != 0) {
+						flight.getInGameManager().setViewport(0);
 					}
 				});
 	}
@@ -544,23 +523,15 @@ public class TutHud extends TutorialScreen {
 
 	private void initLine_37() {
 		final TutorialLine line = addEmptyLine().setSkippable(false);
-		line.setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				if (!flight.getInGameManager().isDockingComputerActive()) {
-					flight.getInGameManager().toggleDockingComputer(false);
-				}
-				if (flight.getInGameManager().getActualPostDockingScreen() == null) {
-					flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen(alite));
-				}
-				if (flight.getInGameManager().getPostDockingHook() == null) {
-					flight.getInGameManager().setPostDockingHook(new IMethodHook() {
-						@Override
-						public void execute(float deltaTime) {
-							dispose();
-						}
-					});
-				}
+		line.setUpdateMethod((IMethodHook) deltaTime -> {
+			if (!flight.getInGameManager().isDockingComputerActive()) {
+				flight.getInGameManager().toggleDockingComputer(false);
+			}
+			if (flight.getInGameManager().getActualPostDockingScreen() == null) {
+				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen(alite));
+			}
+			if (flight.getInGameManager().getPostDockingHook() == null) {
+				flight.getInGameManager().setPostDockingHook((IMethodHook) deltaTime1 -> dispose());
 			}
 		});
 	}
@@ -605,7 +576,7 @@ public class TutHud extends TutorialScreen {
 			int hyperspaceIndex = dis.readInt();
 			th.savedPresentSystem = systemIndex == -1 ? null : alite.getGenerator().getSystem(systemIndex);
 			th.savedHyperspaceSystem = hyperspaceIndex == -1 ? null : alite.getGenerator().getSystem(hyperspaceIndex);
-			th.savedInstalledEquipment = new ArrayList<Equipment>();
+			th.savedInstalledEquipment = new ArrayList<>();
 			int numEquip = dis.readInt();
 			for (int i = 0; i < numEquip; i++) {
 				th.savedInstalledEquipment.add(EquipmentStore.fromInt(dis.readByte()));
@@ -622,7 +593,7 @@ public class TutHud extends TutorialScreen {
 			th.savedLegalStatus = LegalStatus.values()[dis.readInt()];
 			th.savedLegalValue = dis.readInt();
 			alite.setScreen(th);
-		} catch (Exception e) {
+		} catch (IOException | ClassNotFoundException e) {
 			AliteLog.e("Tutorial HUD Screen Initialize", "Error in initializer.", e);
 			return false;
 		}

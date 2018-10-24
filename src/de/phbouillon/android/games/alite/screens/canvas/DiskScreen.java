@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 import java.io.DataInputStream;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
@@ -46,8 +45,8 @@ public class DiskScreen extends AliteScreen {
 	private Button[] button = new Button[3];
 	private final String[] text = new String[] {"Load", "Save", "Catalog"};
 
-	// public constructor(Game) is required for navigation bar
-	public DiskScreen(Game game) {
+	// public constructor(Alite) is required for navigation bar
+	public DiskScreen(Alite game) {
 		super(game);
 	}
 

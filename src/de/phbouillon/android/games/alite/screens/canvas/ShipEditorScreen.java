@@ -23,7 +23,6 @@ import java.io.IOException;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
@@ -82,15 +81,15 @@ public class ShipEditorScreen extends AliteScreen {
 	public static final int STRETCH_X = 7;
 	public static final int STRETCH_Y = 7;
 
-	private final float [] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
-	private final float [] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
-	private final float [] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
-	private final float [] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
+	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
+	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
+	private final float[] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
+	private final float[] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
 
-	private final float [] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
+	private final float[] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
 
 	private SpaceObject currentShip;
 
@@ -136,9 +135,9 @@ public class ShipEditorScreen extends AliteScreen {
 
 	private ExhaustParameters exp = new ExhaustParameters();
 
-	public ShipEditorScreen(Game game) {
+	public ShipEditorScreen(Alite game) {
 		super(game);
-		currentShip = new CobraMkIII((Alite) game);
+		currentShip = new CobraMkIII(game);
 		currentShip.getExhausts().clear();
 		exp.xOffset = 50;
 		exp.yOffset = 0;
@@ -154,7 +153,7 @@ public class ShipEditorScreen extends AliteScreen {
 		currentShip.addExhaust(new EngineExhaust(currentShip, 13.0f, 13.0f, 300.0f, -50.0f, 0, 0));
 		currentShip.addExhaust(new EngineExhaust(currentShip, 13.0f, 13.0f, 300.0f,  50.0f, 0, 0));
 		currentShip.setPosition(0, 0, -700.0f);
-		currentShip.setAIState(AIState.IDLE, (Object []) null);
+		currentShip.setAIState(AIState.IDLE, (Object[]) null);
 		currentShip.setSpeed(-currentShip.getMaxSpeed());
 	}
 
@@ -491,45 +490,44 @@ public class ShipEditorScreen extends AliteScreen {
 	}
 
 	private void getNextShip() {
-		Alite a = (Alite) game;
-		if (currentShip instanceof Adder) currentShip = new Anaconda(a);
-		else if (currentShip instanceof Anaconda) currentShip = new AspMkII(a);
-		else if (currentShip instanceof AspMkII) currentShip = new BoaClassCruiser(a);
-		else if (currentShip instanceof BoaClassCruiser) currentShip = new Boomslang(a);
-		else if (currentShip instanceof Boomslang) currentShip = new CobraMkI(a);
-		else if (currentShip instanceof CobraMkI) currentShip = new CobraMkIII(a);
-		else if (currentShip instanceof CobraMkIII) currentShip = new Constrictor(a);
-		else if (currentShip instanceof Constrictor) currentShip = new Cottonmouth(a);
-		else if (currentShip instanceof Cottonmouth) currentShip = new Cougar(a);
-		else if (currentShip instanceof Cougar) currentShip = new EscapeCapsule(a);
-		else if (currentShip instanceof EscapeCapsule) currentShip = new FerDeLance(a);
-		else if (currentShip instanceof FerDeLance) currentShip = new Gecko(a);
-		else if (currentShip instanceof Gecko) currentShip = new Hognose2(a);
-		else if (currentShip instanceof Hognose2) currentShip = new Krait(a);
-		else if (currentShip instanceof Krait) currentShip = new Lora(a);
-		else if (currentShip instanceof Lora) currentShip = new Mamba(a);
-		else if (currentShip instanceof Mamba) currentShip = new Missile(a);
-		else if (currentShip instanceof Missile) currentShip = new MorayStarBoat(a);
-		else if (currentShip instanceof MorayStarBoat) currentShip = new OrbitShuttle(a);
-		else if (currentShip instanceof OrbitShuttle) currentShip = new Python(a);
-		else if (currentShip instanceof Python) currentShip = new Sidewinder(a);
-		else if (currentShip instanceof Sidewinder) currentShip = new Thargoid(a);
-		else if (currentShip instanceof Thargoid) currentShip = new Thargon(a);
-		else if (currentShip instanceof Thargon) currentShip = new Transporter(a);
-		else if (currentShip instanceof Transporter) currentShip = new Viper(a);
-		else if (currentShip instanceof Viper) currentShip = new WolfMkII(a);
-		else if (currentShip instanceof WolfMkII) currentShip = new Gopher(a);
-		else if (currentShip instanceof Gopher) currentShip = new Coral(a);
-		else if (currentShip instanceof Coral) currentShip = new Bushmaster(a);
-		else if (currentShip instanceof Bushmaster) currentShip = new Rattlesnake(a);
-		else if (currentShip instanceof Rattlesnake) currentShip = new Mussurana(a);
-		else if (currentShip instanceof Mussurana) currentShip = new Dugite(a);
-		else if (currentShip instanceof Dugite) currentShip = new Yellowbelly(a);
-		else if (currentShip instanceof Yellowbelly) currentShip = new Indigo(a);
-		else if (currentShip instanceof Indigo) currentShip = new Harlequin(a);
-		else if (currentShip instanceof Harlequin) currentShip = new TieFighter(a);
-		else if (currentShip instanceof TieFighter) currentShip = new Lyre(a);
-		else if (currentShip instanceof Lyre) currentShip = new Adder(a);
+		if (currentShip instanceof Adder) currentShip = new Anaconda(game);
+		else if (currentShip instanceof Anaconda) currentShip = new AspMkII(game);
+		else if (currentShip instanceof AspMkII) currentShip = new BoaClassCruiser(game);
+		else if (currentShip instanceof BoaClassCruiser) currentShip = new Boomslang(game);
+		else if (currentShip instanceof Boomslang) currentShip = new CobraMkI(game);
+		else if (currentShip instanceof CobraMkI) currentShip = new CobraMkIII(game);
+		else if (currentShip instanceof CobraMkIII) currentShip = new Constrictor(game);
+		else if (currentShip instanceof Constrictor) currentShip = new Cottonmouth(game);
+		else if (currentShip instanceof Cottonmouth) currentShip = new Cougar(game);
+		else if (currentShip instanceof Cougar) currentShip = new EscapeCapsule(game);
+		else if (currentShip instanceof EscapeCapsule) currentShip = new FerDeLance(game);
+		else if (currentShip instanceof FerDeLance) currentShip = new Gecko(game);
+		else if (currentShip instanceof Gecko) currentShip = new Hognose2(game);
+		else if (currentShip instanceof Hognose2) currentShip = new Krait(game);
+		else if (currentShip instanceof Krait) currentShip = new Lora(game);
+		else if (currentShip instanceof Lora) currentShip = new Mamba(game);
+		else if (currentShip instanceof Mamba) currentShip = new Missile(game);
+		else if (currentShip instanceof Missile) currentShip = new MorayStarBoat(game);
+		else if (currentShip instanceof MorayStarBoat) currentShip = new OrbitShuttle(game);
+		else if (currentShip instanceof OrbitShuttle) currentShip = new Python(game);
+		else if (currentShip instanceof Python) currentShip = new Sidewinder(game);
+		else if (currentShip instanceof Sidewinder) currentShip = new Thargoid(game);
+		else if (currentShip instanceof Thargoid) currentShip = new Thargon(game);
+		else if (currentShip instanceof Thargon) currentShip = new Transporter(game);
+		else if (currentShip instanceof Transporter) currentShip = new Viper(game);
+		else if (currentShip instanceof Viper) currentShip = new WolfMkII(game);
+		else if (currentShip instanceof WolfMkII) currentShip = new Gopher(game);
+		else if (currentShip instanceof Gopher) currentShip = new Coral(game);
+		else if (currentShip instanceof Coral) currentShip = new Bushmaster(game);
+		else if (currentShip instanceof Bushmaster) currentShip = new Rattlesnake(game);
+		else if (currentShip instanceof Rattlesnake) currentShip = new Mussurana(game);
+		else if (currentShip instanceof Mussurana) currentShip = new Dugite(game);
+		else if (currentShip instanceof Dugite) currentShip = new Yellowbelly(game);
+		else if (currentShip instanceof Yellowbelly) currentShip = new Indigo(game);
+		else if (currentShip instanceof Indigo) currentShip = new Harlequin(game);
+		else if (currentShip instanceof Harlequin) currentShip = new TieFighter(game);
+		else if (currentShip instanceof TieFighter) currentShip = new Lyre(game);
+		else if (currentShip instanceof Lyre) currentShip = new Adder(game);
 	}
 
 	@Override

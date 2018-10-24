@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
 
 import java.io.DataInputStream;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -43,7 +42,7 @@ public class AudioOptionsScreen extends OptionsScreen {
 	private Slider vibrateLevel;
 	private Button back;
 
-	public AudioOptionsScreen(Game game) {
+	AudioOptionsScreen(Alite game) {
 		super(game);
 	}
 

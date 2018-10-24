@@ -42,7 +42,7 @@ public class TutEquipment extends TutorialScreen {
 	private long savedCash;
 	private int screenToInitialize = 0;
 
-	public TutEquipment(final Alite alite) {
+	TutEquipment(final Alite alite) {
 		super(alite);
 
 		savedFuel = alite.getCobra().getFuel();
@@ -67,22 +67,19 @@ public class TutEquipment extends TutorialScreen {
 		final TutorialLine line =
 				addLine(3,  "Go to the Equipment screen now.").setY(700);
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				Screen newScreen = (TutEquipment.this).updateNavBar();
-				if (newScreen instanceof EquipmentScreen) {
-					status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP);
-					equip = new EquipmentScreen(alite);
-					equip.loadAssets();
-					equip.activate();
-					line.setFinished();
-					currentLineIndex++;
-				} else if (newScreen != null) {
-					line.setFinished();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			Screen newScreen = updateNavBar();
+			if (newScreen instanceof EquipmentScreen) {
+				status.dispose();
+				status = null;
+				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP);
+				equip = new EquipmentScreen(alite);
+				equip.loadAssets();
+				equip.activate();
+				line.setFinished();
+				currentLineIndex++;
+			} else if (newScreen != null) {
+				line.setFinished();
 			}
 		});
 	}
@@ -90,22 +87,19 @@ public class TutEquipment extends TutorialScreen {
 	private void initLine_02() {
 		final TutorialLine line = addLine(3, "No, I said \"Equipment\" screen.").setY(700);
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				Screen newScreen = (TutEquipment.this).updateNavBar();
-				if (newScreen instanceof EquipmentScreen) {
-					status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP);
-					equip = new EquipmentScreen(alite);
-					equip.loadAssets();
-					equip.activate();
-					line.setFinished();
-				} else if (newScreen != null) {
-					line.setFinished();
-					currentLineIndex--;
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			Screen newScreen = updateNavBar();
+			if (newScreen instanceof EquipmentScreen) {
+				status.dispose();
+				status = null;
+				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP);
+				equip = new EquipmentScreen(alite);
+				equip.loadAssets();
+				equip.activate();
+				line.setFinished();
+			} else if (newScreen != null) {
+				line.setFinished();
+				currentLineIndex--;
 			}
 		});
 	}
@@ -119,25 +113,17 @@ public class TutEquipment extends TutorialScreen {
 				"hyperspace fuel as a training exercise, so go ahead. Buy " +
                 "some fuel.").setY(700).addHighlight(makeHighlight(150, 100, 225, 225));
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event : game.getInput().getTouchEvents()) {
-					equip.processTouch(event);
-				}
-				if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.fuel) {
-					line.setFinished();
-				} else if (equip.getEquippedEquipment() == EquipmentStore.fuel) {
-					line.setFinished();
-					currentLineIndex++;
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event : game.getInput().getTouchEvents()) {
+				equip.processTouch(event);
 			}
-		}).setFinishHook(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				equip.clearSelection();
+			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.fuel) {
+				line.setFinished();
+			} else if (equip.getEquippedEquipment() == EquipmentStore.fuel) {
+				line.setFinished();
+				currentLineIndex++;
 			}
-		});
+		}).setFinishHook((IMethodHook) deltaTime -> equip.clearSelection());
 	}
 
 	private void initLine_04() {
@@ -146,19 +132,16 @@ public class TutEquipment extends TutorialScreen {
 				"twice. Is it really that hard for you?").setY(700).
 					addHighlight(makeHighlight(150, 100, 225, 225));
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event : game.getInput().getTouchEvents()) {
-					equip.processTouch(event);
-				}
-				if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.fuel) {
-					line.setFinished();
-					currentLineIndex--;
-					equip.clearSelection();
-				} else if (equip.getEquippedEquipment() == EquipmentStore.fuel) {
-					line.setFinished();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event : game.getInput().getTouchEvents()) {
+				equip.processTouch(event);
+			}
+			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.fuel) {
+				line.setFinished();
+				currentLineIndex--;
+				equip.clearSelection();
+			} else if (equip.getEquippedEquipment() == EquipmentStore.fuel) {
+				line.setFinished();
 			}
 		});
 	}
@@ -199,7 +182,7 @@ public class TutEquipment extends TutorialScreen {
 			te.screenToInitialize = dis.readByte();
 			te.savedCash = dis.readLong();
 			te.savedFuel = dis.readInt();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Tutorial Equipment Screen Initialize", "Error in initializer.", e);
 			return false;
 		}

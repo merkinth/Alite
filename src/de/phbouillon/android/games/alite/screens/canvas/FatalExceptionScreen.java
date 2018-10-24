@@ -29,7 +29,6 @@ import java.util.Locale;
 import android.content.Intent;
 import android.opengl.GLES11;
 import android.widget.Toast;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
@@ -39,6 +38,7 @@ import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -52,8 +52,8 @@ public class FatalExceptionScreen extends AliteScreen {
 	private String savedFilename = null;
 	private final List <String> textToDisplay = new ArrayList<>();
 
-	public FatalExceptionScreen(Game game, Throwable cause) {
-		super(game);
+	public FatalExceptionScreen(Throwable cause) {
+		super(Alite.get());
 		this.cause = cause;
 	}
 
@@ -137,9 +137,9 @@ public class FatalExceptionScreen extends AliteScreen {
 					return;
 				}
 				if (restartAlite.isTouched(t.x, t.y)) {
-					Intent intent = new Intent((Alite) game, AliteIntro.class);
+					Intent intent = new Intent(game, AliteIntro.class);
 					intent.putExtra(Alite.LOG_IS_INITIALIZED, true);
-					((Alite) game).startActivityForResult(intent, 0);
+					game.startActivityForResult(intent, 0);
 				}
 			}
 		}
@@ -155,7 +155,7 @@ public class FatalExceptionScreen extends AliteScreen {
 			String message = getErrorReportText();
 			file.write(message.getBytes());
 			file.close();
-		} catch (IOException e) {
+		} catch (IOException ignored) {
 			saveErrorCause.setText("Saving Failed");
 			savedFilename = null;
 			return;
@@ -168,12 +168,12 @@ public class FatalExceptionScreen extends AliteScreen {
 			final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
 			emailIntent.setType("plain/text");
 			emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[] {"alite.crash.report@gmail.com"});
-			String subject = ((Alite) game).getFileUtils().computeSHAString(plainCauseText);
+			String subject = StringUtil.computeSHAString(plainCauseText);
 			emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, subject.isEmpty() ? "Alite Crash Report." : subject);
 			emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, getErrorReportText());
-			((Alite) game).startActivityForResult(Intent.createChooser(emailIntent, "Sending email..."), 0);
+			game.startActivityForResult(Intent.createChooser(emailIntent, "Sending email..."), 0);
 		} catch (Throwable t) {
-			Toast.makeText((Alite) game, "Request failed try again: " + t, Toast.LENGTH_LONG).show();
+			Toast.makeText(game, "Request failed try again: " + t, Toast.LENGTH_LONG).show();
 		}
 	}
 

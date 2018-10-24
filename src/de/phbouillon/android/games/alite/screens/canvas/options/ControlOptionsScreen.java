@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.Alite;
@@ -49,10 +48,10 @@ public class ControlOptionsScreen extends OptionsScreen {
 	private Button back;
 	private boolean forwardToIntroduction;
 
-	public ControlOptionsScreen(Game game, boolean forwardToIntroduction) {
+	public ControlOptionsScreen(Alite game, boolean forwardToIntroduction) {
 		super(game);
 		this.forwardToIntroduction = forwardToIntroduction;
-		((Alite) game).getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_OPTIONS);
+		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_OPTIONS);
 	}
 
 	@Override
@@ -148,7 +147,7 @@ public class ControlOptionsScreen extends OptionsScreen {
 				Settings.save(game.getFileIO());
 			} else if (back.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = forwardToIntroduction ? new TutIntroduction((Alite) game) : new OptionsScreen(game);
+				newScreen = forwardToIntroduction ? new TutIntroduction(game) : new OptionsScreen(game);
 			} else if (reverseDiveClimb.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.reversePitch = !Settings.reversePitch;

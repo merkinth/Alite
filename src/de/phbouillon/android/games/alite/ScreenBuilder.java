@@ -66,10 +66,15 @@ import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 public class ScreenBuilder {
-	public static boolean createScreen(Alite alite, byte [] state) {
+	public static boolean createScreen(Alite alite, byte[] state) {
 		int screen = state[0];
 		if (screen != ScreenCodes.FLIGHT_SCREEN) {
-			alite.loadAutosave();
+			try {
+				AliteLog.d("[ALITE]", "Loading autosave.");
+				alite.autoLoad();
+			} catch (IOException e) {
+				AliteLog.e("[ALITE]", "Loading autosave commander failed.", e);
+			}
 		}
 		DataInputStream dis = state.length > 0 ? new DataInputStream(new ByteArrayInputStream(state, 1, state.length - 1)) : null;
 		try {

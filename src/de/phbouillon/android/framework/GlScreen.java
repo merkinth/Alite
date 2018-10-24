@@ -2,7 +2,7 @@ package de.phbouillon.android.framework;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -23,18 +23,19 @@ import java.io.Serializable;
 public abstract class GlScreen extends Screen implements Serializable {
 	private static final long serialVersionUID = 2776881193369718139L;
 
-	protected boolean isActive;
+	private boolean isActive;
 	protected boolean isDisposed;
-	
+	private Game game;
+
 	public GlScreen(Game game) {
-		super(game);
+		this.game = game;
 		isActive = false;
 	}
-	
+
 	public abstract void onActivation();
 	public abstract void performUpdate(float deltaTime);
 	public abstract void performPresent(float deltaTime);
-	
+
 	@Override
 	public void activate() {
 		try {
@@ -43,11 +44,11 @@ public abstract class GlScreen extends Screen implements Serializable {
 			isActive = true;
 		}
 	}
-	
+
 	public final boolean isActive() {
 		return isActive;
 	}
-	
+
 	@Override
 	public final void update(float deltaTime) {
 		if (!isActive || isDisposed) {
@@ -55,7 +56,7 @@ public abstract class GlScreen extends Screen implements Serializable {
 		}
 		performUpdate(deltaTime);
 	}
-	
+
 	@Override
 	public final void present(float deltaTime) {
 		if (!isActive) {
@@ -63,28 +64,28 @@ public abstract class GlScreen extends Screen implements Serializable {
 		}
 		performPresent(deltaTime);
 	}
-		
+
 	@Override
 	public void pause() {
 		isActive = false;
 	}
-	
+
 	@Override
 	public void resume() {
 	}
-	
+
 	@Override
-	public void postLayout(Object dataObject) {		
+	public void postLayout(Object dataObject) {
 	}
 
 	@Override
-	public void postScreenChange() {		
+	public void postScreenChange() {
 	}
-	
+
 	@Override
-	public void postNavigationRender(float deltaTime) {		
+	public void postNavigationRender(float deltaTime) {
 	}
-	
+
 	protected void performScreenChange(Screen newScreen) {
 		Screen oldScreen = game.getCurrentScreen();
 		oldScreen.dispose();
@@ -92,11 +93,11 @@ public abstract class GlScreen extends Screen implements Serializable {
 		postScreenChange();
 		oldScreen = null;
 	}
-	
+
 	@Override
-	public void renderNavigationBar() {	
+	public void renderNavigationBar() {
 	}
-	
+
 	@Override
 	public void dispose() {
 		pause();

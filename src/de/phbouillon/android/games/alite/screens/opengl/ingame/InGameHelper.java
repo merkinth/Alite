@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -50,13 +50,13 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Plat
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargoid;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargon;
 
-public class InGameHelper implements Serializable {
+class InGameHelper implements Serializable {
 	private static final long serialVersionUID = 9018204797190210420L;
-	// 1000 * 1000 * 3 is approximately the radius (squared) of a space station; add 1.000.000 (= 1000m) as a safety margin; 
-	static final float STATION_PROXIMITY_DISTANCE_SQ = 4000000.0f;  
+	// 1000 * 1000 * 3 is approximately the radius (squared) of a space station; add 1.000.000 (= 1000m) as a safety margin;
+	static final float STATION_PROXIMITY_DISTANCE_SQ = 4000000.0f;
 	static final float STATION_VESSEL_PROXIMITY_DISTANCE_SQ = 8000000.0f;
 	private static final float PROXIMITY_WARNING_RADIUS_FACTOR = 18.0f;
-	
+
 	private transient Alite alite;
 	private final InGameManager inGame;
 	private final Vector3f tempVector;
@@ -64,14 +64,14 @@ public class InGameHelper implements Serializable {
 	private long lastMissileWarning = -1;
 	private final AttackTraverser attackTraverser;
 	private transient ScoopCallback scoopCallback = null;
-	
-	public InGameHelper(Alite alite, InGameManager inGame) {
+
+	InGameHelper(Alite alite, InGameManager inGame) {
 		this.alite = alite;
 		this.inGame = inGame;
 		this.tempVector = new Vector3f(0, 0, 0);
 		this.attackTraverser = new AttackTraverser(alite);
 	}
-	
+
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
 			AliteLog.e("readObject", "InGameHelper.readObject");
@@ -83,20 +83,20 @@ public class InGameHelper implements Serializable {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}
 	}
-	
+
 	void setScoopCallback(ScoopCallback callback) {
 		scoopCallback = callback;
 	}
-	
+
 	ScoopCallback getScoopCallback() {
 		return scoopCallback;
 	}
 
-	final void ramCargo(SpaceObject rammedObject) {
+	private void ramCargo(SpaceObject rammedObject) {
 		rammedObject.applyDamage(4000.0f);
 		inGame.getLaserManager().damageShip(10, true);
 	}
-	
+
 	void checkShipStationProximity() {
 		SpaceObject ship = inGame.getShip();
 		SpaceObject station = (SpaceObject) inGame.getStation();
@@ -115,12 +115,12 @@ public class InGameHelper implements Serializable {
 			}
 		}
 	}
-		
+
 	void checkProximity(List <AliteObject> allObjects) {
 		int n = allObjects.size();
 		if (n < 2) {
 			return;
-		}			
+		}
 		for (int i = 0; i < n - 1; i++) {
 			if (!(allObjects.get(i) instanceof SpaceObject)) {
 				continue;
@@ -130,7 +130,7 @@ public class InGameHelper implements Serializable {
 			float distanceCamSq = objectA.getPosition().distanceSq(inGame.getShip().getPosition());
 			if (distanceCamSq <= objectAProximityDistance) {
 				objectA.setProximity(inGame.getShip());
-			}			
+			}
 			for (int j = i + 1; j < n; j++) {
 				if (!(allObjects.get(j) instanceof SpaceObject)) {
 					continue;
@@ -141,7 +141,7 @@ public class InGameHelper implements Serializable {
 				if (distanceSq <= objectAProximityDistance + objectBProximityDistance) {
 					objectA.setProximity(objectB);
 					objectB.setProximity(objectA);
-				}				
+				}
 				distanceCamSq = objectB.getPosition().distanceSq(inGame.getShip().getPosition());
 				if (distanceCamSq <= objectBProximityDistance) {
 					objectB.setProximity(inGame.getShip());
@@ -161,10 +161,10 @@ public class InGameHelper implements Serializable {
 					}
 				}
 			}
-		}		
+		}
 	}
 
-	final void scoop(SpaceObject cargo) {
+	private void scoop(SpaceObject cargo) {
 		// Fuel scoop must be installed and cargo must be in the lower half of the screen...
 		if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop) ||
 		     cargo.getDisplayMatrix()[13] >= 0) {
@@ -172,7 +172,7 @@ public class InGameHelper implements Serializable {
 			if (scoopCallback != null) {
 				scoopCallback.rammed(cargo);
 			}
-			return;			
+			return;
 		}
 
 		if (cargo instanceof CargoCanister && ((CargoCanister) cargo).getEquipment() != null) {
@@ -192,7 +192,7 @@ public class InGameHelper implements Serializable {
 				scoopCallback.rammed(cargo);
 			}
 			inGame.getMessage().setText("Cargo hold is full.");
-			return;			
+			return;
 		}
 		cargo.applyDamage(4000.0f);
 		SoundManager.play(Assets.scooped);
@@ -202,7 +202,7 @@ public class InGameHelper implements Serializable {
 		TradeGood scoopedTradeGood = cargo instanceof CargoCanister ? ((CargoCanister) cargo).getContent() :
 			cargo instanceof EscapeCapsule ? TradeGoodStore.get().slaves() :
 			cargo instanceof Thargon ? TradeGoodStore.get().alienItems() :
-			TradeGoodStore.get().alloys(); 
+			TradeGoodStore.get().alloys();
 		long price = cargo instanceof CargoCanister ? ((CargoCanister) cargo).getPrice() : 0;
 		if (scoopedTradeGood == null) {
 			AliteLog.e("Scooped null cargo!", "Scooped null cargo!");
@@ -211,19 +211,19 @@ public class InGameHelper implements Serializable {
 		AliteLog.d("Scooped Cargo", "Scooped Cargo " + scoopedTradeGood.getName());
 		if (!alite.getCobra().hasCargo(scoopedTradeGood) && cargo instanceof CargoCanister) {
 			// This makes sure that if a player scoops his dropped cargo back up, the
-			// gain/loss calculation stays accurate			
+			// gain/loss calculation stays accurate
 			alite.getCobra().addTradeGood(scoopedTradeGood, quantity, price);
 			if (price == 0) {
 				alite.getCobra().addUnpunishedTradeGood(scoopedTradeGood, quantity);
-			} 			
+			}
 		} else {
 			alite.getCobra().addTradeGood(scoopedTradeGood, quantity, 0);
-			alite.getCobra().addUnpunishedTradeGood(scoopedTradeGood, quantity);			
-		}		
+			alite.getCobra().addUnpunishedTradeGood(scoopedTradeGood, quantity);
+		}
 		inGame.getMessage().setText(scoopedTradeGood.getName());
-	}	
-	
-	public void automaticDockingSequence() {
+	}
+
+	void automaticDockingSequence() {
 		if (!inGame.isPlayerAlive()) {
 			return;
 		}
@@ -234,10 +234,10 @@ public class InGameHelper implements Serializable {
 		if (inGame.getPostDockingScreen() instanceof StatusScreen) {
 			try {
 				AliteLog.d("[ALITE]", "Performing autosave. [Docked]");
-				alite.getFileUtils().autoSave(alite);
-			} catch (Exception e) {
+				alite.autoSave();
+			} catch (IOException e) {
 				AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
-			}			
+			}
 		}
 		inGame.setNewScreen(inGame.getPostDockingScreen());
 	}
@@ -253,7 +253,7 @@ public class InGameHelper implements Serializable {
 					((Thargoid) object).setSpawnThargonDistanceSq(-1);
 					ObjectSpawnManager.spawnThargons(alite, (Thargoid) object, inGame);
 				}
-			}			
+			}
 			if (distanceSq < 2500) {
 				if (object instanceof SpaceObject && ((SpaceObject) object).getType() == ObjectType.SpaceStation && inGame.getWitchSpace() == null) {
 					if (inGame.getDockingComputerAI().checkForCorrectDockingAlignment((SpaceObject) object, inGame.getShip())) {
@@ -268,7 +268,7 @@ public class InGameHelper implements Serializable {
 						   object instanceof EscapeCapsule ||
 						   object instanceof Platlet) {
 					scoop((SpaceObject) object);
-				} else if (!(object instanceof Missile)) {		
+				} else if (!(object instanceof Missile)) {
 					if (inGame.getWitchSpace() != null && (object.getName().equals("Planet") ||
 					           object.getName().equals("Sun") ||
 					           (object instanceof SpaceObject && ((SpaceObject) object).getType() == ObjectType.SpaceStation) ||
@@ -285,30 +285,30 @@ public class InGameHelper implements Serializable {
 					}
  					else {
 						SoundManager.play(Assets.hullDamage);
-					} 
-				} 
+					}
+				}
 			}
-		}		
-	}	
-	
+		}
+	}
+
 	void launchEscapeCapsule(SpaceObject source) {
 		SoundManager.play(Assets.retroRocketsOrEscapeCapsuleFired);
 		EscapeCapsule esc = new EscapeCapsule(alite);
-		
+
 		source.getUpVector().copy(tempVector);
-		esc.setForwardVector(tempVector);		
+		esc.setForwardVector(tempVector);
 		esc.setRightVector(source.getRightVector());
 		source.getForwardVector().copy(tempVector);
 		tempVector.negate();
 		esc.setUpVector(tempVector);
-		
+
 		source.getPosition().copy(tempVector);
 		esc.setPosition(tempVector);
 		esc.setSpeed(-esc.getMaxSpeed());
 		inGame.addObject(esc);
 	}
-	
-	Missile spawnMissile(SpaceObject source, SpaceObject target) {	
+
+	Missile spawnMissile(SpaceObject source, SpaceObject target) {
 		Vector3f shipPos = source.getPosition();
 		if (inGame.getViewDirection() == PlayerCobra.DIR_FRONT || source != inGame.getShip()) {
 			source.getForwardVector().copy(tempVector);
@@ -321,10 +321,10 @@ public class InGameHelper implements Serializable {
 		} else if (inGame.getViewDirection() == PlayerCobra.DIR_LEFT) {
 			source.getRightVector().copy(tempVector);
 		}
-				
+
 		float x = shipPos.x + tempVector.x * -1000f;
 		float y = shipPos.y + tempVector.y * -1000f;
-		float z = shipPos.z + tempVector.z * -10f;		
+		float z = shipPos.z + tempVector.z * -10f;
 		Missile missile = new Missile(alite);
 		missile.setPosition(x, y, z);
 		missile.orientTowards(x + tempVector.x * -1000.0f,
@@ -346,7 +346,7 @@ public class InGameHelper implements Serializable {
 					}
 				} else {
 					missile.setWillBeDestroyedByECM(true);
-				}				
+				}
 			}
 			if (target.getType() == ObjectType.SpaceStation ||
 			    target.getType() == ObjectType.Shuttle ||
@@ -365,7 +365,7 @@ public class InGameHelper implements Serializable {
 		    			case COMMUNIST: if (Math.random() > 0.4) { legalValue += 32; } break;
 		    			case CONFEDERACY: if (Math.random() > 0.2) { legalValue += 32; } break;
 		    			case DEMOCRACY: legalValue += 32; break;
-		    			case CORPORATE_STATE: legalValue += 32; break;					
+		    			case CORPORATE_STATE: legalValue += 32; break;
 					}
 				} else {
 					legalValue += 32;
@@ -381,7 +381,7 @@ public class InGameHelper implements Serializable {
 	void handleMissileUpdate(Missile missile, float deltaTime) {
 		missile.moveForward(deltaTime);
 		// And track target object...
-		if (missile.getTarget() == inGame.getShip() && (lastMissileWarning == -1 || ((System.nanoTime() - lastMissileWarning) > 2000000000l))) {
+		if (missile.getTarget() == inGame.getShip() && (lastMissileWarning == -1 || System.nanoTime() - lastMissileWarning > 2000000000L)) {
 			lastMissileWarning = System.nanoTime();
 			SoundManager.play(Assets.com_incomingMissile);
 		}
@@ -389,11 +389,11 @@ public class InGameHelper implements Serializable {
 			if (missile.getTarget() == null || missile.getTarget().mustBeRemoved() || missile.getTarget().getHullStrength() <= 0) {
 				inGame.setMessage("Target lost");
 				missile.setHullStrength(0);
-				inGame.explode(missile, true, WeaponType.PulseLaser); 						
+				inGame.explode(missile, true, WeaponType.PulseLaser);
 			} else {
 				missile.update(deltaTime);
 				if (missile.getWillBeDestroyedByECM() && missile.getPosition().distanceSq(missile.getTarget().getPosition()) < 40000 && !inGame.isECMJammer()) {
-					missile.setHullStrength(0);							
+					missile.setHullStrength(0);
 					inGame.explode(missile, true, WeaponType.ECM);
 					SoundManager.play(Assets.ecm);
 					if (inGame.getHud() != null) {
@@ -402,7 +402,7 @@ public class InGameHelper implements Serializable {
 				} else {
 					float distance = LaserManager.computeIntersectionDistance(missile.getForwardVector(), missile.getPosition(), missile.getTarget().getPosition(), missile.getTarget().getBoundingSphereRadius(), tempVector);
 					if (distance > 0 && (distance < -missile.getSpeed() * deltaTime || distance < 4000)) {
-						missile.setHullStrength(0);							
+						missile.setHullStrength(0);
 						inGame.explode(missile, true, WeaponType.SelfDestruct);
 						if (missile.getWillBeDestroyedByECM() && !inGame.isECMJammer()) {
 							SoundManager.play(Assets.ecm);
@@ -421,10 +421,10 @@ public class InGameHelper implements Serializable {
 						}
 					}
 				}
-			}			
-		}		
+			}
+		}
 	}
-	
+
 	void checkAltitudeLowAlert() {
 		if (!inGame.isPlayerAlive()) {
 			return;
@@ -432,18 +432,18 @@ public class InGameHelper implements Serializable {
 		float altitude = alite.getCobra().getAltitude();
 		if (altitude < 6 && !SoundManager.isPlaying(Assets.altitudeLow)) {
 			SoundManager.repeat(Assets.altitudeLow);
-			inGame.getMessage().repeatText("Altitude Low", 1000000000l);
+			inGame.getMessage().repeatText("Altitude Low", 1000000000L);
 		} else if (altitude >= 6 && SoundManager.isPlaying(Assets.altitudeLow)) {
 			if (alite.getCobra().getEnergy() > PlayerCobra.MAX_ENERGY_BANK) {
 				SoundManager.stop(Assets.altitudeLow);
 				inGame.getMessage().clearRepetition();
 			}
-		}				
+		}
 		if (altitude < 2) {
 			inGame.gameOver();
 		}
 	}
-	
+
 	void checkCabinTemperatureAlert(float deltaTime) {
 		if (!inGame.isPlayerAlive()) {
 			return;
@@ -452,15 +452,15 @@ public class InGameHelper implements Serializable {
 		if (cabinTemperature > 24 && !SoundManager.isPlaying(Assets.temperatureHigh)) {
 			fuelScoopFuel = alite.getCobra().getFuel();
 			SoundManager.repeat(Assets.temperatureHigh);
-			inGame.getMessage().repeatText("Temperature Level Critical", 1000000000l);
-		} else if (cabinTemperature <= 24 && SoundManager.isPlaying(Assets.temperatureHigh)) {			
+			inGame.getMessage().repeatText("Temperature Level Critical", 1000000000L);
+		} else if (cabinTemperature <= 24 && SoundManager.isPlaying(Assets.temperatureHigh)) {
 			if (alite.getCobra().getEnergy() > PlayerCobra.MAX_ENERGY_BANK) {
 				SoundManager.stop(Assets.temperatureHigh);
 				inGame.getMessage().clearRepetition();
 			}
 		}
 		if (cabinTemperature > 26 && alite.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop) && alite.getCobra().getFuel() < PlayerCobra.MAXIMUM_FUEL) {
-			inGame.getMessage().repeatText("Fuel Scoop Activated", 1000000000l);
+			inGame.getMessage().repeatText("Fuel Scoop Activated", 1000000000L);
 			fuelScoopFuel += 20 * -inGame.getShip().getSpeed() / inGame.getShip().getMaxSpeed() * deltaTime;
 			int newFuel = (int) fuelScoopFuel;
 			if (newFuel > PlayerCobra.MAX_FUEL) {
@@ -468,19 +468,19 @@ public class InGameHelper implements Serializable {
 			}
 			alite.getCobra().setFuel(newFuel);
 			if (newFuel >= PlayerCobra.MAX_FUEL) {
-				inGame.getMessage().repeatText("Temperature Level Critical", 1000000000l);
+				inGame.getMessage().repeatText("Temperature Level Critical", 1000000000L);
 			}
 		}
 		if (cabinTemperature > 28) {
 			inGame.gameOver();
 		}
 	}
-	
+
 	void updatePlayerCondition() {
 		if (!inGame.isPlayerAlive()) {
 			return;
 		}
-		if (alite.getCobra().getEnergy() < PlayerCobra.MAX_ENERGY_BANK || 
+		if (alite.getCobra().getEnergy() < PlayerCobra.MAX_ENERGY_BANK ||
 			alite.getCobra().getCabinTemperature() > 24	||
 			alite.getCobra().getAltitude() < 6 ||
 			inGame.getWitchSpace() != null) {
@@ -504,6 +504,6 @@ public class InGameHelper implements Serializable {
 			// Can refer to sortedObjectsToDraw here, because we're in update: PRE rendering, so the
 			// list has not yet been emptied...
 			inGame.traverseObjects(attackTraverser);
-		}	
+		}
 	}
 }

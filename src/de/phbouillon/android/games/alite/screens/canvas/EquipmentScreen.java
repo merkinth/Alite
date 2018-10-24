@@ -23,7 +23,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Locale;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
@@ -72,7 +71,7 @@ public class EquipmentScreen extends TradeScreen {
 			"equipment_icons/military_laser",
 			"equipment_icons/retro_rockets"};
 
-	public EquipmentScreen(Game game) {
+	public EquipmentScreen(Alite game) {
 		super(game, 15);
 		loopingAnimation = true;
 	}
@@ -128,7 +127,7 @@ public class EquipmentScreen extends TradeScreen {
 
 	@Override
 	protected void createButtons() {
-		SystemData currentSystem = ((Alite) game).getPlayer().getCurrentSystem();
+		SystemData currentSystem = game.getPlayer().getCurrentSystem();
 		int techLevel = currentSystem == null ? 1 : currentSystem.getTechLevel();
 		tradeButton = new Button[COLUMNS][ROWS];
 		int counter = 0;
@@ -154,11 +153,11 @@ public class EquipmentScreen extends TradeScreen {
 
 	@Override
 	protected String getCost(int row, int column) {
-		Equipment equipment = ((Alite) game).getCobra().getEquipment(row * COLUMNS + column);
+		Equipment equipment = game.getCobra().getEquipment(row * COLUMNS + column);
 		int price = equipment.getCost();
 		String equipmentPrice = String.format(Locale.getDefault(), "%d Cr", price / 10); // No decimals for equipment other than fuel...
 		if (price == -1) { // variable price for fuel
-			SystemData currentSystem = ((Alite) game).getPlayer().getCurrentSystem();
+			SystemData currentSystem = game.getPlayer().getCurrentSystem();
 			price = currentSystem == null ? 10 : currentSystem.getFuelPrice();
 			equipmentPrice = String.format(Locale.getDefault(), "%d.%d Cr", price / 10, price % 10);
 		}
@@ -184,7 +183,7 @@ public class EquipmentScreen extends TradeScreen {
 
 	@Override
 	protected void presentSelection(int row, int column) {
-		Equipment equipment = ((Alite) game).getCobra().getEquipment(row * COLUMNS + column);
+		Equipment equipment = game.getCobra().getEquipment(row * COLUMNS + column);
 		game.getGraphics().drawText(equipment.getName() + " " + EQUIP_HINT, X_OFFSET, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
 
@@ -202,7 +201,7 @@ public class EquipmentScreen extends TradeScreen {
 					continue;
 				}
 				if (selection == tradeButton[x][y]) {
-					return ((Alite) game).getCobra().getEquipment(y * COLUMNS + x);
+					return game.getCobra().getEquipment(y * COLUMNS + x);
 				}
 			}
 		}
@@ -211,7 +210,7 @@ public class EquipmentScreen extends TradeScreen {
 	}
 
 	private int getNewLaserLocation(Laser laser, int row, int column) {
-		Player player = ((Alite) game).getPlayer();
+		Player player = game.getPlayer();
 		PlayerCobra cobra = player.getCobra();
 		boolean front = cobra.getLaser(PlayerCobra.DIR_FRONT) != laser;
 		boolean right = cobra.getLaser(PlayerCobra.DIR_RIGHT) != laser;
@@ -229,8 +228,8 @@ public class EquipmentScreen extends TradeScreen {
 
     @Override
 	protected void performTrade(int row, int column) {
-    	Equipment equipment = ((Alite) game).getCobra().getEquipment(row * COLUMNS + column);
-		Player player = ((Alite) game).getPlayer();
+    	Equipment equipment = game.getCobra().getEquipment(row * COLUMNS + column);
+		Player player = game.getPlayer();
     	for (Mission mission: player.getActiveMissions()) {
     		if (mission.performTrade(this, equipment)) {
     			return;
@@ -338,9 +337,6 @@ public class EquipmentScreen extends TradeScreen {
 			if (equipment == EquipmentStore.retroRockets) {
 				cobra.setRetroRocketsUseCount(4 + (int) (Math.random() * 3));
 			}
-			if (equipment == EquipmentStore.galacticHyperdrive) {
-				((Alite) game).setIntergalActive(true);
-			}
 			SoundManager.play(Assets.kaChing);
 			if (selectionIndex != -1) {
 				disposeEquipmentAnimation(selectionIndex);
@@ -350,7 +346,7 @@ public class EquipmentScreen extends TradeScreen {
 			cashLeft = String.format("Cash left: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
 			equippedEquipment = equipment;
     		try {
-				((Alite) game).getFileUtils().autoSave((Alite) game);
+				game.autoSave();
 			} catch (IOException e) {
 				AliteLog.e("Auto saving failed", e.getMessage(), e);
 			}
@@ -421,7 +417,7 @@ public class EquipmentScreen extends TradeScreen {
 			oldScreen.dispose();
 		}
 		game.setScreen(newScreen);
-		((Alite) game).getNavigationBar().performScreenChange();
+		game.getNavigationBar().performScreenChange();
 		postScreenChange();
 	}
 
@@ -471,16 +467,6 @@ public class EquipmentScreen extends TradeScreen {
 			}
 			equipment = null;
 		}
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
 	}
 
 	@Override

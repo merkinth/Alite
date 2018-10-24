@@ -25,9 +25,8 @@ import java.io.IOException;
 import android.graphics.Rect;
 import android.media.MediaPlayer;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Game;
+import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
-import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -74,20 +73,20 @@ public class CougarScreen extends AliteScreen {
 	private float targetDeltaZ;
 	private final int givenState;
 
-	public CougarScreen(Game game, int state) {
+	public CougarScreen(Alite game, int state) {
 		super(game);
 		givenState = state;
 		CougarMission mission = (CougarMission) MissionManager.getInstance().get(CougarMission.ID);
 		mediaPlayer = new MediaPlayer();
-		AndroidFileIO fio = (AndroidFileIO) game.getFileIO();
+		FileIO fio = game.getFileIO();
 		String path = "sound/mission/4/";
 		try {
 			if (state == 0) {
 				missionLine = new MissionLine(fio, path + "01.mp3", missionDescription);
-				cougar = new Cougar((Alite) game);
+				cougar = new Cougar(game);
 				cougar.setPosition(200, 0, -700.0f);
 				mission.setPlayerAccepts(true);
-				mission.setTarget(((Alite) game).getGenerator().getCurrentSeed(), ((Alite) game).getPlayer().getCurrentSystem().getIndex(), 1);
+				mission.setTarget(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex(), 1);
 			} else {
 				AliteLog.e("Unknown State", "Invalid state variable has been passed to CougarScreen: " + state);
 			}
@@ -231,7 +230,7 @@ public class CougarScreen extends AliteScreen {
 		try {
 			int state = dis.readInt();
 			alite.setScreen(new CougarScreen(alite, state));
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Cougar Screen Initialize", "Error in initializer.", e);
 			return false;
 		}

@@ -23,7 +23,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -38,7 +37,7 @@ public class LoadScreen extends CatalogScreen {
 	private boolean confirmedLoad = false;
 	private boolean pendingShowMessage = false;
 
-	public LoadScreen(Game game, String title) {
+	LoadScreen(Alite game, String title) {
 		super(game, title);
 		deleteButton = null;
 	}
@@ -61,13 +60,13 @@ public class LoadScreen extends CatalogScreen {
 			ls.confirmDelete = dis.readBoolean();
 			int selectionCount = dis.readInt();
 			if (selectionCount != 0) {
-				ls.pendingSelectionIndices = new ArrayList<Integer>();
+				ls.pendingSelectionIndices = new ArrayList<>();
 				for (int i = 0; i < selectionCount; i++) {
 					ls.pendingSelectionIndices.add(dis.readInt());
 				}
 			}
 			ls.pendingShowMessage = dis.readBoolean();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Load Screen Initialize", "Error in initializer.", e);
 			return false;
 		}
@@ -97,7 +96,7 @@ public class LoadScreen extends CatalogScreen {
 		if (getMessage() != null) {
 			return;
 		}
-		if (confirmedLoad && getMessage() == null) {
+		if (confirmedLoad) {
 			newScreen = new StatusScreen(game);
 			confirmedLoad = false;
 		}
@@ -108,9 +107,8 @@ public class LoadScreen extends CatalogScreen {
 				SoundManager.play(Assets.alert);
 			} else {
 				if (messageResult == 1) {
-					Alite alite = (Alite) game;
 					try {
-						alite.getFileUtils().loadCommander(alite, selectedCommanderData.get(0).getFileName());
+						game.loadCommander(selectedCommanderData.get(0).getFileName());
 						setMessage("Cursor reset to " + selectedCommanderData.get(0).getDockedSystem() + ".");
 						SoundManager.play(Assets.alert);
 						confirmedLoad = true;
@@ -122,16 +120,6 @@ public class LoadScreen extends CatalogScreen {
 				messageResult = 0;
 			}
 		}
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
 	}
 
 	@Override

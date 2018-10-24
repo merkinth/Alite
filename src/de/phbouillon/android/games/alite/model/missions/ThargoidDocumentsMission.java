@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model.missions;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -39,21 +39,21 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thar
 
 public class ThargoidDocumentsMission extends Mission {
 	public static final int ID = 2;
-	
-	private char [] galaxySeed;
+
+	private char[] galaxySeed;
 	private int targetIndex;
 	private int state;
-	
+
 	private TimedEvent conditionRedEvent;
-	
+
 	public ThargoidDocumentsMission(Alite alite) {
 		super(alite, ID);
 	}
-	
+
 	public int getState() {
 		return state;
 	}
-	
+
 	@Override
 	protected boolean checkStart() {
 		Player player = alite.getPlayer();
@@ -61,11 +61,11 @@ public class ThargoidDocumentsMission extends Mission {
 			   !player.getActiveMissions().contains(this) &&
 			   !player.getCompletedMissions().contains(this) &&
 				player.getCompletedMissions().contains(MissionManager.getInstance().get(ConstrictorMission.ID)) &&
-				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 && 
-				player.getCondition() == Condition.DOCKED; 
+				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 &&
+				player.getCondition() == Condition.DOCKED;
 	}
 
-	public void setTarget(char [] galaxySeed, int target, int state) {
+	public void setTarget(char[] galaxySeed, int target, int state) {
 		this.galaxySeed = new char[3];
 		for (int i = 0; i < 3; i++) {
 			this.galaxySeed[i] = galaxySeed[i];
@@ -74,7 +74,7 @@ public class ThargoidDocumentsMission extends Mission {
 		this.state = state;
 		resetTargetName();
 	}
-	
+
 	@Override
 	protected void acceptMission(boolean accept) {
 		if (accept) {
@@ -90,7 +90,7 @@ public class ThargoidDocumentsMission extends Mission {
 			alite.getPlayer().addCompletedMission(this);
 		}
 	}
-	
+
 	@Override
 	public void onMissionAccept() {
 	}
@@ -108,11 +108,11 @@ public class ThargoidDocumentsMission extends Mission {
 	}
 
 	@Override
-	public void onMissionUpdate() {		
+	public void onMissionUpdate() {
 	}
 
 	@Override
-	public void load(DataInputStream dis) throws IOException {	
+	public void load(DataInputStream dis) throws IOException {
 		galaxySeed = new char[3];
 		galaxySeed[0] = dis.readChar();
 		galaxySeed[1] = dis.readChar();
@@ -125,7 +125,7 @@ public class ThargoidDocumentsMission extends Mission {
 	}
 
 	@Override
-	public byte [] save() throws IOException {
+	public byte[] save() throws IOException {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(16);
 		DataOutputStream dos = new DataOutputStream(bos);
 		dos.writeChar(galaxySeed[0]);
@@ -134,7 +134,7 @@ public class ThargoidDocumentsMission extends Mission {
 		dos.writeInt(targetIndex);
 		dos.writeInt(state);
 		dos.close();
-		bos.close();		
+		bos.close();
 		return bos.toByteArray();
 	}
 
@@ -150,31 +150,31 @@ public class ThargoidDocumentsMission extends Mission {
 		}
 		if (state == 1 && positionMatchesTarget(galaxySeed, targetIndex)) {
 			return new ThargoidDocumentsScreen(alite, 2);
-		} 
+		}
 		return null;
 	}
-	
+
 	private void spawnThargoids(final ObjectSpawnManager manager) {
 		if (manager.isInTorus()) {
 			int randByte = (int) (Math.random() * 256);
 			if ((0 << 5) > randByte) {
 				return;
 			} else {
-				manager.leaveTorus();				
+				manager.leaveTorus();
 			}
-		}		
+		}
 		SoundManager.play(Assets.com_conditionRed);
 		manager.getInGameManager().repeatMessage("Condition Red!", 3);
 		conditionRedEvent.pause();
-		Vector3f spawnPosition = manager.spawnObject();	
+		Vector3f spawnPosition = manager.spawnObject();
 		int thargoidNum = alite.getPlayer().getRating().ordinal() < 3 ? 1 : Math.random() < 0.5 ? 1 : 2;
 		for (int i = 0; i < thargoidNum; i++) {
 			Thargoid thargoid = new Thargoid(alite);
 			thargoid.setSpawnThargonDistanceSq(manager.computeSpawnThargonDistanceSq());
-			manager.spawnEnemyAndAttackPlayer(thargoid, i, spawnPosition, true);
-		}						
+			manager.spawnEnemyAndAttackPlayer(thargoid, i, spawnPosition);
+		}
 	}
-	
+
 	@Override
 	public TimedEvent getConditionRedSpawnReplacementEvent(final ObjectSpawnManager manager) {
 		long delayToConditionRedEncounter = (long) ((((float) (2 << 9)) / 16.7f) * 1000000000l);
@@ -184,18 +184,18 @@ public class ThargoidDocumentsMission extends Mission {
 			@Override
 			public void doPerform() {
 				spawnThargoids(manager);
-			}			
+			}
 		};
 		return conditionRedEvent;
 	}
-	
+
 	@Override
 	public boolean willEnterWitchSpace() {
 		return Math.random() <= 0.15;
 	}
-	
+
 	@Override
 	public String getObjective() {
 		return "Take the documents to " + getTargetName(targetIndex, galaxySeed) + ".";
-	}	
+	}
 }

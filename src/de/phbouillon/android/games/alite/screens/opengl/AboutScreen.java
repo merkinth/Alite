@@ -26,7 +26,6 @@ import java.util.List;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Music;
@@ -78,6 +77,7 @@ public class AboutScreen extends GlScreen {
 	private boolean end = false;
 	private boolean returnToOptions = false;
 	private float musicVolume = Settings.volumes[Sound.SoundType.MUSIC.getValue()];
+	private Alite game;
 
 	private int pendingMode = -1;
 
@@ -203,18 +203,19 @@ public class AboutScreen extends GlScreen {
 
 	private final List <TextData> texts;
 
-	public AboutScreen(Game game) {
+	public AboutScreen(Alite game) {
 		super(game);
+		this.game = game;
 		visibleArea = game.getGraphics().getVisibleArea();
-		background = new Sprite((Alite) game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom, 0.0f, 0.0f, 1.0f, 1.0f, "textures/star_map_title.png");
-		aliteLogo  = new Sprite((Alite) game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom, 0.0f, 0.0f, 1615.0f / 2048.0f, 1080.0f / 2048.0f, "title_logo.png");
+		background = new Sprite(game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom, 0.0f, 0.0f, 1.0f, 1.0f, "textures/star_map_title.png");
+		aliteLogo  = new Sprite(game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom, 0.0f, 0.0f, 1615.0f / 2048.0f, 1080.0f / 2048.0f, "title_logo.png");
 		aliteLogo.scale(0.96f, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom);
 		windowWidth = visibleArea.width();
 		windowHeight = visibleArea.height();
 		startTime = System.nanoTime();
 		lastTime = startTime;
 		endCreditsMusic = game.getAudio().newMusic("music/end_credits.mp3", Sound.SoundType.MUSIC);
-		texts = new ArrayList<TextData>();
+		texts = new ArrayList<>();
 		int curY = 0;
 		for (String s: credits.split("\n")) {
 			TextData td = new TextData("", 960, curY, ColorScheme.get(ColorScheme.COLOR_MESSAGE), null);
@@ -227,7 +228,7 @@ public class AboutScreen extends GlScreen {
 			td.y = curY;
 			texts.add(td);
 		}
-		font = ((Alite) game).getFont();
+		font = game.getFont();
 	}
 
 	private int parseControlSequence(TextData td, String sequence, String text) {
@@ -260,7 +261,7 @@ public class AboutScreen extends GlScreen {
 			as.pendingMode = dis.readInt();
 			as.y = dis.readInt();
 			as.alpha = dis.readFloat();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("About Screen Initialize", "Error in initializer.", e);
 			return false;
 		}
@@ -276,7 +277,7 @@ public class AboutScreen extends GlScreen {
 	}
 
 	private void initializeGl() {
-		float ratio = (float) windowWidth / (float) windowHeight;
+		float ratio = windowWidth / (float) windowHeight;
         GLES11.glMatrixMode(GLES11.GL_PROJECTION);
         GlUtils.setViewport(visibleArea);
         GLES11.glLoadIdentity();
@@ -354,7 +355,7 @@ public class AboutScreen extends GlScreen {
 		if (mode == 0) {
 			performFadeIn(deltaTime);
 		} else if (mode == 1) {
-			performWait(3000000000l);
+			performWait(3000000000L);
 		} else if (mode == 2) {
 			performFadeOut(deltaTime);
 		} else if (mode == 3 || mode == 4) {
@@ -420,7 +421,7 @@ public class AboutScreen extends GlScreen {
         	}
         }
         GLES11.glColor4f(globalAlpha, globalAlpha, globalAlpha, globalAlpha);
-        ((Alite) game).getFont().drawText("Alite Version " + Alite.VERSION_STRING, 0, 1030, false, 1.0f);
+        game.getFont().drawText("Alite Version " + Alite.VERSION_STRING, 0, 1030, false, 1.0f);
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glPopMatrix();

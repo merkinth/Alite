@@ -97,9 +97,9 @@ public class InGameManager implements Serializable {
 	private final Vector3f              zero                  = new Vector3f(0, 0, 0);
 	private final Vector3f              deltaOrientation      = new Vector3f(0, 0, 0);
 
-	private final float [][]            tempMatrix = new float[3][16];
-	private final float []              viewMatrix = new float[16];
-	private final float []              lightPosition;
+	private final float[][]            tempMatrix = new float[3][16];
+	private final float[]              viewMatrix = new float[16];
+	private final float[]              lightPosition;
 	private final float                 aspectRatio;
 
 	private final AliteButtons          buttons;
@@ -153,7 +153,7 @@ public class InGameManager implements Serializable {
 	private int                         lastY = -1;
 	private int                         hudIndex = 0;
 
-	public InGameManager(final Alite alite, AliteHud hud, String skyMap, float [] lightPosition, boolean fromStation, boolean initStarDust) {
+	public InGameManager(final Alite alite, AliteHud hud, String skyMap, float[] lightPosition, boolean fromStation, boolean initStarDust) {
 		this.alite = alite;
 		helper = new InGameHelper(alite, this);
 		this.hud = hud;
@@ -528,7 +528,7 @@ public class InGameManager implements Serializable {
 		witchSpace = null;
 		message.clearRepetition();
 		try {
-			alite.getFileUtils().autoLoad(alite);
+			alite.autoLoad();
 		} catch (IOException e) {
 			AliteLog.e("Game Over", "Cannot reset commander to last autosave. Resetting.", e);
 			alite.getPlayer().reset();
@@ -544,8 +544,8 @@ public class InGameManager implements Serializable {
 		alite.getNavigationBar().setFlightMode(false);
 		try {
 			AliteLog.d("[ALITE]", "Performing autosave. [Docked]");
-			alite.getFileUtils().autoSave(alite);
-		} catch (Exception e) {
+			alite.autoSave();
+		} catch (IOException e) {
 			AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
 		}
 		newScreen = new StatusScreen(alite);
@@ -706,7 +706,7 @@ public class InGameManager implements Serializable {
 		}
 	}
 
-	public synchronized void performUpdate(float deltaTime, List <AliteObject> allObjects) {
+	synchronized void performUpdate(float deltaTime, List<AliteObject> allObjects) {
 		if (paused || destroyed || helper == null) {
 			return;
 		}
@@ -928,7 +928,7 @@ public class InGameManager implements Serializable {
 		return -1;
 	}
 
-	public boolean handleUI(TouchEvent e) {
+	boolean handleUI(TouchEvent e) {
 		if (hud == null) {
 			return false;
 		}
@@ -1199,7 +1199,7 @@ public class InGameManager implements Serializable {
 					    GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE_MINUS_SRC_ALPHA);
 						GLES11.glDisable(GLES11.GL_CULL_FACE);
 					}
-					float [] goMatrix;
+					float[] goMatrix;
 					if (go instanceof SpaceObject && ((SpaceObject) go).getType() == ObjectType.SpaceStation) {
 						float scale = distSq < EXT_SAFE_ZONE_RADIUS_SQ ? 1.0f : EXT_SAFE_ZONE_RADIUS_SQ / distSq;
 						goMatrix = go.getScaledMatrix(scale);
@@ -1256,7 +1256,7 @@ public class InGameManager implements Serializable {
 		GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, 0);
 	}
 
- 	public void renderScroller(final float deltaTime) {
+ 	void renderScroller(final float deltaTime) {
  		GLES11.glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
  		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
@@ -1307,8 +1307,7 @@ public class InGameManager implements Serializable {
 		viewingTransformationHelper.sortObjects(objects, viewMatrix, tempMatrix[2], laserManager.activeLasers, sortedObjectsToDraw, witchSpace != null, ship);
 		try {
 			renderAllObjects(deltaTime, sortedObjectsToDraw);
-		} catch (ConcurrentModificationException e) {
-			// Ignore...
+		} catch (ConcurrentModificationException ignored) {
 			// This can happen if the game state is being paused while the current
 			// screen is being rendered. Ignoring it is a bit of a hack, but gets
 			// rid of the issue...

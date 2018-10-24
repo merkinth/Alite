@@ -25,11 +25,11 @@ import java.util.List;
 import android.graphics.Rect;
 import android.media.MediaPlayer;
 import android.opengl.GLES11;
+import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.framework.impl.PulsingHighlighter;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteConfig;
@@ -49,7 +49,7 @@ public abstract class TutorialScreen extends AliteScreen {
 	private static final int TEXT_LINE_HEIGHT = 50;
 
 	protected final transient Alite alite;
-	protected final transient List <TutorialLine> lines = new ArrayList<>();
+	private final transient List <TutorialLine> lines = new ArrayList<>();
 	private transient TutorialLine currentLine;
 	int currentLineIndex;
 	private transient TextData[] textData;
@@ -137,10 +137,9 @@ public abstract class TutorialScreen extends AliteScreen {
 		String path = "sound/tutorial/" + tutorialIndex + "/";
 		try {
 			int index = lines.size() + 1;
-			AndroidFileIO afi = (AndroidFileIO) alite.getFileIO();
+			FileIO afi = alite.getFileIO();
 			String audioName = path + (index < 10 ? "0" + index : index) + ".mp3";
-			TutorialLine result = new TutorialLine(AliteConfig.HAS_EXTENSION_APK ? afi.getPrivatePath(audioName) :
-				                                                                         afi.getFileDescriptor(audioName), line);
+			TutorialLine result = new TutorialLine(afi.getPrivatePath(audioName), line);
 			lines.add(result);
 			return result;
 		} catch (IOException e) {
@@ -152,13 +151,11 @@ public abstract class TutorialScreen extends AliteScreen {
 	TutorialLine addLine(int tutorialIndex, String line, String option) {
 		String path = "sound/tutorial/" + tutorialIndex + "/";
 		int index = lines.size() + 1;
-		AndroidFileIO afi = (AndroidFileIO) alite.getFileIO();
+		FileIO afi = alite.getFileIO();
 		String audioName = path + (index < 10 ? "0" + index : index);
 		try {
-			TutorialLine result = new TutorialLine(AliteConfig.HAS_EXTENSION_APK ? afi.getPrivatePath(audioName + ".mp3") :
-				                                                                         afi.getFileDescriptor(audioName + ".mp3"), line);
-			result.addSpeech(AliteConfig.HAS_EXTENSION_APK ? afi.getPrivatePath(audioName + option + ".mp3") :
-				                                                   afi.getFileDescriptor(audioName + option + ".mp3"));
+			TutorialLine result = new TutorialLine(afi.getPrivatePath(audioName + ".mp3"), line);
+			result.addSpeech(afi.getPrivatePath(audioName + option + ".mp3"));
 			lines.add(result);
 			return result;
 		} catch (IOException e) {
@@ -174,7 +171,7 @@ public abstract class TutorialScreen extends AliteScreen {
 	}
 
 	Screen updateNavBar() {
-		NavigationBar navBar = ((Alite) game).getNavigationBar();
+		NavigationBar navBar = game.getNavigationBar();
 		for (TouchEvent event: game.getInput().getTouchEvents()) {
 			if (event.type == TouchEvent.TOUCH_DOWN && event.x >= 1920 - NavigationBar.SIZE) {
 				startX = event.x;
@@ -191,7 +188,7 @@ public abstract class TutorialScreen extends AliteScreen {
 			if (event.type == TouchEvent.TOUCH_UP) {
 				if (Math.abs(startX - event.x) < 20 &&
 					Math.abs(startY - event.y) < 20) {
-					Screen screen = navBar.touched((Alite) game, event.x, event.y);
+					Screen screen = navBar.touched(game, event.x, event.y);
 					navBar.resetPending();
 					return screen;
 				}

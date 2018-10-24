@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.canvas.tutorial;
 
 import java.io.DataInputStream;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.Alite;
@@ -42,7 +41,7 @@ public class TutorialSelectionScreen extends AliteScreen {
 	private Button basicFlying;
 	private Button advancedFlying;
 
-	public TutorialSelectionScreen(Game game) {
+	TutorialSelectionScreen(Alite game) {
 		super(game);
 	}
 
@@ -89,25 +88,25 @@ public class TutorialSelectionScreen extends AliteScreen {
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (introduction.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutIntroduction((Alite) game);
+				newScreen = new TutIntroduction(game);
 			} else if (trading.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutTrading((Alite) game);
+				newScreen = new TutTrading(game);
 			} else if (equipment.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutEquipment((Alite) game);
+				newScreen = new TutEquipment(game);
 			} else if (navigation.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutNavigation((Alite) game);
+				newScreen = new TutNavigation(game);
 			} else if (hud.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutHud((Alite) game);
+				newScreen = new TutHud(game);
 			} else if (basicFlying.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutBasicFlying((Alite) game);
+				newScreen = new TutBasicFlying(game);
 			} else if (advancedFlying.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new TutAdvancedFlying((Alite) game, 0);
+				newScreen = new TutAdvancedFlying(game, 0);
 			}
 		}
 	}

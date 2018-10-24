@@ -21,7 +21,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import java.util.Locale;
 
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
@@ -57,7 +56,7 @@ public abstract class TradeScreen extends AliteScreen {
 	String cashLeft = null;
 	String errorText = null;
 
-	TradeScreen(Game game, int endAnimationFrame) {
+	TradeScreen(Alite game, int endAnimationFrame) {
 		super(game);
 		this.endAnimationFrame = endAnimationFrame;
 	}
@@ -90,7 +89,7 @@ public abstract class TradeScreen extends AliteScreen {
 	}
 
 	void presentTradeStatus() {
-		Player player = ((Alite) game).getPlayer();
+		Player player = game.getPlayer();
 		Graphics g = game.getGraphics();
 		String cash = String.format(Locale.getDefault(), "%d.%d", player.getCash() / 10, player.getCash() % 10);
 		String freeCargo = player.getCobra().getFreeCargo().getStringWithoutUnit();

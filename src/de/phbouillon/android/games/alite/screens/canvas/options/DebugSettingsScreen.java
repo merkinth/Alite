@@ -21,7 +21,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
 import java.io.DataInputStream;
 import java.util.Locale;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.Alite;
@@ -55,13 +54,13 @@ public class DebugSettingsScreen extends AliteScreen {
     private Button laserDoesNotOverheat;
     private Button more;
 
-	DebugSettingsScreen(Game game) {
+	DebugSettingsScreen(Alite game) {
 		super(game);
-		((Alite) game).getPlayer().setCheater(true);
+		game.getPlayer().setCheater(true);
 	}
 
 	private String formatCash() {
-		Player player = ((Alite) game).getPlayer();
+		Player player = game.getPlayer();
 		return String.format(Locale.getDefault(), "%d.%d Cr", player.getCash() / 10, player.getCash() % 10);
 	}
 
@@ -76,9 +75,9 @@ public class DebugSettingsScreen extends AliteScreen {
 		laserDoesNotOverheat = Button.createGradientTitleButton(890, 370, 780, 100, "Laser Overheats: " + (Settings.laserDoesNotOverheat ? "No" : "Yes"));
 		adjustCredits = Button.createGradientTitleButton(50, 490, 780, 100, "Adjust Credits (" + formatCash() + ")");
 		arriveInSafeZone = Button.createGradientTitleButton(890, 490, 780, 100, "Arrive in Safe Zone: " + (Settings.enterInSafeZone ? "Yes" : "No"));
-		adjustLegalStatus = Button.createGradientTitleButton(50, 610, 780, 100, "Adjust Legal (" + ((Alite) game).getPlayer().getLegalStatus() + ", " + ((Alite) game).getPlayer().getLegalValue() + ")");
+		adjustLegalStatus = Button.createGradientTitleButton(50, 610, 780, 100, "Adjust Legal (" + game.getPlayer().getLegalStatus() + ", " + game.getPlayer().getLegalValue() + ")");
 		disableAttackers = Button.createGradientTitleButton(890, 610, 780, 100, "Disable Attackers: " + (Settings.disableAttackers ? "Yes" : "No"));
-		adjustScore = Button.createGradientTitleButton(50, 730, 780, 100, "Adjust Score (" + ((Alite) game).getPlayer().getScore() + ")");
+		adjustScore = Button.createGradientTitleButton(50, 730, 780, 100, "Adjust Score (" + game.getPlayer().getScore() + ")");
 		disableTraders = Button.createGradientTitleButton(890, 730, 780, 100, "Disable Traders: " + (Settings.disableTraders ? "Yes" : "No"));
 		addDockingComputer = Button.createGradientTitleButton(50, 850, 780, 100, "Add Docking Computer");
 		unlimitedFuel = Button.createGradientTitleButton(890, 850, 780, 100, "Unlimited Fuel: " + (Settings.unlimitedFuel ? "Yes" : "No"));
@@ -151,11 +150,11 @@ public class DebugSettingsScreen extends AliteScreen {
 				Settings.save(game.getFileIO());
 			} else if (adjustCredits.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				((Alite) game).getPlayer().setCash(((Alite) game).getPlayer().getCash() + 10000);
+				game.getPlayer().setCash(game.getPlayer().getCash() + 10000);
 				adjustCredits.setText("Adjust Credits (" + formatCash() + ")");
 			} else if (adjustLegalStatus.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				Player player = ((Alite) game).getPlayer();
+				Player player = game.getPlayer();
 				if (player.getLegalValue() != 0) {
 					player.setLegalValue(player.getLegalValue() >> 1);
 				} else {
@@ -164,7 +163,7 @@ public class DebugSettingsScreen extends AliteScreen {
 				adjustLegalStatus.setText("Adjust Legal (" + player.getLegalStatus() + ", " + player.getLegalValue() + ")");
 			} else if (adjustScore.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				Player player = ((Alite) game).getPlayer();
+				Player player = game.getPlayer();
 				int score = player.getScore();
 				if (score < Rating.HARMLESS.getScoreThreshold() - 1) {
 					score = Rating.HARMLESS.getScoreThreshold() - 1;
@@ -184,13 +183,13 @@ public class DebugSettingsScreen extends AliteScreen {
 					score = Rating.DEADLY.getScoreThreshold() - 1;
 				}
 				player.setScore(score);
-				while (score >= ((Alite) game).getPlayer().getRating().getScoreThreshold() && ((Alite) game).getPlayer().getRating().getScoreThreshold() > 0) {
-					((Alite) game).getPlayer().setRating(Rating.values()[((Alite) game).getPlayer().getRating().ordinal() + 1]);
+				while (score >= game.getPlayer().getRating().getScoreThreshold() && game.getPlayer().getRating().getScoreThreshold() > 0) {
+					game.getPlayer().setRating(Rating.values()[game.getPlayer().getRating().ordinal() + 1]);
 				}
-				adjustScore.setText("Adjust Score (" + ((Alite) game).getPlayer().getScore() + ")");
+				adjustScore.setText("Adjust Score (" + game.getPlayer().getScore() + ")");
 			} else if (addDockingComputer.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				((Alite) game).getCobra().addEquipment(EquipmentStore.dockingComputer);
+				game.getCobra().addEquipment(EquipmentStore.dockingComputer);
 			} else if (unlimitedFuel.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.unlimitedFuel = !Settings.unlimitedFuel;

@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Locale;
 
 import android.content.Intent;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.impl.AndroidGame;
@@ -36,7 +35,6 @@ import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.Slider;
 import de.phbouillon.android.games.alite.SoundManager;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.io.FileUtils;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.LegalStatus;
 import de.phbouillon.android.games.alite.model.Player;
@@ -63,7 +61,7 @@ public class OptionsScreen extends AliteScreen {
 	private int rowSize = 130;
 	private int buttonSize = 100;
 
-	public OptionsScreen(Game game) {
+	public OptionsScreen(Alite game) {
 		super(game);
 	}
 
@@ -127,23 +125,21 @@ public class OptionsScreen extends AliteScreen {
 					AndroidGame.resetting = true;
 					Settings.introVideoQuality = 255;
 					Settings.save(game.getFileIO());
-					Alite alite = (Alite) game;
-					alite.getPlayer().reset();
-					alite.setGameTime(0);
+					game.getPlayer().reset();
+					game.setGameTime(0);
 
 					if (RESTORE_SAVEGAME) {
-						Player player = ((Alite) game).getPlayer();
-						PlayerCobra cobra = ((Alite) game).getPlayer().getCobra();
+						Player player = game.getPlayer();
+						PlayerCobra cobra = player.getCobra();
 						player.setCash(831095);
 						player.setLegalStatus(LegalStatus.CLEAN);
 						player.setLegalValue(0);
 						player.setRating(Rating.DEADLY);
 						player.setScore(386655);
 						player.setName("richard");
-						player.setCurrentSystem(((Alite) game).getGenerator()
+						player.setCurrentSystem(game.getGenerator()
 								.getSystem(84));
-						player.setHyperspaceSystem(((Alite) game)
-								.getGenerator().getSystem(84));
+						player.setHyperspaceSystem(game.getGenerator().getSystem(84));
 						cobra.addEquipment(EquipmentStore.fuelScoop);
 						cobra.addEquipment(EquipmentStore.retroRockets);
 						cobra.addEquipment(EquipmentStore.galacticHyperdrive);
@@ -163,21 +159,17 @@ public class OptionsScreen extends AliteScreen {
 						cobra.setLaser(PlayerCobra.DIR_RIGHT,
 								EquipmentStore.militaryLaser);
 
-						((Alite) game).setGameTime(283216l * 1000l * 1000l * 1000l);
+						game.setGameTime(283216L * 1000L * 1000L * 1000L);
 						try {
-							String fileName = FileUtils.generateRandomFilename(
-									"commanders", "", 12, ".cmdr",
-									game.getFileIO());
-							((Alite) game).getFileUtils().saveCommander(
-									(Alite) game, "richard", fileName);
+							game.saveCommander("richard");
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
 					}
 
-					Intent intent = new Intent(alite, AliteIntro.class);
+					Intent intent = new Intent(game, AliteIntro.class);
 					intent.putExtra(Alite.LOG_IS_INITIALIZED, true);
-					alite.startActivityForResult(intent, 0);
+					game.startActivityForResult(intent, 0);
 				}
 			}
 			if (gameplayOptions.isTouched(touch.x, touch.y)) {

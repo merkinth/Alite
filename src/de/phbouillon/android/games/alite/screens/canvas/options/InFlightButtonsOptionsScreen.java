@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
@@ -74,7 +73,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		ButtonConfigData[] buttons = new ButtonConfigData[3];
 	}
 
-	InFlightButtonsOptionsScreen(Game game) {
+	InFlightButtonsOptionsScreen(Alite game) {
 		super(game);
 	}
 
@@ -403,7 +402,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		InFlightButtonsOptionsScreen ifbos = new InFlightButtonsOptionsScreen(alite);
 		try {
 			ifbos.groupSelectionMode = dis.readBoolean();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Inflight Button Configuration Initialize", "Error in initializer.", e);
 			return false;
 		}

@@ -37,8 +37,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 import android.opengl.GLES11;
 import android.opengl.GLUtils;
+import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.MemUtil;
-import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.framework.impl.Pool;
 import de.phbouillon.android.framework.impl.Pool.PoolObjectFactory;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -60,7 +60,7 @@ public class TextureManager {
 
 	private final Map <String, Texture> textures = Collections.synchronizedMap(new HashMap<>());
 	private final Set <String> bitmaps = Collections.synchronizedSet(new HashSet<>());
-	private final AndroidGame game;
+	private final Game game;
 	private final Map <String, SpriteData> sprites = Collections.synchronizedMap(new HashMap<>());
 	private static int count = 1;
 	private final PoolObjectFactory <Texture> factory = new PoolObjectFactory<Texture>() {
@@ -74,7 +74,7 @@ public class TextureManager {
 	};
 	private final Pool <Texture> texturePool = new Pool<>(factory, MAX_TEXTURES);
 
-	public TextureManager(AndroidGame game) {
+	public TextureManager(Game game) {
 		this.game = game;
 
 	}

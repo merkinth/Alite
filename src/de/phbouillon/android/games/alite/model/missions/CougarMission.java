@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model.missions;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -43,39 +43,39 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Coug
 
 public class CougarMission extends Mission {
 	public static final int ID = 4;
-	
-	private char [] galaxySeed;
+
+	private char[] galaxySeed;
 	private int targetIndex;
 	private int state;
 	private final Vector3f tempVector = new Vector3f(0, 0, 0);
 	private boolean cougarCreated = false;
-	
+
 	public CougarMission(Alite alite) {
 		super(alite, ID);
 	}
-	
+
 	public int getState() {
 		return state;
 	}
-	
+
 	class CougarCloakingUpdater implements Updater {
 		private static final long serialVersionUID = 6077773193969694018L;
 		private long nextUpdateEvent;
 		private long lastCheck;
 		private final Cougar cougar;
 		private boolean cloaked = false;
-		
+
 		CougarCloakingUpdater(Cougar cougar) {
 			this.cougar = cougar;
-			computeNextUpdateTime();			
+			computeNextUpdateTime();
 		}
-		
+
 		private void computeNextUpdateTime() {
 			lastCheck = System.nanoTime();
 			// 6.5 - 12 seconds later.
 			nextUpdateEvent = 6500000000l + (long) (Math.random() * 5500000000l);
 		}
-		
+
 		@Override
 		public void onUpdate(float deltaTime) {
 			if (System.nanoTime() >= (lastCheck + nextUpdateEvent)) {
@@ -83,9 +83,9 @@ public class CougarMission extends Mission {
 				cloaked = !cloaked;
 				cougar.setCloaked(cloaked);
 			}
-		}		
+		}
 	}
-	
+
 	@Override
 	protected boolean checkStart() {
 		Player player = alite.getPlayer();
@@ -93,11 +93,11 @@ public class CougarMission extends Mission {
 			   !player.getActiveMissions().contains(this) &&
 			   !player.getCompletedMissions().contains(this) &&
 			    player.getCompletedMissions().contains(MissionManager.getInstance().get(SupernovaMission.ID)) &&
-				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 && 
-				player.getCondition() == Condition.DOCKED; 
+				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 &&
+				player.getCondition() == Condition.DOCKED;
 	}
 
-	public void setTarget(char [] galaxySeed, int target, int state) {
+	public void setTarget(char[] galaxySeed, int target, int state) {
 		this.galaxySeed = new char[3];
 		for (int i = 0; i < 3; i++) {
 			this.galaxySeed[i] = galaxySeed[i];
@@ -105,14 +105,14 @@ public class CougarMission extends Mission {
 		this.targetIndex = target;
 		this.state = state;
 	}
-	
+
 	@Override
 	protected void acceptMission(boolean accept) {
 		// The player can't decline this mission...
 		alite.getPlayer().addActiveMission(this);
-		state = 1;			
+		state = 1;
 	}
-	
+
 	@Override
 	public void onMissionAccept() {
 	}
@@ -127,11 +127,11 @@ public class CougarMission extends Mission {
 	}
 
 	@Override
-	public void onMissionUpdate() {		
+	public void onMissionUpdate() {
 	}
 
 	@Override
-	public void load(DataInputStream dis) throws IOException {	
+	public void load(DataInputStream dis) throws IOException {
 		galaxySeed = new char[3];
 		galaxySeed[0] = dis.readChar();
 		galaxySeed[1] = dis.readChar();
@@ -143,7 +143,7 @@ public class CougarMission extends Mission {
 	}
 
 	@Override
-	public byte [] save() throws IOException {
+	public byte[] save() throws IOException {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(16);
 		DataOutputStream dos = new DataOutputStream(bos);
 		dos.writeChar(galaxySeed[0]);
@@ -152,7 +152,7 @@ public class CougarMission extends Mission {
 		dos.writeInt(targetIndex);
 		dos.writeInt(state);
 		dos.close();
-		bos.close();		
+		bos.close();
 		return bos.toByteArray();
 	}
 
@@ -165,7 +165,7 @@ public class CougarMission extends Mission {
 	public AliteScreen checkForUpdate() {
 		return null;
 	}
-	
+
 	private void spawnCargoCanister(final InGameManager inGame, final Cougar cougar) {
 		tempVector.x = (float) (-2.0 + Math.random() * 4.0);
 		tempVector.y = (float) (-2.0 + Math.random() * 4.0);
@@ -186,7 +186,7 @@ public class CougarMission extends Mission {
 		cargo.setSpeed(0.0f);
 		final float speed = 0.2f + ((cargo.getMaxSpeed() - 0.2f) * (float) Math.random());
 		cargo.setPosition(cougar.getPosition().x, cougar.getPosition().y, cougar.getPosition().z);
-		cargo.setUpdater(new Updater() {			
+		cargo.setUpdater(new Updater() {
 			private static final long serialVersionUID = 4203394658109589557L;
 
 			@Override
@@ -198,18 +198,18 @@ public class CougarMission extends Mission {
 				cargo.setPosition(x, y, z);
 				cargo.applyDeltaRotation(rx, ry, rz);
 			}
-		});		
-		inGame.addObject(cargo);						
+		});
+		inGame.addObject(cargo);
 	}
-	
+
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		boolean result = !positionMatchesTarget(galaxySeed, targetIndex);
 		if (state == 1 && result && !cougarCreated) {
-			alite.getPlayer().addCompletedMission(this);			
+			alite.getPlayer().addCompletedMission(this);
 			alite.getPlayer().resetIntergalacticJumpCounter();
 			alite.getPlayer().resetJumpCounter();
-			return new TimedEvent(4000000000l) {				
+			return new TimedEvent(4000000000l) {
 				private static final long serialVersionUID = -8640036894816728823L;
 
 				@Override
@@ -226,12 +226,12 @@ public class CougarMission extends Mission {
 					final Cougar cougar = new Cougar(alite);
 					AspMkII asp1 = new AspMkII(alite);
 					AspMkII asp2 = new AspMkII(alite);
-					manager.spawnEnemyAndAttackPlayer(asp1, 0, spawnPosition, true);
-					manager.spawnEnemyAndAttackPlayer(cougar, 1, spawnPosition, true);
-					manager.spawnEnemyAndAttackPlayer(asp2, 2, spawnPosition, true);
+					manager.spawnEnemyAndAttackPlayer(asp1, 0, spawnPosition );
+					manager.spawnEnemyAndAttackPlayer(cougar, 1, spawnPosition);
+					manager.spawnEnemyAndAttackPlayer(asp2, 2, spawnPosition);
 					alite.getPlayer().removeActiveMission(CougarMission.this);
 					cougar.setUpdater(new CougarCloakingUpdater(cougar));
-					cougar.addDestructionCallback(new DestructionCallback() {						
+					cougar.addDestructionCallback(new DestructionCallback() {
 						private static final long serialVersionUID = -4949764387008051526L;
 
 						@Override

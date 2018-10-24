@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.canvas.missions;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -23,7 +23,7 @@ import java.io.IOException;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
-import de.phbouillon.android.framework.impl.AndroidFileIO;
+import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.games.alite.AliteConfig;
 import de.phbouillon.android.games.alite.AliteLog;
 
@@ -31,17 +31,9 @@ class MissionLine implements OnCompletionListener {
 	private final String text;
 	private final Object speechObject;
 	private boolean isPlaying = false;
-	
-	MissionLine(AndroidFileIO fio, String speechPath, String text) throws IOException {
-		if (speechPath != null) {
-			if (AliteConfig.HAS_EXTENSION_APK) {
-				speechObject = fio.getPrivatePath(speechPath);
-			} else {
-				speechObject = fio.getFileDescriptor(speechPath);
-			}
-		} else {
-			speechObject = null;
-		}
+
+	MissionLine(FileIO fio, String speechPath, String text) throws IOException {
+		speechObject = speechPath == null ? null : fio.getPrivatePath(speechPath);
 		this.text = text;
 	}
 
@@ -55,7 +47,7 @@ class MissionLine implements OnCompletionListener {
 			if (AliteConfig.HAS_EXTENSION_APK) {
 				mp.setDataSource((String) speechObject);
 			} else {
-				AssetFileDescriptor afd = ((AssetFileDescriptor) speechObject); 
+				AssetFileDescriptor afd = (AssetFileDescriptor) speechObject;
 				mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
 			}
 			mp.setOnCompletionListener(this);
@@ -69,12 +61,12 @@ class MissionLine implements OnCompletionListener {
 	boolean isPlaying() {
 		return isPlaying;
 	}
-	
+
 	@Override
 	public void onCompletion(MediaPlayer mp) {
-		isPlaying = false;	
-	}	
-	
+		isPlaying = false;
+	}
+
 	String getText() {
 		return text;
 	}

@@ -102,8 +102,6 @@ public class ColorScheme {
 
 	private static int MAX_COLORS = 69;
 
-	static final String ALITE_COLOR_SCHEME_EXTENSION = ".acs";
-
 	public static final String COLOR_SCHEME_CLASSIC = "0";
 	private static final String COLOR_SCHEME_MODERN = "1";
 
@@ -254,6 +252,7 @@ public class ColorScheme {
 	};
 
 	private static final String DIRECTORY_COLOR_SCHEMES = "color_schemes";
+	static final String ALITE_COLOR_SCHEME_EXTENSION = ".acs";
 
 	private static int[][] colors = classicColorSchemeColors;
 	private static List<String> colorSchemes = new ArrayList<>();
@@ -351,23 +350,21 @@ public class ColorScheme {
 	}
 
 	public static void loadColorSchemeList(FileIO f, String schemeName) {
-		try {
-			nextColorSchemeIndex = 0;
-			File[] colorSchemeFiles = f.getFiles(DIRECTORY_COLOR_SCHEMES, "(.*)\\" + ALITE_COLOR_SCHEME_EXTENSION);
-			colorSchemes.clear();
-			// if color_schemes directory does not exist
-			if (colorSchemeFiles == null) {
-				return;
+		nextColorSchemeIndex = 0;
+		File[] colorSchemeFiles = f.getFiles(DIRECTORY_COLOR_SCHEMES, "(.*)\\" + ALITE_COLOR_SCHEME_EXTENSION);
+		colorSchemes.clear();
+		// if color_schemes directory does not exist
+		if (colorSchemeFiles == null) {
+			return;
+		}
+		AliteLog.d("ColorScheme.load", "Number of color scheme files in directory '" +
+			DIRECTORY_COLOR_SCHEMES + "' found: " + colorSchemeFiles.length);
+		for (int i = 0; i < colorSchemeFiles.length; i++) {
+			colorSchemes.add(colorSchemeFiles[i].getName());
+			if (colorSchemeFiles[i].getName().equals(schemeName)) {
+				nextColorSchemeIndex = i+1;
 			}
-			AliteLog.d("ColorScheme.load", "Number of color scheme files in directory '" +
-				DIRECTORY_COLOR_SCHEMES + "' found: " + colorSchemeFiles.length);
-			for (int i = 0; i < colorSchemeFiles.length; i++) {
-				colorSchemes.add(colorSchemeFiles[i].getName());
-				if (colorSchemeFiles[i].getName().equals(schemeName)) {
-					nextColorSchemeIndex = i+1;
-				}
-			}
-		} catch (IOException ignored) { }
+		}
 	}
 
 	public static String getNextColorScheme(String schemeName) {

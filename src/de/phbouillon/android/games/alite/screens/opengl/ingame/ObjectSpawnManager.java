@@ -24,7 +24,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import android.opengl.Matrix;
-import de.phbouillon.android.framework.TimeFactorChangeListener;
 import de.phbouillon.android.framework.Updater;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -77,10 +76,10 @@ public class ObjectSpawnManager implements Serializable {
 	private static final float SPAWN_INTER_SHIP_DISTANCE            = 1500.0f;
 	private static final float TRANSPORT_PLANET_DISTANCE_SQ         = 7225000000.0f;
 
-	private static final int [] spawnMatrix = new int [] {0, 0,  1, 0,   -1, 0,   0, -1,   0, 1,   1, 1,
+	private static final int[] spawnMatrix = new int[] {0, 0,  1, 0,   -1, 0,   0, -1,   0, 1,   1, 1,
 		                                                 -2, -2,  2, 0,   -2, 0,   0, -2,   0, 2,   2, 2};
 
-	private static final float [] thargonSpawnMatrix = new float [] {0, -1,  0.7071067f, -0.7071067f,  1, 0,  0.7071067f, 0.7071067f,
+	private static final float[] thargonSpawnMatrix = new float[] {0, -1,  0.7071067f, -0.7071067f,  1, 0,  0.7071067f, 0.7071067f,
 																	 0,  1, -0.7071067f,  0.7071067f, -1, 0, -0.7071067f, -0.7071067f};
 	private transient Alite alite;
 	private InGameManager inGame;
@@ -96,7 +95,7 @@ public class ObjectSpawnManager implements Serializable {
 	private static final Vector3f vector = new Vector3f(0, 0, 0);
 	private static final Vector3f vector2 = new Vector3f(0, 0, 0);
 	private static final Vector3f vector3 = new Vector3f(0, 0, 0);
-	private final float [] matrixCopy = new float[16];
+	private final float[] matrixCopy = new float[16];
 
 	private boolean torus;
 	private SystemData system;
@@ -316,12 +315,7 @@ public class ObjectSpawnManager implements Serializable {
 			inGame.addTimedEvent(shuttleOrTransportTimer.event);
 			inGame.addTimedEvent(viperTimer.event);
 		}
-		alite.setTimeFactorChangeListener(new TimeFactorChangeListener() {
-			@Override
-			public void timeFactorChanged(int oldTimeFactor, int newTimeFactor) {
-				updateTimers(oldTimeFactor / (float) newTimeFactor);
-			}
-		});
+		alite.setTimeFactorChangeListener((oldTimeFactor, newTimeFactor) -> updateTimers(oldTimeFactor / (float) newTimeFactor));
 	}
 
 	private void updateTimerInternal(float factor, SpawnTimer timer) {
@@ -431,11 +425,6 @@ public class ObjectSpawnManager implements Serializable {
 			vector.x = spawnPosition.x + spawnMatrix[index * 2] * SPAWN_INTER_SHIP_DISTANCE;
 			vector.y = spawnPosition.y + spawnMatrix[index * 2 + 1] * SPAWN_INTER_SHIP_DISTANCE;
 		}
-	}
-
-	@Deprecated
-	public void spawnEnemyAndAttackPlayer(final SpaceObject ship, int index, Vector3f spawnPosition, boolean addCallback) {
-		spawnEnemyAndAttackPlayer(ship, index, spawnPosition);
 	}
 
 	public void spawnEnemyAndAttackPlayer(final SpaceObject ship, int index, Vector3f spawnPosition) {
@@ -739,8 +728,8 @@ public class ObjectSpawnManager implements Serializable {
 		inGame.getStation().getForwardVector().copy(vector);
 		vector.scale(1000);
 		vector.add(inGame.getStation().getPosition());
-		WayPoint [] wps = new WayPoint[] {WayPoint.newWayPoint(vector, so.getUpVector())};
-		so.setAIState(AIState.FLY_PATH, (Object []) wps);
+		WayPoint[] wps = new WayPoint[] {WayPoint.newWayPoint(vector, so.getUpVector())};
+		so.setAIState(AIState.FLY_PATH, (Object[]) wps);
 		so.setUpdater(new Updater() {
 			private static final long serialVersionUID = 9195512054255867095L;
 
@@ -838,8 +827,8 @@ public class ObjectSpawnManager implements Serializable {
 			public void execute(SpaceObject so) {
 				shuttleOrTransport.setUpdater(null);
 				shuttleOrTransport.setInBay(false);
-				WayPoint [] wps = new WayPoint[] {WayPoint.newWayPoint(FlightScreen.PLANET_POSITION, shuttleOrTransport.getUpVector())};
-				shuttleOrTransport.setAIState(AIState.FLY_PATH, (Object []) wps);
+				WayPoint[] wps = new WayPoint[] {WayPoint.newWayPoint(FlightScreen.PLANET_POSITION, shuttleOrTransport.getUpVector())};
+				shuttleOrTransport.setAIState(AIState.FLY_PATH, (Object[]) wps);
 				shuttleOrTransport.setUpdater(new Updater() {
 					private static final long serialVersionUID = 2702506138360802890L;
 

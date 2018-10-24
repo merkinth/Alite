@@ -84,18 +84,15 @@ public class TutTrading extends TutorialScreen {
 				"remember how to do that, don't you?");
 
 		status = new StatusScreen(alite);
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				if (updateNavBar() instanceof BuyScreen) {
-					status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
-					buy = new BuyScreen(alite);
-					buy.loadAssets();
-					buy.activate();
-					line.setFinished();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			if (updateNavBar() instanceof BuyScreen) {
+				status.dispose();
+				status = null;
+				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
+				buy = new BuyScreen(alite);
+				buy.loadAssets();
+				buy.activate();
+				line.setFinished();
 			}
 		});
 	}
@@ -113,17 +110,14 @@ public class TutTrading extends TutorialScreen {
 		final TutorialLine line = addLine(2,
 			"Oh, don't be shy, try it: Tap one trade item once. Come on.");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				if (buy.getSelectedGood() == null) {
-					for (TouchEvent event: game.getInput().getTouchEvents()) {
-						buy.processTouch(event);
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			if (buy.getSelectedGood() == null) {
+				for (TouchEvent event: game.getInput().getTouchEvents()) {
+					buy.processTouch(event);
 				}
-				if (buy.getSelectedGood() != null) {
-					line.setFinished();
-				}
+			}
+			if (buy.getSelectedGood() != null) {
+				line.setFinished();
 			}
 		});
 	}
@@ -133,34 +127,26 @@ public class TutTrading extends TutorialScreen {
 				"See? That wasn't so hard after all, was it? Now, if you " +
 				"tap it again, and the item is available, you can buy some.");
 
-		line.setFinishHook(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				buy.resetSelection();
-			}
-		}).setHeight(150);
+		line.setFinishHook((IMethodHook) deltaTime -> buy.resetSelection()).setHeight(150);
 	}
 
 	private void initLine_04() {
 		final TutorialLine line = addLine(2,
 				"Let's try that: Tap on the symbol for food.");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				if (buy.getSelectedGood() == null) {
-					for (TouchEvent event: game.getInput().getTouchEvents()) {
-						buy.processTouch(event);
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			if (buy.getSelectedGood() == null) {
+				for (TouchEvent event: game.getInput().getTouchEvents()) {
+					buy.processTouch(event);
 				}
-				TradeGood selectedGood = buy.getSelectedGood();
-				if (selectedGood != null) {
-					line.setFinished();
-					if (selectedGood == TradeGoodStore.get().food()) {
-						currentLineIndex++;
-					} else {
-						buy.resetSelection();
-					}
+			}
+			TradeGood selectedGood = buy.getSelectedGood();
+			if (selectedGood != null) {
+				line.setFinished();
+				if (selectedGood == TradeGoodStore.get().food()) {
+					currentLineIndex++;
+				} else {
+					buy.resetSelection();
 				}
 			}
 		}).addHighlight(makeHighlight(50, 100, 225, 225)).setHeight(150);
@@ -171,21 +157,18 @@ public class TutTrading extends TutorialScreen {
 				"No, I told you to tap on the food-icon, that's the one " +
 				"in the upper left corner, wet-nose.");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				if (buy.getSelectedGood() == null) {
-					for (TouchEvent event: game.getInput().getTouchEvents()) {
-						buy.processTouch(event);
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			if (buy.getSelectedGood() == null) {
+				for (TouchEvent event: game.getInput().getTouchEvents()) {
+					buy.processTouch(event);
 				}
-				TradeGood selectedGood = buy.getSelectedGood();
-				if (selectedGood != null) {
-					line.setFinished();
-					if (selectedGood != TradeGoodStore.get().food()) {
-						currentLineIndex--;
-						buy.resetSelection();
-					}
+			}
+			TradeGood selectedGood = buy.getSelectedGood();
+			if (selectedGood != null) {
+				line.setFinished();
+				if (selectedGood != TradeGoodStore.get().food()) {
+					currentLineIndex--;
+					buy.resetSelection();
 				}
 			}
 		}).addHighlight(makeHighlight(50, 100, 225, 225)).setHeight(150);
@@ -194,19 +177,16 @@ public class TutTrading extends TutorialScreen {
 	private void initLine_06() {
 		final TutorialLine line = addLine(2, "Ok. Now tap it again.");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				if (buy.getGoodToBuy() == null) {
-					for (TouchEvent event : game.getInput().getTouchEvents()) {
-						buy.processTouch(event);
-					}
-					if (buy.getGoodToBuy() == TradeGoodStore.get().food()) {
-						quantity = (QuantityPadScreen) buy.getNewScreen();
-						quantity.loadAssets();
-						quantity.activate();
-						line.setFinished();
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			if (buy.getGoodToBuy() == null) {
+				for (TouchEvent event : game.getInput().getTouchEvents()) {
+					buy.processTouch(event);
+				}
+				if (buy.getGoodToBuy() == TradeGoodStore.get().food()) {
+					quantity = (QuantityPadScreen) buy.getNewScreen();
+					quantity.loadAssets();
+					quantity.activate();
+					line.setFinished();
 				}
 			}
 		}).setHeight(150);
@@ -219,30 +199,24 @@ public class TutTrading extends TutorialScreen {
 				"Although this is a simulation only, and nothing will " +
 				"really be added to your cargo bay, enter a 1 followed by OK.");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event : game.getInput().getTouchEvents()) {
-					quantity.processTouch(event);
-				}
-				if (quantity.getNewScreen() == buy) {
-					success = "1".equals(buy.getBoughtAmount());
-					if (success) {
-						currentLineIndex++;
-					}
-					line.setFinished();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event : game.getInput().getTouchEvents()) {
+				quantity.processTouch(event);
 			}
-		}).setWidth(800).setHeight(350).setY(400).setFinishHook(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				if (quantity != null) {
-					quantity.clearAmount();
-					if (success) {
-						quantity.dispose();
-						quantity = null;
-						buy.performTrade(0, 0);
-					}
+			if (quantity.getNewScreen() == buy) {
+				success = "1".equals(buy.getBoughtAmount());
+				if (success) {
+					currentLineIndex++;
+				}
+				line.setFinished();
+			}
+		}).setWidth(800).setHeight(350).setY(400).setFinishHook((IMethodHook) deltaTime -> {
+			if (quantity != null) {
+				quantity.clearAmount();
+				if (success) {
+					quantity.dispose();
+					quantity = null;
+					buy.performTrade(0, 0);
 				}
 			}
 		});
@@ -255,30 +229,24 @@ public class TutTrading extends TutorialScreen {
 				"the number in the first column, third row, followed by OK; " +
 				"that's the third column, fourth row button.");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event : game.getInput().getTouchEvents()) {
-					quantity.processTouch(event);
-				}
-				if (quantity.getNewScreen() == buy) {
-					success = "1".equals(buy.getBoughtAmount());
-					line.setFinished();
-					if (!success) {
-						currentLineIndex--;
-					}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event : game.getInput().getTouchEvents()) {
+				quantity.processTouch(event);
+			}
+			if (quantity.getNewScreen() == buy) {
+				success = "1".equals(buy.getBoughtAmount());
+				line.setFinished();
+				if (!success) {
+					currentLineIndex--;
 				}
 			}
-		}).setWidth(800).setHeight(350).setY(400).setFinishHook(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				if (success) {
-					quantity.dispose();
-					quantity = null;
-					buy.performTrade(0, 0);
-				} else {
-					quantity.clearAmount();
-				}
+		}).setWidth(800).setHeight(350).setY(400).setFinishHook((IMethodHook) deltaTime -> {
+			if (success) {
+				quantity.dispose();
+				quantity = null;
+				buy.performTrade(0, 0);
+			} else {
+				quantity.clearAmount();
 			}
 		});
 	}
@@ -290,18 +258,15 @@ public class TutTrading extends TutorialScreen {
 				"the inventory screen and see how that ton of food is " +
 				"displayed there.");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				if (updateNavBar() instanceof InventoryScreen) {
-					buy.dispose();
-					buy = null;
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_INVENTORY);
-					inventory = new InventoryScreen(alite);
-					inventory.loadAssets();
-					inventory.activate();
-					line.setFinished();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			if (updateNavBar() instanceof InventoryScreen) {
+				buy.dispose();
+				buy = null;
+				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_INVENTORY);
+				inventory = new InventoryScreen(alite);
+				inventory.loadAssets();
+				inventory.activate();
+				line.setFinished();
 			}
 		}).setHeight(150);
 	}
@@ -317,17 +282,14 @@ public class TutTrading extends TutorialScreen {
 
 		line.setSkippable(false).setY(500).
 			addHighlight(makeHighlight(450, 970, 850, 40)).
-			setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
+			setUpdateMethod((IMethodHook) deltaTime -> {
 				for (TouchEvent event : game.getInput().getTouchEvents()) {
 					inventory.processTouch(event);
 				}
 				if (inventory.getCashLeft() != null) {
 					line.setFinished();
 				}
-			}
-		});
+			});
 	}
 
 	private void initLine_11() {
@@ -399,7 +361,7 @@ public class TutTrading extends TutorialScreen {
 				tt.savedInventory[i].addUnpunished(Weight.grams(dis.readLong()));
 			}
 			tt.savedFoodQuantity = dis.readInt();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Tutorial Trading Screen Initialize", "Error in initializer.", e);
 			return false;
 		}

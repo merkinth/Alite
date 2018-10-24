@@ -30,10 +30,7 @@ import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.io.FileUtils;
 import de.phbouillon.android.games.alite.io.ObbExpansionsManager;
-import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.Player;
-import de.phbouillon.android.games.alite.model.PlayerCobra;
-import de.phbouillon.android.games.alite.model.Rating;
+import de.phbouillon.android.games.alite.model.*;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.*;
@@ -47,7 +44,7 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.LaserManager;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteFont;
 
-import java.io.IOException;
+import java.io.*;
 
 public class Alite extends AndroidGame {
 	public static final String VERSION_STRING = AliteConfig.VERSION_STRING + " " + (AliteConfig.HAS_EXTENSION_APK ? "OBB" : "SFI");
@@ -83,7 +80,7 @@ public class Alite extends AndroidGame {
 
 	public Alite() {
 		super(1920, 1080);
-		fileUtils = new FileUtils();
+		fileUtils = new FileUtils(this);
 		alite = this;
 	}
 
@@ -107,15 +104,12 @@ public class Alite extends AndroidGame {
 		}
 		AliteLog.d("Alite.onCreate", "onCreate begin");
 		final Thread.UncaughtExceptionHandler oldHandler = Thread.getDefaultUncaughtExceptionHandler();
-		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread paramThread, Throwable paramThrowable) {
-	            AliteLog.e("Uncaught Exception (Alite)", "Message: " + (paramThrowable == null ? "<null>" : paramThrowable.getMessage()), paramThrowable);
-				if (oldHandler != null) {
-					oldHandler.uncaughtException(paramThread, paramThrowable);
-				} else {
-					System.exit(2);
-				}
+		Thread.setDefaultUncaughtExceptionHandler((paramThread, paramThrowable) -> {
+			AliteLog.e("Uncaught Exception (Alite)", "Message: " + (paramThrowable == null ? "<null>" : paramThrowable.getMessage()), paramThrowable);
+			if (oldHandler != null) {
+				oldHandler.uncaughtException(paramThread, paramThrowable);
+			} else {
+				System.exit(2);
 			}
 		});
 		AliteLog.d("Alite.onCreate", "initializing");
@@ -161,9 +155,6 @@ public class Alite extends AndroidGame {
 		return isHackerActive;
 	}
 
-	public void setIntergalActive(boolean active) {
-	}
-
 	public void setGameTime(long elapsedTime) {
 		this.elapsedTime = elapsedTime;
 		startTime = System.nanoTime();
@@ -171,10 +162,6 @@ public class Alite extends AndroidGame {
 
 	public long getGameTime() {
 		return elapsedTime + System.nanoTime() - startTime;
-	}
-
-	public FileUtils getFileUtils() {
-		return fileUtils;
 	}
 
 	public Player getPlayer() {
@@ -212,7 +199,7 @@ public class Alite extends AndroidGame {
 
 	public void performHyperspaceJump() {
 		InGameManager.safeZoneViolated = false;
-		if (player.getActiveMissions().size() == 0) {
+		if (player.getActiveMissions().isEmpty()) {
 			player.increaseJumpCounter();
 		}
 		boolean willEnterWitchSpace = player.getRating().ordinal() > Rating.POOR.ordinal() && Math.random() <= 0.02;
@@ -251,7 +238,7 @@ public class Alite extends AndroidGame {
 
 	public void performIntergalacticJump() {
 		InGameManager.safeZoneViolated = false;
-		if (player.getActiveMissions().size() == 0) {
+		if (player.getActiveMissions().isEmpty()) {
 			player.increaseIntergalacticJumpCounter();
 			if (player.getIntergalacticJumpCounter() == 1) {
 				// Mimic Amiga behavior: Mission starts after 1 intergal hyperjump
@@ -267,7 +254,6 @@ public class Alite extends AndroidGame {
 		player.setCurrentSystem(generator.getSystem(player.getCurrentSystem().getIndex()));
 		player.setHyperspaceSystem(player.getCurrentSystem());
 		player.getCobra().removeEquipment(EquipmentStore.galacticHyperdrive);
-		setIntergalActive(false);
 		setScreen(new FlightScreen(this, false));
     	GLES11.glMatrixMode(GLES11.GL_TEXTURE);
     	GLES11.glLoadIdentity();
@@ -275,12 +261,32 @@ public class Alite extends AndroidGame {
 	}
 
 	@Override
-	protected void saveState() {
+	protected void saveState(Screen screen) {
 		try {
-			fileUtils.saveState(getFileIO(), getCurrentScreen());
+			AliteLog.d("Saving state", "Saving state. Screen = " + (screen == null ? "<null>" : screen.getClass().getName()));
+			int screenCode = screen == null ? -1 : screen.getScreenCode();
+			if (screenCode != -1) {
+				OutputStream stateFile = getFileIO().writeFile(AliteStartManager.ALITE_STATE_FILE);
+				stateFile.write(screenCode);
+				screen.saveScreenState(new DataOutputStream(stateFile));
+				stateFile.close();
+				AliteLog.d("Saving state", "Saving state completed successfully.");
+			} else {
+				getFileIO().deleteFile(AliteStartManager.ALITE_STATE_FILE);
+				AliteLog.d("Saving state", "Saving state could not identify current screen, hence the state file was deleted.");
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public final boolean readState() throws IOException {
+		byte[] state = getFileIO().readFileContents(AliteStartManager.ALITE_STATE_FILE);
+		AliteLog.d("Reading state", "State == " + (state == null ? "" : ", " + state[0]));
+		if (state != null && state.length > 0) {
+			return ScreenBuilder.createScreen(this, state);
+		}
+		return false;
 	}
 
 	@Override
@@ -305,8 +311,8 @@ public class Alite extends AndroidGame {
 		if (getCurrentScreen() != null && !(getCurrentScreen() instanceof FlightScreen)) {
 			try {
 				AliteLog.d("[ALITE]", "Performing autosave.");
-				getFileUtils().autoSave(this);
-			} catch (Exception e) {
+				autoSave();
+			} catch (IOException e) {
 				AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
 			}
 		}
@@ -337,15 +343,6 @@ public class Alite extends AndroidGame {
 
 	private synchronized void setSaving(boolean b) {
 		saving = b;
-	}
-
-	void loadAutosave() {
-		try {
-			AliteLog.d("[ALITE]", "Loading autosave.");
-			getFileUtils().autoLoad(this);
-		} catch (Exception e)  {
-			AliteLog.e("[ALITE]", "Loading autosave commander failed.", e);
-		}
 	}
 
 	@Override
@@ -382,29 +379,25 @@ public class Alite extends AndroidGame {
 
 		AliteFont.ct = new DefaultCoordinateTransformer(this);
 		font = new AliteFont(this);
-		final float scaleFactor = getScaleFactor();
-		Assets.regularFont    = new GLText();
-		Assets.boldFont       = new GLText();
-		Assets.italicFont     = new GLText();
-		Assets.boldItalicFont = new GLText();
-		Assets.titleFont      = new GLText();
-		Assets.smallFont      = new GLText();
 
+		Assets.regularFont    = getFont(false, false, 40);
+		Assets.boldFont       = getFont(true, false, 40);
+		Assets.italicFont     = getFont(false, true, 40);
+		Assets.boldItalicFont = getFont(true, true, 40);
+		Assets.titleFont      = getFont(false, false, 60);
+		Assets.smallFont      = getFont(false, false, 30);
+	}
+
+	private GLText getFont(boolean bold, boolean italic, int size) {
+		GLText font = new GLText();
+		String fontName = "roboto" + (bold ? italic ? "bi" : "b" : italic ? "i" : "r") + ".ttf";
 		if (AliteConfig.HAS_EXTENSION_APK) {
-			Assets.regularFont.load(ObbExpansionsManager.getInstance().getMainRoot() + "assets/robotor.ttf", (int) (40.0f * scaleFactor), 40, 2, 2);
-			Assets.boldFont.load(ObbExpansionsManager.getInstance().getMainRoot() + "assets/robotob.ttf", (int) (40.0f * scaleFactor), 40, 2, 2);
-			Assets.italicFont.load(ObbExpansionsManager.getInstance().getMainRoot() + "assets/robotoi.ttf", (int) (40.0f * scaleFactor), 40, 2, 2);
-			Assets.boldItalicFont.load(ObbExpansionsManager.getInstance().getMainRoot() + "assets/robotobi.ttf", (int) (40.0f * scaleFactor), 40, 2, 2);
-			Assets.titleFont.load(ObbExpansionsManager.getInstance().getMainRoot() + "assets/robotor.ttf", (int) (60.0f * scaleFactor), 60, 2, 2);
-			Assets.smallFont.load(ObbExpansionsManager.getInstance().getMainRoot() + "assets/robotor.ttf", (int) (30.0f * scaleFactor), 30, 2, 2);
-		} else {
-			Assets.regularFont.load(getAssets(), "robotor.ttf", (int) (40.0f * scaleFactor), 40, 2, 2);
-			Assets.boldFont.load(getAssets(), "robotob.ttf", (int) (40.0f * scaleFactor), 40, 2, 2);
-			Assets.italicFont.load(getAssets(), "robotoi.ttf", (int) (40.0f * scaleFactor), 40, 2, 2);
-			Assets.boldItalicFont.load(getAssets(), "robotobi.ttf", (int) (40.0f * scaleFactor), 40, 2, 2);
-			Assets.titleFont.load(getAssets(), "robotor.ttf", (int) (60.0f * scaleFactor), 60, 2, 2);
-			Assets.smallFont.load(getAssets(), "robotor.ttf", (int) (30.0f * scaleFactor), 30, 2, 2);
+			font.load(ObbExpansionsManager.getInstance().getMainRoot() + "assets/" + fontName,
+				(int) (size * scaleFactor), size, 2, 2);
+			return font;
 		}
+		font.load(getAssets(), fontName, (int) (size * scaleFactor), size, 2, 2);
+		return font;
 	}
 
 	@Override
@@ -460,4 +453,45 @@ public class Alite extends AndroidGame {
 		AliteLog.d("ON CONFIGURATION CHANGED", "ON CONFIGURATION CHANGED");
 		super.onConfigurationChanged(config);
 	}
+
+	public final void autoLoad() throws IOException {
+		fileUtils.autoLoad();
+	}
+
+	public final void autoSave() throws IOException {
+		fileUtils.autoSave();
+	}
+
+	public final void loadCommander(String fileName) throws IOException {
+		fileUtils.loadCommander(fileName);
+	}
+
+	public final void loadCommander(DataInputStream dis) throws IOException {
+		fileUtils.loadCommander(dis);
+	}
+
+	public final void saveCommander(String newName, String fileName) throws IOException {
+		fileUtils.saveCommander(newName, fileName);
+	}
+
+	public final void saveCommander(String newName) throws IOException {
+		fileUtils.saveCommander(newName);
+	}
+
+	public final void saveCommander(DataOutputStream dos) throws IOException {
+		fileUtils.saveCommander(dos);
+	}
+
+	public CommanderData getQuickCommanderInfo(String fileName) {
+		return fileUtils.getQuickCommanderInfo(CommanderData.DIRECTORY_COMMANDER + File.separator + fileName);
+	}
+
+	public File[] getCommanderFiles() {
+		return fileUtils.getCommanderFiles();
+	}
+
+	public boolean existsSavedCommander() {
+		return fileUtils.existsSavedCommander();
+	}
+
 }

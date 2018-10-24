@@ -23,7 +23,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Locale;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
@@ -58,7 +57,7 @@ public class BuyScreen extends TradeScreen {
 	private Pixmap[] beam;
 	private String pendingSelection = null;
 
-	public BuyScreen(Game game) {
+	public BuyScreen(Alite game) {
 		super(game, 0);
 		X_OFFSET = 50;
 		GAP_X = 270;
@@ -101,7 +100,7 @@ public class BuyScreen extends TradeScreen {
 					selectionLength--;
 				}
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Buy Screen Initialize", "Error in initializer.", e);
 			return null;
 		}
@@ -140,7 +139,7 @@ public class BuyScreen extends TradeScreen {
 
 	@Override
 	protected String getCost(int row, int column) {
-		Market market = ((Alite) game).getPlayer().getMarket();
+		Market market = game.getPlayer().getMarket();
 		int price = market.getPrice(TradeGoodStore.get().goods()[row * COLUMNS + column]);
 		return String.format(Locale.getDefault(), "%d.%d Cr", price / 10, price % 10);
 	}
@@ -195,7 +194,7 @@ public class BuyScreen extends TradeScreen {
 	@Override
 	protected void drawAdditionalTradeGoodInformation(int row, int column, float deltaTime) {
 		TradeGood tradeGood = TradeGoodStore.get().goods()[row * COLUMNS + column];
-		int avail = ((Alite) game).getPlayer().getMarket().getQuantity(tradeGood);
+		int avail = game.getPlayer().getMarket().getQuantity(tradeGood);
 		if (avail > 0) {
 			int height = SIZE * avail / 63 + 1;
 			game.getGraphics().fillRect(column * GAP_X + X_OFFSET + SIZE + 1,
@@ -206,8 +205,8 @@ public class BuyScreen extends TradeScreen {
 	@Override
 	protected void presentSelection(int row, int column) {
 		TradeGood tradeGood = TradeGoodStore.get().goods()[row * COLUMNS + column];
-		int avail = ((Alite) game).getPlayer().getMarket().getQuantity(tradeGood);
-		int avgPrice = ((Alite) game).getGenerator().getAveragePrice(tradeGood);
+		int avail = game.getPlayer().getMarket().getQuantity(tradeGood);
+		int avgPrice = game.getGenerator().getAveragePrice(tradeGood);
 		String average = String.format(Locale.getDefault(), "%d.%d Cr ", avgPrice / 10, avgPrice % 10);
 		game.getGraphics().drawText(tradeGood.getName() + " - " + avail + tradeGood.getUnit().toUnitString() +
 			" available. Average Price: " + average + MARKET_HINT, X_OFFSET, 1050,
@@ -221,7 +220,7 @@ public class BuyScreen extends TradeScreen {
     @Override
 	public void performTrade(int row, int column) {
     	TradeGood tradeGood = TradeGoodStore.get().goods()[row * COLUMNS + column];
-    	Player player = ((Alite) game).getPlayer();
+    	Player player = game.getPlayer();
     	Market market = player.getMarket();
     	for (Mission mission: player.getActiveMissions()) {
     		if (mission.performTrade(this, tradeGood)) {
@@ -245,7 +244,7 @@ public class BuyScreen extends TradeScreen {
     		long buyAmount;
     		try {
     			buyAmount = Long.parseLong(boughtAmount);
-    		} catch (NumberFormatException e) {
+    		} catch (NumberFormatException ignored) {
     			boughtAmount = null;
     			return;
     		}
@@ -275,13 +274,13 @@ public class BuyScreen extends TradeScreen {
     		SoundManager.play(Assets.kaChing);
     		cashLeft = String.format("Cash left: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
     		selection = null;
-    		int chanceInPercent = ((Alite) game).getPlayer().getLegalProblemLikelihoodInPercent();
+    		int chanceInPercent = game.getPlayer().getLegalProblemLikelihoodInPercent();
     		if (Math.random() * 100 < chanceInPercent) {
-    			((Alite) game).getPlayer().setLegalValue(
-    				((Alite) game).getPlayer().getLegalValue() + (int) (tradeGood.getLegalityType() * buyAmount));
+    			game.getPlayer().setLegalValue(
+    				game.getPlayer().getLegalValue() + (int) (tradeGood.getLegalityType() * buyAmount));
     		}
     		try {
-				((Alite) game).getFileUtils().autoSave((Alite) game);
+				game.autoSave();
 			} catch (IOException e) {
 				AliteLog.e("Auto saving failed", e.getMessage(), e);
 			}
@@ -340,7 +339,7 @@ public class BuyScreen extends TradeScreen {
 			oldScreen.dispose();
 		}
 		game.setScreen(newScreen);
-		((Alite) game).getNavigationBar().performScreenChange();
+		game.getNavigationBar().performScreenChange();
 		postScreenChange();
 	}
 
@@ -359,16 +358,6 @@ public class BuyScreen extends TradeScreen {
 			}
 			tradegoods = null;
 		}
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
 	}
 
 	@Override

@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 import java.io.IOException;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -30,7 +29,7 @@ import de.phbouillon.android.games.alite.Settings;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
 public class LoadingScreen extends AliteScreen {
-	public LoadingScreen(Game game) {
+	public LoadingScreen(Alite game) {
 		super(game);
 	}
 
@@ -109,12 +108,12 @@ public class LoadingScreen extends AliteScreen {
 		AliteLog.d("End LoadingScreen", "End LoadingScreen. Resource load took: " + (System.currentTimeMillis() - m1));
 		try {
 			AliteLog.d("Debug-6", "Now loading Alite Game State (if present)");
-			if (!((Alite) game).getFileUtils().readState((Alite) game, game.getFileIO())) {
+			if (!game.readState()) {
 				AliteLog.d("Debug-7", "No game state present, defaulting to SIS");
 				game.setScreen(new ShipIntroScreen(game));
 				AliteLog.d("Debug-8", "SIS set.");
 			}
-		} catch (IOException e) {
+		} catch (IOException ignored) {
 			AliteLog.d("Debug-9", "IO-Ex, defaulting to SIS");
 			game.setScreen(new ShipIntroScreen(game));
 			AliteLog.d("Debug-10", "SIS set.");

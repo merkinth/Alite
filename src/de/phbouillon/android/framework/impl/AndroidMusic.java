@@ -2,7 +2,7 @@ package de.phbouillon.android.framework.impl;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+0 *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -28,6 +28,7 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import de.phbouillon.android.framework.Music;
 import de.phbouillon.android.framework.Sound;
+import de.phbouillon.android.games.alite.AliteConfig;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Settings;
 
@@ -37,42 +38,20 @@ public class AndroidMusic implements Music, OnCompletionListener, OnPreparedList
 	private final Sound.SoundType soundType;
 	private final String musicInfo;
 	private boolean playWhenReady = false;
-	
-	public AndroidMusic(AndroidFileIO afi, String path, Sound.SoundType soundType) throws IOException {
+
+	AndroidMusic(Object fileName, Sound.SoundType soundType, String musicInfo) throws IOException {
 		mediaPlayer = new MediaPlayer();
-		FileInputStream fis = null;
-		Object musicObject;
-		musicObject = afi.getPrivatePath(path);
-		musicInfo = (String) musicObject;
-		
-		try {
-			AliteLog.d("Loading Music", "Loading Music " + path + ", Type: " + soundType);
-			fis = new FileInputStream((String) musicObject);
-			mediaPlayer.setDataSource(fis.getFD());
-			mediaPlayer.prepareAsync();
-			mediaPlayer.setOnPreparedListener(this);
-			mediaPlayer.setOnCompletionListener(this);
-			this.soundType = soundType;
-		} catch (Exception e) {
-			AliteLog.e("Loading Music " + musicInfo + " caused an Error", e.getMessage(), e);
-			throw new RuntimeException("Couldn't load music " + musicInfo + ".", e);
-		} finally {
-			if (fis != null) {
-				try {
-					fis.close();
-				} catch (IOException e) {
-					AliteLog.e("Error when closing Music File Input Stream", e.getMessage(), e);
-				}
+		this.musicInfo = musicInfo;
+
+		AliteLog.d("Loading Music", "Loading Music " + musicInfo + ", Type: " + soundType);
+		try (FileInputStream fis = new FileInputStream((String) fileName)) {
+			if (AliteConfig.HAS_EXTENSION_APK) {
+				mediaPlayer.setDataSource(fis.getFD());
+			} else {
+				mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+				AssetFileDescriptor afd = (AssetFileDescriptor) fileName;
+				mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
 			}
-		}
-	}
-	
-	public AndroidMusic(AssetFileDescriptor afd, Sound.SoundType soundType, String fileName) throws IOException {
-		mediaPlayer = new MediaPlayer();
-		musicInfo = fileName;
-		try {
-			mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-			mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
 			mediaPlayer.prepareAsync();
 			mediaPlayer.setOnPreparedListener(this);
 			mediaPlayer.setOnCompletionListener(this);
@@ -80,7 +59,7 @@ public class AndroidMusic implements Music, OnCompletionListener, OnPreparedList
 		} catch (Exception e) {
 			AliteLog.e("Loading Music " + musicInfo + " caused an Error", e.getMessage(), e);
 			throw new RuntimeException("Couldn't load music " + musicInfo + ".", e);
-		} 
+		}
 	}
 
 	@Override
@@ -109,7 +88,7 @@ public class AndroidMusic implements Music, OnCompletionListener, OnPreparedList
 			}
 		} catch (IllegalStateException e) {
 			AliteLog.e("Music Playback", "IllegalStateException occurred when trying to play back music " + musicInfo + ".", e);
-		} 
+		}
 	}
 
 	@Override
@@ -161,7 +140,7 @@ public class AndroidMusic implements Music, OnCompletionListener, OnPreparedList
 	}
 
 	@Override
-	public void onPrepared(MediaPlayer mp) {		
+	public void onPrepared(MediaPlayer mp) {
 		isPrepared = true;
 		if (playWhenReady) {
 			mediaPlayer.start();

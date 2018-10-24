@@ -79,11 +79,7 @@ public class AndroidGraphics implements Graphics {
 
 	@Override
 	public boolean existsAssetsFile(String fileName) {
-		try {
-			return fileIO.existsPrivateFile(fileName);
-		} catch (IOException e) {
-			return false;
-		}
+		return fileIO.existsPrivateFile(fileName);
 	}
 
 	@Override

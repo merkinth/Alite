@@ -2,7 +2,7 @@ package de.phbouillon.android.framework;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -23,29 +23,22 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
-import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 
 public abstract class Screen implements Serializable {
 	private static final long serialVersionUID = -4453530718411300375L;
-	protected transient Game game;
-	
-	public Screen(Game game) {
-		this.game = game;
-	}
-	
+
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
 			AliteLog.e("readObject", "Screen.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "Screen.readObject I");
-			game = Alite.get();
 			AliteLog.e("readObject", "Screen.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class Not Found", e.getMessage(), e);
 		}
 	}
-	
+
  	public abstract void update(float deltaTime);
 	public abstract void present(float deltaTime);
 	public abstract void postPresent(float deltaTime);
@@ -55,11 +48,11 @@ public abstract class Screen implements Serializable {
 	public abstract void resume();
 	public abstract void dispose();
 	public abstract void loadAssets();
-	public abstract void postLayout(Object dataObject);	 
+	public abstract void postLayout(Object dataObject);
 	public abstract void activate();
 	public abstract void postScreenChange();
 	public abstract int  getScreenCode();
-	
-	public void saveScreenState(DataOutputStream dos) throws IOException {		
+
+	public void saveScreenState(DataOutputStream dos) throws IOException {
 	}
 }

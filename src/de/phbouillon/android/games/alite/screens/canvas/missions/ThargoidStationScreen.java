@@ -23,9 +23,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import android.media.MediaPlayer;
-import de.phbouillon.android.framework.Game;
+import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
-import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
@@ -62,26 +61,25 @@ public class ThargoidStationScreen extends AliteScreen {
 	private MissionLine missionLine;
 	private int lineIndex = 0;
 	private TextData[] missionText;
-	private final ThargoidStationMission mission;
 	private final int givenState;
 
-	public ThargoidStationScreen(Game game, int state) {
+	public ThargoidStationScreen(Alite game, int state) {
 		super(game);
 		givenState = state;
-		mission = (ThargoidStationMission) MissionManager.getInstance().get(ThargoidStationMission.ID);
+		ThargoidStationMission mission = (ThargoidStationMission) MissionManager.getInstance().get(ThargoidStationMission.ID);
 		mediaPlayer = new MediaPlayer();
-		AndroidFileIO fio = (AndroidFileIO) game.getFileIO();
+		FileIO fio = game.getFileIO();
 		String path = "sound/mission/5/";
 		try {
 			attCommander = new MissionLine(fio, path + "01.mp3", attentionCommander);
 			if (state == 0) {
 				missionLine = new MissionLine(fio, path + "02.mp3", missionDescription);
 				mission.setPlayerAccepts(true);
-				mission.setTarget(((Alite) game).getGenerator().getCurrentSeed(), ((Alite) game).getPlayer().getCurrentSystem().getIndex(), 1);
+				mission.setTarget(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex(), 1);
 			} else if (state == 1) {
 				missionLine = new MissionLine(fio, path + "04.mp3", success);
 			 	mission.onMissionComplete();
-				Player player = ((Alite) game).getPlayer();
+				Player player = game.getPlayer();
 				player.removeActiveMission(mission);
 				player.addCompletedMission(mission);
 				player.resetIntergalacticJumpCounter();
@@ -127,7 +125,7 @@ public class ThargoidStationScreen extends AliteScreen {
 		try {
 			int state = dis.readInt();
 			alite.setScreen(new ThargoidStationScreen(alite, state));
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("ThargoidStation Screen Initialize", "Error in initializer.", e);
 			return false;
 		}

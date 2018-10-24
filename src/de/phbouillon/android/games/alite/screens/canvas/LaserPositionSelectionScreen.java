@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
@@ -42,7 +41,7 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 	private final EquipmentScreen equipmentScreen;
 	private static Pixmap cobra;
 
-	LaserPositionSelectionScreen(EquipmentScreen equipmentScreen, Game game, boolean front, boolean right, boolean rear, boolean left, int row, int column) {
+	LaserPositionSelectionScreen(EquipmentScreen equipmentScreen, Alite game, boolean front, boolean right, boolean rear, boolean left, int row, int column) {
 		super(game);
 		this.row = row;
 		this.column = column;
@@ -146,7 +145,7 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 		dispose();
 		game.setScreen(equipmentScreen);
 		equipmentScreen.performTrade(row, column);
-		((Alite) game).getNavigationBar().performScreenChange();
+		game.getNavigationBar().performScreenChange();
 	}
 
 	@Override

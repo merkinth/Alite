@@ -68,12 +68,7 @@ public class TutIntroduction extends TutorialScreen {
 				"Quelo and I'll make sure that you can handle that Cobra " +
 				"once you get out of my training. Remember kid: Owning a " +
 				"Cobra does not give you the ability to fly it. I will give " +
-				"you that ability.").setPostPresentMethod(new IMethodHook() {
-					@Override
-					public void execute(float deltaTime) {
-						game.getGraphics().drawPixmap(quelo, 642, 200);
-					}
-				});
+				"you that ability.").setPostPresentMethod((IMethodHook) deltaTime -> game.getGraphics().drawPixmap(quelo, 642, 200));
 
 		status = new StatusScreen(alite);
 	}
@@ -139,13 +134,10 @@ public class TutIntroduction extends TutorialScreen {
 				"On the right hand side, you find the command console. Put " +
 				"your finger on it and drag it all the way up.");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				(TutIntroduction.this).updateNavBar();
-				if (alite.getNavigationBar().isAtBottom()) {
-					line.setFinished();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			updateNavBar();
+			if (alite.getNavigationBar().isAtBottom()) {
+				line.setFinished();
 			}
 		}).addHighlight(makeHighlight(1740, 20, 160, 1040));
 	}
@@ -164,18 +156,15 @@ public class TutIntroduction extends TutorialScreen {
 				"you can't find it, that's because you have to drag the " +
 				"console back down first.");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				if ((TutIntroduction.this).updateNavBar() instanceof BuyScreen) {
-					status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
-					buy = new BuyScreen(alite);
-					buy.loadAssets();
-					buy.activate();
-					line.setFinished();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			if (updateNavBar() instanceof BuyScreen) {
+				status.dispose();
+				status = null;
+				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
+				buy = new BuyScreen(alite);
+				buy.loadAssets();
+				buy.activate();
+				line.setFinished();
 			}
 		});
 	}
@@ -186,19 +175,16 @@ public class TutIntroduction extends TutorialScreen {
 				"exercise, try to find the \"Galaxy\" button and marvel at " +
 				"the vastness of the universe you and I are living in.");
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				Screen result = (TutIntroduction.this).updateNavBar();
-				if (result instanceof GalaxyScreen && !(result instanceof LocalScreen)) {
-					buy.dispose();
-					buy = null;
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
-					galaxy = new GalaxyScreen(alite);
-					galaxy.loadAssets();
-					galaxy.activate();
-					line.setFinished();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			Screen result = updateNavBar();
+			if (result instanceof GalaxyScreen && !(result instanceof LocalScreen)) {
+				buy.dispose();
+				buy = null;
+				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
+				galaxy = new GalaxyScreen(alite);
+				galaxy.loadAssets();
+				galaxy.activate();
+				line.setFinished();
 			}
 		});
 	}
@@ -243,7 +229,7 @@ public class TutIntroduction extends TutorialScreen {
 		try {
 			ti.currentLineIndex = dis.readByte();
 			ti.screenToInitialize = dis.readByte();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Tutorial Introduction Screen Initialize", "Error in initializer.", e);
 			return false;
 		}

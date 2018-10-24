@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model.missions;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -38,20 +38,20 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cons
 
 public class ConstrictorMission extends Mission {
 	public static final int ID = 1;
-	
-	private char [] galaxySeed;
+
+	private char[] galaxySeed;
 	private int targetIndex;
 	private int state;
 	private boolean constrictorCreated = false;
-	
+
 	public ConstrictorMission(Alite alite) {
 		super(alite, ID);
 	}
-	
+
 	public int getState() {
 		return state;
 	}
-	
+
 	@Override
 	protected boolean checkStart() {
 		Player player = alite.getPlayer();
@@ -59,11 +59,11 @@ public class ConstrictorMission extends Mission {
 			   !player.getActiveMissions().contains(this) &&
 			   !player.getCompletedMissions().contains(this) &&
 				player.getIntergalacticJumpCounter() > 0 &&
-				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 && 
-				player.getCondition() == Condition.DOCKED; 
+				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 &&
+				player.getCondition() == Condition.DOCKED;
 	}
 
-	public void setTarget(char [] galaxySeed, int target, int state) {
+	public void setTarget(char[] galaxySeed, int target, int state) {
 		this.galaxySeed = new char[3];
 		for (int i = 0; i < 3; i++) {
 			this.galaxySeed[i] = galaxySeed[i];
@@ -72,12 +72,12 @@ public class ConstrictorMission extends Mission {
 		this.state = state;
 		resetTargetName();
 	}
-	
+
 	@Override
 	protected void acceptMission(boolean accept) {
 		if (accept) {
-			alite.getPlayer().addActiveMission(this);			
-			state = 1;			
+			alite.getPlayer().addActiveMission(this);
+			state = 1;
 			resetTargetName();
 		} else {
 			alite.getPlayer().resetIntergalacticJumpCounter();
@@ -85,7 +85,7 @@ public class ConstrictorMission extends Mission {
 			alite.getPlayer().addCompletedMission(this);
 		}
 	}
-	
+
 	@Override
 	public void onMissionAccept() {
 	}
@@ -101,7 +101,7 @@ public class ConstrictorMission extends Mission {
 	}
 
 	@Override
-	public void onMissionUpdate() {		
+	public void onMissionUpdate() {
 	}
 
 	@Override
@@ -118,7 +118,7 @@ public class ConstrictorMission extends Mission {
 	}
 
 	@Override
-	public byte [] save() throws IOException {
+	public byte[] save() throws IOException {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(16);
 		DataOutputStream dos = new DataOutputStream(bos);
 		dos.writeChar(galaxySeed[0]);
@@ -127,7 +127,7 @@ public class ConstrictorMission extends Mission {
 		dos.writeInt(targetIndex);
 		dos.writeInt(state);
 		dos.close();
-		bos.close();		
+		bos.close();
 		return bos.toByteArray();
 	}
 
@@ -155,12 +155,12 @@ public class ConstrictorMission extends Mission {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		boolean result = positionMatchesTarget(galaxySeed, targetIndex);
 		if (state == 6 && result && !constrictorCreated) {
-			return new TimedEvent(0) {				
+			return new TimedEvent(0) {
 				private static final long serialVersionUID = 1657605081590177007L;
 
 				@Override
@@ -169,9 +169,9 @@ public class ConstrictorMission extends Mission {
 					setRemove(true);
 					SoundManager.play(Assets.com_conditionRed);
 					manager.getInGameManager().repeatMessage("Condition Red!", 3);
-					Vector3f spawnPosition = manager.spawnObject();		 
+					Vector3f spawnPosition = manager.spawnObject();
 					Constrictor constrictor = new Constrictor(alite);
-					manager.spawnEnemyAndAttackPlayer(constrictor, 0, spawnPosition, true);
+					manager.spawnEnemyAndAttackPlayer(constrictor, 0, spawnPosition);
 					manager.lockConditionRedEvent();
 					constrictor.addDestructionCallback(new DestructionCallback() {
 						private static final long serialVersionUID = -7774734879444916116L;
@@ -181,7 +181,7 @@ public class ConstrictorMission extends Mission {
 							state = 7;
 							manager.unlockConditionRedEvent();
 						}
-						
+
 						@Override
 						public int getId() {
 							return 13;
@@ -192,12 +192,12 @@ public class ConstrictorMission extends Mission {
 		}
 		return null;
 	}
-		
+
 	@Override
 	public String getObjective() {
 		switch (state) {
 			case 0: return "";
-			case 1: return "Fly to " + getTargetName(targetIndex, galaxySeed) + "."; 
+			case 1: return "Fly to " + getTargetName(targetIndex, galaxySeed) + ".";
 			case 2: return "Perform an intergalactic jump.";
 			case 3: return "Fly to " + getTargetName(targetIndex, galaxySeed) + ".";
 			case 4: return "Fly to " + getTargetName(targetIndex, galaxySeed) + ".";
@@ -206,7 +206,7 @@ public class ConstrictorMission extends Mission {
 		}
 		return "";
 	}
-	
+
 	public void setState(int s) {
 		this.state = s;
 	}

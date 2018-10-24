@@ -28,7 +28,6 @@ import java.util.ArrayList;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
@@ -72,17 +71,17 @@ public class FlightScreen extends GlScreen implements Serializable {
 	private InGameManager inGame;
 	private transient AliteScreen informationScreen;
 
-	private final float [] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
-	private final float [] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
-	private final float [] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
-	private final float [] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
+	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
+	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
+	private final float[] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
+	private final float[] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
 
-	private final float [] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float [] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
-	private final float [] sunLightEmission = {4.0f, 2.8f, 0.0f, 0.0f};
-	private final float [] noEmission       = {0.0f, 0.0f, 0.0f, 0.0f};
+	private final float[] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
+	private final float[] sunLightEmission = {4.0f, 2.8f, 0.0f, 0.0f};
+	private final float[] noEmission       = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	private final ArrayList <AliteObject> allObjects = new ArrayList<>();
 	private SpaceObject spaceStation;
@@ -95,13 +94,15 @@ public class FlightScreen extends GlScreen implements Serializable {
 	private boolean needsActivation = true;
 	private transient boolean isSaving = false;
 	private transient long timeToExitTimer = -1;
+	private Alite game;
 
 	private Vector3f v0 = new Vector3f(0, 0, 0);
 	private Vector3f v1 = new Vector3f(0, 0, 0);
 	private Vector3f v2 = new Vector3f(0, 0, 0);
 
-	public FlightScreen(Game game, boolean fromStation) {
+	public FlightScreen(Alite game, boolean fromStation) {
 		super(game);
+		this.game = game;
 		timeToExitTimer = -1;
 		AliteLog.e("Flight Screen Constructor", "FSC -- fromStation == " + fromStation);
 		SHIP_ENTRY_POSITION.z = Settings.enterInSafeZone ? 685000.0f : 400000.0f;
@@ -122,7 +123,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 	}
 
 	public static FlightScreen createScreen(Alite alite, final DataInputStream dis) throws IOException, ClassNotFoundException {
-		alite.getFileUtils().loadCommander(alite, dis);
+		alite.loadCommander(dis);
 		ObjectInputStream ois = new ObjectInputStream(dis);
 		AliteLog.e("Initializing Flight Screen", "---------------------------------------------------------------");
 		FlightScreen fs = (FlightScreen) ois.readObject();
@@ -195,7 +196,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 			windowWidth = visibleArea.width();
 			windowHeight = visibleArea.height();
 			initializeGl(visibleArea);
-			AliteHud.ct = new DefaultCoordinateTransformer((Alite) game);
+			AliteHud.ct = new DefaultCoordinateTransformer(game);
 			setPause(true);
 			return;
 		}
@@ -204,9 +205,9 @@ public class FlightScreen extends GlScreen implements Serializable {
 		windowHeight = visibleArea.height();
 		initializeGl(visibleArea);
 
-		AliteHud.ct = new DefaultCoordinateTransformer((Alite) game);
-		inGame = new InGameManager((Alite) game, new AliteHud((Alite) game), "textures/star_map.png", lightPosition, fromStation, true);
-		PlayerCobra cobra = ((Alite) game).getCobra();
+		AliteHud.ct = new DefaultCoordinateTransformer(game);
+		inGame = new InGameManager(game, new AliteHud(game), "textures/star_map.png", lightPosition, fromStation, true);
+		PlayerCobra cobra = game.getCobra();
 		cobra.setMissileTargetting(false);
 		cobra.setMissileLocked(false);
 		cobra.setLaserTemperature(0);
@@ -243,7 +244,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 			initializeGl(visibleArea);
 			inGame.resetHud();
 		}
-		((Alite) game).getNavigationBar().setFlightMode(informationScreen != null);
+		game.getNavigationBar().setFlightMode(informationScreen != null);
 	}
 
 	public AliteScreen getInformationScreen() {
@@ -256,8 +257,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 
 	private void initializeObjects() {
 		allObjects.clear();
-		Alite alite = (Alite) game;
-		SystemData currentSystem = alite.getPlayer().getCurrentSystem();
+		SystemData currentSystem = game.getPlayer().getCurrentSystem();
 
 		int starTexture = currentSystem == null ? 0 : currentSystem.getStarTexture();
 		String starTextureName;
@@ -284,7 +284,7 @@ public class FlightScreen extends GlScreen implements Serializable {
             	case 6: sunLightEmission[0] = 1.0f; sunLightEmission[1] = 0.5f; sunLightEmission[2] = 0.5f; sunLightEmission[3] = 1.0f; break;
             }
         }
-		star = new SphericalSpaceObject((Alite) game, "Sun", sunSize, 30, starTextureName);
+		star = new SphericalSpaceObject(game, "Sun", sunSize, 30, starTextureName);
 		star.setVisibleOnHud(false);
 		star.setAdditionalGLParameters(new IAdditionalGLParameterSetter(){
 			private static final long serialVersionUID = -7931217736505566905L;
@@ -300,7 +300,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 			}
 		});
 
-		starGlow = new SphericalSpaceObject((Alite) game, "Glow", sunSize + 60.0f, 30, "textures/glow_mask2.png")  {
+		starGlow = new SphericalSpaceObject(game, "Glow", sunSize + 60.0f, 30, "textures/glow_mask2.png")  {
 			private static final long serialVersionUID = -437275620274071131L;
 
 			public boolean needsDepthTest() {
@@ -325,24 +325,24 @@ public class FlightScreen extends GlScreen implements Serializable {
 			}
 		});
 
-		planet = new PlanetSpaceObject(alite, currentSystem, false);
+		planet = new PlanetSpaceObject(game, currentSystem, false);
 		planet.applyDeltaRotation(23, 0, 14);
 		planet.setPosition(PLANET_POSITION);
 
 		if (currentSystem == null) {
-			spaceStation = new Coriolis((Alite) game);
+			spaceStation = new Coriolis(game);
 		} else if (currentSystem.getTechLevel() > 13) {
-			spaceStation = new Icosaeder((Alite) game);
+			spaceStation = new Icosaeder(game);
 		} else if (currentSystem.getTechLevel() > 9) {
-			spaceStation = new Dodec((Alite) game);
+			spaceStation = new Dodec(game);
 		} else {
-			spaceStation = new Coriolis((Alite) game);
+			spaceStation = new Coriolis(game);
 		}
 		spaceStation.setPosition(inGame.getSystemStationPosition());
 		if (fromStation) {
 			spaceStation.setIdentified();
 		} else {
-			if (alite.getPlayer().getCurrentSystem() != null && alite.getPlayer().getCurrentSystem().getIndex() == 256) {
+			if (game.getPlayer().getCurrentSystem() != null && game.getPlayer().getCurrentSystem().getIndex() == 256) {
 				initializeGameOverParade();
 			}
 		}
@@ -361,7 +361,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 
 	private void initializeGameOverParade() {
 		for (int i = 0; i < 20; i++) {
-			allObjects.add(new TieFighter((Alite) game));
+			allObjects.add(new TieFighter(game));
 		}
 	}
 
@@ -431,14 +431,14 @@ public class FlightScreen extends GlScreen implements Serializable {
 	    				TieFighter tie = (TieFighter) ao;
 	    				tie.setPosition(v2);
 	    				tie.orientTowards(inGame.getShip(), 0);
-	    				tie.setAIState(AIState.IDLE, (Object []) null);
+	    				tie.setAIState(AIState.IDLE, (Object[]) null);
 	    				count++;
 	    			} else {
 	    				v0.sub(v1, v2);
 	    				TieFighter tie = (TieFighter) ao;
 	    				tie.setPosition(v2);
 	    				tie.orientTowards(inGame.getShip(), 0);
-	    				tie.setAIState(AIState.IDLE, (Object []) null);
+	    				tie.setAIState(AIState.IDLE, (Object[]) null);
 	    				inGame.getStation().getPosition().sub(inGame.getShip().getPosition(), v2);
 	    				v2.scale(0.1f);
 	    				v0.add(v2);
@@ -475,7 +475,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 				return;
 			}
 			if (inGame.isPlayerAlive()) {
-				int tf = ((Alite) game).getTimeFactor();
+				int tf = game.getTimeFactor();
 				while (--tf >= 0 && inGame.isPlayerAlive()) {
 					inGame.performUpdate(deltaTime, allObjects);
 				}
@@ -505,7 +505,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 			if (newScreen != null) {
 				performScreenChange(newScreen);
 			} else {
-				deltaTime *= ((Alite) game).getTimeFactor();
+				deltaTime *= game.getTimeFactor();
 				if (star != null) {
 					star.applyDeltaRotation(0.0f, (float) Math.toDegrees(0.02f * deltaTime), 0.0f);
 				}
@@ -598,7 +598,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 		super.resume();
 		Rect visibleArea = game.getGraphics().getVisibleArea();
 		initializeGl(visibleArea);
-		((Alite) game).getTextureManager().reloadAllTextures();
+		game.getTextureManager().reloadAllTextures();
 	}
 
 	@Override
@@ -625,7 +625,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		isSaving = true;
 		setPause(true);
-		((Alite) game).getFileUtils().saveCommander((Alite) game, dos);
+		game.saveCommander(dos);
 		inGame.clearObjectTransformations();
 		ObjectOutputStream oos = new ObjectOutputStream(dos);
 		oos.writeObject(this);

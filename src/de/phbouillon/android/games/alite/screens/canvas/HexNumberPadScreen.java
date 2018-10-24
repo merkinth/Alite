@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.Alite;
@@ -49,7 +48,7 @@ public class HexNumberPadScreen extends AliteScreen {
 	private final HackerScreen hackerScreen;
 	private final int valueIndex;
 
-	HexNumberPadScreen(HackerScreen hackerScreen, Game game, int x, int y, int valueIndex) {
+	HexNumberPadScreen(HackerScreen hackerScreen, Alite game, int x, int y, int valueIndex) {
 		super(game);
 		this.x = x;
 		this.y = y;
@@ -70,7 +69,7 @@ public class HexNumberPadScreen extends AliteScreen {
 		dos.writeInt(y);
 		dos.writeInt(valueIndex);
 		dos.writeInt(currentValueString.length());
-		if (currentValueString.length() > 0) {
+		if (!currentValueString.isEmpty()) {
 			dos.writeChars(currentValueString);
 		}
 		hackerScreen.saveScreenState(dos);
@@ -80,8 +79,8 @@ public class HexNumberPadScreen extends AliteScreen {
 		try {
 			int xPos = dis.readInt();
 			int yPos = dis.readInt();
-			int valueIndex  = dis.readInt();
-			int len  = dis.readInt();
+			int valueIndex = dis.readInt();
+			int len = dis.readInt();
 			String currentValue = "";
 			for (int i = 0; i < len; i++) {
 				currentValue += dis.readChar();
@@ -92,7 +91,7 @@ public class HexNumberPadScreen extends AliteScreen {
 			HexNumberPadScreen hnps = new HexNumberPadScreen(hackerScreen, alite, xPos, yPos, valueIndex);
 			hnps.currentValueString = currentValue;
 			alite.setScreen(hnps);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Hex Number Pad Screen Initialize", "Error in initializer.", e);
 			return false;
 		}
@@ -154,7 +153,7 @@ public class HexNumberPadScreen extends AliteScreen {
 					SoundManager.play(Assets.click);
 					String t = b.getText();
 					if ("<-".equals(t)) {
-						if (currentValueString.length() > 0) {
+						if (!currentValueString.isEmpty()) {
 							currentValueString = currentValueString.substring(0, currentValueString.length() - 1);
 						}
 					} else if ("OK".equals(t)) {
@@ -180,17 +179,7 @@ public class HexNumberPadScreen extends AliteScreen {
 		}
 		dispose();
 		game.setScreen(hackerScreen);
-		((Alite) game).getNavigationBar().performScreenChange();
-	}
-
-	@Override
-	public void dispose() {
-		super.dispose();
-	}
-
-	@Override
-	public void loadAssets() {
-		super.loadAssets();
+		game.getNavigationBar().performScreenChange();
 	}
 
 	@Override

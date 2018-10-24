@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
 
 import java.io.DataInputStream;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.Alite;
@@ -41,7 +40,7 @@ public class GameplayOptionsScreen extends OptionsScreen {
 	private Button autoId;
 	private Button back;
 
-	GameplayOptionsScreen(Game game) {
+	GameplayOptionsScreen(Alite game) {
 		super(game);
 	}
 

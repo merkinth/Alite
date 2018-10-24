@@ -26,11 +26,10 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.media.MediaPlayer;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Game;
+import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -125,35 +124,35 @@ public class ConstrictorScreen extends AliteScreen {
 	private final ConstrictorMission mission;
 	private final int givenState;
 
-	public ConstrictorScreen(Game game, int state) {
+	public ConstrictorScreen(Alite game, int state) {
 		super(game);
 		givenState = state;
 		mission = (ConstrictorMission) MissionManager.getInstance().get(ConstrictorMission.ID);
 		mediaPlayer = new MediaPlayer();
-		AndroidFileIO fio = (AndroidFileIO) game.getFileIO();
+		FileIO fio = game.getFileIO();
 		String path = "sound/mission/1/";
 		try {
 			attCommander = new MissionLine(fio, path + "01.mp3", attentionCommander);
 			if (state == 0) {
 				missionLine = new MissionLine(fio, path + "02.mp3", missionDescription);
 				acceptMission = new MissionLine(fio, path + "03.mp3", accept);
-				constrictor = new Constrictor((Alite) game);
+				constrictor = new Constrictor(game);
 				constrictor.setPosition(200, 0, -700.0f);
 			} else if (state == 1) {
 				missionLine = new MissionLine(fio, path + "04.mp3", reportToBase);
 				targetSystem = mission.findMostDistantSystem();
-				mission.setTarget(((Alite) game).getGenerator().getCurrentSeed(), targetSystem.getIndex(), state);
+				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), state);
 			} else if (state == 2) {
 				missionLine = new MissionLine(fio, path + "06.mp3", intergalacticJump);
-				mission.setTarget(((Alite) game).getGenerator().getNextSeed(), -1, state);
+				mission.setTarget(game.getGenerator().getNextSeed(), -1, state);
 			} else if (state == 3) {
 				missionLine = new MissionLine(fio, path + "05.mp3", hyperspaceJump);
 				targetSystem = mission.findRandomSystemInRange(75, 120);
-				mission.setTarget(((Alite) game).getGenerator().getCurrentSeed(), targetSystem.getIndex(), mission.getState() + 1);
+				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), mission.getState() + 1);
 			} else if (state == 4) {
 				missionLine = new MissionLine(fio, path + "07.mp3", success);
 				mission.onMissionComplete();
-				Player player = ((Alite) game).getPlayer();
+				Player player = game.getPlayer();
 				player.removeActiveMission(mission);
 				player.addCompletedMission(mission);
 				player.resetIntergalacticJumpCounter();
@@ -340,7 +339,7 @@ public class ConstrictorScreen extends AliteScreen {
 		int centerX = targetSystem.getX();
 		int centerY = targetSystem.getY();
 
-		for (SystemData system: ((Alite) game).getGenerator().getSystems()) {
+		for (SystemData system: game.getGenerator().getSystems()) {
 			drawSystem(system, centerX, centerY, 3.0f, false);
 		}
 		// Make sure the target system is rendered on top...
@@ -405,7 +404,7 @@ public class ConstrictorScreen extends AliteScreen {
 			} else {
 				alite.setScreen(new ConstrictorScreen(alite, state));
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Constrictor Screen Initialize", "Error in initializer.", e);
 			return false;
 		}

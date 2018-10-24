@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
 
 import java.io.DataInputStream;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.Alite;
@@ -49,7 +48,7 @@ public class MoreDebugSettingsScreen extends AliteScreen {
 	private Button clearMission;
     private Button back;
 
-	public MoreDebugSettingsScreen(Game game) {
+	MoreDebugSettingsScreen(Alite game) {
 		super(game);
 	}
 
@@ -89,58 +88,57 @@ public class MoreDebugSettingsScreen extends AliteScreen {
 			return;
 		}
 
-		Alite alite = (Alite) game;
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (startConstrictorMission.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				alite.getCobra().clearSpecialCargo();
-				alite.getPlayer().clearMissions();
-				alite.getPlayer().setIntergalacticJumpCounter(1);
-				alite.getPlayer().setJumpCounter(62);
+				game.getCobra().clearSpecialCargo();
+				game.getPlayer().clearMissions();
+				game.getPlayer().setIntergalacticJumpCounter(1);
+				game.getPlayer().setJumpCounter(62);
 				MissionManager.getInstance().get(ConstrictorMission.ID).resetStarted();
 			} else if (startThargoidDocumentsMission.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				alite.getCobra().clearSpecialCargo();
-				alite.getPlayer().clearMissions();
-				alite.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
+				game.getCobra().clearSpecialCargo();
+				game.getPlayer().clearMissions();
+				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
 				MissionManager.getInstance().get(ThargoidDocumentsMission.ID).resetStarted();
-				alite.getPlayer().resetIntergalacticJumpCounter();
-				alite.getPlayer().setJumpCounter(63);
+				game.getPlayer().resetIntergalacticJumpCounter();
+				game.getPlayer().setJumpCounter(63);
 			} else if (startSupernovaMission.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				alite.getCobra().clearSpecialCargo();
-				alite.getPlayer().clearMissions();
-				alite.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
-				alite.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
+				game.getCobra().clearSpecialCargo();
+				game.getPlayer().clearMissions();
+				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
+				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
 				MissionManager.getInstance().get(SupernovaMission.ID).resetStarted();
-				alite.getPlayer().resetIntergalacticJumpCounter();
-				alite.getPlayer().setJumpCounter(63);
+				game.getPlayer().resetIntergalacticJumpCounter();
+				game.getPlayer().setJumpCounter(63);
 			} else if (startCougarMission.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				alite.getCobra().clearSpecialCargo();
-				alite.getPlayer().clearMissions();
-				alite.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
-				alite.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
-				alite.getPlayer().addCompletedMission(MissionManager.getInstance().get(SupernovaMission.ID));
+				game.getCobra().clearSpecialCargo();
+				game.getPlayer().clearMissions();
+				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
+				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
+				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(SupernovaMission.ID));
 				MissionManager.getInstance().get(CougarMission.ID).resetStarted();
-				alite.getPlayer().resetIntergalacticJumpCounter();
-				alite.getPlayer().setJumpCounter(63);
+				game.getPlayer().resetIntergalacticJumpCounter();
+				game.getPlayer().setJumpCounter(63);
 			} else if (startThargoidBaseMission.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				alite.getCobra().clearSpecialCargo();
-				alite.getPlayer().clearMissions();
-				alite.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
-				alite.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
-				alite.getPlayer().addCompletedMission(MissionManager.getInstance().get(SupernovaMission.ID));
-				alite.getPlayer().addCompletedMission(MissionManager.getInstance().get(CougarMission.ID));
+				game.getCobra().clearSpecialCargo();
+				game.getPlayer().clearMissions();
+				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
+				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
+				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(SupernovaMission.ID));
+				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(CougarMission.ID));
 				MissionManager.getInstance().get(ThargoidStationMission.ID).resetStarted();
-				alite.getPlayer().resetIntergalacticJumpCounter();
-				alite.getPlayer().setJumpCounter(63);
+				game.getPlayer().resetIntergalacticJumpCounter();
+				game.getPlayer().setJumpCounter(63);
 			} else if (clearMission.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				alite.getPlayer().getActiveMissions().clear();
+				game.getPlayer().getActiveMissions().clear();
 				String completedMissions = "Completed Missions: ";
-				for (Mission m: alite.getPlayer().getCompletedMissions()) {
+				for (Mission m: game.getPlayer().getCompletedMissions()) {
 					completedMissions += m.getClass().getName() + "; ";
 				}
 				setMessage(completedMissions);

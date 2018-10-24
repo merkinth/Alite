@@ -43,7 +43,7 @@ public class TutNavigation extends TutorialScreen {
 	private LocalScreen  local;
 	private int screenToInitialize = 0;
 
-	public TutNavigation(final Alite alite) {
+	TutNavigation(final Alite alite) {
 		super(alite);
 
 		initLine_00();
@@ -68,19 +68,16 @@ public class TutNavigation extends TutorialScreen {
 				"Open it.");
 
 		status = new StatusScreen(alite);
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				Screen screen = (TutNavigation.this).updateNavBar();
-				if (screen instanceof GalaxyScreen && !(screen instanceof LocalScreen)) {
-					line.setFinished();
-					status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
-					galaxy = new GalaxyScreen(alite);
-					galaxy.loadAssets();
-					galaxy.activate();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			Screen screen = updateNavBar();
+			if (screen instanceof GalaxyScreen && !(screen instanceof LocalScreen)) {
+				line.setFinished();
+				status.dispose();
+				status = null;
+				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
+				galaxy = new GalaxyScreen(alite);
+				galaxy.loadAssets();
+				galaxy.activate();
 			}
 		});
 	}
@@ -93,15 +90,12 @@ public class TutNavigation extends TutorialScreen {
 				"fingers on the screen and move them apart. Do that until " +
 				"you can see the names of the systems appear.").setY(150);
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					galaxy.processTouch(event);
-				}
-				if (galaxy.namesVisible()) {
-					line.setFinished();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event: game.getInput().getTouchEvents()) {
+				galaxy.processTouch(event);
+			}
+			if (galaxy.namesVisible()) {
+				line.setFinished();
 			}
 		});
 	}
@@ -109,15 +103,12 @@ public class TutNavigation extends TutorialScreen {
 	private void initLine_02() {
 		final TutorialLine line = addLine(4, "Now, push the \"Home\" button.");
 
-		line.setSkippable(false).setHeight(100).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					galaxy.processTouch(event);
-					if (event.type == TouchEvent.TOUCH_UP) {
-						if (galaxy.getHomeButton().isTouched(event.x, event.y)) {
-							line.setFinished();
-						}
+		line.setSkippable(false).setHeight(100).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event: game.getInput().getTouchEvents()) {
+				galaxy.processTouch(event);
+				if (event.type == TouchEvent.TOUCH_UP) {
+					if (galaxy.getHomeButton().isTouched(event.x, event.y)) {
+						line.setFinished();
 					}
 				}
 			}
@@ -135,25 +126,22 @@ public class TutNavigation extends TutorialScreen {
 				"planet screen to get more information on the selected " +
 				"planet. Do that now.").setY(150).setHeight(300);
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				if (galaxy != null) {
-					galaxy.updateMap();
-				}
-				Screen screen = (TutNavigation.this).updateNavBar();
-				if (screen instanceof PlanetScreen) {
-					galaxy.dispose();
-					galaxy = null;
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET);
-					planet = new PlanetScreen(alite);
-					planet.loadAssets();
-					planet.activate();
-					line.setFinished();
-					currentLineIndex++;
-				} else if (screen != null) {
-					line.setFinished();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			if (galaxy != null) {
+				galaxy.updateMap();
+			}
+			Screen screen = updateNavBar();
+			if (screen instanceof PlanetScreen) {
+				galaxy.dispose();
+				galaxy = null;
+				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET);
+				planet = new PlanetScreen(alite);
+				planet.loadAssets();
+				planet.activate();
+				line.setFinished();
+				currentLineIndex++;
+			} else if (screen != null) {
+				line.setFinished();
 			}
 		});
 	}
@@ -163,22 +151,19 @@ public class TutNavigation extends TutorialScreen {
 				"No, I told you to switch to the planet screen, wet-nose. " +
 				"Try again.");
 
-		line.setHeight(100).setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				Screen newScreen = (TutNavigation.this).updateNavBar();
-				if (newScreen instanceof PlanetScreen) {
-					galaxy.dispose();
-					galaxy = null;
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET);
-					planet = new PlanetScreen(alite);
-					planet.loadAssets();
-					planet.activate();
-					line.setFinished();
-				} else if (newScreen != null) {
-					line.setFinished();
-					currentLineIndex--;
-				}
+		line.setHeight(100).setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			Screen newScreen = updateNavBar();
+			if (newScreen instanceof PlanetScreen) {
+				galaxy.dispose();
+				galaxy = null;
+				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET);
+				planet = new PlanetScreen(alite);
+				planet.loadAssets();
+				planet.activate();
+				line.setFinished();
+			} else if (newScreen != null) {
+				line.setFinished();
+				currentLineIndex--;
 			}
 		});
 	}
@@ -200,22 +185,19 @@ public class TutNavigation extends TutorialScreen {
 				"Now that you have gathered information on the planet, " +
 				"switch to the local screen.").setY(150);
 
-		line.setHeight(150).setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				Screen screen = (TutNavigation.this).updateNavBar();
-				if (screen instanceof LocalScreen) {
-					planet.dispose();
-					planet = null;
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL);
-					local = new LocalScreen(alite);
-					local.loadAssets();
-					local.activate();
-					line.setFinished();
-					currentLineIndex++;
-				} else if (screen != null) {
-					line.setFinished();
-				}
+		line.setHeight(150).setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			Screen screen = updateNavBar();
+			if (screen instanceof LocalScreen) {
+				planet.dispose();
+				planet = null;
+				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL);
+				local = new LocalScreen(alite);
+				local.loadAssets();
+				local.activate();
+				line.setFinished();
+				currentLineIndex++;
+			} else if (screen != null) {
+				line.setFinished();
 			}
 		});
 	}
@@ -225,22 +207,19 @@ public class TutNavigation extends TutorialScreen {
 				"No, I told you to switch to the local screen, wet-nose. " +
 				"Try again.").setY(150);
 
-		line.setHeight(150).setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				Screen newScreen = (TutNavigation.this).updateNavBar();
-				if (newScreen instanceof LocalScreen) {
-					planet.dispose();
-					planet = null;
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL);
-					local = new LocalScreen(alite);
-					local.loadAssets();
-					local.activate();
-					line.setFinished();
-				} else if (newScreen != null) {
-					line.setFinished();
-					currentLineIndex--;
-				}
+		line.setHeight(150).setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			Screen newScreen = updateNavBar();
+			if (newScreen instanceof LocalScreen) {
+				planet.dispose();
+				planet = null;
+				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL);
+				local = new LocalScreen(alite);
+				local.loadAssets();
+				local.activate();
+				line.setFinished();
+			} else if (newScreen != null) {
+				line.setFinished();
+				currentLineIndex--;
 			}
 		});
 	}
@@ -252,15 +231,12 @@ public class TutNavigation extends TutorialScreen {
 				"accessed. You can zoom out, though. Just hold two fingers " +
 				"on the screen and move them together. Do it now.").setY(150);
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			@Override
-			public void execute(float deltaTime) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					local.processTouch(event);
-				}
-				if (local.getZoomFactor() < 2.0f) {
-					line.setFinished();
-				}
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+			for (TouchEvent event: game.getInput().getTouchEvents()) {
+				local.processTouch(event);
+			}
+			if (local.getZoomFactor() < 2.0f) {
+				line.setFinished();
 			}
 		});
 	}
@@ -322,7 +298,7 @@ public class TutNavigation extends TutorialScreen {
 		try {
 			tn.currentLineIndex = dis.readInt();
 			tn.screenToInitialize = dis.readByte();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Tutorial Navigation Screen Initialize", "Error in initializer.", e);
 			return false;
 		}

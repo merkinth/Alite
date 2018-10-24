@@ -18,8 +18,6 @@ package de.phbouillon.android.framework.impl;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.IOException;
-
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -80,7 +78,7 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 	public static float fps;
 	public static float scaleFactor;
 	protected final TextureManager textureManager;
-	private int [] sizeArray = null;
+	private int[] sizeArray = null;
 	private FatalExceptionScreen fatalException = null;
 	private TimeFactorChangeListener timeFactorChangeListener = null;
 
@@ -107,18 +105,18 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		deviceHeight = result.y;
 		glView = new GLSurfaceView(this);
 		glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-		glView.setRenderer(AndroidGame.this);
+		glView.setRenderer(this);
 		if (fileIO == null) {
 			fileIO = new AndroidFileIO(this);
 		}
 		AliteLog.d("AndroidGame", "Width/Height of Device: " + deviceWidth + ", " + deviceHeight);
-		audio = new AndroidAudio(this, (AndroidFileIO) fileIO);
+		audio = new AndroidAudio(this, fileIO);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		setContentView(glView);
 		if (input != null) {
 			input.dispose();
 		}
-		createInputIfNecessary();		
+		createInputIfNecessary();
 	}
 
 	protected void createInputIfNecessary() {
@@ -127,19 +125,20 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 			int frameBufferWidth = isLandscape ? targetWidth : targetHeight;
 			int frameBufferHeight = isLandscape ? targetHeight : targetWidth;
 			Rect aspect = calculateTargetRect(new Rect(0, 0, deviceWidth, deviceHeight));
-			input = new AndroidInput(this, glView, (float) frameBufferWidth / (float) aspect.width(), (float) frameBufferHeight / (float) aspect.height(), aspect.left, aspect.top);
+			input = new AndroidInput(this, glView, frameBufferWidth / (float) aspect.width(),
+				frameBufferHeight / (float) aspect.height(), aspect.left, aspect.top);
 			AliteLog.d("Calculating Sizes", "Sizes in OC: Width: " + deviceWidth + ", Height: " + deviceHeight + ", Aspect: " + aspect.left + ", " + aspect.top + ", " + aspect.right + ", " + aspect.bottom);
 		}
 	}
-	
+
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 	}
 
-	public int [] getSize() {
+	public int[] getSize() {
 		if (sizeArray == null) {
-			sizeArray = new int [] {deviceWidth, deviceHeight};
+			sizeArray = new int[] {deviceWidth, deviceHeight};
 		}
 		return sizeArray;
 	}
@@ -166,7 +165,7 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 				if (resetting) {
 					resetting = false;
 				} else {
-					saveState();
+					saveState(getCurrentScreen());
 				}
 			}
 			screen.pause();
@@ -185,7 +184,7 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 
 	}
 
-	protected abstract void saveState();
+	protected abstract void saveState(Screen screen);
 
 	@Override
 	public Input getInput() {
@@ -230,34 +229,37 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		return screen;
 	}
 
-	public View getCurrentView() {
+	protected View getCurrentView() {
 		return glView;
 	}
 
-	public Rect calculateTargetRect(Rect rect) {
+	private Rect calculateTargetRect(Rect rect) {
 		int width = rect.right - rect.left; // "right" and "left" aren't named correctly here; right - left yields the width!
 		int height = rect.bottom - rect.top; // No adding of 1 required -- same is true for height...
-		float xFactor = (float) targetWidth / (float) width;
-		float yFactor = (float) targetHeight / (float) height;
+		float xFactor = targetWidth / (float) width;
+		float yFactor = targetHeight / (float) height;
 
 		AliteLog.d("[ALITE-CTR]", "Rect: " + rect.left + ", " + rect.top + ", " + rect.right + ", " + rect.bottom);
 		AliteLog.d("[ALITE-CTR]", "Width: " + width + ", Height: " + height);
 		AliteLog.d("[ALITE-CTR]", "TargetWidth: " + targetWidth + ", targetHeight: " + targetHeight);
 		AliteLog.d("[ALITE-CTR]", "Factors: " + xFactor + ", " + yFactor);
 
-		int x1, y1, x2, y2;
+		int x1;
+		int y1;
+		int x2;
+		int y2;
 		if (xFactor > yFactor) {
 			x1 = rect.left;
 			x2 = rect.right;
-			height = (int) (((float) targetHeight) / xFactor);
-			y1 = rect.top + ((rect.height() - height)) >> 1;
+			height = (int) (targetHeight / xFactor);
+			y1 = rect.top + (rect.height() - height) >> 1;
 			y2 = y1 + height;
 			scaleFactor = 1.0f / xFactor;
 		} else {
 			y1 = rect.top;
 			y2 = rect.bottom;
-			width = (int) (((float) targetWidth) / yFactor);
-			x1 = rect.left + ((rect.width() - width) >> 1);
+			width = (int) (targetWidth / yFactor);
+			x1 = rect.left + (rect.width() - width) >> 1;
 			x2 = x1 + width;
 			scaleFactor = 1.0f / yFactor;
 		}
@@ -273,9 +275,9 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		AndroidUtil.getDisplaySize(result, getWindowManager().getDefaultDisplay());
 		deviceWidth = result.x;
 		deviceHeight = result.y;
-		
+
 		Rect aspect = calculateTargetRect(new Rect(0, 0, deviceWidth, deviceHeight));
-		float ratio = (float) aspect.width() / (float) aspect.height();
+		float ratio = aspect.width() / (float) aspect.height();
 		GlUtils.setViewport(aspect);
 		GlUtils.gluPerspective(this, 45.0f, ratio, 1.0f, 900000.0f);
 
@@ -296,7 +298,7 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 	}
 
 	@Override
-	public void onSurfaceChanged(GL10 unused, int width, int height) {		
+	public void onSurfaceChanged(GL10 unused, int width, int height) {
 	}
 
 	private void drawFatalException() {
@@ -321,7 +323,7 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		try {
 			GLGameState state = this.state;
 			long nanoTime = System.nanoTime();
-			while ((nanoTime - startTime) < 33333333l) {
+			while ((nanoTime - startTime) < 33333333L) {
 				nanoTime = System.nanoTime();
 			}
 			if (state == GLGameState.Running && getCurrentView() == glView) {
@@ -336,7 +338,7 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 				if (lastTime == 0) {
 					lastTime = nanoTime;
 				} else {
-					if (Settings.displayFrameRate && (nanoTime - lastTime) >= 1000000000l) {
+					if (Settings.displayFrameRate && (nanoTime - lastTime) >= 1000000000L) {
 						fps = frames;
 						frames = 0;
 						lastTime = nanoTime;
@@ -354,17 +356,10 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 			}
 		} catch (Throwable t) {
 			AliteLog.e("Uncaught Exception", "Alite has ended with an uncaught exception.", t);
-			try {
-				fileIO.deleteFile(AliteStartManager.ALITE_STATE_FILE);
-			} catch (IOException e) {
-			}
-			fatalException = new FatalExceptionScreen(this, t);
+			fileIO.deleteFile(AliteStartManager.ALITE_STATE_FILE);
+			fatalException = new FatalExceptionScreen(t);
 			fatalException.activate();
 		}
-	}
-
-	public float getScaleFactor() {
-		return scaleFactor;
 	}
 
 	public void afterSurfaceCreated() {
@@ -375,7 +370,7 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 	}
 
 	public void setTimeFactor(int tf) {
-		if ((timeFactorChangeListener != null) && (timeFactor != tf)) {
+		if (timeFactorChangeListener != null && timeFactor != tf) {
 			timeFactorChangeListener.timeFactorChanged(timeFactor, tf);
 		}
 		timeFactor = tf;

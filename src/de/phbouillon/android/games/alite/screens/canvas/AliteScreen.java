@@ -23,7 +23,6 @@ import java.util.List;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
@@ -60,14 +59,15 @@ public abstract class AliteScreen extends Screen {
 	private TextData[] messageTextData;
 	private boolean messageIsModal = false;
 	private boolean largeMessage = false;
+	protected transient Alite game;
 
 	public enum MessageType {
 		OK,
 		YES_NO
 	}
 
-	public AliteScreen(Game game) {
-		super(game);
+	public AliteScreen(Alite game) {
+		this.game = game;
 		Alite.setDefiningScreen(this);
 		Rect visibleArea = game.getGraphics().getVisibleArea();
 
@@ -180,7 +180,7 @@ public abstract class AliteScreen extends Screen {
 
 	@Override
 	public synchronized void update(float deltaTime) {
-		NavigationBar navBar = ((Alite) game).getNavigationBar();
+		NavigationBar navBar = game.getNavigationBar();
 		newScreen = null;
 		for (TouchEvent event: game.getInput().getTouchEvents()) {
 			if (event.type == TouchEvent.TOUCH_DOWN && event.x >= 1920 - NavigationBar.SIZE) {
@@ -198,7 +198,7 @@ public abstract class AliteScreen extends Screen {
 			if (event.type == TouchEvent.TOUCH_UP) {
 				if (Math.abs(startX - event.x) < 20 &&
 					Math.abs(startY - event.y) < 20) {
-					newScreen = navBar.touched((Alite) game, event.x, event.y);
+					newScreen = navBar.touched(game, event.x, event.y);
 				}
 			}
 			ButtonRegistry.get().processTouch(event);
@@ -238,7 +238,7 @@ public abstract class AliteScreen extends Screen {
 			newScreen.update(0);
 			game.getGraphics().setClip(-1, -1, -1, -1);
 			flightScreen.setInformationScreen((AliteScreen) newScreen);
-			((Alite) game).getNavigationBar().performScreenChange();
+			game.getNavigationBar().performScreenChange();
 			return true;
 		}
 		return false;
@@ -253,7 +253,7 @@ public abstract class AliteScreen extends Screen {
 			oldScreen.dispose();
 		}
 		game.setScreen(newScreen);
-		((Alite) game).getNavigationBar().performScreenChange();
+		game.getNavigationBar().performScreenChange();
 		postScreenChange();
 		oldScreen = null;
 	}
@@ -448,7 +448,7 @@ public abstract class AliteScreen extends Screen {
 
 	@Override
 	public void renderNavigationBar() {
-		((Alite) game).getNavigationBar().render(game.getGraphics());
+		game.getNavigationBar().render(game.getGraphics());
 	}
 
 	@Override

@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.games.alite.Alite;
@@ -28,13 +27,15 @@ import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.AliteStartManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
+import java.io.IOException;
+
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
 public class QuitScreen extends AliteScreen {
 	private Screen callingScreen;
 	private Screen mockStatusScreen;
 
-	public QuitScreen(Game game, FlightScreen flightScreen) {
+	public QuitScreen(Alite game, FlightScreen flightScreen) {
 		super(game);
 		mockStatusScreen = new StatusScreen(game);
 		mockStatusScreen.loadAssets();
@@ -67,15 +68,15 @@ public class QuitScreen extends AliteScreen {
 			if (messageResult == 1) {
 				try {
 					AliteLog.d("[ALITE]", "Performing autosave. [Quit]");
-					((Alite) game).getFileUtils().autoSave((Alite) game);
-				} catch (Exception e) {
+					game.autoSave();
+				} catch (IOException e) {
 					AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
 				}
 			  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-			    ((Alite) game).finishAffinity();
+			    game.finishAffinity();
 			  } else {
-	        ((Alite) game).setResult(AliteStartManager.ALITE_RESULT_CLOSE_ALL);
-			    ((Alite) game).finish();
+				game.setResult(AliteStartManager.ALITE_RESULT_CLOSE_ALL);
+			    game.finish();
 			  }
 			} else {
 			  newScreen = callingScreen;
@@ -107,16 +108,6 @@ public class QuitScreen extends AliteScreen {
 	@Override
 	public void loadAssets() {
 	  mockStatusScreen.loadAssets();
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
 	}
 
 	@Override

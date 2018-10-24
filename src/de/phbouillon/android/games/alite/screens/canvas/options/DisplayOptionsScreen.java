@@ -21,10 +21,8 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
 import java.io.DataInputStream;
 
 import android.content.pm.ActivityInfo;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Condition;
@@ -45,7 +43,7 @@ public class DisplayOptionsScreen extends OptionsScreen {
 	private Button immersion;
 	private Button back;
 
-	DisplayOptionsScreen(Game game) {
+	DisplayOptionsScreen(Alite game) {
 		super(game);
 		ColorScheme.loadColorSchemeList(game.getFileIO(), Settings.colorScheme);
 	}
@@ -173,9 +171,9 @@ public class DisplayOptionsScreen extends OptionsScreen {
 					Settings.lockScreen = 0;
 				}
 				switch (Settings.lockScreen) {
-					case 0: ((AndroidGame) game).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE); break;
-					case 1: ((AndroidGame) game).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); break;
-					case 2: ((AndroidGame) game).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE); break;
+					case 0: game.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE); break;
+					case 1: game.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); break;
+					case 2: game.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE); break;
 				}
 				lockOrientation.setText("Lock Orientation: " + getOrientationLockString(Settings.lockScreen));
 				Settings.save(game.getFileIO());

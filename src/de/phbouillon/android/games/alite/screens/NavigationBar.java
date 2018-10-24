@@ -18,12 +18,12 @@ package de.phbouillon.android.games.alite.screens;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
@@ -45,7 +45,7 @@ public class NavigationBar {
 	private int activeIndex;
 	private int pendingIndex = -1;
 	private boolean active = true;
-	private final Alite alite;
+	private final Alite game;
 
 	static class NavigationEntry {
 		String title;
@@ -63,9 +63,9 @@ public class NavigationBar {
 
 	private final List <NavigationEntry> targets = new ArrayList<>();
 
-	public NavigationBar(Game game) {
+	public NavigationBar(Alite game) {
 		position = 0;
-		alite = (Alite) game;
+		this.game = game;
 
 		Assets.launchIcon    = game.getGraphics().newPixmap("navigation_icons/launch_icon.png");
 		Assets.statusIcon    = game.getGraphics().newPixmap("navigation_icons/status_icon.png");
@@ -126,7 +126,7 @@ public class NavigationBar {
 		targets.get(Alite.NAVIGATION_BAR_LAUNCH).title = b ? "Front" : "Launch";
 		targets.get(Alite.NAVIGATION_BAR_DISK).visible = !b;
 		targets.get(Alite.NAVIGATION_BAR_ACADEMY).visible = !b;
-		targets.get(Alite.NAVIGATION_BAR_HACKER).visible = !b && alite.isHackerActive();
+		targets.get(Alite.NAVIGATION_BAR_HACKER).visible = !b && game.isHackerActive();
 	}
 
 	public void setVisible(int index, boolean visible) {
@@ -274,7 +274,7 @@ public class NavigationBar {
 					SoundManager.play(Assets.error);
 				}
 				newScreen = (Screen) Class.forName(getClass().getPackage().getName() + ".canvas." + entry.navigationTarget).
-					getConstructor(Game.class).newInstance(game);
+					getConstructor(Alite.class).newInstance(game);
 				pendingIndex = index;
 			} catch (NoSuchMethodException | IllegalArgumentException | IllegalAccessException |
 				InvocationTargetException | ClassNotFoundException | InstantiationException e) {
@@ -287,8 +287,8 @@ public class NavigationBar {
 					SoundManager.play(Assets.click);
 					try {
 						AliteLog.d("[ALITE]", "Performing autosave. [Launch]");
-						game.getFileUtils().autoSave(game);
-					} catch (Exception e) {
+						game.autoSave();
+					} catch (IOException e) {
 						AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
 					}
 					InGameManager.safeZoneViolated = false;

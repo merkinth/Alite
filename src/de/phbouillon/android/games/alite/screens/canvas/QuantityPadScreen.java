@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
@@ -52,7 +51,7 @@ public class QuantityPadScreen extends AliteScreen {
 	private String currentAmountString = "";
 	private final BuyScreen marketScreen;
 
-	public QuantityPadScreen(BuyScreen marketScreen, Game game, String maxAmountString, int x, int y, int row, int column) {
+	public QuantityPadScreen(BuyScreen marketScreen, Alite game, String maxAmountString, int x, int y, int row, int column) {
 		super(game);
 		this.xPos = x;
 		this.yPos = y;
@@ -89,9 +88,9 @@ public class QuantityPadScreen extends AliteScreen {
 		try {
 			int xPos = dis.readInt();
 			int yPos = dis.readInt();
-			int row  = dis.readInt();
-			int col  = dis.readInt();
-			int len  = dis.readInt();
+			int row = dis.readInt();
+			int col = dis.readInt();
+			int len = dis.readInt();
 			String maxAmount = "";
 			for (int i = 0; i < len; i++) {
 				maxAmount += dis.readChar();
@@ -107,7 +106,7 @@ public class QuantityPadScreen extends AliteScreen {
 			QuantityPadScreen qps = new QuantityPadScreen(marketScreen, alite, maxAmount, xPos, yPos, row, col);
 			qps.currentAmountString = currentAmount;
 			alite.setScreen(qps);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Quantity Pad Screen Initialize", "Error in initializer.", e);
 			return false;
 		}
@@ -163,11 +162,11 @@ public class QuantityPadScreen extends AliteScreen {
 					SoundManager.play(Assets.click);
 					String t = b.getText();
 					if ("0".equals(t)) {
-						if (currentAmountString.length() > 0) {
+						if (!currentAmountString.isEmpty()) {
 							currentAmountString += "0";
 						}
 					} else if ("<-".equals(t)) {
-						if (currentAmountString.length() > 0) {
+						if (!currentAmountString.isEmpty()) {
 							currentAmountString = currentAmountString.substring(0, currentAmountString.length() - 1);
 						}
 					} else if ("OK".equals(t)) {
@@ -195,17 +194,7 @@ public class QuantityPadScreen extends AliteScreen {
 		dispose();
 		game.setScreen(marketScreen);
 		marketScreen.performTrade(row, column);
-		((Alite) game).getNavigationBar().performScreenChange();
-	}
-
-	@Override
-	public void dispose() {
-		super.dispose();
-	}
-
-	@Override
-	public void loadAssets() {
-		super.loadAssets();
+		game.getNavigationBar().performScreenChange();
 	}
 
 	@Override

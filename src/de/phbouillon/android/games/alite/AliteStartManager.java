@@ -33,6 +33,7 @@ import android.widget.TextView;
 
 import com.google.android.vending.expansion.downloader.*;
 
+import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.io.AliteDownloaderService;
 import de.phbouillon.android.games.alite.io.AliteFiles;
@@ -47,7 +48,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 	private String currentStatus = "Idle";
 	private float avgSpeed = 0.0f;
 	private int progressUpdateCalls = 0;
-	private AndroidFileIO fileIO;
+	private FileIO fileIO;
 
 	private class ErrorHook implements IMethodHook {
 		private static final long serialVersionUID = -3231920982342356254L;
@@ -66,10 +67,13 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 
 	private boolean expansionFilesDelivered() {
 	    String fileName = Helpers.getExpansionAPKFileName(this, true, AliteConfig.EXTENSION_FILE_VERSION);
-		for (File obb : fileIO.getFiles(Helpers.getSaveFilePath(this), "(.*)\\.obb")) {
-			if (!fileName.equals(obb.getName())) {
-				obb.delete();
-				AliteLog.e("Delete old OBB", "Old OBB '" + obb.getName() + "' deleted.");
+		File[] oldOBBs = fileIO.getFiles(Helpers.getSaveFilePath(this), "(.*)\\.obb");
+		if (oldOBBs != null) {
+			for (File obb : oldOBBs) {
+				if (!fileName.equals(obb.getName())) {
+					obb.delete();
+					AliteLog.e("Delete old OBB", "Old OBB '" + obb.getName() + "' deleted.");
+				}
 			}
 		}
 
@@ -174,34 +178,33 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		startActivityForResult(intent, 0);
 	}
 
-	private void loadCurrentGame(AndroidFileIO fileIO) {
+	private void loadCurrentGame(FileIO fileIO) {
 		try {
 			if (fileIO.exists(ALITE_STATE_FILE)) {
 				AliteLog.d("Alite Start Manager", "Alite state file exists. Opening it.");
 				// State file exists, so open the first byte to check if the
 				// Intro Activity or the Game Activity must be started.
-				byte [] b = fileIO.readPartialFileContents(ALITE_STATE_FILE, 1);
+				byte[] b = fileIO.readPartialFileContents(ALITE_STATE_FILE, 1);
 				if (b == null || b.length != 1) {
 					// Fallback in case of an error
-					AliteLog.d("Alite Start Manager", "Reading screen code failed. b == " + (b == null ? "<null>" : b) + " -- " + (b == null ? "<null>" : b.length));
-					startAlite();
+					AliteLog.d("Alite Start Manager", "Reading screen code failed. b == " +
+						(b == null ? "<null>" : b) + " -- " + (b == null ? "<null>" : b.length));
 				} else {
 					// We used to parse the first byte here, to determine if we want to resume the intro.
 					// However, if the game crashes right after the intro (probably because of the
 					// Activity change), we don't have a fallback. Hence, we simply prohibit resuming
 					// the intro...
 					AliteLog.d("Alite Start Manager", "Saved screen code == " + b[0] + " - starting game.");
-					startAlite();
 				}
-			} else {
-				AliteLog.d("Alite Start Manager", "No state file present: Starting intro.");
-				startAliteIntro();
+				startAlite();
+				return;
 			}
+			AliteLog.d("Alite Start Manager", "No state file present: Starting intro.");
 		} catch (IOException e) {
 			// Default to Intro...
 			AliteLog.e("Alite Start Manager", "Exception occurred. Starting intro.", e);
-			startAliteIntro();
 		}
+		startAliteIntro();
 	}
 
 	@Override

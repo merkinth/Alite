@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
@@ -33,7 +32,6 @@ import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.io.FileUtils;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.InventoryItem;
@@ -44,6 +42,7 @@ import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.Rating;
 import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
 
@@ -61,10 +60,10 @@ public class HackerScreen extends AliteScreen {
 	private int deltaY = 0;
 	private Button done;
 	private int offset;
-	private Button [] values = new Button[256];
+	private Button[] values = new Button[256];
 
 	class HackerState {
-		byte [] values = new byte[256];
+		byte[] values = new byte[256];
 
 		String getCommanderName() {
 			int len = 0;
@@ -76,7 +75,7 @@ public class HackerScreen extends AliteScreen {
 			if (len == 0) {
 				return "";
 			}
-			return new String(values, 0, len, FileUtils.CHARSET).trim();
+			return new String(values, 0, len, StringUtil.CHARSET).trim();
 		}
 
 		private boolean getBitFromState(int offset, int bit) {
@@ -127,7 +126,7 @@ public class HackerScreen extends AliteScreen {
 		}
 
 		void setCommanderName(String name) {
-			byte [] commanderName = name.getBytes(FileUtils.CHARSET);
+			byte[] commanderName = name.getBytes(StringUtil.CHARSET);
 			System.arraycopy(commanderName, 0, values, 0, Math.min(commanderName.length, 16));
 			for (int i = commanderName.length; i < 16; i++) {
 				values[i] = 0;
@@ -142,8 +141,8 @@ public class HackerScreen extends AliteScreen {
 			values[16] = (byte) (galaxyNumber & 0xFF);
 		}
 
-		char [] getGalaxySeed() {
-			char [] result = new char[3];
+		char[] getGalaxySeed() {
+			char[] result = new char[3];
 			result[0] = (char) ((values[HackerScreen.GALAXY_SEED] << 8) + (values[HackerScreen.GALAXY_SEED + 1] & 0xFF));
 			result[1] = (char) ((values[HackerScreen.GALAXY_SEED + 2] << 8) + (values[HackerScreen.GALAXY_SEED + 3] & 0xFF));
 			result[2] = (char) ((values[HackerScreen.GALAXY_SEED + 4] << 8) + (values[HackerScreen.GALAXY_SEED + 5] & 0xFF));
@@ -427,12 +426,12 @@ public class HackerScreen extends AliteScreen {
 		*/
 	}
 
-	// public constructor(Game) is required for navigation bar
-	public HackerScreen(Game game) {
+	// public constructor(Alite) is required for navigation bar
+	public HackerScreen(Alite game) {
 		super(game);
 		offset = game.getGraphics().getTextWidth("MM", Assets.titleFont) - 8;
-		((Alite) game).getNavigationBar().setActive(false);
-		initializeState((Alite) game);
+		game.getNavigationBar().setActive(false);
+		initializeState(game);
 		done = Button.createGradientTitleButton(1720, 880, 200, 200, "Done");
 		int counter = 0;
 		for (int y = 0; y < 16; y++) {
@@ -446,7 +445,7 @@ public class HackerScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		((Alite) game).getPlayer().setCheater(true);
+		game.getPlayer().setCheater(true);
 	}
 
 	static HackerScreen readScreen(Alite alite, DataInputStream dis) {
@@ -457,7 +456,7 @@ public class HackerScreen extends AliteScreen {
 				hs.values[i].setText(String.format("%02X", hs.state.values[i]));
 			}
 			hs.yPosition = dis.readInt();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Hacker Screen Initialize", "Error in initializer.", e);
 			return null;
 		}
@@ -520,7 +519,7 @@ public class HackerScreen extends AliteScreen {
 		state.setMilitaryLaser(getLaserValue(cobra, EquipmentStore.militaryLaser));
 		state.setCloakingDevice(cobra.isEquipmentInstalled(EquipmentStore.cloakingDevice));
 		state.setECMJammer(cobra.isEquipmentInstalled(EquipmentStore.ecmJammer));
-		InventoryItem [] inventory = cobra.getInventory();
+		InventoryItem[] inventory = cobra.getInventory();
 		state.setFood(inventory[0].getWeight().getWeightInGrams());
 		state.setTextiles(inventory[1].getWeight().getWeightInGrams());
 		state.setRadioactives(inventory[2].getWeight().getWeightInGrams());
@@ -593,7 +592,6 @@ public class HackerScreen extends AliteScreen {
 		setEquipped(cobra, EquipmentStore.galacticHyperdrive, state.isGalacticHyperdrive());
 		setEquipped(cobra, EquipmentStore.cloakingDevice, state.isCloakingDevice());
 		setEquipped(cobra, EquipmentStore.ecmJammer, state.isECMJammer());
-		alite.setIntergalActive(state.isGalacticHyperdrive());
 		setEquipped(cobra, EquipmentStore.retroRockets, state.isRetroRockets());
 		// Punish player for cheating: If he enters values for all laser types,
 		// accept the least powerful one only... (I.e. set military laser first and
@@ -603,7 +601,7 @@ public class HackerScreen extends AliteScreen {
 		equipLaser(state.getBeamLaser(), EquipmentStore.beamLaser, cobra);
 		equipLaser(state.getMiningLaser(), EquipmentStore.miningLaser, cobra);
 		equipLaser(state.getPulseLaser(), EquipmentStore.pulseLaser, cobra);
-		InventoryItem [] inventory = cobra.getInventory();
+		InventoryItem[] inventory = cobra.getInventory();
 		cobra.setTradeGood(TradeGoodStore.get().food(), Weight.grams(state.getFood()), inventory[0].getPrice());
 		cobra.setTradeGood(TradeGoodStore.get().textiles(), Weight.grams(state.getTextiles()), inventory[1].getPrice());
 		cobra.setTradeGood(TradeGoodStore.get().radioactives(), Weight.grams(state.getRadioactives()), inventory[2].getPrice());
@@ -639,7 +637,7 @@ public class HackerScreen extends AliteScreen {
 			oldScreen.dispose();
 		}
 		game.setScreen(newScreen);
-		((Alite) game).getNavigationBar().performScreenChange();
+		game.getNavigationBar().performScreenChange();
 		postScreenChange();
 	}
 
@@ -670,9 +668,9 @@ public class HackerScreen extends AliteScreen {
 			if (Math.abs(startX - touch.x) < 20 &&
 				Math.abs(startY - touch.y) < 20) {
 				if (done.isTouched(touch.x, touch.y)) {
-					assignState((Alite) game);
-					((Alite) game).getNavigationBar().setActive(true);
-					((Alite) game).getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
+					assignState(game);
+					game.getNavigationBar().setActive(true);
+					game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
 					newScreen = new StatusScreen(game);
 					SoundManager.play(Assets.click);
 				} else {
@@ -739,28 +737,8 @@ public class HackerScreen extends AliteScreen {
 	}
 
 	@Override
-	public void dispose() {
-		super.dispose();
-	}
-
-	@Override
-	public void loadAssets() {
-		super.loadAssets();
-	}
-
-	@Override
 	public void renderNavigationBar() {
 		// No navigation bar desired.
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
 	}
 
 	@Override

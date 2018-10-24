@@ -23,11 +23,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import android.media.MediaPlayer;
-import de.phbouillon.android.framework.Game;
+import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
@@ -87,12 +86,12 @@ public class SupernovaScreen extends AliteScreen {
 	private final SupernovaMission mission;
 	private final int givenState;
 
-	public SupernovaScreen(Game game, int state) {
+	public SupernovaScreen(Alite game, int state) {
 		super(game);
 		givenState = state;
 		mission = (SupernovaMission) MissionManager.getInstance().get(SupernovaMission.ID);
 		mediaPlayer = new MediaPlayer();
-		AndroidFileIO fio = (AndroidFileIO) game.getFileIO();
+		FileIO fio = game.getFileIO();
 		String path = "sound/mission/3/";
 		try {
 			if (state == 0) {
@@ -101,14 +100,14 @@ public class SupernovaScreen extends AliteScreen {
 				acceptMission = new MissionLine(fio, path + "06.mp3", accept);
 			} else if (state == 1) {
 				missionLine = new MissionLine(fio, path + "05.mp3", missionDecline);
-				mission.setSupernovaSystem(((Alite) game).getGenerator().getCurrentSeed(), ((Alite) game).getPlayer().getCurrentSystem().getIndex());
+				mission.setSupernovaSystem(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex());
 			} else if (state == 2) {
 				missionLine = new MissionLine(fio, path + "03.mp3", dropUsOff);
-				mission.setSupernovaSystem(((Alite) game).getGenerator().getCurrentSeed(), ((Alite) game).getPlayer().getCurrentSystem().getIndex());
+				mission.setSupernovaSystem(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex());
 			} else if (state == 3) {
 				missionLine = new MissionLine(fio, path + "04.mp3", success);
 				mission.onMissionComplete();
-				Player player = ((Alite) game).getPlayer();
+				Player player = game.getPlayer();
 				player.removeActiveMission(mission);
 				player.addCompletedMission(mission);
 				player.resetIntergalacticJumpCounter();
@@ -210,7 +209,7 @@ public class SupernovaScreen extends AliteScreen {
 		try {
 			int state = dis.readInt();
 			alite.setScreen(new SupernovaScreen(alite, state));
-		} catch (Exception e) {
+		} catch (IOException e) {
 			AliteLog.e("Supernova Screen Initialize", "Error in initializer.", e);
 			return false;
 		}
