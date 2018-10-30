@@ -31,10 +31,8 @@ class ScrollingText implements Serializable {
 	private final String textToDisplay;
 	private float x = 1920.0f;
 	private int width;
-	private final Alite alite;
 
 	ScrollingText(Alite alite) {
-		this.alite = alite;
 		long diffInSeconds = TimeUnit.SECONDS.convert(alite.getGameTime(), TimeUnit.NANOSECONDS);
 		int diffInDays = (int) (diffInSeconds / 86400);
 		diffInSeconds -= diffInDays * 86400;
@@ -54,8 +52,8 @@ class ScrollingText implements Serializable {
 
 	void render(float deltaTime) {
 		x -= deltaTime * 128.0f;
-		alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_SCROLLING_TEXT), 1.0f);
-		alite.getFont().drawText(textToDisplay, (int) x, 400, false, 1.5f);
+		Alite.get().getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_SCROLLING_TEXT), 1.0f);
+		Alite.get().getFont().drawText(textToDisplay, (int) x, 400, false, 1.5f);
 		if (x + width < -20) {
 			x = 1920.0f;
 		}

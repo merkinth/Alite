@@ -25,10 +25,8 @@ public abstract class GlScreen extends Screen implements Serializable {
 
 	private boolean isActive;
 	protected boolean isDisposed;
-	private Game game;
 
-	public GlScreen(Game game) {
-		this.game = game;
+	protected GlScreen() {
 		isActive = false;
 	}
 
@@ -84,14 +82,6 @@ public abstract class GlScreen extends Screen implements Serializable {
 
 	@Override
 	public void postNavigationRender(float deltaTime) {
-	}
-
-	protected void performScreenChange(Screen newScreen) {
-		Screen oldScreen = game.getCurrentScreen();
-		oldScreen.dispose();
-		game.setScreen(newScreen);
-		postScreenChange();
-		oldScreen = null;
 	}
 
 	@Override

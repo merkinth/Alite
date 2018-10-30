@@ -20,25 +20,8 @@ package de.phbouillon.android.framework;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
 
-import de.phbouillon.android.games.alite.AliteLog;
-
-public abstract class Screen implements Serializable {
-	private static final long serialVersionUID = -4453530718411300375L;
-
-	private void readObject(ObjectInputStream in) throws IOException {
-		try {
-			AliteLog.e("readObject", "Screen.readObject");
-			in.defaultReadObject();
-			AliteLog.e("readObject", "Screen.readObject I");
-			AliteLog.e("readObject", "Screen.readObject II");
-		} catch (ClassNotFoundException e) {
-			AliteLog.e("Class Not Found", e.getMessage(), e);
-		}
-	}
-
+public abstract class Screen {
  	public abstract void update(float deltaTime);
 	public abstract void present(float deltaTime);
 	public abstract void postPresent(float deltaTime);

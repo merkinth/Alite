@@ -94,14 +94,13 @@ public class FlightScreen extends GlScreen implements Serializable {
 	private boolean needsActivation = true;
 	private transient boolean isSaving = false;
 	private transient long timeToExitTimer = -1;
-	private Alite game;
+	private transient Alite game;
 
 	private Vector3f v0 = new Vector3f(0, 0, 0);
 	private Vector3f v1 = new Vector3f(0, 0, 0);
 	private Vector3f v2 = new Vector3f(0, 0, 0);
 
 	public FlightScreen(Alite game, boolean fromStation) {
-		super(game);
 		this.game = game;
 		timeToExitTimer = -1;
 		AliteLog.e("Flight Screen Constructor", "FSC -- fromStation == " + fromStation);
@@ -152,6 +151,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 			AliteLog.e("readObject", "FlightScreen.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "FlightScreen.readObject I");
+			game = Alite.get();
 			setPause(true);
 			AliteLog.e("readObject", "FlightScreen.readObject II");
 			isSaving = false;
@@ -527,6 +527,14 @@ public class FlightScreen extends GlScreen implements Serializable {
 			}
 			throw e;
 		}
+	}
+
+	private void performScreenChange(Screen newScreen) {
+		Screen oldScreen = game.getCurrentScreen();
+		oldScreen.dispose();
+		game.setScreen(newScreen);
+		postScreenChange();
+		oldScreen = null;
 	}
 
 	@Override

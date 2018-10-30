@@ -63,7 +63,6 @@ public class HyperspaceScreen extends GlScreen {
 	private Alite game;
 
 	public HyperspaceScreen(Alite game, boolean intergal) {
-		super(game);
 		this.game = game;
 		this.intergal = intergal;
 	}

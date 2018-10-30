@@ -97,7 +97,6 @@ public class ControlledShipIntroScreen extends GlScreen {
 	private Alite game;
 
 	public ControlledShipIntroScreen(Alite game) {
-		super(game);
 		this.game = game;
 		AliteLog.d("Ship Intro Screen", "Constructor. Now loading background image... glError: " + GLES11.glGetError());
 		inGame = new InGameManager(game, null, "textures/purple_screen.png", lightPosition, false, false);
