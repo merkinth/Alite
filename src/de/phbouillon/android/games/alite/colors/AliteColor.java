@@ -81,7 +81,11 @@ public class AliteColor {
 			(int) (blue  * 255.0f + 0.5f);
 	}
 
-	public static int parseColor(String colorString) {
+	public static int colorAlpha(int color, float alpha) {
+		return (int) (alpha * 255.0f + 0.5f) << 24 | color & 0x00ffffff;
+	}
+
+	static int parseColor(String colorString) {
 		if (!colorString.isEmpty() && colorString.charAt(0) == '#') {
 			// Use a long to avoid rollovers on #ffXXXXXX
 			long color = Long.parseLong(colorString.substring(1), 16);

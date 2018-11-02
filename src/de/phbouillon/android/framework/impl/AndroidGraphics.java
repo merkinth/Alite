@@ -350,15 +350,40 @@ public class AndroidGraphics implements Graphics {
 		if (font == null) {
 			return;
 		}
-	    GLES11.glEnable(GLES11.GL_BLEND);
-	    GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE);
-		font.begin(AliteColor.red(color) / 255.0f, AliteColor.green(color) / 255.0f,
-			AliteColor.blue(color) / 255.0f, AliteColor.alpha(color) / 255.0f);
-		y -= (int) font.getSize();
-		font.draw(text, transX(x), transY(y));
+		GLES11.glEnable(GLES11.GL_BLEND);
+		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE);
+		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
+		drawTextCommon(text, x, y, color, font, 1);
+		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
+	}
+
+	private void drawTextCommon(String text, int x, int y, int color, GLText font, float scale) {
+	    setColor(color);
+		font.begin();
+		font.draw(text, transX(x), transY(y - (int) font.getSize()), scale);
 		font.end();
 		GLES11.glDisable(GLES11.GL_BLEND);
 		textureManager.setTexture(null);
+	}
+
+	@Override
+	public void drawText(String text, int x, int y, int color, GLText font, float scale) {
+		if (font == null) {
+			return;
+		}
+		GLES11.glDisable(GLES11.GL_LIGHTING);
+		GLES11.glDisable(GLES11.GL_CULL_FACE);
+		GLES11.glEnable(GLES11.GL_BLEND);
+		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
+		drawTextCommon(text, x, y, color, font, scale);
+		GLES11.glDisable(GLES11.GL_BLEND);
+		GLES11.glEnable(GLES11.GL_CULL_FACE);
+		GLES11.glEnable(GLES11.GL_LIGHTING);
+	}
+
+	@Override
+	public void drawCenteredText(String text, int x, int y, int color, GLText font, float scale) {
+		drawText(text, (int) (x - font.getWidth(text, scale) / 2), y, color, font, scale);
 	}
 
 	@Override
@@ -366,7 +391,7 @@ public class AndroidGraphics implements Graphics {
 		if (font == null) {
 			return 0;
 		}
-		return (int) (font.getLength(text) / scaleFactor);
+		return (int) (font.getWidth(text, 1) / scaleFactor);
 	}
 
 	@Override

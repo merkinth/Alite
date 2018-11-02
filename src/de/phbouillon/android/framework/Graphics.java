@@ -44,6 +44,8 @@ public interface Graphics {
 	void drawCircle(int cx, int cy, int r, int color, int segments);
 	void fillCircle(int cx, int cy, int r, int color, int segments);
 	void drawText(String text, int x, int y, int color, GLText font);
+	void drawText(String text, int x, int y, int color, GLText font, float scale);
+	void drawCenteredText(String text, int x, int y, int color, GLText font, float scale);
 	int getTextWidth(String text, GLText font);
 	int getTextHeight(String text, GLText font);
 	void drawPixmap(Pixmap pixmap, int x, int y);

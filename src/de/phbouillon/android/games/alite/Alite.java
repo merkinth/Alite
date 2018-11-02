@@ -29,7 +29,6 @@ import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.io.FileUtils;
-import de.phbouillon.android.games.alite.io.ObbExpansionsManager;
 import de.phbouillon.android.games.alite.model.*;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -37,12 +36,10 @@ import de.phbouillon.android.games.alite.model.missions.*;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
-import de.phbouillon.android.games.alite.screens.opengl.DefaultCoordinateTransformer;
 import de.phbouillon.android.games.alite.screens.opengl.TextureManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.LaserManager;
-import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteFont;
 
 import java.io.*;
 
@@ -73,7 +70,6 @@ public class Alite extends AndroidGame {
 	private static AliteScreen definingScreen;
 	private final FileUtils fileUtils;
 	private LaserManager laserManager;
-	private AliteFont font;
 	private static Alite alite;
 	private boolean saving = false;
 	private boolean isHackerActive;
@@ -377,27 +373,17 @@ public class Alite extends AndroidGame {
 		NAVIGATION_BAR_QUIT = navigationBar.add("Quit", Assets.quitIcon, null);
 		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
 
-		AliteFont.ct = new DefaultCoordinateTransformer(this);
-		font = new AliteFont(this);
-
-		Assets.regularFont    = getFont(false, false, 40);
-		Assets.boldFont       = getFont(true, false, 40);
-		Assets.italicFont     = getFont(false, true, 40);
-		Assets.boldItalicFont = getFont(true, true, 40);
-		Assets.titleFont      = getFont(false, false, 60);
-		Assets.smallFont      = getFont(false, false, 30);
+		Assets.regularFont    = getFont(R.font.robotor, 40);
+		Assets.boldFont       = getFont(R.font.robotob, 40);
+		Assets.italicFont     = getFont(R.font.robotoi, 40);
+		Assets.boldItalicFont = getFont(R.font.robotobi, 40);
+		Assets.titleFont      = getFont(R.font.robotor, 60);
+		Assets.smallFont      = getFont(R.font.robotor, 30);
 	}
 
-	private GLText getFont(boolean bold, boolean italic, int size) {
-		GLText font = new GLText();
-		String fontName = "roboto" + (bold ? italic ? "bi" : "b" : italic ? "i" : "r") + ".ttf";
-		if (AliteConfig.HAS_EXTENSION_APK) {
-			font.load(ObbExpansionsManager.getInstance().getMainRoot() + "assets/" + fontName,
-				(int) (size * scaleFactor), size, 2, 2);
-			return font;
-		}
-		font.load(getAssets(), fontName, (int) (size * scaleFactor), size, 2, 2);
-		return font;
+	private static GLText getFont(int fontId, int size) {
+		return GLText.load(alite.getApplicationContext(), Settings.colorDepth, fontId,
+			(int) (size * scaleFactor), size, 0, 0);
 	}
 
 	@Override
@@ -430,10 +416,6 @@ public class Alite extends AndroidGame {
 
 	public TextureManager getTextureManager() {
 		return textureManager;
-	}
-
-	public AliteFont getFont() {
-		return font;
 	}
 
 	public void setLaserManager(LaserManager man) {

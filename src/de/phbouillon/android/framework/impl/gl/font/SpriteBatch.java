@@ -2,7 +2,7 @@ package de.phbouillon.android.framework.impl.gl.font;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -20,30 +20,30 @@ package de.phbouillon.android.framework.impl.gl.font;
 
 import android.opengl.GLES11;
 
-public class SpriteBatch {
+class SpriteBatch {
 
    //--Constants--//
-   final static int VERTEX_SIZE = 4;                  // Vertex Size (in Components) ie. (X,Y,U,V)
-   final static int VERTICES_PER_SPRITE = 4;          // Vertices Per Sprite
-   final static int INDICES_PER_SPRITE = 6;           // Indices Per Sprite
+   private final static int VERTEX_SIZE = 4;                  // Vertex Size (in Components) ie. (X,Y,U,V)
+   private final static int VERTICES_PER_SPRITE = 4;          // Vertices Per Sprite
+   private final static int INDICES_PER_SPRITE = 6;           // Indices Per Sprite
 
    //--Members--//
-   Vertices vertices;                                 // Vertices Instance Used for Rendering
-   float[] vertexBuffer;                              // Vertex Buffer
-   int bufferIndex;                                   // Vertex Buffer Start Index
-   int maxSprites;                                    // Maximum Sprites Allowed in Buffer
-   int numSprites;                                    // Number of Sprites Currently in Buffer
+   private Vertices vertices;                                 // Vertices Instance Used for Rendering
+   private float[] vertexBuffer;                              // Vertex Buffer
+   private int bufferIndex;                                   // Vertex Buffer Start Index
+   private int maxSprites;                                    // Maximum Sprites Allowed in Buffer
+   private int numSprites;                                    // Number of Sprites Currently in Buffer
 
    //--Constructor--//
    // D: prepare the sprite batcher for specified maximum number of sprites
    // A: gl - the gl instance to use for rendering
    //    maxSprites - the maximum allowed sprites per batch
-   public SpriteBatch(int maxSprites)  {
-      this.vertexBuffer = new float[maxSprites * VERTICES_PER_SPRITE * VERTEX_SIZE];  // Create Vertex Buffer
-      this.vertices = new Vertices(maxSprites * VERTICES_PER_SPRITE, maxSprites * INDICES_PER_SPRITE, false, true, false );  // Create Rendering Vertices
-      this.bufferIndex = 0;                           // Reset Buffer Index
+   SpriteBatch(int maxSprites)  {
+      vertexBuffer = new float[maxSprites * VERTICES_PER_SPRITE * VERTEX_SIZE];  // Create Vertex Buffer
+      vertices = new Vertices(maxSprites * VERTICES_PER_SPRITE, maxSprites * INDICES_PER_SPRITE, false, true, false );  // Create Rendering Vertices
+      bufferIndex = 0;                           // Reset Buffer Index
       this.maxSprites = maxSprites;                   // Save Maximum Sprites
-      this.numSprites = 0;                            // Clear Sprite Counter
+      numSprites = 0;                            // Clear Sprite Counter
 
       short[] indices = new short[maxSprites * INDICES_PER_SPRITE];  // Create Temp Index Buffer
       int len = indices.length;                       // Get Index Buffer Length
@@ -64,13 +64,13 @@ public class SpriteBatch {
    //    NOTE: the overloaded (non-texture) version assumes that the texture is already bound!
    // A: textureId - the ID of the texture to use for the batch
    // R: [none]
-   public void beginBatch(int textureId)  {
+   void beginBatch(int textureId)  {
 	   GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, textureId); // Bind Texture
       numSprites = 0;                                 // Empty Sprite Counter
       bufferIndex = 0;                                // Reset Buffer Index (Empty)
    }
-   
-   public void beginBatch()  {
+
+   void beginBatch()  {
       numSprites = 0;                                 // Empty Sprite Counter
       bufferIndex = 0;                                // Reset Buffer Index (Empty)
    }
@@ -79,10 +79,10 @@ public class SpriteBatch {
    // D: signal the end of a batch. render the batched sprites
    // A: [none]
    // R: [none]
-   public void endBatch()  {
+   void endBatch()  {
       if ( numSprites > 0 )  {                        // IF Any Sprites to Render
          vertices.setVertices( vertexBuffer, 0, bufferIndex );  // Set Vertices from Buffer
-         vertices.bind();    
+         vertices.bind();
          vertices.draw( GLES11.GL_TRIANGLES, 0, numSprites * INDICES_PER_SPRITE );  // Render Batched Sprites
          vertices.unbind();                           // Unbind Vertices
       }
@@ -97,7 +97,7 @@ public class SpriteBatch {
    //    width, height - the width and height of the sprite
    //    region - the texture region to use for sprite
    // R: [none]
-   public void drawSprite(float x, float y, float width, float height, TextureRegion region)  {
+   void drawSprite(float x, float y, float width, float height, CharacterData data)  {
       if ( numSprites == maxSprites )  {              // IF Sprite Buffer is Full
          endBatch();                                  // End Batch
          // NOTE: leave current texture bound!!
@@ -114,23 +114,23 @@ public class SpriteBatch {
 
       vertexBuffer[bufferIndex++] = x1;               // Add X for Vertex 0
       vertexBuffer[bufferIndex++] = y1;               // Add Y for Vertex 0
-      vertexBuffer[bufferIndex++] = region.u1;        // Add U for Vertex 0
-      vertexBuffer[bufferIndex++] = region.v1;        // Add V for Vertex 0
+      vertexBuffer[bufferIndex++] = data.uStart;      // Add U for Vertex 0
+      vertexBuffer[bufferIndex++] = data.vStart;      // Add V for Vertex 0
 
       vertexBuffer[bufferIndex++] = x2;               // Add X for Vertex 1
       vertexBuffer[bufferIndex++] = y1;               // Add Y for Vertex 1
-      vertexBuffer[bufferIndex++] = region.u2;        // Add U for Vertex 1
-      vertexBuffer[bufferIndex++] = region.v1;        // Add V for Vertex 1
+      vertexBuffer[bufferIndex++] = data.uEnd;        // Add U for Vertex 1
+      vertexBuffer[bufferIndex++] = data.vStart;      // Add V for Vertex 1
 
       vertexBuffer[bufferIndex++] = x2;               // Add X for Vertex 2
       vertexBuffer[bufferIndex++] = y2;               // Add Y for Vertex 2
-      vertexBuffer[bufferIndex++] = region.u2;        // Add U for Vertex 2
-      vertexBuffer[bufferIndex++] = region.v2;        // Add V for Vertex 2
+      vertexBuffer[bufferIndex++] = data.uEnd;        // Add U for Vertex 2
+      vertexBuffer[bufferIndex++] = data.vEnd;        // Add V for Vertex 2
 
       vertexBuffer[bufferIndex++] = x1;               // Add X for Vertex 3
       vertexBuffer[bufferIndex++] = y2;               // Add Y for Vertex 3
-      vertexBuffer[bufferIndex++] = region.u1;        // Add U for Vertex 3
-      vertexBuffer[bufferIndex++] = region.v2;        // Add V for Vertex 3
+      vertexBuffer[bufferIndex++] = data.uStart;      // Add U for Vertex 3
+      vertexBuffer[bufferIndex++] = data.vEnd;        // Add V for Vertex 3
 
       numSprites++;                                   // Increment Sprite Count
    }

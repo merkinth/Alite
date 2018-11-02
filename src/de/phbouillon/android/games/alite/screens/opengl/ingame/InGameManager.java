@@ -1329,8 +1329,8 @@ public class InGameManager implements Serializable {
 			if (scrollingText != null) {
 				scrollingText.render(deltaTime);
 			} else if (feeText != null) {
-				GLES11.glColor4f(0.94f, 0.94f, 0.0f, 0.6f);
-				alite.getFont().drawText(feeText, 960, 150, true, 1.0f);
+				alite.getGraphics().drawCenteredText(feeText, 960, 150,
+					AliteColor.argb(0.6f, 0.94f, 0.94f, 0.0f), Assets.regularFont, 1.0f);
 				GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 				buttons.renderYesNoButtons();
 			}

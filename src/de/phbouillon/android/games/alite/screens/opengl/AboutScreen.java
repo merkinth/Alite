@@ -38,10 +38,10 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
-import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteFont;
 
 // ??              - Adder Mk II          - Gopher
 //                 - Mosquito Trader      - Indigo
@@ -73,7 +73,6 @@ public class AboutScreen extends GlScreen {
 	private float globalAlpha = 1.0f;
 	private int mode = 0;
 	private int y = 1200;
-	private AliteFont font;
 	private boolean end = false;
 	private boolean returnToOptions = false;
 	private float musicVolume = Settings.volumes[Sound.SoundType.MUSIC.getValue()];
@@ -204,7 +203,6 @@ public class AboutScreen extends GlScreen {
 	private final List <TextData> texts;
 
 	public AboutScreen(Alite game) {
-		super(game);
 		this.game = game;
 		visibleArea = game.getGraphics().getVisibleArea();
 		background = new Sprite(game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom, 0.0f, 0.0f, 1.0f, 1.0f, "textures/star_map_title.png");
@@ -228,7 +226,6 @@ public class AboutScreen extends GlScreen {
 			td.y = curY;
 			texts.add(td);
 		}
-		font = game.getFont();
 	}
 
 	private int parseControlSequence(TextData td, String sequence, String text) {
@@ -412,16 +409,16 @@ public class AboutScreen extends GlScreen {
             		if (y + text.y > 1080) {
             			break;
             		}
-					game.getGraphics().setColor(text.color, globalAlpha);
-            		font.drawText(text.text, text.x, y + text.y, true, text.scale);
+            		game.getGraphics().drawCenteredText(text.text, text.x, y + text.y,
+						AliteColor.colorAlpha(text.color, globalAlpha), Assets.regularFont, text.scale);
             		if (y + text.y < 525 && i == texts.size() - 1) {
             			end = true;
             		}
         		}
         	}
         }
-        GLES11.glColor4f(globalAlpha, globalAlpha, globalAlpha, globalAlpha);
-        game.getFont().drawText("Alite Version " + Alite.VERSION_STRING, 0, 1030, false, 1.0f);
+        game.getGraphics().drawText("Alite Version " + Alite.VERSION_STRING, 0, 1030,
+			AliteColor.argb(globalAlpha, globalAlpha, globalAlpha, globalAlpha), Assets.regularFont, 1.0f);
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glPopMatrix();

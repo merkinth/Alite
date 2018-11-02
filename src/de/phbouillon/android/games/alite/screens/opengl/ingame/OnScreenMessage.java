@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.phbouillon.android.games.alite.Alite;
+import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 
 class OnScreenMessage implements Serializable {
@@ -162,8 +163,7 @@ class OnScreenMessage implements Serializable {
 			return;
 		}
 		lastRepetitionInactive = 0;
-		alite.getGraphics().setColor(0x99F0F000);
-		alite.getFont().drawText(text, 960, 650, true, scale);
+		alite.getGraphics().drawCenteredText(text, 960, 650, 0x99F0F000, Assets.regularFont, scale);
 		alite.getGraphics().setColor(AliteColor.WHITE);
 	}
 }

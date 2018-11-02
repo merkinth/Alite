@@ -23,6 +23,9 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import de.phbouillon.android.games.alite.Alite;
+import de.phbouillon.android.games.alite.AliteConfig;
+import de.phbouillon.android.games.alite.Assets;
+import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 class ScrollingText implements Serializable {
@@ -40,20 +43,21 @@ class ScrollingText implements Serializable {
 		diffInSeconds -= diffInHours * 3600;
 		int diffInMinutes = (int) (diffInSeconds / 60);
 		String gameTime = String.format(Locale.getDefault(),
-				"%d day" + (diffInDays == 1 ? "" : "s") +
+			"%d day" + (diffInDays == 1 ? "" : "s") +
 				", %d hour" + (diffInHours == 1 ? "" : "s") +
 				", and %d minute" + (diffInMinutes == 1 ? "" : "s"), diffInDays, diffInHours, diffInMinutes);
 
-		textToDisplay = "Alite v" + Alite.VERSION_STRING +
+		textToDisplay = AliteConfig.GAME_NAME + " v" + AliteConfig.VERSION_STRING +
 			" - by Philipp Bouillon and Duane McDonnell. You have played for " + gameTime +
 			" and you have scored " + alite.getPlayer().getScore() + " points. ";
-		width = (int) alite.getFont().getWidth(textToDisplay, 1.5f);
+		width = (int) Assets.regularFont.getWidth(textToDisplay,1.5f);
 	}
 
 	void render(float deltaTime) {
 		x -= deltaTime * 128.0f;
-		Alite.get().getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_SCROLLING_TEXT), 1.0f);
-		Alite.get().getFont().drawText(textToDisplay, (int) x, 400, false, 1.5f);
+		Alite.get().getGraphics().drawText(textToDisplay, (int) x, 400,
+			AliteColor.colorAlpha(ColorScheme.get(ColorScheme.COLOR_SCROLLING_TEXT), 1.0f),
+			Assets.regularFont, 1.5f);
 		if (x + width < -20) {
 			x = 1920.0f;
 		}
