@@ -2,7 +2,7 @@ package de.phbouillon.android.framework.impl;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,10 +18,10 @@ package de.phbouillon.android.framework.impl;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import android.annotation.TargetApi;
-import android.os.Build;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
@@ -30,18 +30,17 @@ import android.view.View;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.impl.Pool.PoolObjectFactory;
 
-@TargetApi(Build.VERSION_CODES.FROYO)
 public class MultiTouchHandler implements TouchHandler {
 	private static final int MAX_TOUCHPOINTS = 10;
-	
+
 	private final boolean [] isTouched = new boolean[MAX_TOUCHPOINTS];
 	private final int [] touchX = new int[MAX_TOUCHPOINTS];
 	private final int [] touchY = new int[MAX_TOUCHPOINTS];
 	private final int [] id = new int[MAX_TOUCHPOINTS];
 	private final Pool <TouchEvent> touchEventPool;
-	private final Vector <TouchEvent> touchEvents = new Vector<TouchEvent>();
-	private final Vector <TouchEvent> retainTouchEvents = new Vector<TouchEvent>();
-	private final Vector <TouchEvent> touchEventsBuffer = new Vector<TouchEvent>();
+	private final List<TouchEvent> touchEvents = Collections.synchronizedList(new ArrayList<>());
+	private final List<TouchEvent> retainTouchEvents = Collections.synchronizedList(new ArrayList<>());
+	private final List<TouchEvent> touchEventsBuffer = Collections.synchronizedList(new ArrayList<>());
 	private final float scaleX;
 	private final float scaleY;
 	private final int offsetX;
@@ -52,7 +51,7 @@ public class MultiTouchHandler implements TouchHandler {
 	private View currentView;
 	private long freeze = -1;
 	private long delay = -1;
-	
+
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 		@Override
 	    public boolean onScale(ScaleGestureDetector detector) {
@@ -60,7 +59,7 @@ public class MultiTouchHandler implements TouchHandler {
 
 	        // Don't let the object get too small or too large.
 	        zoomFactor = Math.max(1.0f, Math.min(zoomFactor, 8.0f));
-	        
+
 			TouchEvent touchEvent = touchEventPool.newObject();
 			touchEvent.type = TouchEvent.TOUCH_SCALE;
 			touchEvent.x2 = (int) ((detector.getFocusX() - offsetX) * scaleX);
@@ -71,7 +70,7 @@ public class MultiTouchHandler implements TouchHandler {
 	        return true;
 	    }
 	}
-	
+
 	private class SweepListener extends SimpleOnGestureListener {
 		@Override
 		public boolean onFling(MotionEvent start, MotionEvent finish, float xVelocity, float yVelocity) {
@@ -84,14 +83,14 @@ public class MultiTouchHandler implements TouchHandler {
 			touchEvent.y = (int) ((start.getRawY() - offsetY) * scaleY);
 			touchEvent.x2 = (int) (xVelocity / (100.0f / scaleX));
 			touchEvent.y2 = (int) (yVelocity / (100.0f / scaleY));
-			
+
 			touchEventsBuffer.add(touchEvent);
-			
+
 			return true;
 		}
 	}
 
-	public MultiTouchHandler(View view, float scaleX, float scaleY, int offsetX, int offsetY) {
+	MultiTouchHandler(View view, float scaleX, float scaleY, int offsetX, int offsetY) {
 		PoolObjectFactory <TouchEvent> factory = new PoolObjectFactory<TouchEvent>() {
 			private static final long serialVersionUID = 8367135535412320757L;
 
@@ -100,7 +99,7 @@ public class MultiTouchHandler implements TouchHandler {
 				return new TouchEvent();
 			}
 		};
-		touchEventPool = new Pool<TouchEvent>(factory, 100);
+		touchEventPool = new Pool<>(factory, 100);
 		view.setOnTouchListener(this);
 		this.scaleX = scaleX;
 		this.scaleY = scaleY;
@@ -108,20 +107,13 @@ public class MultiTouchHandler implements TouchHandler {
 		this.offsetY = offsetY;
 		scaleDetector = new ScaleGestureDetector(view.getContext(), new ScaleListener());
 		sweepDetector = new GestureDetector(view.getContext(), new SweepListener());
-		
+
 		currentView = view;
 	}
-	
-	void setView(View view) {
-		if (view != currentView) {
-			currentView = view;
-			view.setOnTouchListener(this);
-		}
-	}
-	
+
 	@Override
-	public boolean onTouch(View v, MotionEvent event) {		
-		if (freeze != -1 && (System.currentTimeMillis() - freeze) < delay) {
+	public boolean onTouch(View v, MotionEvent event) {
+		if (freeze != -1 && System.currentTimeMillis() - freeze < delay) {
 			return true;
 		}
 		freeze = -1;
@@ -135,7 +127,7 @@ public class MultiTouchHandler implements TouchHandler {
 			int pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
 			int pointerCount = event.getPointerCount();
 			TouchEvent touchEvent;
-			
+
 			for (int i = 0; i < MAX_TOUCHPOINTS; i++) {
 				if (i >= pointerCount) {
 					isTouched[i] = false;
@@ -158,7 +150,7 @@ public class MultiTouchHandler implements TouchHandler {
 						id[i] = pointerId;
 						touchEventsBuffer.add(touchEvent);
 						break;
-						
+
 					case MotionEvent.ACTION_UP:
 					case MotionEvent.ACTION_POINTER_UP:
 					case MotionEvent.ACTION_CANCEL:
@@ -171,7 +163,7 @@ public class MultiTouchHandler implements TouchHandler {
 						id[i] = -1;
 						touchEventsBuffer.add(touchEvent);
 						break;
-						
+
 					case MotionEvent.ACTION_MOVE:
 						touchEvent = touchEventPool.newObject();
 						touchEvent.type = TouchEvent.TOUCH_DRAGGED;
@@ -181,18 +173,18 @@ public class MultiTouchHandler implements TouchHandler {
 						isTouched[i] = true;
 						id[i] = pointerId;
 						touchEventsBuffer.add(touchEvent);
-						break;								
+						break;
 				}
 			}
 			return true;
-		}		
+		}
 	}
 
 	@Override
 	public boolean isTouchDown(int pointer) {
 		synchronized (this) {
 			int index = getIndex(pointer);
-			return index >= 0 && index < MAX_TOUCHPOINTS ? isTouched[index] : false;
+			return index >= 0 && index < MAX_TOUCHPOINTS && isTouched[index];
 		}
 	}
 
@@ -213,11 +205,10 @@ public class MultiTouchHandler implements TouchHandler {
 	}
 
 	@Override
-	public Vector<TouchEvent> getTouchEvents() {
+	public List<TouchEvent> getTouchEvents() {
 		synchronized (this) {
-			int len = touchEvents.size();
-			for (int i = 0; i < len; i++) {
-				touchEventPool.free(touchEvents.get(i));
+			for (TouchEvent touchEvent : touchEvents) {
+				touchEventPool.free(touchEvent);
 			}
 			touchEvents.clear();
 			touchEvents.addAll(touchEventsBuffer);
@@ -225,14 +216,14 @@ public class MultiTouchHandler implements TouchHandler {
 			return touchEvents;
 		}
 	}
-	
+
 	@Override
-	public Vector<TouchEvent> getAndRetainTouchEvents() {
+	public List<TouchEvent> getAndRetainTouchEvents() {
 		synchronized (this) {
 			retainTouchEvents.clear();
 			retainTouchEvents.addAll(touchEventsBuffer);
 			return retainTouchEvents;
-		}		
+		}
 	}
 
 	private int getIndex(int pointerId) {

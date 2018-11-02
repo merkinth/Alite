@@ -2,7 +2,7 @@ package de.phbouillon.android.framework;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -19,10 +19,10 @@ package de.phbouillon.android.framework;
  */
 
 import java.io.Serializable;
-import java.util.Vector;
+import java.util.List;
 
-public interface Input {	
-	public static class TouchEvent implements Serializable {
+public interface Input {
+	class TouchEvent implements Serializable {
 		private static final long serialVersionUID = 547212806154304758L;
 
 		public static final int TOUCH_DOWN    = 0;
@@ -30,7 +30,7 @@ public interface Input {
 		public static final int TOUCH_DRAGGED = 2;
 		public static final int TOUCH_SCALE   = 3;
 		public static final int TOUCH_SWEEP   = 4;
-		
+
 		public int type;
 		public int x;
 		public int y;
@@ -39,19 +39,19 @@ public interface Input {
 		public int pointer;
 		public float zoomFactor;
 	}
-	
-	public boolean isTouchDown(int pointer);
-	public int getTouchCount();
-	public int getTouchX(int pointer);
-	public int getTouchY(int pointer);
-	public void setZoomFactor(float zoom);
-	public float getAccelX();
-	public float getAccelY();
-	public float getAccelZ();
-	public Vector <TouchEvent> getTouchEvents();
-	public Vector <TouchEvent> getAndRetainTouchEvents();
-	public void dispose();
-	public boolean isDisposed();
-	public void switchAccelerometerHandler();
-	public boolean isAlternativeAccelerometer();
+
+	boolean isTouchDown(int pointer);
+	int getTouchCount();
+	int getTouchX(int pointer);
+	int getTouchY(int pointer);
+	void setZoomFactor(float zoom);
+	float getAccelX();
+	float getAccelY();
+	float getAccelZ();
+	List<TouchEvent> getTouchEvents();
+	List<TouchEvent> getAndRetainTouchEvents();
+	void dispose();
+	boolean isDisposed();
+	void switchAccelerometerHandler();
+	boolean isAlternativeAccelerometer();
 }

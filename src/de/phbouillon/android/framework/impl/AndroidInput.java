@@ -2,7 +2,7 @@ package de.phbouillon.android.framework.impl;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,9 +18,8 @@ package de.phbouillon.android.framework.impl;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.util.Vector;
+import java.util.List;
 
-import android.os.Build.VERSION;
 import android.view.View;
 import de.phbouillon.android.framework.Input;
 import de.phbouillon.android.games.alite.Settings;
@@ -31,19 +30,16 @@ public class AndroidInput implements Input {
 	private final TouchHandler touchHandler;
 	private final AndroidGame game;
 	private boolean disposed = false;
-	
-	public AndroidInput(AndroidGame game, View view, float scaleX, float scaleY, int offsetX, int offsetY) {
+
+	AndroidInput(AndroidGame game, View view, float scaleX, float scaleY, int offsetX, int offsetY) {
 		this.game = game;
 		AccelerometerHandler.needsCalibration = true;
-		accelHandler = Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER ? 
-							new AlternativeAccelHandler(game) : 
+		accelHandler = Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER ?
+							new AlternativeAccelHandler(game) :
 							new AccelerometerHandler(game);
-		int sdkVersion = VERSION.SDK_INT;		
-		touchHandler = sdkVersion < 5 ? 
-				new SingleTouchHandler(view, scaleX, scaleY, offsetX, offsetY) :
-				new MultiTouchHandler(view, scaleX, scaleY, offsetX, offsetY);			
+		touchHandler = new MultiTouchHandler(view, scaleX, scaleY, offsetX, offsetY);
 	}
-		
+
 	@Override
 	public void switchAccelerometerHandler() {
 		if (accelHandler != null) {
@@ -60,20 +56,12 @@ public class AndroidInput implements Input {
 			accelHandler = new AccelerometerHandler(game);
 		}
 	}
-	
+
 	@Override
 	public boolean isAlternativeAccelerometer() {
 		return accelHandler instanceof AlternativeAccelHandler;
 	}
-	
-	public void setView(View view) {
-		if (touchHandler instanceof SingleTouchHandler) {
-			((SingleTouchHandler) touchHandler).setView(view);
-		} else {
-			((MultiTouchHandler) touchHandler).setView(view);
-		}
-	}
-	
+
 	@Override
 	public boolean isTouchDown(int pointer) {
 		return touchHandler.isTouchDown(pointer);
@@ -105,25 +93,25 @@ public class AndroidInput implements Input {
 	}
 
 	@Override
-	public Vector<TouchEvent> getTouchEvents() {
+	public List<TouchEvent> getTouchEvents() {
 		return touchHandler.getTouchEvents();
 	}
 
 	@Override
-	public Vector<TouchEvent> getAndRetainTouchEvents() {
+	public List<TouchEvent> getAndRetainTouchEvents() {
 		return touchHandler.getAndRetainTouchEvents();
 	}
 
 	@Override
 	public int getTouchCount() {
 		return touchHandler.getTouchCount();
-	}	
-	
+	}
+
 	@Override
 	public void setZoomFactor(float factor) {
 		touchHandler.setZoomFactor(factor);
 	}
-		
+
 	@Override
 	public void dispose() {
 		if (accelHandler != null) {
@@ -132,7 +120,7 @@ public class AndroidInput implements Input {
 		}
 		disposed = true;
 	}
-	
+
 	@Override
 	public boolean isDisposed() {
 		return disposed;
