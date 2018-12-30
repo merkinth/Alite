@@ -19,7 +19,6 @@ package de.phbouillon.android.framework.impl;
  */
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import android.view.GestureDetector;
@@ -38,9 +37,8 @@ public class MultiTouchHandler implements TouchHandler {
 	private final int [] touchY = new int[MAX_TOUCHPOINTS];
 	private final int [] id = new int[MAX_TOUCHPOINTS];
 	private final Pool <TouchEvent> touchEventPool;
-	private final List<TouchEvent> touchEvents = Collections.synchronizedList(new ArrayList<>());
-	private final List<TouchEvent> retainTouchEvents = Collections.synchronizedList(new ArrayList<>());
-	private final List<TouchEvent> touchEventsBuffer = Collections.synchronizedList(new ArrayList<>());
+	private List<TouchEvent> touchEvents = new ArrayList<>();
+	private final List<TouchEvent> touchEventsBuffer = new ArrayList<>();
 	private final float scaleX;
 	private final float scaleY;
 	private final int offsetX;
@@ -206,24 +204,17 @@ public class MultiTouchHandler implements TouchHandler {
 
 	@Override
 	public List<TouchEvent> getTouchEvents() {
-		synchronized (this) {
-			for (TouchEvent touchEvent : touchEvents) {
-				touchEventPool.free(touchEvent);
-			}
-			touchEvents.clear();
-			touchEvents.addAll(touchEventsBuffer);
-			touchEventsBuffer.clear();
-			return touchEvents;
+		for (TouchEvent touchEvent : touchEvents) {
+			touchEventPool.free(touchEvent);
 		}
+		touchEvents = new ArrayList<>(touchEventsBuffer);
+		touchEventsBuffer.clear();
+		return touchEvents;
 	}
 
 	@Override
 	public List<TouchEvent> getAndRetainTouchEvents() {
-		synchronized (this) {
-			retainTouchEvents.clear();
-			retainTouchEvents.addAll(touchEventsBuffer);
-			return retainTouchEvents;
-		}
+		return new ArrayList<>(touchEventsBuffer);
 	}
 
 	private int getIndex(int pointerId) {
