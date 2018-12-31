@@ -178,16 +178,14 @@ public class TutTrading extends TutorialScreen {
 		final TutorialLine line = addLine(2, "Ok. Now tap it again.");
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			if (buy.getGoodToBuy() == null) {
-				for (TouchEvent event : game.getInput().getTouchEvents()) {
-					buy.processTouch(event);
-				}
-				if (buy.getGoodToBuy() == TradeGoodStore.get().food()) {
-					quantity = (QuantityPadScreen) buy.getNewScreen();
-					quantity.loadAssets();
-					quantity.activate();
-					line.setFinished();
-				}
+			for (TouchEvent event : game.getInput().getTouchEvents()) {
+				buy.processTouch(event);
+			}
+			if (buy.getGoodToBuy() == TradeGoodStore.get().food()) {
+				quantity = (QuantityPadScreen) buy.getNewScreen();
+				quantity.loadAssets();
+				quantity.activate();
+				line.setFinished();
 			}
 		}).setHeight(150);
 	}

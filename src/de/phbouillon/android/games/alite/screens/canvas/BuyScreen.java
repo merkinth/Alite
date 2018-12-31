@@ -56,6 +56,7 @@ public class BuyScreen extends TradeScreen {
 	private Pixmap[] tradegoods;
 	private Pixmap[] beam;
 	private String pendingSelection = null;
+	TradeGood goodToBuy;
 
 	public BuyScreen(Alite game) {
 		super(game, 0);
@@ -166,10 +167,7 @@ public class BuyScreen extends TradeScreen {
 	}
 
 	public TradeGood getGoodToBuy() {
-		if (newScreen instanceof QuantityPadScreen) {
-			return getSelectedGood();
-		}
-		return null;
+		return goodToBuy;
 	}
 
 	public String getBoughtAmount() {
@@ -219,72 +217,72 @@ public class BuyScreen extends TradeScreen {
 
     @Override
 	public void performTrade(int row, int column) {
-    	TradeGood tradeGood = TradeGoodStore.get().goods()[row * COLUMNS + column];
-    	Player player = game.getPlayer();
-    	Market market = player.getMarket();
-    	for (Mission mission: player.getActiveMissions()) {
-    		if (mission.performTrade(this, tradeGood)) {
-    			return;
-    		}
-    	}
-    	int avail = market.getQuantity(tradeGood);
-    	if (avail == 0) {
-    		setMessage("Sorry - that item is out of stock.");
-    		SoundManager.play(Assets.error);
-    		return;
-    	}
-    	String maxAmountString = avail + tradeGood.getUnit().toUnitString();
-    	if (boughtAmount == null) {
-    		if (column < 3) {
-    			newScreen = new QuantityPadScreen(this, game, maxAmountString, 1075, 200, row, column);
-    		} else {
-    			newScreen = new QuantityPadScreen(this, game, maxAmountString, 215, 200, row, column);
-    		}
-    	} else {
-    		long buyAmount;
-    		try {
-    			buyAmount = Long.parseLong(boughtAmount);
-    		} catch (NumberFormatException ignored) {
-    			boughtAmount = null;
-    			return;
-    		}
-    		boughtAmount = null;
-    		if (buyAmount > avail) {
-    			SoundManager.play(Assets.error);
-    			setMessage("Sorry - we don't have that much in stock.");
-    			return;
-    		}
-    		long totalPrice = buyAmount * market.getPrice(tradeGood);
-    		if (totalPrice > player.getCash()) {
-    			SoundManager.play(Assets.error);
-    			setMessage("Sorry - you don't have enough credits.");
-    			return;
-    		}
-    		Weight buyWeight = tradeGood.getUnit() == Unit.GRAM ? Weight.grams(buyAmount) :
-    			               tradeGood.getUnit() == Unit.KILOGRAM ? Weight.kilograms(buyAmount) :
-    			               Weight.tonnes(buyAmount);
-    		if (buyWeight.compareTo(player.getCobra().getFreeCargo()) > 0) {
-    			SoundManager.play(Assets.error);
-    			setMessage("Sorry - you don't have enough room in your hold.");
-    			return;
-    		}
-    		market.setQuantity(tradeGood, (int) (market.getQuantity(tradeGood) - buyAmount));
-    		player.getCobra().addTradeGood(tradeGood, buyWeight, totalPrice);
-    		player.setCash(player.getCash() - totalPrice);
-    		SoundManager.play(Assets.kaChing);
-    		cashLeft = String.format("Cash left: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
-    		selection = null;
-    		int chanceInPercent = game.getPlayer().getLegalProblemLikelihoodInPercent();
-    		if (Math.random() * 100 < chanceInPercent) {
-    			game.getPlayer().setLegalValue(
-    				game.getPlayer().getLegalValue() + (int) (tradeGood.getLegalityType() * buyAmount));
-    		}
-    		try {
-				game.autoSave();
-			} catch (IOException e) {
-				AliteLog.e("Auto saving failed", e.getMessage(), e);
+		TradeGood tradeGood = TradeGoodStore.get().goods()[row * COLUMNS + column];
+		Player player = game.getPlayer();
+		Market market = player.getMarket();
+		for (Mission mission: player.getActiveMissions()) {
+			if (mission.performTrade(this, tradeGood)) {
+				return;
 			}
-    	}
+		}
+		int avail = market.getQuantity(tradeGood);
+		if (avail == 0) {
+    		setMessage("Sorry - that item is out of stock.");
+			SoundManager.play(Assets.error);
+			return;
+		}
+		String maxAmountString = avail + tradeGood.getUnit().toUnitString();
+		if (boughtAmount == null) {
+			goodToBuy = TradeGoodStore.get().goods()[row * COLUMNS + column];
+			newScreen = new QuantityPadScreen(this, game,
+				maxAmountString, column < 3 ? 1075 : 215, 200, row, column);
+			return;
+		}
+
+		goodToBuy = null;
+		long buyAmount;
+		try {
+			buyAmount = Long.parseLong(boughtAmount);
+		} catch (NumberFormatException ignored) {
+			boughtAmount = null;
+			return;
+		}
+		boughtAmount = null;
+		if (buyAmount > avail) {
+			SoundManager.play(Assets.error);
+    			setMessage("Sorry - we don't have that much in stock.");
+			return;
+		}
+		long totalPrice = buyAmount * market.getPrice(tradeGood);
+		if (totalPrice > player.getCash()) {
+			SoundManager.play(Assets.error);
+    			setMessage("Sorry - you don't have enough credits.");
+			return;
+		}
+		Weight buyWeight = tradeGood.getUnit() == Unit.GRAM ? Weight.grams(buyAmount) :
+						   tradeGood.getUnit() == Unit.KILOGRAM ? Weight.kilograms(buyAmount) :
+						   Weight.tonnes(buyAmount);
+		if (buyWeight.compareTo(player.getCobra().getFreeCargo()) > 0) {
+			SoundManager.play(Assets.error);
+    			setMessage("Sorry - you don't have enough room in your hold.");
+			return;
+		}
+		market.setQuantity(tradeGood, (int) (market.getQuantity(tradeGood) - buyAmount));
+		player.getCobra().addTradeGood(tradeGood, buyWeight, totalPrice);
+		player.setCash(player.getCash() - totalPrice);
+		SoundManager.play(Assets.kaChing);
+		cashLeft = String.format("Cash left: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
+		selection = null;
+		int chanceInPercent = game.getPlayer().getLegalProblemLikelihoodInPercent();
+		if (Math.random() * 100 < chanceInPercent) {
+			game.getPlayer().setLegalValue(
+				game.getPlayer().getLegalValue() + (int) (tradeGood.getLegalityType() * buyAmount));
+		}
+		try {
+			game.autoSave();
+		} catch (IOException e) {
+			AliteLog.e("Auto saving failed", e.getMessage(), e);
+		}
 	}
 
 	private void readBeamAnimation(final Graphics g) {
