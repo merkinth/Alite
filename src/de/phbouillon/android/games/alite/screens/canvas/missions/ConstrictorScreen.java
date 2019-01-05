@@ -251,7 +251,6 @@ public class ConstrictorScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
 		if (acceptButton == null && declineButton == null) {
 			return;
 		}

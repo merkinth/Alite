@@ -23,6 +23,7 @@ import android.os.Build;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.games.alite.Alite;
+import de.phbouillon.android.games.alite.AliteConfig;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.AliteStartManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
@@ -48,39 +49,33 @@ public class QuitScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-	  mockStatusScreen.activate();
+		mockStatusScreen.activate();
 		setUpForDisplay(game.getGraphics().getVisibleArea());
-	}
-
-	@Override
-	public void update(float deltaTime) {
-		updateWithoutNavigation(deltaTime);
-		if (getMessage() == null) {
-			setModalQuestionMessage("Do you really want to quit Alite?");
-	  	}
+		showModalQuestionDialog("Do you really want to quit " + AliteConfig.GAME_NAME + "?");
 	}
 
 	@SuppressLint("NewApi")
 	@Override
 	public void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (messageResult != 0) {
-			if (messageResult == 1) {
-				try {
-					AliteLog.d("[ALITE]", "Performing autosave. [Quit]");
-					game.autoSave();
-				} catch (IOException e) {
-					AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
-				}
-			  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-			    game.finishAffinity();
-			  } else {
-				game.setResult(AliteStartManager.ALITE_RESULT_CLOSE_ALL);
-			    game.finish();
-			  }
-			} else {
-			  newScreen = callingScreen;
+		if (messageResult == RESULT_NONE) {
+			return;
+		}
+		if (messageResult == RESULT_YES) {
+			try {
+				AliteLog.d("[ALITE]", "Performing autosave. [Quit]");
+				game.autoSave();
+			} catch (IOException e) {
+				AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
 			}
+		  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+			game.finishAffinity();
+		  } else {
+			game.setResult(AliteStartManager.ALITE_RESULT_CLOSE_ALL);
+			game.finish();
+		  }
+		} else {
+		messageResult = RESULT_NONE;
+		  newScreen = callingScreen;
 		}
 	}
 

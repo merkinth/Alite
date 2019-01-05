@@ -21,14 +21,25 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.Context;
 import android.graphics.Rect;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.opengl.GLES11;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.view.*;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.*;
+import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
@@ -41,65 +52,72 @@ public abstract class AliteScreen extends Screen {
 	protected int lastX = -1;
 	protected int lastY = -1;
 
-	private String message = null;
-	private MessageType msgType = MessageType.OK;
-	private Button ok = null;
-	private Button yes = null;
-	private Button no = null;
+	private String popupTitle;
+	private String message;
+	private int maxLength;
+	private int dialogState;
+	private Button ok;
+	private Button yes;
+	private Button no;
 	protected Screen newScreen;
-	protected boolean disposed = false;
-	protected int messageResult = 0;
-	private TextData[] messageTextData;
-	private boolean messageIsModal = false;
-	private boolean largeMessage = false;
+	protected int messageResult;
+	protected String inputText;
 	protected transient Alite game;
+	private transient EditText editText;
 
-	public enum MessageType {
-		OK,
-		YES_NO
-	}
+	private static final int DIALOG_BUTTON_MASK = 7;
+	private static final int DIALOG_OK = 0;
+	private static final int DIALOG_YES_NO = 1;
+
+	private static final int DIALOG_TYPE_MASK = 56;
+	private static final int DIALOG_NORMAL = 0;
+	private static final int DIALOG_LARGE = 8;
+	private static final int DIALOG_INPUT_POPUP = 16;
+
+	private static final int DIALOG_MODAL = 128;
+	private static final int DIALOG_VISIBLE = 256;
+
+	protected static final int RESULT_NONE = 0;
+	protected static final int RESULT_YES = 1;
+	private static final int RESULT_NO = -1;
 
 	public AliteScreen(Alite game) {
 		this.game = game;
-		Alite.setDefiningScreen(this);
 		Rect visibleArea = game.getGraphics().getVisibleArea();
-
 		setUpForDisplay(visibleArea);
 	}
 
-	public void setMessage(String msg) {
-		setMessage(msg, MessageType.OK, Assets.titleFont);
+	public void showMessageDialog(String message) {
+		setMessageDialog(message, DIALOG_OK, null);
 	}
 
-	protected void setQuestionMessage(String msg) {
-		setMessage(msg, MessageType.YES_NO, Assets.titleFont);
+	protected void showQuestionDialog(String message) {
+		setMessageDialog(message, DIALOG_YES_NO | DIALOG_NORMAL, null);
 	}
 
-	private void setMessage(String msg, MessageType messageType, GLText font) {
-		msgType = messageType;
-		message = msg;
-		Graphics g = game.getGraphics();
-		messageTextData = computeTextDisplay(g, message, 530, 410, 660, 60,
-			ColorScheme.get(ColorScheme.COLOR_MESSAGE), font, false);
+	private void setMessageDialog(String message, int dialogState, String title) {
+		this.message = message;
+		this.dialogState = dialogState;
+		popupTitle = title;
 	}
 
-	void setModalQuestionMessage(String msg) {
-		setMessage(msg, MessageType.YES_NO, Assets.regularFont);
-		messageIsModal = true;
+	void showModalQuestionDialog(String message) {
+		setMessageDialog(message, DIALOG_YES_NO | DIALOG_NORMAL | DIALOG_MODAL, null);
 	}
 
-		void setLargeModalMessage(String msg) {
-		msgType = MessageType.YES_NO;
-		message = msg;
-		Graphics g = game.getGraphics();
-		largeMessage = true;
-		messageTextData = computeTextDisplay(g, message, 380, 310, 960, 60,
-			ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont, false);
-		messageIsModal = true;
+	void showLargeModalQuestionDialog(String message) {
+		setMessageDialog(message, DIALOG_YES_NO | DIALOG_LARGE | DIALOG_MODAL, null);
 	}
 
-	public String getMessage() {
-		return message;
+	boolean isMessageDialogActive() {
+		return message != null;
+	}
+
+	void popupTextInput(String title, String message, String inputText, int maxLength) {
+		setMessageDialog(message, DIALOG_YES_NO | DIALOG_INPUT_POPUP | DIALOG_MODAL, title);
+		this.inputText = inputText;
+		this.maxLength = maxLength;
+
 	}
 
 	protected void centerText(String text, int y, GLText f, int color) {
@@ -129,76 +147,153 @@ public abstract class AliteScreen extends Screen {
 	}
 
 	void displayWideTitle(String title) {
-		Graphics g = game.getGraphics();
-		g.verticalGradientRect(0, 0, 1919, 80, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT));
-		g.drawPixmap(Assets.aliteLogoSmall, 20, 5);
-		g.drawPixmap(Assets.aliteLogoSmall, 1800, 5);
-		centerTextWide(title, 60, Assets.titleFont, ColorScheme.get(ColorScheme.COLOR_MESSAGE));
+		displayTitle(title, AliteConfig.SCREEN_WIDTH);
 	}
 
-	private void renderMessage(AliteScreen screen) {
-		if (message != null) {
-			Graphics g = game.getGraphics();
-			if (largeMessage) {
-				g.verticalGradientRect(360, 240, 1000, 600, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
-				g.rec3d(360, 240, 1000, 600, 5, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
-			} else {
-				g.verticalGradientRect(510, 340, 700, 400, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
-				g.rec3d(510, 340, 700, 400, 5, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
+	private void addInputLayout(int x, int y, int width) {
+		game.runOnUiThread(() -> {
+			LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(width - 20 - x, 100);
+			layoutParams.setMargins(x, y, 0, 0);
+			editText = new EditText(game);
+			game.addContentView(editText,layoutParams);
+
+			editText.setTextColor(ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+			editText.setBackgroundColor(ColorScheme.get(ColorScheme.COLOR_TEXT_AREA_BACKGROUND));
+			editText.setTextSize(20);
+			editText.setTypeface(null, Typeface.BOLD);
+			editText.setSingleLine();
+			editText.setCursorVisible(true);
+			editText.setLongClickable(false);
+			editText.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
+			editText.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+			editText.setPadding(2, 2, 2, 2);
+			editText.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+				public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+					return false;
+				}
+				public void onDestroyActionMode(ActionMode mode) {
+				}
+				public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+					return false;
+				}
+				public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+					return false;
+				}
+			});
+
+			GradientDrawable gd = new GradientDrawable();
+			gd.setColor(ColorScheme.get(ColorScheme.COLOR_TEXT_AREA_BACKGROUND));
+			gd.setStroke(0, 0);
+			editText.setBackgroundDrawable(gd);
+			editText.setOnEditorActionListener((v, actionId, event) -> {
+				if (actionId == EditorInfo.IME_ACTION_DONE) {
+					dialogEventsProcessed(null, RESULT_YES);
+				}
+				return true;
+			});
+			editText.setText(inputText);
+			if (maxLength >= 0) {
+				editText.setFilters(new InputFilter[] {new InputFilter.LengthFilter(maxLength)});
 			}
-			displayText(g, messageTextData);
-			if (msgType == MessageType.OK) {
-				if (ok == null) {
-					Alite.setDefiningScreen(screen);
-					ok = largeMessage ? Button.createRegularButton(1210, 690, 150, 150, "OK") :
-						Button.createRegularButton(1060, 590, 150, 150, "OK");
-					ButtonRegistry.get().addMessageButton(ok);
-				}
-				ok.render(g);
-			} else if (msgType == MessageType.YES_NO) {
-				if (yes == null) {
-					Alite.setDefiningScreen(screen);
-					yes = largeMessage ? Button.createRegularButton(1010, 690, 150, 150, "Yes") :
-						Button.createRegularButton(860, 590, 150, 150, "Yes");
-					ButtonRegistry.get().addMessageButton(yes);
-				}
-				if (no == null) {
-					Alite.setDefiningScreen(screen);
-					no = largeMessage ? Button.createRegularButton(1210, 690, 150, 150, "No") :
-						Button.createRegularButton(1060, 590, 150, 150, "No");
-					ButtonRegistry.get().addMessageButton(no);
-				}
-				yes.render(g);
-				no.render(g);
-			}
+			editText.requestFocus();
+			((InputMethodManager) game.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(editText, 0);
+		});
+	}
+
+	private Rect getDialogRect() {
+		int width = (dialogState & DIALOG_TYPE_MASK) == DIALOG_NORMAL ? 750 :
+			(dialogState & DIALOG_TYPE_MASK) == DIALOG_LARGE ? 1000 : 1700;
+		int height = (dialogState & DIALOG_TYPE_MASK) == DIALOG_NORMAL ? 400 :
+			(dialogState & DIALOG_TYPE_MASK) == DIALOG_LARGE ? 600 : 220;
+		int x = AliteConfig.DESKTOP_WIDTH - width >> 1;
+		int y = (dialogState & DIALOG_TYPE_MASK) == DIALOG_INPUT_POPUP ? 100 : AliteConfig.SCREEN_HEIGHT - height >> 1;
+		return new Rect(x, y, x + width - 1, y + height - 1);
+	}
+
+	private void renderMessage() {
+		if (!isMessageDialogActive()) {
+			return;
 		}
+		Rect r = getDialogRect();
+		int width = r.right - r.left + 1;
+		int height = r.bottom - r.top + 1;
+		int buttonSize = 110;
+		int buttonGap = 20;
+		final int BORDER_GAP = 15;
+		Graphics g = game.getGraphics();
+		g.verticalGradientRect(r.left, r.top, width, height,
+			ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
+		g.rec3d(r.left, r.top, width, height,5,
+			AliteColor.lighten(ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), 0.1),
+			AliteColor.lighten(ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK), -0.1));
+
+		int messageY = r.top + 70;
+		if (popupTitle != null) {
+			centerText(popupTitle, r.top + 60, Assets.titleFont, ColorScheme.get(ColorScheme.COLOR_MESSAGE));
+			messageY += 100;
+		}
+
+		displayText(g, computeTextDisplay(game.getGraphics(), message, r.left + 20, messageY,
+			width - 40, 60, ColorScheme.get(ColorScheme.COLOR_MESSAGE),
+			(dialogState & DIALOG_TYPE_MASK) == DIALOG_INPUT_POPUP || (dialogState & DIALOG_MODAL) == 0 ?
+				Assets.titleFont : Assets.regularFont, false));
+		if ((dialogState & DIALOG_BUTTON_MASK) == DIALOG_OK) {
+			if (ok == null) {
+				ButtonRegistry.get().setNextAsMessageButton();
+				ok = Button.createGradientPictureButton(r.left + width - buttonSize - BORDER_GAP,
+					r.top + height - buttonSize - BORDER_GAP, buttonSize, buttonSize, Assets.yesIcon)
+					.setPixmapOffset(buttonSize - 100 >> 1, buttonSize - 100 >> 1)
+					.setCommand(RESULT_NONE);
+			}
+			ok.render(g);
+			dialogState|= DIALOG_VISIBLE;
+			return;
+		}
+
+		if (yes == null) {
+			ButtonRegistry.get().setNextAsMessageButton();
+			yes = Button.createGradientPictureButton(r.left + width - BORDER_GAP - 2 * buttonSize - buttonGap,
+				r.top + height - BORDER_GAP - buttonSize, buttonSize, buttonSize, Assets.yesIcon)
+				.setPixmapOffset(buttonSize - 100 >> 1, buttonSize - 100 >> 1)
+				.setCommand(RESULT_YES);
+		}
+		if (no == null) {
+			ButtonRegistry.get().setNextAsMessageButton();
+			no = Button.createGradientPictureButton(r.left + width - BORDER_GAP - buttonSize,
+				r.top + height - BORDER_GAP - buttonSize, buttonSize, buttonSize, Assets.noIcon)
+				.setPixmapOffset(buttonSize - 100 >> 1, buttonSize - 100 >> 1)
+				.setCommand(RESULT_NO);
+		}
+		yes.render(g);
+		no.render(g);
+
+		// Method addInputLayout shows soft input keyboard, hence, an immediate pressing of enter key triggers
+		// event dialogEventsProcessed which sets messages and buttons (ok, no, yes) tag variables to null
+		// during the presenting process. To avoid null pointer exception calling addInputLayout is placed
+		// to the end of this method.
+		if (popupTitle != null && (dialogState & DIALOG_VISIBLE) == 0) {
+			addInputLayout(r.left + 40 + g.getTextWidth(message, Assets.titleFont),
+				r.top + 100, width - 2 * buttonSize - buttonGap - BORDER_GAP);
+		}
+
+		dialogState|= DIALOG_VISIBLE;
 	}
 
 	@Override
 	public synchronized void update(float deltaTime) {
-		NavigationBar navBar = game.getNavigationBar();
+		update(deltaTime, (dialogState & DIALOG_MODAL) == 0);
+	}
+
+	private synchronized void update(float deltaTime, boolean withNavigation) {
 		newScreen = null;
 		for (TouchEvent event: game.getInput().getTouchEvents()) {
-			if (event.type == TouchEvent.TOUCH_DOWN && event.x >= 1920 - NavigationBar.SIZE) {
-				startX = event.x;
-				startY = lastY = event.y;
+			if (withNavigation) {
+				checkNavigationBar(event);
 			}
-			if (event.type == TouchEvent.TOUCH_DRAGGED && event.x >= 1920 - NavigationBar.SIZE) {
-				if (event.y < lastY) {
-					navBar.increasePosition(lastY - event.y);
-				} else {
-					navBar.decreasePosition(event.y - lastY);
-				}
-				lastY = event.y;
+			processMessageDialogTouch(event);
+			if (!isMessageDialogActive()) {
+				processTouch(event);
 			}
-			if (event.type == TouchEvent.TOUCH_UP) {
-				if (Math.abs(startX - event.x) < 20 &&
-					Math.abs(startY - event.y) < 20) {
-					newScreen = navBar.touched(game, event.x, event.y);
-				}
-			}
-			ButtonRegistry.get().processTouch(event);
-			processTouch(event);
 		}
 		if (newScreen != null) {
 			performScreenChange();
@@ -206,16 +301,30 @@ public abstract class AliteScreen extends Screen {
 		}
 	}
 
+	private void checkNavigationBar(TouchEvent event) {
+		NavigationBar navBar = game.getNavigationBar();
+		if (event.type == TouchEvent.TOUCH_DOWN && event.x >= AliteConfig.DESKTOP_WIDTH) {
+			startX = event.x;
+			startY = lastY = event.y;
+		}
+		if (event.type == TouchEvent.TOUCH_DRAGGED && event.x >= AliteConfig.DESKTOP_WIDTH) {
+			if (event.y < lastY) {
+				navBar.increasePosition(lastY - event.y);
+			} else {
+				navBar.decreasePosition(event.y - lastY);
+			}
+			lastY = event.y;
+		}
+		if (event.type == TouchEvent.TOUCH_UP) {
+			if (Math.abs(startX - event.x) < 20 &&
+				Math.abs(startY - event.y) < 20) {
+				newScreen = navBar.touched(game, event.x, event.y);
+			}
+		}
+	}
+
 	protected synchronized void updateWithoutNavigation(float deltaTime) {
-		newScreen = null;
-		for (TouchEvent event: game.getInput().getTouchEvents()) {
-			ButtonRegistry.get().processTouch(event);
-			processTouch(event);
-		}
-		if (newScreen != null) {
-			performScreenChange();
-			postScreenChange();
-		}
+		update(deltaTime, false);
 	}
 
 	boolean inFlightScreenChange() {
@@ -244,74 +353,63 @@ public abstract class AliteScreen extends Screen {
 		if (inFlightScreenChange()) {
 			return;
 		}
-		Screen oldScreen = game.getCurrentScreen();
-		if (!(newScreen instanceof TextInputScreen)) {
-			oldScreen.dispose();
-		}
+		game.getCurrentScreen().dispose();
 		game.setScreen(newScreen);
 		game.getNavigationBar().performScreenChange();
 		postScreenChange();
-		oldScreen = null;
+	}
+
+	public void processAllTouches() {
+		for (TouchEvent event : game.getInput().getTouchEvents()) {
+			processTouch(event);
+		}
 	}
 
 	protected void processTouch(TouchEvent touch) {
+		processMessageDialogTouch(touch);
+	}
+
+	private void processMessageDialogTouch(TouchEvent touch) {
+		int command = ButtonRegistry.get().processTouch(touch);
 		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-		if (message != null && !messageIsModal) {
-			if (touch.x < 510 || touch.y < 340 || touch.x > 1210 || touch.y > 740) {
-				SoundManager.play(Assets.click);
-				message = null;
-				yes = null;
-				no = null;
-				messageResult = -1;
-				touch.x = -1;
-				touch.y = -1;
-				game.getInput().getTouchEvents();
-				ButtonRegistry.get().clearMessageButtons();
+		if (isMessageDialogActive() && (dialogState & DIALOG_MODAL) == 0) {
+			if (!getDialogRect().contains(touch.x, touch.y)) {
+				dialogEventsProcessed(touch, RESULT_NO);
 			}
 		}
-		if (ok != null && ok.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			message = null;
-			ok = null;
-			touch.x = -1;
-			touch.y = -1;
-			game.getInput().getTouchEvents();
-			ButtonRegistry.get().clearMessageButtons();
-			messageIsModal = false;
-			largeMessage = false;
-			return;
-		}
 
-		if (yes != null && yes.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			message = null;
-			yes = null;
-			no = null;
-			messageResult = 1;
-			touch.x = -1;
-			touch.y = -1;
-			game.getInput().getTouchEvents();
-			ButtonRegistry.get().clearMessageButtons();
-			messageIsModal = false;
-			largeMessage = false;
-			return;
+		if (isMessageDialogActive() && command != Integer.MAX_VALUE) {
+			dialogEventsProcessed(touch, command);
 		}
+	}
 
-		if (no != null && no.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			message = null;
-			yes = null;
-			no = null;
-			messageResult = -1;
+	private void dialogEventsProcessed(TouchEvent touch, int result) {
+		message = null;
+		ok = null;
+		yes = null;
+		no = null;
+		SoundManager.play(Assets.click);
+		if (touch != null) {
 			touch.x = -1;
 			touch.y = -1;
 			game.getInput().getTouchEvents();
-			ButtonRegistry.get().clearMessageButtons();
-			messageIsModal = false;
-			largeMessage = false;
 		}
+		if (editText != null) {
+			game.runOnUiThread(() -> {
+				inputText = editText.getText().toString();
+				((InputMethodManager) game.getSystemService(Context.INPUT_METHOD_SERVICE)).
+					hideSoftInputFromWindow(editText.getWindowToken(), 0);
+				((ViewGroup) editText.getParent()).removeView(editText);
+				editText = null;
+				messageResult = result;
+			});
+		} else {
+			messageResult = result;
+		}
+		ButtonRegistry.get().clearMessageButtons();
+		dialogState = DIALOG_OK | DIALOG_NORMAL;
 	}
 
 	final TextData[] computeCenteredTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int color) {
@@ -370,6 +468,9 @@ public abstract class AliteScreen extends Screen {
 
 	@Override
 	public void pause() {
+		if (isMessageDialogActive()) {
+			dialogEventsProcessed(null, RESULT_NO);
+		}
 	}
 
 	@Override
@@ -403,7 +504,7 @@ public abstract class AliteScreen extends Screen {
 
 	@Override
 	public void postPresent(float deltaTime) {
-		renderMessage(this);
+		renderMessage();
 	}
 
 	@Override

@@ -62,9 +62,6 @@ public class TutorialSelectionScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 
@@ -80,34 +77,42 @@ public class TutorialSelectionScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
+		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (introduction.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new TutIntroduction(game);
-			} else if (trading.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new TutTrading(game);
-			} else if (equipment.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new TutEquipment(game);
-			} else if (navigation.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new TutNavigation(game);
-			} else if (hud.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new TutHud(game);
-			} else if (basicFlying.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new TutBasicFlying(game);
-			} else if (advancedFlying.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new TutAdvancedFlying(game, 0);
-			}
+		if (introduction.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new TutIntroduction(game);
+			return;
+		}
+		if (trading.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new TutTrading(game);
+			return;
+		}
+		if (equipment.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new TutEquipment(game);
+			return;
+		}
+		if (navigation.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new TutNavigation(game);
+			return;
+		}
+		if (hud.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new TutHud(game);
+			return;
+		}
+		if (basicFlying.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new TutBasicFlying(game);
+			return;
+		}
+		if (advancedFlying.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new TutAdvancedFlying(game, 0);
 		}
 	}
 

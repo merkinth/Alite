@@ -28,7 +28,6 @@ import android.opengl.GLES11;
 import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.PulsingHighlighter;
 import de.phbouillon.android.games.alite.*;
@@ -54,7 +53,6 @@ public abstract class TutorialScreen extends AliteScreen {
 
 	private boolean tutorialAborted = false;
 	private transient Button closeButton;
-	private transient Pixmap closeIcon;
 
 	private int currentX = -1;
 	private int currentY = -1;
@@ -76,7 +74,7 @@ public abstract class TutorialScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		closeButton = Button.createPictureButton(0, 980, 100, 100, closeIcon);
+		closeButton = Button.createPictureButton(0, 970, 110, 110, Assets.noIcon);
 	}
 
 	PulsingHighlighter makeHighlight(int x, int y, int width, int height) {
@@ -239,7 +237,7 @@ public abstract class TutorialScreen extends AliteScreen {
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (closeButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				setQuestionMessage("Are you sure you want to quit this tutorial?");
+				showQuestionDialog("Are you sure you want to quit this tutorial?");
 			}
 		}
 	}
@@ -247,7 +245,7 @@ public abstract class TutorialScreen extends AliteScreen {
 	@Override
 	public void processTouch(TouchEvent event) {
 		super.processTouch(event);
-		if (messageResult == 1) {
+		if (messageResult == RESULT_YES) {
 			if (currentLine != null) {
 				mediaPlayer.reset();
 			}
@@ -256,6 +254,7 @@ public abstract class TutorialScreen extends AliteScreen {
 			postScreenChange();
 			tutorialAborted = true;
 		}
+		messageResult = RESULT_NONE;
 	}
 
 	@Override
@@ -319,19 +318,9 @@ public abstract class TutorialScreen extends AliteScreen {
 	}
 
 	@Override
-	public void loadAssets() {
-		closeIcon = game.getGraphics().newPixmap("no_icon_small.png"); //close_icon.png", true);
-		super.loadAssets();
-	}
-
-	@Override
 	public void dispose() {
 		super.dispose();
 		alite.getPlayer().setCondition(Condition.DOCKED);
-		if (closeIcon != null) {
-			closeIcon.dispose();
-			closeIcon = null;
-		}
 		alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK);
 	}
 

@@ -142,39 +142,35 @@ public class QuantityPadScreen extends AliteScreen {
 
 	@Override
 	public void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
+		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			int width = (BUTTON_SIZE + GAP) * 3 + 2 * OFFSET_X;
-			int height =  (BUTTON_SIZE + GAP) * 4 + 2 * OFFSET_Y;
-			if (touch.x < xPos || touch.y < yPos || touch.x > xPos + width || touch.y > yPos + height) {
-				marketScreen.setBoughtAmountString("0");
-				newScreen = marketScreen;
-				Alite.setDefiningScreen(marketScreen);
-			}
-			for (Button b: pads) {
-				if (b.isTouched(touch.x, touch.y)) {
-					SoundManager.play(Assets.click);
-					String t = b.getText();
-					if ("0".equals(t)) {
-						if (!currentAmountString.isEmpty()) {
-							currentAmountString += "0";
-						}
-					} else if ("<-".equals(t)) {
-						if (!currentAmountString.isEmpty()) {
-							currentAmountString = currentAmountString.substring(0, currentAmountString.length() - 1);
-						}
-					} else if ("OK".equals(t)) {
-						marketScreen.setBoughtAmountString(currentAmountString);
-						newScreen = marketScreen;
-					} else {
-						currentAmountString += t;
-					}
-				}
- 			}
+		int width = (BUTTON_SIZE + GAP) * 3 + 2 * OFFSET_X;
+		int height =  (BUTTON_SIZE + GAP) * 4 + 2 * OFFSET_Y;
+		if (touch.x < xPos || touch.y < yPos || touch.x > xPos + width || touch.y > yPos + height) {
+			marketScreen.setBoughtAmountString("0");
+			newScreen = marketScreen;
 		}
+		for (Button b: pads) {
+			if (b.isTouched(touch.x, touch.y)) {
+				SoundManager.play(Assets.click);
+				String t = b.getText();
+				if ("0".equals(t)) {
+					if (!currentAmountString.isEmpty()) {
+						currentAmountString += "0";
+					}
+				} else if ("<-".equals(t)) {
+					if (!currentAmountString.isEmpty()) {
+						currentAmountString = currentAmountString.substring(0, currentAmountString.length() - 1);
+					}
+				} else if ("OK".equals(t)) {
+					marketScreen.setBoughtAmountString(currentAmountString);
+					newScreen = marketScreen;
+				} else {
+					currentAmountString += t;
+				}
+			}
+		 }
 	}
 
 	public void clearAmount() {

@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.opengl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
@@ -217,7 +216,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 			case ZOOM_OUT: zoomOut(deltaTime); break;
 			case CONTROL: break;
 		}
-		Vector<TouchEvent> touchEvents = game.getInput().getTouchEvents();
+		List<TouchEvent> touchEvents = game.getInput().getTouchEvents();
 		for (TouchEvent event: touchEvents) {
 			if (event.type == TouchEvent.TOUCH_SWEEP) {
 				float[] temp = allObjects.get(0).getMatrix();

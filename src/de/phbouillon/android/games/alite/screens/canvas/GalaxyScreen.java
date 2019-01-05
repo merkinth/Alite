@@ -137,54 +137,32 @@ public class GalaxyScreen extends AliteScreen {
 		return t == null || t.length() < 1 ? "" : t.length() < 2 ? t : Character.toUpperCase(t.charAt(0)) + t.substring(1).toLowerCase(Locale.getDefault());
 	}
 
-	private void findSystem() {
-		TextInputScreen textInput = new TextInputScreen(game, "Find Planet", "Enter planet name", "", this,
-			new TextCallback() {
-				@Override
-				public void onOk(String text) {
-					if (text.trim().isEmpty()) {
-						return;
-					}
-					boolean found = false;
-					for (MappedSystemData system: systemData) {
-						if (system.system.getName().equalsIgnoreCase(text)) {
-							game.getPlayer().setHyperspaceSystem(system.system);
-							targetX = computeCenterX(system.system.getX());
-							targetY = computeCenterY(system.system.getY());
-							found = true;
-							break;
-						}
-					}
-					if (!found) {
-						int galaxy = game.getGenerator().findGalaxyOfPlanet(text);
-						if (galaxy == -1) {
-							setMessage("Planet " + capitalize(text) + " is unknown.");
-							SoundManager.play(Assets.error);
-						} else {
-							setMessage("Planet " + capitalize(text) + " is in Galaxy " + galaxy +
-									". You are currently in Galaxy " + game.getGenerator().getCurrentGalaxy() + ".");
-							SoundManager.play(Assets.alert);
-						}
-					}
-				}
+	private void findSystem(String text) {
+		if (text.trim().isEmpty()) {
+			return;
+		}
+		for (MappedSystemData system: systemData) {
+			if (system.system.getName().equalsIgnoreCase(text)) {
+				game.getPlayer().setHyperspaceSystem(system.system);
+				targetX = computeCenterX(system.system.getX());
+				targetY = computeCenterY(system.system.getY());
+				return;
+			}
+		}
+		int galaxy = game.getGenerator().findGalaxyOfPlanet(text);
+		if (galaxy == -1) {
+			showMessageDialog("Planet " + capitalize(text) + " is unknown.");
+			SoundManager.play(Assets.error);
+		} else {
+			showMessageDialog("Planet " + capitalize(text) + " is in Galaxy " + galaxy +
+				". You are currently in Galaxy " + game.getGenerator().getCurrentGalaxy() + ".");
+			SoundManager.play(Assets.alert);
+		}
 
-				@Override
-				public void onCancel() {
-				}
-			});
-		textInput.setMaxLength(8);
-		textInput.setAllowSpace(false);
-		newScreen = textInput;
 	}
 
 	@Override
 	public void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-
-		if (getMessage() != null) {
-			return;
-		}
-
 		if (touch.type == TouchEvent.TOUCH_SCALE) {
 			if (scalingReferenceSystem == null) {
 				scalingReferenceSystem = findClosestSystem(touch.x2, touch.y2);
@@ -252,7 +230,7 @@ public class GalaxyScreen extends AliteScreen {
 				}
 				if (findButton.isTouched(touch.x, touch.y)) {
 					SoundManager.play(Assets.click);
-					findSystem();
+					popupTextInput("Find Planet", "Enter planet name:", "", 8);
 					return;
 				}
 				MappedSystemData closestSystem = findClosestSystem(touch.x, touch.y);
@@ -365,6 +343,10 @@ public class GalaxyScreen extends AliteScreen {
 	@Override
 	public void update(float deltaTime) {
 		super.update(deltaTime);
+		if (messageResult == RESULT_YES) {
+			findSystem(inputText);
+		}
+		messageResult = RESULT_NONE;
 		updateMap();
 	}
 

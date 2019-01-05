@@ -91,9 +91,7 @@ public class TutNavigation extends TutorialScreen {
 				"you can see the names of the systems appear.").setY(150);
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			for (TouchEvent event: game.getInput().getTouchEvents()) {
-				galaxy.processTouch(event);
-			}
+			galaxy.processAllTouches();
 			if (galaxy.namesVisible()) {
 				line.setFinished();
 			}
@@ -232,9 +230,7 @@ public class TutNavigation extends TutorialScreen {
 				"on the screen and move them together. Do it now.").setY(150);
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			for (TouchEvent event: game.getInput().getTouchEvents()) {
-				local.processTouch(event);
-			}
+			local.processAllTouches();
 			if (local.getZoomFactor() < 2.0f) {
 				line.setFinished();
 			}

@@ -155,16 +155,94 @@ public class LibraryScreen extends AliteScreen {
 		}
 	}
 
+	@Override
+	public synchronized void update(float deltaTime) {
+		super.update(deltaTime);
+		if (messageResult == RESULT_YES) {
+			find(inputText);
+		}
+		messageResult = RESULT_NONE;
+	}
+
+	@Override
+	protected void processTouch(TouchEvent touch) {
+		if (touch.type == TouchEvent.TOUCH_DOWN && touch.pointer == 0) {
+			startX = touch.x;
+			startY = lastY = touch.y;
+			deltaY = 0;
+		}
+		if (touch.type == TouchEvent.TOUCH_DRAGGED && touch.pointer == 0) {
+			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
+				return;
+			}
+			yPosition += lastY - touch.y;
+			if (yPosition < 0) {
+				yPosition = 0;
+			}
+			if (yPosition > maxY) {
+				yPosition = maxY;
+			}
+			lastY = touch.y;
+		}
+		if (touch.type == TouchEvent.TOUCH_UP && touch.pointer == 0) {
+			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
+				return;
+			}
+			if (Math.abs(startX - touch.x) < 20 &&
+				Math.abs(startY - touch.y) < 20) {
+				if (searchButton.isTouched(touch.x, touch.y)) {
+					SoundManager.play(Assets.click);
+					popupTextInput("Search Library", "Enter search text:", currentFilter, -1);
+				} else if (touch.y > 79) {
+					int index = 0;
+					for (Button b: button) {
+						if (b.isTouched(touch.x, touch.y)) {
+							newScreen = new LibraryPageScreen(game, currentFilter == null ?
+								entries.get(index).entry : filteredEntries.get(index).entry, currentFilter);
+							SoundManager.play(Assets.click);
+						}
+						index++;
+					}
+				}
+			}
+		}
+		if (touch.type == TouchEvent.TOUCH_SWEEP && touch.x < AliteConfig.DESKTOP_WIDTH) {
+			deltaY = touch.y2;
+		}
+	}
+
+	private void find(String text) {
+		boolean messageSet = checkCheat(text);
+		filteredEntries.clear();
+		yPosition = 0;
+		deltaY = 0;
+		button.clear();
+		if (!text.trim().isEmpty()) {
+			currentFilter = text;
+			filter();
+		} else {
+			currentFilter = null;
+		}
+		if (filteredEntries.isEmpty()) {
+			if (!messageSet && currentFilter != null) {
+				showMessageDialog("No results found.");
+			}
+			currentFilter = null;
+			buildTocButtons(entries.toArray(new TocEntryData[0]));
+		}
+		setMaxY();
+	}
+
 	private boolean checkCheat(String text) {
 		String hash = StringUtil.computeSHAString(text);
 		if ("3a6d64c24cf8b69ccda376546467e8266667b50cfd0b984beb3651b129ed7".equals(hash) ||
 			"53b1fb446230b347c3f6406cca4b1ddbac60905ba4ab1977179f44b8fb134447".equals(hash)) { // Sara
-			setMessage("Sorry, " + text + " does not work here, anymore.");
+			showMessageDialog("Sorry, " + text + " does not work here, anymore.");
 			return true;
 		}
 		if ("d2a66247a6fad77347b676dedf6755cedbfbf8aef67cae4dc18ba53346577b5".equals(hash) ||
-				   "d3d291ec78221333acf4d79084efe49cebb42fc01ce9c681315745c50e1".equals(hash)) { // Suzanne
-			setMessage("No, " + text + " does not work here, either. Sorry.");
+			"d3d291ec78221333acf4d79084efe49cebb42fc01ce9c681315745c50e1".equals(hash)) { // Suzanne
+			showMessageDialog("No, " + text + " does not work here, either. Sorry.");
 			return true;
 		}
 		if ("5be5a31d90d073e11bd2362aa2336b7e902ea46dada1ec282ae6f4759a4d31ee".equals(hash)) { // Klaudia
@@ -203,90 +281,9 @@ public class LibraryScreen extends AliteScreen {
 	}
 
 	private boolean cheater(String message) {
-		setMessage(message);
+		showMessageDialog(message);
 		game.getPlayer().setCheater(true);
 		return true;
-	}
-
-	private void performSearch() {
-		newScreen = new TextInputScreen(game, "Search Library", "Enter search text", "", this, new TextCallback() {
-			@Override
-			public void onOk(String text) {
-				currentFilter = text;
-				boolean messageSet = checkCheat(text);
-				filteredEntries.clear();
-				yPosition = 0;
-				deltaY = 0;
-				button.clear();
-				if (!text.trim().isEmpty()) {
-					filter();
-				} else {
-					currentFilter = null;
-				}
-				if (filteredEntries.isEmpty()) {
-					if (!messageSet) {
-						setMessage("No results found.");
-					}
-					currentFilter = null;
-					Alite.setDefiningScreen(LibraryScreen.this);
-					buildTocButtons(entries.toArray(new TocEntryData[0]));
-				}
-			}
-
-			@Override
-			public void onCancel() {
-			}
-		});
-	}
-
-	@Override
-	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
-			return;
-		}
-		if (touch.type == TouchEvent.TOUCH_DOWN && touch.pointer == 0) {
-			startX = touch.x;
-			startY = lastY = touch.y;
-			deltaY = 0;
-		}
-		if (touch.type == TouchEvent.TOUCH_DRAGGED && touch.pointer == 0) {
-			if (touch.x > 1920 - NavigationBar.SIZE) {
-				return;
-			}
-			yPosition += lastY - touch.y;
-			if (yPosition < 0) {
-				yPosition = 0;
-			}
-			if (yPosition > maxY) {
-				yPosition = maxY;
-			}
-			lastY = touch.y;
-		}
-		if (touch.type == TouchEvent.TOUCH_UP && touch.pointer == 0) {
-			if (touch.x > 1920 - NavigationBar.SIZE) {
-				return;
-			}
-			if (Math.abs(startX - touch.x) < 20 &&
-				Math.abs(startY - touch.y) < 20) {
-				if (searchButton.isTouched(touch.x, touch.y)) {
-					SoundManager.play(Assets.click);
-					performSearch();
-				} else if (touch.y > 79) {
-					int index = 0;
-					for (Button b: button) {
-						if (b.isTouched(touch.x, touch.y)) {
-							newScreen = new LibraryPageScreen(game, currentFilter == null ? entries.get(index).entry : filteredEntries.get(index).entry, currentFilter);
-							SoundManager.play(Assets.click);
-						}
-						index++;
-					}
-				}
-			}
-		}
-		if (touch.type == TouchEvent.TOUCH_SWEEP && touch.x < 1920 - NavigationBar.SIZE) {
-			deltaY = touch.y2;
-		}
 	}
 
 	private void buildTocButtons(TocEntry[] entries, int level) {

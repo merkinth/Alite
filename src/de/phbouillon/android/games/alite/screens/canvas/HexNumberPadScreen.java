@@ -130,10 +130,6 @@ public class HexNumberPadScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
-			return;
-		}
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			int width = (BUTTON_SIZE + GAP) * 5 + 2 * OFFSET_X;
 			int height =  (BUTTON_SIZE + GAP) * 4 + 2 * OFFSET_Y;

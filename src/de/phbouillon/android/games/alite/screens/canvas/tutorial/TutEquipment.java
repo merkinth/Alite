@@ -114,9 +114,7 @@ public class TutEquipment extends TutorialScreen {
                 "some fuel.").setY(700).addHighlight(makeHighlight(150, 100, 225, 225));
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			for (TouchEvent event : game.getInput().getTouchEvents()) {
-				equip.processTouch(event);
-			}
+			equip.processAllTouches();
 			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.fuel) {
 				line.setFinished();
 			} else if (equip.getEquippedEquipment() == EquipmentStore.fuel) {
@@ -133,9 +131,7 @@ public class TutEquipment extends TutorialScreen {
 					addHighlight(makeHighlight(150, 100, 225, 225));
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			for (TouchEvent event : game.getInput().getTouchEvents()) {
-				equip.processTouch(event);
-			}
+			equip.processAllTouches();
 			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.fuel) {
 				line.setFinished();
 				currentLineIndex--;

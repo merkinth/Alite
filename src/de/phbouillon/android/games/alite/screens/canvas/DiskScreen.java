@@ -81,10 +81,6 @@ public class DiskScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
-			return;
-		}
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (button[0].isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);

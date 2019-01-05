@@ -638,10 +638,6 @@ public class HackerScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
-			return;
-		}
 		if (touch.type == TouchEvent.TOUCH_DOWN && touch.pointer == 0) {
 			startX = touch.x;
 			startY = lastY = touch.y;

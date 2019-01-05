@@ -109,108 +109,132 @@ public class DebugSettingsScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
+		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (logToFile.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.logToFile = !Settings.logToFile;
-				logToFile.setText("Log to file: " + (Settings.logToFile ? "Yes" : "No"));
-				Settings.save(game.getFileIO());
-			} else if (memDebug.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.memDebug = !Settings.memDebug;
-				memDebug.setText("Debug Memory: " + (Settings.memDebug ? "Yes" : "No"));
-				Settings.save(game.getFileIO());
-			} else if (showFrameRate.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.displayFrameRate = !Settings.displayFrameRate;
-				showFrameRate.setText("Display frame rate: " + (Settings.displayFrameRate ? "Yes" : "No"));
-				Settings.save(game.getFileIO());
-			} else if (invulnerable.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.invulnerable = !Settings.invulnerable;
-				invulnerable.setText("Invulnerable: " + (Settings.invulnerable ? "Yes" : "No"));
-				Settings.save(game.getFileIO());
-			} else if (showDockingDebug.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.displayDockingInformation = !Settings.displayDockingInformation;
-				showDockingDebug.setText("Docking Information: " + (Settings.displayDockingInformation ? "Yes" : "No"));
-				Settings.save(game.getFileIO());
-			} else if (laserDoesNotOverheat.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.laserDoesNotOverheat = !Settings.laserDoesNotOverheat;
-				laserDoesNotOverheat.setText("Laser Overheats: " + (Settings.laserDoesNotOverheat ? "No" : "Yes"));
-				Settings.save(game.getFileIO());
-			} else if (adjustCredits.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				game.getPlayer().setCash(game.getPlayer().getCash() + 10000);
-				adjustCredits.setText("Adjust Credits (" + formatCash() + ")");
-			} else if (adjustLegalStatus.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Player player = game.getPlayer();
-				if (player.getLegalValue() != 0) {
-					player.setLegalValue(player.getLegalValue() >> 1);
-				} else {
-					player.setLegalValue(255);
-				}
-				adjustLegalStatus.setText("Adjust Legal (" + player.getLegalStatus() + ", " + player.getLegalValue() + ")");
-			} else if (adjustScore.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Player player = game.getPlayer();
-				int score = player.getScore();
-				if (score < Rating.HARMLESS.getScoreThreshold() - 1) {
-					score = Rating.HARMLESS.getScoreThreshold() - 1;
-				} else if (score < Rating.MOSTLY_HARMLESS.getScoreThreshold() - 1) {
-					score = Rating.MOSTLY_HARMLESS.getScoreThreshold() - 1;
-				} else if (score < Rating.POOR.getScoreThreshold() - 1) {
-					score = Rating.POOR.getScoreThreshold() - 1;
-				} else if (score < Rating.AVERAGE.getScoreThreshold() - 1) {
-					score = Rating.AVERAGE.getScoreThreshold() - 1;
-				} else if (score < Rating.ABOVE_AVERAGE.getScoreThreshold() - 1) {
-					score = Rating.ABOVE_AVERAGE.getScoreThreshold() - 1;
-				} else if (score < Rating.COMPETENT.getScoreThreshold() - 1) {
-					score = Rating.COMPETENT.getScoreThreshold() - 1;
-				} else if (score < Rating.DANGEROUS.getScoreThreshold() - 1) {
-					score = Rating.DANGEROUS.getScoreThreshold() - 1;
-				} else if (score < Rating.DEADLY.getScoreThreshold() - 1) {
-					score = Rating.DEADLY.getScoreThreshold() - 1;
-				}
-				player.setScore(score);
-				while (score >= game.getPlayer().getRating().getScoreThreshold() && game.getPlayer().getRating().getScoreThreshold() > 0) {
-					game.getPlayer().setRating(Rating.values()[game.getPlayer().getRating().ordinal() + 1]);
-				}
-				adjustScore.setText("Adjust Score (" + game.getPlayer().getScore() + ")");
-			} else if (addDockingComputer.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				game.getCobra().addEquipment(EquipmentStore.dockingComputer);
-			} else if (unlimitedFuel.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.unlimitedFuel = !Settings.unlimitedFuel;
-				unlimitedFuel.setText("Unlimited Fuel: " + (Settings.unlimitedFuel ? "Yes" : "No"));
-				Settings.save(game.getFileIO());
-			} else if (arriveInSafeZone.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.enterInSafeZone = !Settings.enterInSafeZone;
-				arriveInSafeZone.setText("Arrive in Safe Zone: " + (Settings.enterInSafeZone ? "Yes" : "No"));
-				Settings.save(game.getFileIO());
-			} else if (disableAttackers.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.disableAttackers = !Settings.disableAttackers;
-				disableAttackers.setText("Disable Attackers: " + (Settings.disableAttackers ? "Yes" : "No"));
-				Settings.save(game.getFileIO());
-			} else if (disableTraders.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.disableTraders = !Settings.disableTraders;
-				disableTraders.setText("Disable Traders: " + (Settings.disableTraders ? "Yes" : "No"));
-				Settings.save(game.getFileIO());
-			} else if (more.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new MoreDebugSettingsScreen(game);
+		if (logToFile.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.logToFile = !Settings.logToFile;
+			logToFile.setText("Log to file: " + (Settings.logToFile ? "Yes" : "No"));
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (memDebug.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.memDebug = !Settings.memDebug;
+			memDebug.setText("Debug Memory: " + (Settings.memDebug ? "Yes" : "No"));
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (showFrameRate.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.displayFrameRate = !Settings.displayFrameRate;
+			showFrameRate.setText("Display frame rate: " + (Settings.displayFrameRate ? "Yes" : "No"));
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (invulnerable.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.invulnerable = !Settings.invulnerable;
+			invulnerable.setText("Invulnerable: " + (Settings.invulnerable ? "Yes" : "No"));
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (showDockingDebug.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.displayDockingInformation = !Settings.displayDockingInformation;
+			showDockingDebug.setText("Docking Information: " + (Settings.displayDockingInformation ? "Yes" : "No"));
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (laserDoesNotOverheat.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.laserDoesNotOverheat = !Settings.laserDoesNotOverheat;
+			laserDoesNotOverheat.setText("Laser Overheats: " + (Settings.laserDoesNotOverheat ? "No" : "Yes"));
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (adjustCredits.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			game.getPlayer().setCash(game.getPlayer().getCash() + 10000);
+			adjustCredits.setText("Adjust Credits (" + formatCash() + ")");
+			return;
+		}
+		if (adjustLegalStatus.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Player player = game.getPlayer();
+			if (player.getLegalValue() != 0) {
+				player.setLegalValue(player.getLegalValue() >> 1);
+			} else {
+				player.setLegalValue(255);
 			}
+			adjustLegalStatus.setText("Adjust Legal (" + player.getLegalStatus() + ", " + player.getLegalValue() + ")");
+			return;
+		}
+		if (adjustScore.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Player player = game.getPlayer();
+			int score = player.getScore();
+			if (score < Rating.HARMLESS.getScoreThreshold() - 1) {
+				score = Rating.HARMLESS.getScoreThreshold() - 1;
+			} else if (score < Rating.MOSTLY_HARMLESS.getScoreThreshold() - 1) {
+				score = Rating.MOSTLY_HARMLESS.getScoreThreshold() - 1;
+			} else if (score < Rating.POOR.getScoreThreshold() - 1) {
+				score = Rating.POOR.getScoreThreshold() - 1;
+			} else if (score < Rating.AVERAGE.getScoreThreshold() - 1) {
+				score = Rating.AVERAGE.getScoreThreshold() - 1;
+			} else if (score < Rating.ABOVE_AVERAGE.getScoreThreshold() - 1) {
+				score = Rating.ABOVE_AVERAGE.getScoreThreshold() - 1;
+			} else if (score < Rating.COMPETENT.getScoreThreshold() - 1) {
+				score = Rating.COMPETENT.getScoreThreshold() - 1;
+			} else if (score < Rating.DANGEROUS.getScoreThreshold() - 1) {
+				score = Rating.DANGEROUS.getScoreThreshold() - 1;
+			} else if (score < Rating.DEADLY.getScoreThreshold() - 1) {
+				score = Rating.DEADLY.getScoreThreshold() - 1;
+			}
+			player.setScore(score);
+			while (score >= game.getPlayer().getRating().getScoreThreshold() && game.getPlayer().getRating().getScoreThreshold() > 0) {
+				game.getPlayer().setRating(Rating.values()[game.getPlayer().getRating().ordinal() + 1]);
+			}
+			adjustScore.setText("Adjust Score (" + game.getPlayer().getScore() + ")");
+			return;
+		}
+		if (addDockingComputer.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			game.getCobra().addEquipment(EquipmentStore.dockingComputer);
+			return;
+		}
+		if (unlimitedFuel.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.unlimitedFuel = !Settings.unlimitedFuel;
+			unlimitedFuel.setText("Unlimited Fuel: " + (Settings.unlimitedFuel ? "Yes" : "No"));
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (arriveInSafeZone.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.enterInSafeZone = !Settings.enterInSafeZone;
+			arriveInSafeZone.setText("Arrive in Safe Zone: " + (Settings.enterInSafeZone ? "Yes" : "No"));
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (disableAttackers.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.disableAttackers = !Settings.disableAttackers;
+			disableAttackers.setText("Disable Attackers: " + (Settings.disableAttackers ? "Yes" : "No"));
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (disableTraders.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.disableTraders = !Settings.disableTraders;
+			disableTraders.setText("Disable Traders: " + (Settings.disableTraders ? "Yes" : "No"));
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (more.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new MoreDebugSettingsScreen(game);
 		}
 	}
 

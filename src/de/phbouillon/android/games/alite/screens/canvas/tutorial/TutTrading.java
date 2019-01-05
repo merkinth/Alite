@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.ScreenCodes;
@@ -112,9 +111,7 @@ public class TutTrading extends TutorialScreen {
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
 			if (buy.getSelectedGood() == null) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					buy.processTouch(event);
-				}
+				buy.processAllTouches();
 			}
 			if (buy.getSelectedGood() != null) {
 				line.setFinished();
@@ -136,9 +133,7 @@ public class TutTrading extends TutorialScreen {
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
 			if (buy.getSelectedGood() == null) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					buy.processTouch(event);
-				}
+				buy.processAllTouches();
 			}
 			TradeGood selectedGood = buy.getSelectedGood();
 			if (selectedGood != null) {
@@ -159,9 +154,7 @@ public class TutTrading extends TutorialScreen {
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
 			if (buy.getSelectedGood() == null) {
-				for (TouchEvent event: game.getInput().getTouchEvents()) {
-					buy.processTouch(event);
-				}
+				buy.processAllTouches();
 			}
 			TradeGood selectedGood = buy.getSelectedGood();
 			if (selectedGood != null) {
@@ -178,9 +171,7 @@ public class TutTrading extends TutorialScreen {
 		final TutorialLine line = addLine(2, "Ok. Now tap it again.");
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			for (TouchEvent event : game.getInput().getTouchEvents()) {
-				buy.processTouch(event);
-			}
+			buy.processAllTouches();
 			if (buy.getGoodToBuy() == TradeGoodStore.get().food()) {
 				quantity = (QuantityPadScreen) buy.getNewScreen();
 				quantity.loadAssets();
@@ -198,9 +189,7 @@ public class TutTrading extends TutorialScreen {
 				"really be added to your cargo bay, enter a 1 followed by OK.");
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			for (TouchEvent event : game.getInput().getTouchEvents()) {
-				quantity.processTouch(event);
-			}
+			quantity.processAllTouches();
 			if (quantity.getNewScreen() == buy) {
 				success = "1".equals(buy.getBoughtAmount());
 				if (success) {
@@ -228,9 +217,7 @@ public class TutTrading extends TutorialScreen {
 				"that's the third column, fourth row button.");
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			for (TouchEvent event : game.getInput().getTouchEvents()) {
-				quantity.processTouch(event);
-			}
+			quantity.processAllTouches();
 			if (quantity.getNewScreen() == buy) {
 				success = "1".equals(buy.getBoughtAmount());
 				line.setFinished();
@@ -281,9 +268,7 @@ public class TutTrading extends TutorialScreen {
 		line.setSkippable(false).setY(500).
 			addHighlight(makeHighlight(450, 970, 850, 40)).
 			setUpdateMethod((IMethodHook) deltaTime -> {
-				for (TouchEvent event : game.getInput().getTouchEvents()) {
-					inventory.processTouch(event);
-				}
+				inventory.processAllTouches();
 				if (inventory.getCashLeft() != null) {
 					line.setFinished();
 				}

@@ -47,7 +47,6 @@ public class StatusScreen extends AliteScreen {
 
 	private static volatile Pixmap cobra;
 	private AliteScreen forwardingScreen = null;
-	private boolean askForTutorial = false;
 	private boolean requireAnswer = false;
 	private boolean pendingShowControlOptions = false;
 
@@ -76,7 +75,8 @@ public class StatusScreen extends AliteScreen {
 			Player player = game.getPlayer();
 			if (game.getGenerator().getCurrentGalaxyFromSeed() == 1) {
 				if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == 7) {
-					askForTutorial = true;
+					showModalQuestionDialog("You seem to be new to " + AliteConfig.GAME_NAME +
+						", Commander. Would you like to visit the Training Academy now?");
 					requireAnswer = true;
 					Settings.hasBeenPlayedBefore = true;
 					Settings.save(game.getFileIO());
@@ -209,26 +209,17 @@ public class StatusScreen extends AliteScreen {
 
 	@Override
 	public void update(float deltaTime) {
-		if (askForTutorial || getMessage() != null) {
-			updateWithoutNavigation(deltaTime);
-		} else {
-			super.update(deltaTime);
-		}
+		super.update(deltaTime);
 		if (forwardingScreen != null) {
 			newScreen = forwardingScreen;
 			forwardingScreen = null;
 			performScreenChange();
 			postScreenChange();
 		}
-		if (askForTutorial) {
-			askForTutorial = false;
-			setModalQuestionMessage("You seem to be new to Alite, Commander. Would you like to visit the Training Academy now?");
-		}
 	}
 
 	@Override
 	public void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (!(game.getCurrentScreen() instanceof FlightScreen)) {
 				if (touch.x > 30 && touch.x < 960 && touch.y > 1020) {
@@ -237,17 +228,17 @@ public class StatusScreen extends AliteScreen {
 				}
 			}
 		}
-		if (requireAnswer && messageResult != 0) {
+		if (requireAnswer && messageResult != RESULT_NONE) {
 			requireAnswer = false;
-			if (messageResult == 1) {
+			if (messageResult == RESULT_YES) {
 				newScreen = new ControlOptionsScreen(game, !pendingShowControlOptions);
 			} else if (!pendingShowControlOptions) {
-				setLargeModalMessage("If you want to visit the Academy later, you can find it at the bottom of the Command Console. " +
+				showLargeModalQuestionDialog("If you want to visit the Academy later, you can find it at the bottom of the Command Console. " +
 					"Before you launch, it might be a good idea to review your Control Settings. Would you like to do so, now?");
 				requireAnswer = true;
 				pendingShowControlOptions = true;
 			}
-			messageResult = 0;
+			messageResult = RESULT_NONE;
 		}
 	}
 

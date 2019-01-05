@@ -156,7 +156,7 @@ public class DisplayOptionsScreen extends OptionsScreen {
 				colorScheme.setText("Color scheme: " + ColorScheme.getSchemeDisplayName(Settings.colorScheme));
 				String error = ColorScheme.setColorScheme(game.getFileIO(), null, Settings.colorScheme);
 				if (error != null) {
-					setMessage("Color scheme file is skipped, error: " + error);
+					showMessageDialog("Color scheme file is skipped, error: " + error);
 				}
 				Condition.update();
 				Settings.save(game.getFileIO());

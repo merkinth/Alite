@@ -33,15 +33,11 @@ import de.phbouillon.android.games.alite.SoundManager;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
 public class SaveScreen extends CatalogScreen {
-	private final Button saveNewCommanderButton;
+	private Button saveNewCommanderButton;
 	private boolean confirmedSave = false;
-	private String pendingMessage;
 
 	SaveScreen(Alite game, String title) {
 		super(game, title);
-		saveNewCommanderButton = Button.createGradientRegularButton(50, 950, 500, 100, "Save New Commander");
-		deleteButton = null;
-		pendingMessage = null;
 	}
 
 	public static boolean initialize(Alite alite, final DataInputStream dis) {
@@ -52,20 +48,28 @@ public class SaveScreen extends CatalogScreen {
 	@Override
 	public void activate() {
 		super.activate();
+		saveNewCommanderButton = Button.createGradientRegularButton(50, 950, 500, 100, "Save New Commander");
 		deleteButton = null;
-		if (pendingMessage != null) {
-			setMessage(pendingMessage);
+	}
+
+	@Override
+	public void update(float deltaTime) {
+		super.update(deltaTime);
+		if (messageResult == RESULT_YES) {
+			try {
+				game.saveCommander(inputText);
+			} catch (IOException e) {
+				AliteLog.e("[ALITE] SaveCommander", "Error while saving commander.", e);
+			}
+			showMessageDialog("Commander " + inputText + " saved successfully.");
+			confirmedSave = true;
 		}
-		confirmedSave = pendingMessage != null;
-		pendingMessage = null;
+		messageResult = RESULT_NONE;
 	}
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
 		super.processTouch(touch);
-		if (getMessage() != null) {
-			return;
-		}
 		if (confirmedSave) {
 			newScreen = new StatusScreen(game);
 			confirmedSave = false;
@@ -73,51 +77,36 @@ public class SaveScreen extends CatalogScreen {
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (saveNewCommanderButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				TextInputScreen textInput = new TextInputScreen(game, "New Commander Name",
-					"Enter the name for the new commander", game.getPlayer().getName(), this, new TextCallback() {
-					@Override
-					public void onOk(String text) {
-						try {
-							game.saveCommander(text);
-						} catch (IOException e) {
-							AliteLog.e("[ALITE] SaveCommander", "Error while saving commander.", e);
-						}
-						pendingMessage = "Commander " + text + " saved successfully.";
-						confirmedSave = true;
-					}
-
-					@Override
-					public void onCancel() {
-					}
-				});
-				textInput.setMaxLength(16);
-				newScreen = textInput;
+				popupTextInput("New Commander Name", "Enter the new commander's name:",
+					game.getPlayer().getName(), 16);
 			}
 		}
-		if (selectedCommanderData.size() == 1) {
-			if (messageResult == 0) {
-				setQuestionMessage("Are you sure you want to overwrite Commander " + selectedCommanderData.get(0).getName() + "?");
-				confirmDelete = false;
-				SoundManager.play(Assets.alert);
-			} else {
-				if (messageResult == 1) {
-					try {
-						if (selectedCommanderData.get(0).isAutoSaved()) {
-							game.saveCommander(selectedCommanderData.get(0).getName());
-						} else {
-							game.saveCommander(selectedCommanderData.get(0).getName(), selectedCommanderData.get(0).getFileName());
-						}
-						setMessage("Commander " + selectedCommanderData.get(0).getName() + " saved successfully.");
-						SoundManager.play(Assets.alert);
-						confirmedSave = true;
-					} catch (IOException e) {
-						setMessage("Error while saving commander " + selectedCommanderData.get(0).getName() + ": " + e.getMessage());
-					}
+		if (selectedCommanderData.size() != 1) {
+			return;
+		}
+		if (messageResult == RESULT_NONE) {
+			showQuestionDialog(String.format("Are you sure you want to overwrite Commander %s?",
+				selectedCommanderData.get(0).getName()));
+			confirmDelete = false;
+			SoundManager.play(Assets.alert);
+			return;
+		}
+		if (messageResult == RESULT_YES) {
+			try {
+				if (selectedCommanderData.get(0).isAutoSaved()) {
+					game.saveCommander(selectedCommanderData.get(0).getName());
+				} else {
+					game.saveCommander(selectedCommanderData.get(0).getName(), selectedCommanderData.get(0).getFileName());
 				}
-				clearSelection();
-				messageResult = 0;
+				showMessageDialog(String.format("Commander %s saved successfully.", selectedCommanderData.get(0).getName()));
+				SoundManager.play(Assets.alert);
+				confirmedSave = true;
+			} catch (IOException e) {
+				showMessageDialog(String.format("Error while saving commander %s: %s", selectedCommanderData.get(0).getName(), e.getMessage()));
 			}
 		}
+		clearSelection();
+		messageResult = RESULT_NONE;
 	}
 
 	@Override

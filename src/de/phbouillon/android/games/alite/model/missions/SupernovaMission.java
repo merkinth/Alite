@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model.missions;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -43,13 +43,13 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.SphericalSpaceOb
 
 public class SupernovaMission extends Mission {
 	public static final int ID = 3;
-	
+
 	private char [] galaxySeed;
 	private int supernovaSystemIndex;
 	private int state;
 	private final TimedEvent preStartEvent;
 	private long startTime = -1;
-	
+
 	public SupernovaMission(final Alite alite) {
 		super(alite, ID);
 		preStartEvent = new TimedEvent(100000000) {
@@ -64,15 +64,15 @@ public class SupernovaMission extends Mission {
 			}
 		};
 	}
-	
+
 	public int getState() {
 		return state;
 	}
-	
+
 	public void setState(int state) {
 		this.state = state;
 	}
-	
+
 	@Override
 	protected boolean checkStart() {
 		Player player = alite.getPlayer();
@@ -80,8 +80,8 @@ public class SupernovaMission extends Mission {
 			   !player.getActiveMissions().contains(this) &&
 			   !player.getCompletedMissions().contains(this) &&
 				player.getCompletedMissions().contains(MissionManager.getInstance().get(ThargoidDocumentsMission.ID)) &&
-				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 && 
-				player.getCondition() == Condition.DOCKED; 
+				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 &&
+				player.getCondition() == Condition.DOCKED;
 	}
 
 	@Override
@@ -90,16 +90,16 @@ public class SupernovaMission extends Mission {
 		return !started &&
 			   !player.getCompletedMissions().contains(this) &&
 				player.getCompletedMissions().contains(MissionManager.getInstance().get(ThargoidDocumentsMission.ID)) &&
-				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64;		
+				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64;
 	}
-	
+
 	@Override
 	public TimedEvent getPreStartEvent(InGameManager manager) {
 		manager.setMessage("Fuel leak");
 		SoundManager.play(Assets.com_fuelSystemMalfunction);
 		return preStartEvent;
 	}
-	
+
 	public void setSupernovaSystem(char [] galaxySeed, int target) {
 		this.galaxySeed = new char[3];
 		for (int i = 0; i < 3; i++) {
@@ -107,7 +107,7 @@ public class SupernovaMission extends Mission {
 		}
 		this.supernovaSystemIndex = target;
 	}
-	
+
 	@Override
 	protected void acceptMission(boolean accept) {
 		alite.getPlayer().addActiveMission(this);
@@ -116,7 +116,7 @@ public class SupernovaMission extends Mission {
 			alite.getCobra().addSpecialCargo("Unhappy Refugees", alite.getCobra().isEquipmentInstalled(EquipmentStore.largeCargoBay) ? Weight.tonnes(35) : Weight.tonnes(20));
 		}
 	}
-	
+
 	@Override
 	public void onMissionAccept() {
 	}
@@ -133,11 +133,11 @@ public class SupernovaMission extends Mission {
 	}
 
 	@Override
-	public void onMissionUpdate() {		
+	public void onMissionUpdate() {
 	}
 
 	@Override
-	public void load(DataInputStream dis) throws IOException {	
+	public void load(DataInputStream dis) throws IOException {
 		galaxySeed = new char[3];
 		galaxySeed[0] = dis.readChar();
 		galaxySeed[1] = dis.readChar();
@@ -158,7 +158,7 @@ public class SupernovaMission extends Mission {
 		dos.writeInt(supernovaSystemIndex);
 		dos.writeInt(state);
 		dos.close();
-		bos.close();		
+		bos.close();
 		return bos.toByteArray();
 	}
 
@@ -180,34 +180,34 @@ public class SupernovaMission extends Mission {
 			alite.getPlayer().addCompletedMission(this);
 		}
 		return null;
-	}	
-	
+	}
+
 	@Override
 	public boolean performTrade(TradeScreen tradeScreen, Equipment equipment) {
-		tradeScreen.setMessage("Sorry - there is no one here to trade with.");
+		tradeScreen.showMessageDialog("Sorry - there is no one here to trade with.");
 		SoundManager.play(Assets.error);
 		return true;
 	}
-	
+
 	@Override
 	public boolean performTrade(TradeScreen tradeScreen, TradeGood tradeGood) {
-		tradeScreen.setMessage("Sorry - there is no one here to trade with.");
+		tradeScreen.showMessageDialog("Sorry - there is no one here to trade with.");
 		SoundManager.play(Assets.error);
 		return true;
 	}
-	
+
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		boolean result = positionMatchesTarget(galaxySeed, supernovaSystemIndex);
 		if ((state == 1 || state == 2) && result) {
 			startTime = -1;
-			return new TimedEvent(100000000) {				
+			return new TimedEvent(100000000) {
 				private static final long serialVersionUID = 7855977766031440861L;
 
 				@Override
 				public void doPerform() {
 					InGameManager inGame = manager.getInGameManager();
-					SphericalSpaceObject sun = (SphericalSpaceObject) inGame.getSun(); 
+					SphericalSpaceObject sun = (SphericalSpaceObject) inGame.getSun();
 					sun.setNewSize(sun.getRadius() * 1.01f);
 					SphericalSpaceObject sunGlow = (SphericalSpaceObject) inGame.getSunGlow();
 					sunGlow.setNewSize(sun.getRadius() + 400.0f);
@@ -229,7 +229,7 @@ public class SupernovaMission extends Mission {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public String getObjective() {
 		return "Escape the supernova.";

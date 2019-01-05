@@ -217,7 +217,7 @@ public class BuyScreen extends TradeScreen {
 		}
 		int avail = market.getQuantity(tradeGood);
 		if (avail == 0) {
-    		setMessage("Sorry - that item is out of stock.");
+			showMessageDialog("Sorry - that item is out of stock.");
 			SoundManager.play(Assets.error);
 			return;
 		}
@@ -240,13 +240,13 @@ public class BuyScreen extends TradeScreen {
 		boughtAmount = null;
 		if (buyAmount > avail) {
 			SoundManager.play(Assets.error);
-    			setMessage("Sorry - we don't have that much in stock.");
+			showMessageDialog("Sorry - we don't have that much in stock.");
 			return;
 		}
 		long totalPrice = buyAmount * market.getPrice(tradeGood);
 		if (totalPrice > player.getCash()) {
 			SoundManager.play(Assets.error);
-    			setMessage("Sorry - you don't have enough credits.");
+			showMessageDialog("Sorry - you don't have enough credits.");
 			return;
 		}
 		Weight buyWeight = tradeGood.getUnit() == Unit.GRAM ? Weight.grams(buyAmount) :
@@ -254,7 +254,7 @@ public class BuyScreen extends TradeScreen {
 						   Weight.tonnes(buyAmount);
 		if (buyWeight.compareTo(player.getCobra().getFreeCargo()) > 0) {
 			SoundManager.play(Assets.error);
-    			setMessage("Sorry - you don't have enough room in your hold.");
+			showMessageDialog("Sorry - you don't have enough room in your hold.");
 			return;
 		}
 		market.setQuantity(tradeGood, (int) (market.getQuantity(tradeGood) - buyAmount));

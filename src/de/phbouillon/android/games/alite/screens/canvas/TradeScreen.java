@@ -39,7 +39,7 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 public abstract class TradeScreen extends AliteScreen {
 	int X_OFFSET = 150;
 	int Y_OFFSET = 100;
-	protected int SIZE     = 225;
+	int SIZE     = 225;
 	int GAP_X    = 300;
 	int GAP_Y    = 300;
 	int COLUMNS  = 5;
@@ -163,40 +163,30 @@ public abstract class TradeScreen extends AliteScreen {
 
 	@Override
 	public void processTouch(TouchEvent touch) {
-		if (getMessage() != null) {
-			super.processTouch(touch);
+		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-		boolean handled = false;
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			for (int y = 0; y < ROWS; y++) {
-				for (int x = 0; x < COLUMNS; x++) {
-					if (tradeButton[x][y] == null) {
-						continue;
-					}
-					if (tradeButton[x][y].isTouched(touch.x, touch.y)) {
-						handled = true;
-						if (selection == tradeButton[x][y]) {
-							if (game.getCurrentScreen() instanceof FlightScreen) {
-								performTradeWhileInFlight(y, x);
-							} else {
-								SoundManager.play(Assets.click);
-								performTrade(y, x);
-							}
-						} else {
-							errorText = null;
-							startSelectionTime = System.nanoTime();
-							currentFrame = 0;
-							selection = tradeButton[x][y];
-							cashLeft = null;
-							SoundManager.play(Assets.click);
-						}
-					}
+		for (int y = 0; y < ROWS; y++) {
+			for (int x = 0; x < COLUMNS; x++) {
+				if (tradeButton[x][y] == null || !tradeButton[x][y].isTouched(touch.x, touch.y)) {
+					continue;
 				}
+				if (selection == tradeButton[x][y]) {
+					if (game.getCurrentScreen() instanceof FlightScreen) {
+						performTradeWhileInFlight(y, x);
+					} else {
+						SoundManager.play(Assets.click);
+						performTrade(y, x);
+					}
+					continue;
+				}
+				errorText = null;
+				startSelectionTime = System.nanoTime();
+				currentFrame = 0;
+				selection = tradeButton[x][y];
+				cashLeft = null;
+				SoundManager.play(Assets.click);
 			}
-		}
-		if (!handled) {
-			super.processTouch(touch);
 		}
 	}
 

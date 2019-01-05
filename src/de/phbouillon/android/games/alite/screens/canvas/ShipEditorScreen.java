@@ -225,7 +225,6 @@ public class ShipEditorScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
 		if (r1.checkEvent(touch)) {
 			exp.r1 = r1.getCurrentValue();
 			modifyExhaust();

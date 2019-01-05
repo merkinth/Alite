@@ -258,51 +258,55 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
+		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (confirmReset && messageResult != 0) {
-				confirmReset = false;
-				if (messageResult == 1) {
-					for (int i = 0; i < 12; i++) {
-						Settings.buttonPosition[i] = i;
+		if (confirmReset && messageResult != RESULT_NONE) {
+			confirmReset = false;
+			if (messageResult == RESULT_YES) {
+				for (int i = 0; i < 12; i++) {
+					Settings.buttonPosition[i] = i;
+				}
+				activate();
+			}
+			messageResult = RESULT_NONE;
+			return;
+		}
+		messageResult = RESULT_NONE;
+		if (back.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new ControlOptionsScreen(game, false);
+			return;
+		}
+		if (selectionMode.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			groupSelectionMode = !groupSelectionMode;
+			selectionMode.setText("Selection Mode: " + (groupSelectionMode ? "Group" : "Button"));
+			selectedButton = null;
+			for (ButtonConfigData b: uiButton) {
+				b.button.setSelected(false);
+			}
+			return;
+		}
+		if (reset.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			showQuestionDialog("Are you sure?");
+			confirmReset = true;
+			return;
+		}
+		for (ButtonConfigData b: uiButton) {
+			if (b.button.isTouched(touch.x, touch.y)) {
+				if (selectedButton == null) {
+					selectedButton = b;
+					if (groupSelectionMode) {
+						selectGroup(b);
+					} else {
+						b.button.setSelected(true);
 					}
-					activate();
+				} else {
+					swapButtons(b);
 				}
-			} else if (back.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new ControlOptionsScreen(game, false);
-			} else if (selectionMode.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				groupSelectionMode = !groupSelectionMode;
-				selectionMode.setText("Selection Mode: " + (groupSelectionMode ? "Group" : "Button"));
-				selectedButton = null;
-				for (ButtonConfigData b: uiButton) {
-					b.button.setSelected(false);
-				}
-			} else if (reset.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				setQuestionMessage("Are you sure?");
-				confirmReset = true;
-			} else {
-				for (ButtonConfigData b: uiButton) {
-					if (b.button.isTouched(touch.x, touch.y)) {
-						if (selectedButton == null) {
-							selectedButton = b;
-							if (groupSelectionMode) {
-								selectGroup(b);
-							} else {
-								b.button.setSelected(true);
-							}
-						} else {
-							swapButtons(b);
-						}
-						break;
-					}
-				}
+				break;
 			}
 		}
 	}

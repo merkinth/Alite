@@ -600,10 +600,6 @@ public class LibraryPageScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
-			return;
-		}
 		if (imageText != null && largeImage != null) {
 			if (touch.type == TouchEvent.TOUCH_UP && touch.pointer == 0) {
 				SoundManager.play(Assets.click);

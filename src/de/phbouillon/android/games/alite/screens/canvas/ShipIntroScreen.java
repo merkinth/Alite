@@ -29,8 +29,6 @@ import de.phbouillon.android.framework.Geometry;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Music;
-import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -120,8 +118,6 @@ public class ShipIntroScreen extends AliteScreen {
 	private Button yesButton;
 	private Button noButton;
 	private Button tapToStartButton;
-	private Pixmap yesIcon;
-	private Pixmap noIcon;
 	private boolean selectPreviousShip = false;
 	private Coriolis coriolis;
 
@@ -202,7 +198,6 @@ public class ShipIntroScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
 		if (touch.type == TouchEvent.TOUCH_SWEEP) {
 			if (displayMode == DisplayMode.DANCE) {
 				displayMode = DisplayMode.ZOOM_OUT;
@@ -212,20 +207,18 @@ public class ShipIntroScreen extends AliteScreen {
 				selectPreviousShip = true;
 			}
 		}
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (yesButton.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new LoadScreen(game, "Load Commander");
-				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK);
-			}
-			if (noButton.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new StatusScreen(game);
-			}
-			if (tapToStartButton.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new StatusScreen(game);
-			}
+		if (yesButton.isPressed(touch)) {
+			SoundManager.play(Assets.click);
+			newScreen = new LoadScreen(game, "Load Commander");
+			game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK);
+		}
+		if (noButton.isPressed(touch)) {
+			SoundManager.play(Assets.click);
+			newScreen = new StatusScreen(game);
+		}
+		if (tapToStartButton.isPressed(touch)) {
+			SoundManager.play(Assets.click);
+			newScreen = new StatusScreen(game);
 		}
 		if (newScreen != null) {
 			if (theChase != null) {
@@ -345,11 +338,11 @@ public class ShipIntroScreen extends AliteScreen {
 		displayMode = DisplayMode.DANCE;
 		ao.setAIState(AIState.IDLE, (Object[]) null);
 		ao.setSpeed(-ao.getMaxSpeed());
-		yesButton = Button.createGradientPictureButton(1100, 940, 100, 100, yesIcon)
+		yesButton = Button.createGradientPictureButton(1000, 950, 110, 110, Assets.yesIcon)
 			.setVisible(showLoadNewCommander);
-		noButton = Button.createGradientPictureButton(1250, 940, 100, 100, noIcon)
+		noButton = Button.createGradientPictureButton(1150, 950, 110, 110, Assets.noIcon)
 			.setVisible(showLoadNewCommander);
-		tapToStartButton = Button.createGradientRegularButton(560, 960, 800, 100, "Tap to start")
+		tapToStartButton = Button.createGradientRegularButton(560, 950, 800, 110, "Tap to start")
 			.setTextColor(ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT))
 			.setVisible(!showLoadNewCommander);
 	}
@@ -362,9 +355,8 @@ public class ShipIntroScreen extends AliteScreen {
 
 	@Override
 	public void loadAssets() {
-		theChase = game.getAudio().newMusic("music/the_chase.mp3", Sound.SoundType.MUSIC);
-		yesIcon = game.getGraphics().newPixmap("yes_icon_small.png");
-		noIcon = game.getGraphics().newPixmap("no_icon_small.png");
+		theChase = game.getAudio().newMusic("music/the_chase.mp3");
+		super.loadAssets();
 	}
 
 	@Override
@@ -394,14 +386,6 @@ public class ShipIntroScreen extends AliteScreen {
 			theChase.stop();
 			theChase.dispose();
 			theChase = null;
-		}
-		if (yesIcon != null) {
-			yesIcon.dispose();
-			yesIcon = null;
-		}
-		if (noIcon != null) {
-			noIcon.dispose();
-			noIcon = null;
 		}
 	}
 

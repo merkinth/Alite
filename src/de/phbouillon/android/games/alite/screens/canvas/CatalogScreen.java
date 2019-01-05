@@ -112,9 +112,9 @@ public class CatalogScreen extends AliteScreen {
 		}
 		if (pendingShowMessage) {
 			if (selectedCommanderData.size() == 1) {
-				setQuestionMessage("Are you sure you want to delete Commander " + selectedCommanderData.get(0).getName() + "?");
+				showQuestionDialog(String.format("Are you sure you want to delete Commander %s?", selectedCommanderData.get(0).getName()));
 			} else {
-				setQuestionMessage("Are you sure you want to delete the selected Commanders?");
+				showQuestionDialog("Are you sure you want to delete the selected Commanders?");
 			}
 			pendingShowMessage = false;
 		}
@@ -155,62 +155,59 @@ public class CatalogScreen extends AliteScreen {
 			// this lookup isn't the problem.
 			dos.writeInt(commanderData.indexOf(c));
 		}
-		dos.writeBoolean(getMessage() != null);
+		dos.writeBoolean(isMessageDialogActive());
 	}
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
+		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (more.isTouched(touch.x, touch.y)) {
+		if (more.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			currentPage++;
+		}
+		if (back.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			currentPage--;
+		}
+		for (int i = currentPage * 5; i < Math.min(currentPage * 5 + 5, button.size()); i++) {
+			if (button.get(i).isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				currentPage++;
-			}
-			if (back.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				currentPage--;
-			}
-			for (int i = currentPage * 5; i < Math.min(currentPage * 5 + 5, button.size()); i++) {
-				if (button.get(i).isTouched(touch.x, touch.y)) {
-					SoundManager.play(Assets.click);
-					boolean select = !selectedCommanderData.contains(commanderData.get(i));
-					if (select) {
-						selectedCommanderData.add(commanderData.get(i));
-						button.get(i).setPixmap(buttonBackgroundSelected);
-					} else {
-						selectedCommanderData.remove(commanderData.get(i));
-						button.get(i).setPixmap(buttonBackground);
-					}
-					button.get(i).setSelected(select);
-					if (deleteButton != null) {
-						deleteButton.setText(selectedCommanderData.size() > 1 ? "Delete selected Commanders" : "Delete selected Commander");
-					}
+				boolean select = !selectedCommanderData.contains(commanderData.get(i));
+				if (select) {
+					selectedCommanderData.add(commanderData.get(i));
+					button.get(i).setPixmap(buttonBackgroundSelected);
+				} else {
+					selectedCommanderData.remove(commanderData.get(i));
+					button.get(i).setPixmap(buttonBackground);
+				}
+				button.get(i).setSelected(select);
+				if (deleteButton != null) {
+					deleteButton.setText(selectedCommanderData.size() > 1 ? "Delete selected Commanders" : "Delete selected Commander");
 				}
 			}
-			if (confirmDelete && messageResult != 0) {
-				confirmDelete = false;
-				if (messageResult == 1) {
-					for (CommanderData cd: selectedCommanderData) {
-						game.getFileIO().deleteFile(cd.getFileName());
-					}
-					newScreen = new CatalogScreen(game, "Catalog");
+		}
+		if (confirmDelete && messageResult != RESULT_NONE) {
+			confirmDelete = false;
+			if (messageResult == RESULT_YES) {
+				for (CommanderData cd: selectedCommanderData) {
+					game.getFileIO().deleteFile(cd.getFileName());
 				}
-				clearSelection();
-				messageResult = 0;
+				newScreen = new CatalogScreen(game, "Catalog");
 			}
-			if (deleteButton != null && deleteButton.isTouched(touch.x, touch.y)) {
-				if (messageResult == 0) {
-					SoundManager.play(Assets.alert);
-					if (selectedCommanderData.size() == 1) {
-						setQuestionMessage("Are you sure you want to delete Commander " + selectedCommanderData.get(0).getName() + "?");
-					} else {
-						setQuestionMessage("Are you sure you want to delete the selected Commanders?");
-					}
-					confirmDelete = true;
+			clearSelection();
+			messageResult = RESULT_NONE;
+		}
+		if (deleteButton != null && deleteButton.isTouched(touch.x, touch.y)) {
+			if (messageResult == RESULT_NONE) {
+				SoundManager.play(Assets.alert);
+				if (selectedCommanderData.size() == 1) {
+					showQuestionDialog(String.format("Are you sure you want to delete Commander %s?", selectedCommanderData.get(0).getName()));
+				} else {
+					showQuestionDialog("Are you sure you want to delete the selected Commanders?");
 				}
+				confirmDelete = true;
 			}
 		}
 	}

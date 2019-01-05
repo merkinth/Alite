@@ -80,69 +80,77 @@ public class MoreDebugSettingsScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
+		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (startConstrictorMission.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				game.getCobra().clearSpecialCargo();
-				game.getPlayer().clearMissions();
-				game.getPlayer().setIntergalacticJumpCounter(1);
-				game.getPlayer().setJumpCounter(62);
-				MissionManager.getInstance().get(ConstrictorMission.ID).resetStarted();
-			} else if (startThargoidDocumentsMission.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				game.getCobra().clearSpecialCargo();
-				game.getPlayer().clearMissions();
-				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
-				MissionManager.getInstance().get(ThargoidDocumentsMission.ID).resetStarted();
-				game.getPlayer().resetIntergalacticJumpCounter();
-				game.getPlayer().setJumpCounter(63);
-			} else if (startSupernovaMission.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				game.getCobra().clearSpecialCargo();
-				game.getPlayer().clearMissions();
-				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
-				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
-				MissionManager.getInstance().get(SupernovaMission.ID).resetStarted();
-				game.getPlayer().resetIntergalacticJumpCounter();
-				game.getPlayer().setJumpCounter(63);
-			} else if (startCougarMission.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				game.getCobra().clearSpecialCargo();
-				game.getPlayer().clearMissions();
-				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
-				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
-				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(SupernovaMission.ID));
-				MissionManager.getInstance().get(CougarMission.ID).resetStarted();
-				game.getPlayer().resetIntergalacticJumpCounter();
-				game.getPlayer().setJumpCounter(63);
-			} else if (startThargoidBaseMission.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				game.getCobra().clearSpecialCargo();
-				game.getPlayer().clearMissions();
-				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
-				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
-				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(SupernovaMission.ID));
-				game.getPlayer().addCompletedMission(MissionManager.getInstance().get(CougarMission.ID));
-				MissionManager.getInstance().get(ThargoidStationMission.ID).resetStarted();
-				game.getPlayer().resetIntergalacticJumpCounter();
-				game.getPlayer().setJumpCounter(63);
-			} else if (clearMission.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				game.getPlayer().getActiveMissions().clear();
-				String completedMissions = "Completed Missions: ";
-				for (Mission m: game.getPlayer().getCompletedMissions()) {
-					completedMissions += m.getClass().getName() + "; ";
-				}
-				setMessage(completedMissions);
-			} else if (back.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new DebugSettingsScreen(game);
+		if (startConstrictorMission.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			game.getCobra().clearSpecialCargo();
+			game.getPlayer().clearMissions();
+			game.getPlayer().setIntergalacticJumpCounter(1);
+			game.getPlayer().setJumpCounter(62);
+			MissionManager.getInstance().get(ConstrictorMission.ID).resetStarted();
+			return;
+		}
+		if (startThargoidDocumentsMission.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			game.getCobra().clearSpecialCargo();
+			game.getPlayer().clearMissions();
+			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
+			MissionManager.getInstance().get(ThargoidDocumentsMission.ID).resetStarted();
+			game.getPlayer().resetIntergalacticJumpCounter();
+			game.getPlayer().setJumpCounter(63);
+			return;
+		}
+		if (startSupernovaMission.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			game.getCobra().clearSpecialCargo();
+			game.getPlayer().clearMissions();
+			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
+			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
+			MissionManager.getInstance().get(SupernovaMission.ID).resetStarted();
+			game.getPlayer().resetIntergalacticJumpCounter();
+			game.getPlayer().setJumpCounter(63);
+			return;
+		}
+		if (startCougarMission.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			game.getCobra().clearSpecialCargo();
+			game.getPlayer().clearMissions();
+			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
+			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
+			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(SupernovaMission.ID));
+			MissionManager.getInstance().get(CougarMission.ID).resetStarted();
+			game.getPlayer().resetIntergalacticJumpCounter();
+			game.getPlayer().setJumpCounter(63);
+			return;
+		}
+		if (startThargoidBaseMission.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			game.getCobra().clearSpecialCargo();
+			game.getPlayer().clearMissions();
+			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
+			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
+			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(SupernovaMission.ID));
+			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(CougarMission.ID));
+			MissionManager.getInstance().get(ThargoidStationMission.ID).resetStarted();
+			game.getPlayer().resetIntergalacticJumpCounter();
+			game.getPlayer().setJumpCounter(63);
+			return;
+		}
+		if (clearMission.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			game.getPlayer().getActiveMissions().clear();
+			String completedMissions = "Completed Missions: ";
+			for (Mission m: game.getPlayer().getCompletedMissions()) {
+				completedMissions += m.getClass().getName() + "; ";
 			}
+			showMessageDialog(completedMissions);
+			return;
+		}
+		if (back.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new DebugSettingsScreen(game);
 		}
 	}
 

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -23,7 +23,7 @@ import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 
-public class Assets {	
+public class Assets {
 	public static Pixmap launchIcon;
 	public static Pixmap statusIcon;
 	public static Pixmap buyIcon;
@@ -39,7 +39,10 @@ public class Assets {
 	public static Pixmap hackerIcon;
 	public static Pixmap quitIcon;
 	public static Pixmap aliteLogoSmall;
-	
+
+	public static Pixmap yesIcon;
+	public static Pixmap noIcon;
+
 	public static GLText regularFont;
 	public static GLText boldFont;
 	public static GLText italicFont;
@@ -68,7 +71,7 @@ public class Assets {
 	public static Sound com_lostDockingComputer;
 	public static Sound com_lostGalacticHyperdrive;
 	public static Sound com_lostRetroRockets;
-	
+
 	public static Sound click;
 	public static Sound error;
 	public static Sound alert;
@@ -88,8 +91,8 @@ public class Assets {
 	public static Sound criticalCondition;
 	public static Sound ecm;
 	public static Sound retroRocketsOrEscapeCapsuleFired;
-	public static Sound identify;	
+	public static Sound identify;
 	public static Sound hyperspace;
-	
-	public static Music danube;				
+
+	public static Music danube;
 }

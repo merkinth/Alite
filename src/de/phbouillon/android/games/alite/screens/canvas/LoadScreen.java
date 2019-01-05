@@ -39,7 +39,6 @@ public class LoadScreen extends CatalogScreen {
 
 	LoadScreen(Alite game, String title) {
 		super(game, title);
-		deleteButton = null;
 	}
 
 	@Override
@@ -47,7 +46,7 @@ public class LoadScreen extends CatalogScreen {
 		super.activate();
 		deleteButton = null;
 		if (pendingShowMessage) {
-			setQuestionMessage("Are you sure you want to load Commander " + selectedCommanderData.get(0).getName() + "?");
+			showQuestionDialog("Are you sure you want to load Commander " + selectedCommanderData.get(0).getName() + "?");
 			confirmDelete = false;
 			pendingShowMessage = false;
 		}
@@ -87,38 +86,35 @@ public class LoadScreen extends CatalogScreen {
 			// this lookup isn't the problem.
 			dos.writeInt(commanderData.indexOf(c));
 		}
-		dos.writeBoolean(getMessage() != null);
+		dos.writeBoolean(isMessageDialogActive());
 	}
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
 		super.processTouch(touch);
-		if (getMessage() != null) {
-			return;
-		}
 		if (confirmedLoad) {
 			newScreen = new StatusScreen(game);
 			confirmedLoad = false;
 		}
 		if (selectedCommanderData.size() == 1) {
-			if (messageResult == 0) {
-				setQuestionMessage("Are you sure you want to load Commander " + selectedCommanderData.get(0).getName() + "?");
+			if (messageResult == RESULT_NONE) {
+				showQuestionDialog("Are you sure you want to load Commander " + selectedCommanderData.get(0).getName() + "?");
 				confirmDelete = false;
 				SoundManager.play(Assets.alert);
-			} else {
-				if (messageResult == 1) {
-					try {
-						game.loadCommander(selectedCommanderData.get(0).getFileName());
-						setMessage("Cursor reset to " + selectedCommanderData.get(0).getDockedSystem() + ".");
-						SoundManager.play(Assets.alert);
-						confirmedLoad = true;
-					} catch (IOException e) {
-						setMessage("Error while loading commander " + selectedCommanderData.get(0).getName() + ": " + e.getMessage());
-					}
-				}
-				clearSelection();
-				messageResult = 0;
+				return;
 			}
+			if (messageResult == RESULT_YES) {
+				try {
+					game.loadCommander(selectedCommanderData.get(0).getFileName());
+					showMessageDialog("Cursor reset to " + selectedCommanderData.get(0).getDockedSystem() + ".");
+					SoundManager.play(Assets.alert);
+					confirmedLoad = true;
+				} catch (IOException e) {
+					showMessageDialog("Error while loading commander " + selectedCommanderData.get(0).getName() + ": " + e.getMessage());
+				}
+			}
+			clearSelection();
+			messageResult = RESULT_NONE;
 		}
 	}
 

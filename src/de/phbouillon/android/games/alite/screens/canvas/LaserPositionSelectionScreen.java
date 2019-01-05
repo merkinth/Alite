@@ -98,43 +98,40 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		super.processTouch(touch);
-		if (getMessage() != null) {
+		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (touch.x < 160 || touch.y < 160 || touch.x > 1560 || touch.y > 960) {
-				equipmentScreen.setLaserPosition(-2);
-				newScreen = equipmentScreen;
-				return;
-			}
-			for (Button b: pads) {
-				if (b.isTouched(touch.x, touch.y)) {
-					SoundManager.play(Assets.click);
-					String t = b.getText();
-					if ("Front".equals(t)) {
-						equipmentScreen.setLaserPosition(PlayerCobra.DIR_FRONT);
-						newScreen = equipmentScreen;
-						return;
-					}
-					if ("Right".equals(t)) {
-						equipmentScreen.setLaserPosition(PlayerCobra.DIR_RIGHT);
-						newScreen = equipmentScreen;
-						return;
-					}
-					if ("Rear".equals(t)) {
-						equipmentScreen.setLaserPosition(PlayerCobra.DIR_REAR);
-						newScreen = equipmentScreen;
-						return;
-					}
-					if ("Left".equals(t)) {
-						equipmentScreen.setLaserPosition(PlayerCobra.DIR_LEFT);
-						newScreen = equipmentScreen;
-						return;
-					}
-				}
- 			}
+		if (touch.x < 160 || touch.y < 160 || touch.x > 1560 || touch.y > 960) {
+			equipmentScreen.setLaserPosition(-2);
+			newScreen = equipmentScreen;
+			return;
 		}
+		for (Button b: pads) {
+			if (b.isTouched(touch.x, touch.y)) {
+				SoundManager.play(Assets.click);
+				String t = b.getText();
+				if ("Front".equals(t)) {
+					equipmentScreen.setLaserPosition(PlayerCobra.DIR_FRONT);
+					newScreen = equipmentScreen;
+					return;
+				}
+				if ("Right".equals(t)) {
+					equipmentScreen.setLaserPosition(PlayerCobra.DIR_RIGHT);
+					newScreen = equipmentScreen;
+					return;
+				}
+				if ("Rear".equals(t)) {
+					equipmentScreen.setLaserPosition(PlayerCobra.DIR_REAR);
+					newScreen = equipmentScreen;
+					return;
+				}
+				if ("Left".equals(t)) {
+					equipmentScreen.setLaserPosition(PlayerCobra.DIR_LEFT);
+					newScreen = equipmentScreen;
+					return;
+				}
+			}
+		 }
 	}
 
 	@Override

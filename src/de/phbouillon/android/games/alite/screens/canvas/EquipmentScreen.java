@@ -239,7 +239,7 @@ public class EquipmentScreen extends TradeScreen {
 			if (mountLaserPosition == -1) {
 				int result = getNewLaserLocation((Laser) equipment, row, column);
 				if (result == -1) {
-					setMessage("All lasers (of that type) already mounted.");
+					showMessageDialog("All lasers (of that type) already mounted.");
 					SoundManager.play(Assets.error);
 				}
 				return;
@@ -254,25 +254,25 @@ public class EquipmentScreen extends TradeScreen {
 			price = cobra.getLaser(where) == null ? equipment.getCost() : equipment.getCost() - cobra.getLaser(where).getCost();
 		}
 		if (player.getCash() < price) {
-			setMessage("Sorry - you don't have enough Credits.");
+			showMessageDialog("Sorry - you don't have enough Credits.");
 			SoundManager.play(Assets.error);
 			return;
 		}
 		if (equipment.getCost() == -1) {
 			// Fuel
 			if (cobra.getFuel() == PlayerCobra.MAXIMUM_FUEL) {
-				setMessage(String.format("Fuel system already full (%d.%d light years).", PlayerCobra.MAXIMUM_FUEL / 10, PlayerCobra.MAXIMUM_FUEL % 10));
+				showMessageDialog(String.format("Fuel system already full (%d.%d light years).", PlayerCobra.MAXIMUM_FUEL / 10, PlayerCobra.MAXIMUM_FUEL % 10));
 				SoundManager.play(Assets.error);
 				return;
 			}
 		}
 		if (!(equipment instanceof Laser) && cobra.isEquipmentInstalled(equipment)) {
-			setMessage("Only 1 " + equipment.getShortName() + " allowed.");
+			showMessageDialog("Only 1 " + equipment.getShortName() + " allowed.");
 			SoundManager.play(Assets.error);
 			return;
 		}
 		if (cobra.isEquipmentInstalled(EquipmentStore.navalEnergyUnit) && equipment.equals(EquipmentStore.extraEnergyUnit)) {
-			setMessage("Only 1 " + equipment.getShortName() + " allowed.");
+			showMessageDialog("Only 1 " + equipment.getShortName() + " allowed.");
 			SoundManager.play(Assets.error);
 			return;
 		}
@@ -295,7 +295,7 @@ public class EquipmentScreen extends TradeScreen {
 				int fuelToBuy = PlayerCobra.MAXIMUM_FUEL - cobra.getFuel();
 				int priceToPay = fuelToBuy * price / 10;
 				if (priceToPay > player.getCash()) {
-					setMessage("Sorry - you don't have enough Credits.");
+					showMessageDialog("Sorry - you don't have enough Credits.");
 					SoundManager.play(Assets.error);
 					return;
 				}
@@ -313,7 +313,7 @@ public class EquipmentScreen extends TradeScreen {
 			}
 			if (equipment == EquipmentStore.missiles) {
 				if (cobra.getMissiles() == PlayerCobra.MAXIMUM_MISSILES) {
-					setMessage("Only " + PlayerCobra.MAXIMUM_MISSILES + " missiles allowed.");
+					showMessageDialog("Only " + PlayerCobra.MAXIMUM_MISSILES + " missiles allowed.");
 					SoundManager.play(Assets.error);
 					return;
 				}
@@ -356,52 +356,41 @@ public class EquipmentScreen extends TradeScreen {
 
 	@Override
 	public void processTouch(TouchEvent touch) {
-		if (getMessage() != null) {
-			super.processTouch(touch);
+		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-		boolean handled = false;
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			for (int y = 0; y < ROWS; y++) {
-				for (int x = 0; x < COLUMNS; x++) {
-					if (tradeButton[x][y] == null) {
-						continue;
-					}
-					if (tradeButton[x][y].isTouched(touch.x, touch.y)) {
-						if (selection == tradeButton[x][y]) {
-							handled = true;
-							if (game.getCurrentScreen() instanceof FlightScreen) {
-								SoundManager.play(Assets.error);
-								errorText = "Not Docked.";
-							} else {
-								performTrade(y, x);
-								SoundManager.play(Assets.click);
-							}
-						} else {
-							equippedEquipment = null;
-							errorText = null;
-							int oldSelectionIndex = selectionIndex;
-							if (oldSelectionIndex != -1) {
-							  disposeEquipmentAnimation(selectionIndex);
-							}
-							selectionIndex = y * COLUMNS + x;
-							if (Settings.animationsEnabled) {
-								loadEquipmentAnimation(game.getGraphics(), selectionIndex, paths[selectionIndex]);
-								tradeButton[x][y].setAnimation(equipment[selectionIndex]);
-							}
-							startSelectionTime = System.nanoTime();
-							currentFrame = 0;
-							selection = tradeButton[x][y];
-							cashLeft = null;
-							SoundManager.play(Assets.click);
-							handled = true;
-						}
-					}
+		for (int y = 0; y < ROWS; y++) {
+			for (int x = 0; x < COLUMNS; x++) {
+				if (tradeButton[x][y] == null || !tradeButton[x][y].isTouched(touch.x, touch.y)) {
+					continue;
 				}
+				if (selection == tradeButton[x][y]) {
+					if (game.getCurrentScreen() instanceof FlightScreen) {
+						SoundManager.play(Assets.error);
+						errorText = "Not Docked.";
+					} else {
+						performTrade(y, x);
+						SoundManager.play(Assets.click);
+					}
+					continue;
+				}
+				equippedEquipment = null;
+				errorText = null;
+				int oldSelectionIndex = selectionIndex;
+				if (oldSelectionIndex != -1) {
+				  disposeEquipmentAnimation(selectionIndex);
+				}
+				selectionIndex = y * COLUMNS + x;
+				if (Settings.animationsEnabled) {
+					loadEquipmentAnimation(game.getGraphics(), selectionIndex, paths[selectionIndex]);
+					tradeButton[x][y].setAnimation(equipment[selectionIndex]);
+				}
+				startSelectionTime = System.nanoTime();
+				currentFrame = 0;
+				selection = tradeButton[x][y];
+				cashLeft = null;
+				SoundManager.play(Assets.click);
 			}
-		}
-		if (!handled) {
-			super.processTouch(touch);
 		}
 	}
 
