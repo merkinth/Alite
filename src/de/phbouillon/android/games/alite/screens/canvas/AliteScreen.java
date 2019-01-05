@@ -364,13 +364,8 @@ public abstract class AliteScreen extends Screen {
 
 	@Override
 	public void dispose() {
-		disposed = true;
+		super.dispose();
 		ButtonRegistry.get().removeButtons(this);
-	}
-
-	@Override
-	public void loadAssets() {
-		disposed = false;
 	}
 
 	@Override
@@ -379,10 +374,6 @@ public abstract class AliteScreen extends Screen {
 
 	@Override
 	public void resume() {
-	}
-
-	@Override
-	public void postLayout(Object dataObject) {
 	}
 
 	@Override

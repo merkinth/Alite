@@ -122,9 +122,6 @@ public class SaveScreen extends CatalogScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		super.present(deltaTime);
 		Graphics g = game.getGraphics();
 		saveNewCommanderButton.render(g);

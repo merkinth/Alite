@@ -141,10 +141,6 @@ public class LoadingScreen extends AliteScreen {
 	}
 
 	@Override
-	public void postLayout(Object dataObject) {
-	}
-
-	@Override
 	public int getScreenCode() {
 		return -1;
 	}

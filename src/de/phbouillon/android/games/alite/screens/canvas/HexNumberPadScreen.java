@@ -24,12 +24,7 @@ import java.io.IOException;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -119,9 +114,6 @@ public class HexNumberPadScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		Graphics g = game.getGraphics();
 
 		hackerScreen.present(deltaTime);

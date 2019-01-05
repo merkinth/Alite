@@ -186,38 +186,30 @@ public class PlanetScreen extends AliteScreen {
 
 	private void computeAlienImage(final Graphics g, SystemData system) {
 		String inhabitant = system.getInhabitants().toLowerCase(Locale.getDefault());
-
 		String basePath = "alien_icons/" + getRace(inhabitant) + getType(inhabitant);
-		boolean exists = system.getIndex() == 256 || g.existsAssetsFile(basePath + "base.png");
-		if (exists) {
+		if (system.getIndex() == 256 || g.existsAssetsFile(basePath + "base.png")) {
 			if (inhabitantGenerationStep == 0) {
 				if (inhabitantBottomLayer == null) {
-					if (!disposed) {
-						if (system.getIndex() == 256) {
-							aig_temp1 = g.newPixmap("alien_icons/treeard.png");
-						} else {
-							aig_temp1 = g.newPixmap(basePath + "base.png");
-						}
-						g.applyFilterToPixmap(aig_temp1, adjustColor(inhabitant));
+					if (system.getIndex() == 256) {
+						aig_temp1 = g.newPixmap("alien_icons/treeard.png");
+					} else {
+						aig_temp1 = g.newPixmap(basePath + "base.png");
 					}
+					g.applyFilterToPixmap(aig_temp1, adjustColor(inhabitant));
 				}
 			} else if (inhabitantGenerationStep == 1) {
 				if (inhabitantTopLayer == null) {
-					if (!disposed) {
-						if (system.getIndex() == 256) {
-							aig_temp2 = g.newPixmap("alien_icons/treeard.png");
-						} else {
-							aig_temp2 = g.newPixmap(basePath + "details.png");
-						}
+					if (system.getIndex() == 256) {
+						aig_temp2 = g.newPixmap("alien_icons/treeard.png");
+					} else {
+						aig_temp2 = g.newPixmap(basePath + "details.png");
 					}
 				}
 			}
 		}
 		if (inhabitantGenerationStep == 2) {
-			if (!disposed) {
-				inhabitantBottomLayer = aig_temp1;
-				inhabitantTopLayer = aig_temp2;
-			}
+			inhabitantBottomLayer = aig_temp1;
+			inhabitantTopLayer = aig_temp2;
 			inhabitantGenerationStep = -1;
 		}
 		if (inhabitantGenerationStep >= 0) {
@@ -226,11 +218,9 @@ public class PlanetScreen extends AliteScreen {
 	}
 
 	private Pixmap load(final Graphics g, String section, String gender, int type, int layer) {
-		if (!disposed) {
-			String fileName = "alien_icons/human/" + section + (gender == null ? "" : "/" + gender) + "/" + type + "_" + layer + ".png";
-			if (g.existsAssetsFile(fileName)) {
-				return g.newPixmap(fileName);
-			}
+		String fileName = "alien_icons/human/" + section + (gender == null ? "" : "/" + gender) + "/" + type + "_" + layer + ".png";
+		if (g.existsAssetsFile(fileName)) {
+			return g.newPixmap(fileName);
 		}
 		return null;
 	}
@@ -360,13 +350,11 @@ public class PlanetScreen extends AliteScreen {
 		if (pixmap == null) {
 			return;
 		}
-		if (!disposed) {
-			if (filter != null) {
-				g.applyFilterToPixmap(pixmap, filter);
-			}
-			composer.drawBitmap(pixmap.getBitmap(), 0, 0, paint);
-			pixmap.dispose();
+		if (filter != null) {
+			g.applyFilterToPixmap(pixmap, filter);
 		}
+		composer.drawBitmap(pixmap.getBitmap(), 0, 0, paint);
+		pixmap.dispose();
 	}
 
 	private void initComputeHumanImage() {
@@ -386,7 +374,7 @@ public class PlanetScreen extends AliteScreen {
 		int hig_lipColorType = Integer.parseInt(inhabitantCode.substring(6, 11), 2);
 		int hig_hairColorType = Integer.parseInt(inhabitantCode.substring(8, 13), 2);
 
-		if (disposed || background == null) {
+		if (background == null) {
 			return;
 		}
 		Bitmap hig_bg = background.getBitmap();
@@ -418,9 +406,7 @@ public class PlanetScreen extends AliteScreen {
 		}
 		inhabitantGenerationStep++;
 		if (inhabitantGenerationStep == 14) {
-			if (!disposed) {
-				inhabitantBottomLayer = g.newPixmap(hig_humanImage, "humanImage");
-			}
+			inhabitantBottomLayer = g.newPixmap(hig_humanImage, "humanImage");
 			inhabitantGenerationStep = -1;
 		}
 	}
@@ -485,7 +471,7 @@ public class PlanetScreen extends AliteScreen {
 
 	@Override
 	public void update(float deltaTime) {
-		if (disposed) {
+		if (isDisposed()) {
 			return;
 		}
 		super.update(deltaTime);
@@ -507,9 +493,6 @@ public class PlanetScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		Graphics g = game.getGraphics();
 		Player player = game.getPlayer();
 		SystemData system = player.getHyperspaceSystem() == null ? player.getCurrentSystem() : player.getHyperspaceSystem();
@@ -596,16 +579,6 @@ public class PlanetScreen extends AliteScreen {
 		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
 		setUpForDisplay(visibleArea);
 
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
 	}
 
 	@Override

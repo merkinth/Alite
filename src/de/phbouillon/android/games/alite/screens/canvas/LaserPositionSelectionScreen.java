@@ -80,9 +80,6 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		Graphics g = game.getGraphics();
 
 		equipmentScreen.present(deltaTime);

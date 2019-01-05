@@ -323,9 +323,6 @@ public class LibraryScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		Graphics g = game.getGraphics();
 		g.clear(Color.BLACK);
 		displayTitle("Library");
@@ -382,16 +379,6 @@ public class LibraryScreen extends AliteScreen {
 		searchIcon = game.getGraphics().newPixmap("search_icon.png");
 		buttonBackgroundPushed = game.getGraphics().newPixmap("catalog_button_pushed.png");
 		super.loadAssets();
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
 	}
 
 	@Override

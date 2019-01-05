@@ -232,9 +232,6 @@ public class InventoryScreen extends TradeScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle("Inventory");
@@ -292,21 +289,21 @@ public class InventoryScreen extends TradeScreen {
 		}
 		InventoryPair pair = inventoryList.get(index);
 		TradeGood tradeGood = pair.good;
-    	Player player = game.getPlayer();
-    	Weight ejectedWeight;
-    	long ejectedPrice = pair.item.getPrice();
-    	if (pair.item.getWeight().compareTo(Weight.tonnes(4)) < 0) {
-    		ejectedWeight = pair.item.getWeight();
-    		player.getCobra().removeTradeGood(tradeGood);
-    	} else {
-    		ejectedWeight = Weight.tonnes(4);
-    		player.getCobra().setTradeGood(tradeGood, pair.item.getWeight().sub(ejectedWeight), pair.item.getPrice());
-    		player.getCobra().subUnpunishedTradeGood(tradeGood, ejectedWeight);
-    	}
-    	InGameManager manager = ((FlightScreen) game.getCurrentScreen()).getInGameManager();
-    	manager.getLaserManager().ejectPlayerCargoCanister(manager.getShip(), tradeGood, ejectedWeight, ejectedPrice);
+		Player player = game.getPlayer();
+		Weight ejectedWeight;
+		long ejectedPrice = pair.item.getPrice();
+		if (pair.item.getWeight().compareTo(Weight.tonnes(4)) < 0) {
+			ejectedWeight = pair.item.getWeight();
+			player.getCobra().removeTradeGood(tradeGood);
+		} else {
+			ejectedWeight = Weight.tonnes(4);
+			player.getCobra().setTradeGood(tradeGood, pair.item.getWeight().sub(ejectedWeight), pair.item.getPrice());
+			player.getCobra().subUnpunishedTradeGood(tradeGood, ejectedWeight);
+		}
+		InGameManager manager = ((FlightScreen) game.getCurrentScreen()).getInGameManager();
+		manager.getLaserManager().ejectPlayerCargoCanister(manager.getShip(), tradeGood, ejectedWeight, ejectedPrice);
 
-    	createButtons();
+		createButtons();
 	}
 
     @Override
@@ -317,13 +314,13 @@ public class InventoryScreen extends TradeScreen {
 		}
 		InventoryPair pair = inventoryList.get(index);
 		TradeGood tradeGood = pair.good;
-    	Player player = game.getPlayer();
-    	for (Mission m: player.getActiveMissions()) {
-    		if (m.performTrade(this, tradeGood)) {
-    			return;
-    		}
-    	}
-    	Market market = player.getMarket();
+		Player player = game.getPlayer();
+		for (Mission m: player.getActiveMissions()) {
+			if (m.performTrade(this, tradeGood)) {
+				return;
+			}
+		}
+		Market market = player.getMarket();
 		int factor = pair.good.getUnit() == Unit.TON ? 1000000 : pair.good.getUnit() == Unit.KILOGRAM ? 1000 : 1;
 		long price = computePrice(market, factor, pair.item.getWeight().getWeightInGrams(), pair.good);
 		int chanceInPercent = game.getPlayer().getLegalProblemLikelihoodInPercent();
@@ -332,10 +329,10 @@ public class InventoryScreen extends TradeScreen {
 				(int) (tradeGood.getLegalityType() * pair.item.getUnpunished().getQuantityInAppropriateUnit()));
 		}
 		player.getCobra().removeTradeGood(tradeGood);
-    	player.setCash(player.getCash() + price);
-    	cashLeft = String.format("Cash: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
+		player.setCash(player.getCash() + price);
+		cashLeft = String.format("Cash: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
 		SoundManager.play(Assets.kaChing);
-    	createButtons();
+		createButtons();
 		try {
 			game.autoSave();
 		} catch (IOException e) {
@@ -343,9 +340,9 @@ public class InventoryScreen extends TradeScreen {
 		}
 	}
 
-    public String getCashLeft() {
-    	return cashLeft;
-    }
+	public String getCashLeft() {
+		return cashLeft;
+	}
 
 	private void readBeamAnimation(final Graphics g) {
 		beam = new Pixmap[16];

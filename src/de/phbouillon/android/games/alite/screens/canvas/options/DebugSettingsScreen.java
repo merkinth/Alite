@@ -86,9 +86,6 @@ public class DebugSettingsScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle("Debug Options");

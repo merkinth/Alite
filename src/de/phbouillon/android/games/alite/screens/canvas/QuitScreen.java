@@ -86,13 +86,13 @@ public class QuitScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
+		if (callingScreen == null) {
 			return;
 		}
-		if (callingScreen != null && !(callingScreen instanceof FlightScreen)) {
-		  callingScreen.present(deltaTime);
-		} else if (callingScreen instanceof FlightScreen) {
+		if (callingScreen instanceof FlightScreen) {
 		  mockStatusScreen.present(deltaTime);
+		} else {
+		  callingScreen.present(deltaTime);
 		}
 	}
 

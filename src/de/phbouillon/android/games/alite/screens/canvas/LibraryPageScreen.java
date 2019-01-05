@@ -680,9 +680,6 @@ public class LibraryPageScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		Graphics g = game.getGraphics();
 		displayTitle(tocEntry.getName());
 		g.clear(Color.BLACK);

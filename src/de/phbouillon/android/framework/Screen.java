@@ -22,20 +22,32 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 public abstract class Screen {
- 	public abstract void update(float deltaTime);
+	private boolean disposed;
+
+	public final boolean isDisposed() {
+		return disposed;
+	}
+
+	public void loadAssets() {
+		disposed = false;
+	}
+
+	public abstract void activate();
+	public abstract void resume();
+	public abstract void update(float deltaTime);
 	public abstract void present(float deltaTime);
 	public abstract void postPresent(float deltaTime);
 	public abstract void renderNavigationBar();
 	public abstract void postNavigationRender(float deltaTime);
 	public abstract void pause();
-	public abstract void resume();
-	public abstract void dispose();
-	public abstract void loadAssets();
-	public abstract void postLayout(Object dataObject);
-	public abstract void activate();
-	public abstract void postScreenChange();
-	public abstract int  getScreenCode();
 
+	public void dispose() {
+		disposed = true;
+	}
+
+	public abstract void postScreenChange();
+
+	public abstract int getScreenCode();
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 	}
 }

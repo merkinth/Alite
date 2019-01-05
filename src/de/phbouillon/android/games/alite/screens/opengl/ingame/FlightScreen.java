@@ -160,10 +160,6 @@ public class FlightScreen extends GlScreen implements Serializable {
 		}
 	}
 
-	public boolean isDisposed() {
-		return isDisposed;
-	}
-
 	public void enterWitchSpace() {
 		witchSpace = true;
 	}
@@ -471,7 +467,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 				}
 				return;
 			}
-			if (isDisposed || inGame == null) {
+			if (isDisposed() || inGame == null) {
 				return;
 			}
 			if (inGame.isPlayerAlive()) {
@@ -540,7 +536,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 	@Override
 	public void performPresent(float deltaTime) {
 		try {
-			if (isDisposed) {
+			if (isDisposed()) {
 				return;
 			}
 			if (isSaving) {

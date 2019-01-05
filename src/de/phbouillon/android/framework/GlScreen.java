@@ -24,7 +24,6 @@ public abstract class GlScreen extends Screen implements Serializable {
 	private static final long serialVersionUID = 2776881193369718139L;
 
 	private boolean isActive;
-	protected boolean isDisposed;
 
 	protected GlScreen() {
 		isActive = false;
@@ -49,7 +48,7 @@ public abstract class GlScreen extends Screen implements Serializable {
 
 	@Override
 	public final void update(float deltaTime) {
-		if (!isActive || isDisposed) {
+		if (!isActive || isDisposed()) {
 			return;
 		}
 		performUpdate(deltaTime);
@@ -73,10 +72,6 @@ public abstract class GlScreen extends Screen implements Serializable {
 	}
 
 	@Override
-	public void postLayout(Object dataObject) {
-	}
-
-	@Override
 	public void postScreenChange() {
 	}
 
@@ -91,6 +86,6 @@ public abstract class GlScreen extends Screen implements Serializable {
 	@Override
 	public void dispose() {
 		pause();
-		isDisposed = true;
+		super.dispose();
 	}
 }

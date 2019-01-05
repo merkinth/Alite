@@ -301,9 +301,9 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		try {
 			if (fatalException != null) {
 				fatalException.update(0);
-			}
-			if (fatalException != null) {
-				fatalException.present(0);
+				if (!fatalException.isDisposed()) {
+					fatalException.present(0);
+				}
 			}
 		} catch (Throwable t) {
 			throw new RuntimeException(AliteConfig.GAME_NAME + " has ended with an uncaught exception while trying to process an uncaught exception.", t);
@@ -326,7 +326,9 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 				float deltaTime = (nanoTime - startTime) / 1000000000.0f;
 				startTime = nanoTime;
 				screen.update(deltaTime);
-				screen.present(deltaTime);
+				if (!screen.isDisposed()) {
+					screen.present(deltaTime);
+				}
 				screen.postPresent(deltaTime);
 				screen.renderNavigationBar();
 				screen.postNavigationRender(deltaTime);

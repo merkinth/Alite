@@ -253,9 +253,6 @@ public class StatusScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		Graphics g = game.getGraphics();
 		Player player = game.getPlayer();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));

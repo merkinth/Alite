@@ -64,9 +64,6 @@ public class DiskScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle("Disk Menu");
@@ -134,16 +131,6 @@ public class DiskScreen extends AliteScreen {
 			catalogIcon = g.newPixmap("catalog_symbol.png");
 		}
 		super.loadAssets();
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
 	}
 
 	@Override

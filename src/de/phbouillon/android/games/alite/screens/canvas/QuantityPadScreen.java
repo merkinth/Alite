@@ -126,9 +126,6 @@ public class QuantityPadScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		Graphics g = game.getGraphics();
 
 		marketScreen.present(deltaTime);

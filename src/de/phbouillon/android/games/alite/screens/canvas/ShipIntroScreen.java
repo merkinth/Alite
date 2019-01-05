@@ -149,10 +149,10 @@ public class ShipIntroScreen extends AliteScreen {
 		GlUtils.setViewport(visibleArea);
 		GLES11.glDisable(GLES11.GL_FOG);
 		GLES11.glPointSize(1.0f);
-    GLES11.glLineWidth(1.0f);
+		GLES11.glLineWidth(1.0f);
 
-    GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
-    GLES11.glDisable(GLES11.GL_BLEND);
+		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
+		GLES11.glDisable(GLES11.GL_BLEND);
 
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
@@ -253,9 +253,6 @@ public class ShipIntroScreen extends AliteScreen {
 
 	@Override
 	public void present(float deltaTime) {
-		if (disposed) {
-			return;
-		}
 		final Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayShip();
@@ -287,8 +284,8 @@ public class ShipIntroScreen extends AliteScreen {
 		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
 		GLES11.glPushMatrix();
-		  GLES11.glMultMatrixf(skysphere.getMatrix(), 0);
-	      skysphere.render();
+		GLES11.glMultMatrixf(skysphere.getMatrix(), 0);
+		skysphere.render();
 		GLES11.glPopMatrix();
 
 		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -316,13 +313,13 @@ public class ShipIntroScreen extends AliteScreen {
 
 		if (SHOW_DOCKING && coriolis != null) {
 			GLES11.glPushMatrix();
-			  GLES11.glMultMatrixf(coriolis.getMatrix(), 0);
-			  coriolis.render();
+			GLES11.glMultMatrixf(coriolis.getMatrix(), 0);
+			coriolis.render();
 			GLES11.glPopMatrix();
 		}
 		GLES11.glPushMatrix();
-		  GLES11.glMultMatrixf(currentShip.getMatrix(), 0);
-		  ((Geometry) currentShip).render();
+		GLES11.glMultMatrixf(currentShip.getMatrix(), 0);
+		((Geometry) currentShip).render();
 		GLES11.glPopMatrix();
 
 		endDisplay(visibleArea);
@@ -332,7 +329,7 @@ public class ShipIntroScreen extends AliteScreen {
 	public void activate() {
 		initGl();
 		skysphere = new SkySphereSpaceObject(game, "skysphere", 8000.0f, 16, 16, "textures/star_map.png");
-		SpaceObject ao = (SpaceObject)getShipForCurrentIndex();
+		SpaceObject ao = getShipForCurrentIndex();
 		ao.setPosition(0.0f, 0.0f, -ao.getMaxExtentWithoutExhaust() * 2.0f);
 
 		if (SHOW_DOCKING) {
@@ -484,46 +481,46 @@ public class ShipIntroScreen extends AliteScreen {
 	}
 
 
-	private AliteObject getShipForCurrentIndex() {
+	private SpaceObject getShipForCurrentIndex() {
 		switch (currentShipIndex) {
 			case  0: return new CobraMkIII(game);
 			case  1: return new Krait(game);
 			case  2: return new Thargoid(game);
-			case  3: return new BoaClassCruiser(game);
-			case  4: return new Gecko(game);
-			case  5: return new MorayStarBoat(game);
-			case  6: return new Adder(game);
-			case  7: return new Mamba(game);
-			case  8: return new Viper(game);
-			case  9: return new FerDeLance(game);
-			case 10: return new CobraMkI(game);
-			case 11: return new Python(game);
-			case 12: return new Anaconda(game);
-			case 13: return new AspMkII(game);
-			case 14: return new Sidewinder(game);
-			case 15: return new WolfMkII(game);
-			case 16: return new OrbitShuttle(game);
-			case 17: return new Transporter(game);
-			case 18: return new Boomslang(game);
-			case 19: return new Constrictor(game);
-			case 20: return new Cottonmouth(game);
-			case 21: return new Cougar(game);
-			case 22: return new EscapeCapsule(game);
-			case 23: return new Hognose2(game);
-			case 24: return new Lora(game);
-			case 25: return new Missile(game);
-			case 26: return new Gopher(game);
-			case 27: return new Coral(game);
-			case 28: return new Bushmaster(game);
-			case 29: return new Rattlesnake(game);
-			case 30: return new Mussurana(game);
-			case 31: return new Dugite(game);
-			case 32: return new Yellowbelly(game);
-			case 33: return new Indigo(game);
-			case 34: return new Harlequin(game);
-			case 35: return new TieFighter(game);
-			case 36: return new Lyre(game);
-			case 37: return new Thargon(game);
+			case  3: return new Thargon(game);
+			case  4: return new BoaClassCruiser(game);
+			case  5: return new Gecko(game);
+			case  6: return new MorayStarBoat(game);
+			case  7: return new Adder(game);
+			case  8: return new Mamba(game);
+			case  9: return new Viper(game);
+			case 10: return new FerDeLance(game);
+			case 11: return new CobraMkI(game);
+			case 12: return new Python(game);
+			case 13: return new Anaconda(game);
+			case 14: return new AspMkII(game);
+			case 15: return new Sidewinder(game);
+			case 16: return new WolfMkII(game);
+			case 17: return new OrbitShuttle(game);
+			case 18: return new Transporter(game);
+			case 19: return new Missile(game);
+			case 20: return new EscapeCapsule(game);
+			case 21: return new Boomslang(game);
+			case 22: return new Constrictor(game);
+			case 23: return new Cottonmouth(game);
+			case 24: return new Cougar(game);
+			case 25: return new Hognose2(game);
+			case 26: return new Lora(game);
+			case 27: return new Gopher(game);
+			case 28: return new Coral(game);
+			case 29: return new Bushmaster(game);
+			case 30: return new Rattlesnake(game);
+			case 31: return new Mussurana(game);
+			case 32: return new Dugite(game);
+			case 33: return new Yellowbelly(game);
+			case 34: return new Indigo(game);
+			case 35: return new Harlequin(game);
+			case 36: return new TieFighter(game);
+			case 37: return new Lyre(game);
 		}
 		return new CobraMkIII(game);
 	}
@@ -533,19 +530,17 @@ public class ShipIntroScreen extends AliteScreen {
 			selectPreviousShip = false;
 			currentShipIndex--;
 			if (currentShipIndex < 0) {
-				currentShipIndex = DEBUG_EXHAUST ? 37 : 17;
+				currentShipIndex = DEBUG_EXHAUST ? 37 : 20;
 			}
 		} else {
 			currentShipIndex++;
 		}
-		if (currentShipIndex == (DEBUG_EXHAUST ? 38 : 18)) {
+		if (currentShipIndex >= (DEBUG_EXHAUST ? 38 : 21)) {
 			currentShipIndex = 0;
 		}
-		AliteObject ao = getShipForCurrentIndex();
-		if (ao instanceof SpaceObject) {
-			((SpaceObject) ao).setAIState(AIState.IDLE, (Object[]) null);
-			ao.setSpeed(-((SpaceObject)ao).getMaxSpeed());
-		}
+		SpaceObject ao = getShipForCurrentIndex();
+		ao.setAIState(AIState.IDLE, (Object[]) null);
+		ao.setSpeed(-ao.getMaxSpeed());
 		return ao;
 	}
 

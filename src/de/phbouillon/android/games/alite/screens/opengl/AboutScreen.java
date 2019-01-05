@@ -375,7 +375,7 @@ public class AboutScreen extends GlScreen {
 
 	@Override
 	public void performPresent(float deltaTime) {
-		if (isDisposed) {
+		if (isDisposed()) {
 			return;
 		}
 		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT | GLES11.GL_DEPTH_BUFFER_BIT);

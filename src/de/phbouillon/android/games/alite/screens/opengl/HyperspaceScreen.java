@@ -216,7 +216,7 @@ public class HyperspaceScreen extends GlScreen {
 
 	@Override
 	public void performPresent(float deltaTime) {
-		if (isDisposed) {
+		if (isDisposed()) {
 			return;
 		}
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
