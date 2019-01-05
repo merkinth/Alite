@@ -29,12 +29,7 @@ import java.util.List;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.CommanderData;
 
@@ -273,7 +268,8 @@ public class CatalogScreen extends AliteScreen {
 			g.drawText(textToDisplay + suffix, 50, 285 + (i % 5) * 140, color, Assets.regularFont);
 			g.drawText(data.getDockedSystem(), 600, 285 + (i % 5) * 140, color, Assets.regularFont);
 			String timeString = StatusScreen.getGameTime(data.getGameTime());
-			g.drawText(timeString, 1080 - g.getTextWidth(timeString, Assets.regularFont), 285 + (i % 5) * 140, color, Assets.regularFont);
+			g.drawText(timeString, AliteConfig.SCREEN_HEIGHT - g.getTextWidth(timeString, Assets.regularFont),
+				285 + (i % 5) * 140, color, Assets.regularFont);
 			g.drawText("" + data.getPoints(), 1280 - g.getTextWidth("" + data.getPoints(), Assets.regularFont), 285 + (i % 5) * 140, color, Assets.regularFont);
 			g.drawText(data.getRating().getName(), 1300, 285 + (i % 5) * 140, color, Assets.regularFont);
 		}

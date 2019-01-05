@@ -20,6 +20,7 @@ package de.phbouillon.android.games.alite.screens.opengl;
 
 import android.graphics.Rect;
 import de.phbouillon.android.games.alite.Alite;
+import de.phbouillon.android.games.alite.AliteConfig;
 
 public class DefaultCoordinateTransformer implements ICoordinateTransformer {
 	private static final long serialVersionUID = -6866805331162564974L;
@@ -31,7 +32,7 @@ public class DefaultCoordinateTransformer implements ICoordinateTransformer {
 
 	public DefaultCoordinateTransformer(Alite alite) {
 		Rect visibleArea = alite.getGraphics().getVisibleArea();
-		if (visibleArea.width() == 1920 && visibleArea.height() == 1080) {
+		if (visibleArea.width() == AliteConfig.SCREEN_WIDTH && visibleArea.height() == AliteConfig.SCREEN_HEIGHT) {
 			conversionNeeded = false;
 			offsetX = 0.0f;
 			offsetY = 0.0f;
@@ -40,7 +41,7 @@ public class DefaultCoordinateTransformer implements ICoordinateTransformer {
 			conversionNeeded = true;
 			offsetX = visibleArea.left;
 			offsetY = visibleArea.top;
-			ratio   = visibleArea.width() / 1920.0f;
+			ratio   = visibleArea.width() / (float)AliteConfig.SCREEN_WIDTH;
 		}
 	}
 

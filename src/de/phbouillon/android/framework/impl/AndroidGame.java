@@ -41,11 +41,7 @@ import de.phbouillon.android.framework.Input;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.TimeFactorChangeListener;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.AliteStartManager;
-import de.phbouillon.android.games.alite.AndroidUtil;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.screens.canvas.FatalExceptionScreen;
 import de.phbouillon.android.games.alite.screens.opengl.TextureManager;
 
@@ -310,7 +306,7 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 				fatalException.present(0);
 			}
 		} catch (Throwable t) {
-			throw new RuntimeException("Alite has ended with an uncaught exception while trying to process an uncaught exception.", t);
+			throw new RuntimeException(AliteConfig.GAME_NAME + " has ended with an uncaught exception while trying to process an uncaught exception.", t);
 		}
 	}
 

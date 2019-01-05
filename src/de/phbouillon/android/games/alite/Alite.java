@@ -44,7 +44,6 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.LaserManager;
 import java.io.*;
 
 public class Alite extends AndroidGame {
-	public static final String VERSION_STRING = AliteConfig.VERSION_STRING + " " + (AliteConfig.HAS_EXTENSION_APK ? "OBB" : "SFI");
 	public static final String LOG_IS_INITIALIZED = "logIsInitialized";
 
 	public static int NAVIGATION_BAR_LAUNCH;
@@ -75,7 +74,7 @@ public class Alite extends AndroidGame {
 	private boolean isHackerActive;
 
 	public Alite() {
-		super(1920, 1080);
+		super(AliteConfig.SCREEN_WIDTH, AliteConfig.SCREEN_HEIGHT);
 		fileUtils = new FileUtils(this);
 		alite = this;
 	}

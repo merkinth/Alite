@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -23,6 +23,7 @@ import java.util.List;
 
 import android.graphics.Rect;
 import de.phbouillon.android.framework.math.Vector3f;
+import de.phbouillon.android.games.alite.AliteConfig;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
@@ -38,7 +39,7 @@ class ObjectPicker implements Serializable {
 	private final Vector3f rayOrigin = new Vector3f(0, 0, 0);
 	private final Vector3f rayDirection = new Vector3f(0, 0, 0);
 	private final Vector3f tempVector = new Vector3f(0, 0, 0);
-	
+
 	private final InGameManager inGame;
 	private final float radians = (float) (45.0f * Math.PI / 180f);
 	private final float halfHeight = (float) (Math.tan(radians / 2) * 1.0f);
@@ -47,7 +48,7 @@ class ObjectPicker implements Serializable {
 	private final float halfWindowHeight;
 	private final float windowWidth;
 	private final float windowHeight;
-	
+
 	ObjectPicker(InGameManager inGame, Rect visibleArea) {
 		this.inGame = inGame;
 		halfScaledAspectRatio = halfHeight * inGame.getAspectRatio();
@@ -56,7 +57,7 @@ class ObjectPicker implements Serializable {
 		halfWindowWidth = windowWidth / 2.0f;
 		halfWindowHeight = windowHeight / 2.0f;
 	}
-	
+
 	private void initializeVectors() {
 		switch (inGame.getViewDirection()) {
 			case PlayerCobra.DIR_FRONT: inGame.getShip().getUpVector().copy(upVector);
@@ -82,14 +83,14 @@ class ObjectPicker implements Serializable {
 		vVector.scale(halfHeight);
 		hVector.scale(halfScaledAspectRatio);
 	}
-	
-	SpaceObject handleIdentify(int x, int y, final List <DepthBucket> sortedObjectsToDraw) {	
+
+	SpaceObject handleIdentify(int x, int y, final List <DepthBucket> sortedObjectsToDraw) {
 		initializeVectors();
-		x = (int) (((float) x * windowWidth) / 1920.0f);
-		y = (int) (((float) y * windowHeight) / 1080.0f);
+		x = (int) (x * windowWidth / AliteConfig.SCREEN_WIDTH);
+		y = (int) (y * windowHeight / AliteConfig.SCREEN_HEIGHT);
 		float xWorldPos = (x - halfWindowWidth) / halfWindowWidth;
 		float yWorldPos = (halfWindowHeight - y) / halfWindowHeight;
-				
+
 		inGame.getShip().getPosition().add(viewVector, rayOrigin);
 		hVector.scale(xWorldPos);
 		vVector.scale(yWorldPos);
@@ -98,7 +99,7 @@ class ObjectPicker implements Serializable {
 		rayOrigin.sub(inGame.getShip().getPosition(), rayDirection);
 		rayDirection.normalize();
 		rayDirection.negate();
-		
+
 		float minD = Float.MAX_VALUE;
 		SpaceObject identifiedObject = null;
 		for (DepthBucket db: sortedObjectsToDraw) {
@@ -116,7 +117,7 @@ class ObjectPicker implements Serializable {
 						}
 						radius *= scale;
 					}
-										
+
 					float d = LaserManager.computeIntersectionDistance(rayDirection, rayOrigin, object.getPosition(), radius, tempVector);
 					if (d > 0) {
 						d += radius;
@@ -129,7 +130,7 @@ class ObjectPicker implements Serializable {
 				}
 			}
 		}
-		
+
 		if (identifiedObject != null) {
 			identifiedObject.setIdentified();
 		}

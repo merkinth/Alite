@@ -32,12 +32,7 @@ import de.phbouillon.android.framework.Music;
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.Sprite;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
@@ -205,8 +200,10 @@ public class AboutScreen extends GlScreen {
 	public AboutScreen(Alite game) {
 		this.game = game;
 		visibleArea = game.getGraphics().getVisibleArea();
-		background = new Sprite(game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom, 0.0f, 0.0f, 1.0f, 1.0f, "textures/star_map_title.png");
-		aliteLogo  = new Sprite(game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom, 0.0f, 0.0f, 1615.0f / 2048.0f, 1080.0f / 2048.0f, "title_logo.png");
+		background = new Sprite(game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom,
+			0.0f, 0.0f, 1.0f, 1.0f, "textures/star_map_title.png");
+		aliteLogo  = new Sprite(game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom,
+			0.0f, 0.0f, 1615.0f / 2048.0f, AliteConfig.SCREEN_HEIGHT / 2048.0f, "title_logo.png");
 		aliteLogo.scale(0.96f, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom);
 		windowWidth = visibleArea.width();
 		windowHeight = visibleArea.height();
@@ -406,7 +403,7 @@ public class AboutScreen extends GlScreen {
         	for (TextData text: texts) {
         		i++;
         		if (y + text.y > -120) {
-            		if (y + text.y > 1080) {
+            		if (y + text.y > AliteConfig.SCREEN_HEIGHT) {
             			break;
             		}
             		game.getGraphics().drawCenteredText(text.text, text.x, y + text.y,
@@ -417,7 +414,7 @@ public class AboutScreen extends GlScreen {
         		}
         	}
         }
-        game.getGraphics().drawText("Alite Version " + Alite.VERSION_STRING, 0, 1030,
+        game.getGraphics().drawText(AliteConfig.GAME_NAME + " Version " + AliteConfig.VERSION_STRING, 0, 1030,
 			AliteColor.argb(globalAlpha, globalAlpha, globalAlpha, globalAlpha), Assets.regularFont, 1.0f);
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);

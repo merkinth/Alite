@@ -35,11 +35,8 @@ import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.AccelerometerHandler;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
+import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.model.LegalStatus;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -1459,7 +1456,7 @@ public class InGameManager implements Serializable {
 				scrollingText = new ScrollingText(alite);
 			}
 			message = new OnScreenMessage();
-			message.repeatText("Alite is Paused (tap screen to continue)...", 5000000000L, -1, 3000000000L);
+			message.repeatText(AliteConfig.GAME_NAME + " is Paused (tap screen to continue)...", 5000000000L, -1, 3000000000L);
 		} else {
 			scrollingText = null;
 			message.clearRepetition();

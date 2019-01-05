@@ -57,10 +57,10 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		public void execute(float deltaTime) {
 			setContentView(R.layout.activity_start_manager);
 			((TextView) findViewById(R.id.downloadTextView)).setText(
-					"There was an error when trying to access Alite's resource files. " +
+					"There was an error when trying to access " + AliteConfig.GAME_NAME + "'s resource files. " +
 					"I am very sorry for the inconvenience! You can either try to restart " +
 					"your device (seriously: It helped on a Nexus 4), or you can download " +
-					"the all-in-one-version of Alite, where this problem cannot occur, " +
+					"the all-in-one-version of " + AliteConfig.GAME_NAME + ", where this problem cannot occur, " +
 					"from " + AliteConfig.ALITE_WEBSITE);
 		}
 	}
@@ -262,14 +262,15 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		progressUpdateCalls++;
 		avgSpeed += progress.mCurrentSpeed;
 		TextView report = findViewById(R.id.downloadTextView);
-		int mbRead = (int) (progress.mOverallProgress / 1024.0f / 1024.0f);
-		int mbTotal = (int) (progress.mOverallTotal / 1024.0f / 1024.0f);
+		int mbRead = (int) (progress.mOverallProgress / AliteLog.MB);
+		int mbTotal = (int) (progress.mOverallTotal / AliteLog.MB);
 		report.setText("Downloading... " + mbRead + " of " + mbTotal + "MB read. Speed: " +
-			String.format(Locale.getDefault(), "%4.2f", avgSpeed / progressUpdateCalls / 1024.0f) +
+			String.format(Locale.getDefault(), "%4.2f", avgSpeed / progressUpdateCalls / AliteLog.KB) +
 			" MB/s. Time remaining: " + (int) (progress.mTimeRemaining / 1000.0f) + "s.");
 		((ProgressBar) findViewById(R.id.downloadProgressBar)).setMax((int) progress.mOverallTotal);
 		((ProgressBar) findViewById(R.id.downloadProgressBar)).setProgress((int) progress.mOverallProgress);
-		((TextView) findViewById(R.id.downloadProgressPercentTextView)).setText((int) (progress.mOverallProgress / (float) progress.mOverallTotal * 100.0f) + "%");
+		((TextView) findViewById(R.id.downloadProgressPercentTextView)).setText(
+			(int) (progress.mOverallProgress / (float) progress.mOverallTotal * 100.0f) + "%");
 		AliteLog.d("Progress", "Current Speed: " + progress.mCurrentSpeed + ", Overall progress: " + progress.mOverallProgress +
 			", Total progress: " + progress.mOverallTotal + ", Time Remaining: " + progress.mTimeRemaining);
 	}

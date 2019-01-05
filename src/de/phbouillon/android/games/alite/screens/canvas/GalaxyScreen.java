@@ -31,19 +31,13 @@ import android.util.SparseIntArray;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.Button.TextPosition;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.Rating;
 import de.phbouillon.android.games.alite.model.generator.Raxxla;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
-import de.phbouillon.android.games.alite.screens.NavigationBar;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -208,7 +202,7 @@ public class GalaxyScreen extends AliteScreen {
 		if (game.getInput().getTouchCount() > 1) {
 			return;
 		}
-		if (touch.type == TouchEvent.TOUCH_SWEEP && touch.x <= 1720) {
+		if (touch.type == TouchEvent.TOUCH_SWEEP && touch.x <= AliteConfig.DESKTOP_WIDTH) {
 			deltaX = (int) (touch.x2 * 1.5f);
 			deltaY = (int) (touch.y2 * 1.5f);
 		}
@@ -221,7 +215,7 @@ public class GalaxyScreen extends AliteScreen {
 			lastY = touch.y;
 		}
 		if (touch.type == TouchEvent.TOUCH_DRAGGED && touch.pointer == 0) {
-			if (zoom || touch.x > 1920 - NavigationBar.SIZE) {
+			if (zoom || touch.x > AliteConfig.DESKTOP_WIDTH) {
 				return;
 			}
 			centerX += touch.x - lastX;
@@ -233,7 +227,7 @@ public class GalaxyScreen extends AliteScreen {
 			lastX = touch.x;
 		}
 		if (touch.type == TouchEvent.TOUCH_UP && touch.pointer == 0) {
-			if (touch.x > 1920 - NavigationBar.SIZE) {
+			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
 				return;
 			}
 			if (zoom) {
@@ -262,7 +256,8 @@ public class GalaxyScreen extends AliteScreen {
 					return;
 				}
 				MappedSystemData closestSystem = findClosestSystem(touch.x, touch.y);
-				if (closestSystem.x > 1720 || closestSystem.x < 0 || closestSystem.y > 1080 || closestSystem.y < 20) {
+				if (closestSystem.x > AliteConfig.DESKTOP_WIDTH || closestSystem.x < 0 ||
+						closestSystem.y > AliteConfig.SCREEN_HEIGHT || closestSystem.y < 20) {
 					return;
 				}
 				game.getPlayer().setHyperspaceSystem(closestSystem.system);
@@ -441,7 +436,8 @@ public class GalaxyScreen extends AliteScreen {
 		g.setClip(0, -1, -1, 1000);
 		for (MappedSystemData system: systemData) {
 			g.fillCircle(system.x + system.xDiff, system.y, (int) (3 * zoomFactor), system.system.getEconomy().getColor(), 32);
-			if (zoomFactor >= 4.0f && system.x > 0 && system.x < 1920 && system.y > 0 && system.y < 1080) {
+			if (zoomFactor >= 4.0f && system.x > 0 && system.x < AliteConfig.SCREEN_WIDTH &&
+				system.y > 0 && system.y < AliteConfig.SCREEN_HEIGHT) {
 				renderName(system);
 			}
 		}

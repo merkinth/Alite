@@ -22,6 +22,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.os.Messenger;
 
+import android.support.v4.app.NotificationCompat;
 import android.view.View;
 import android.widget.RemoteViews;
 import com.google.android.vending.expansion.downloader.DownloadProgressInfo;
@@ -142,7 +143,7 @@ public class DownloadNotification implements IDownloaderClient {
 			}
 
 			String mCurrentText = mContext.getString(stringDownloadID);
-			mNotificationManager.notify(NOTIFICATION_ID, new android.support.v4.app.NotificationCompat.Builder(mContext, "")
+			mNotificationManager.notify(NOTIFICATION_ID, new NotificationCompat.Builder(mContext, "")
 				.setAutoCancel(!ongoingEvent)
 				.setTicker(mLabel + ": " + mCurrentText)
 				.setContentTitle(mLabel)
@@ -162,7 +163,7 @@ public class DownloadNotification implements IDownloaderClient {
         }
         if (progress.mOverallTotal <= 0) {
             // we just show the text
-			mNotificationManager.notify(NOTIFICATION_ID, new android.support.v4.app.NotificationCompat.Builder(mContext, "")
+			mNotificationManager.notify(NOTIFICATION_ID, new NotificationCompat.Builder(mContext, "")
 				.setTicker(mLabel)
 				.setSmallIcon(android.R.drawable.stat_sys_download)
 				.build());
@@ -195,7 +196,7 @@ public class DownloadNotification implements IDownloaderClient {
 			Helpers.getDownloadProgressPercent(progress.mOverallProgress, progress.mOverallTotal));
 		expandedView.setImageViewResource(R.id.appIcon, icon);
 
-		return new android.support.v4.app.NotificationCompat.Builder(context, "")
+		return new NotificationCompat.Builder(context, "")
 			.setSmallIcon(icon)
 			.setOngoing(true)
 			.setOnlyAlertOnce(true)

@@ -27,24 +27,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import android.graphics.Color;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColor;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.library.ItemDescriptor;
 import de.phbouillon.android.games.alite.model.library.LibraryPage;
 import de.phbouillon.android.games.alite.model.library.Toc;
 import de.phbouillon.android.games.alite.model.library.TocEntry;
-import de.phbouillon.android.games.alite.screens.NavigationBar;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -186,7 +180,7 @@ public class LibraryPageScreen extends AliteScreen {
 			ItemDescriptor bgImageDesc = entry.getLinkedPage().getBackgroundImage();
 			if (bgImageDesc != null) {
 				Pixmap pixmap = game.getGraphics().newPixmap("library/" + bgImageDesc.getFileName() + ".png");
-				backgroundImage = Button.createPictureButton(1920 - pixmap.getWidth(), 960 - pixmap.getHeight(),
+				backgroundImage = Button.createPictureButton(AliteConfig.SCREEN_WIDTH - pixmap.getWidth(), 955 - pixmap.getHeight(),
 					pixmap.getWidth(), pixmap.getHeight(), pixmap);
 			}
 
@@ -629,7 +623,7 @@ public class LibraryPageScreen extends AliteScreen {
 			startY = lastY = touch.y;
 		}
 		if (touch.type == TouchEvent.TOUCH_DRAGGED && touch.pointer == 0) {
-			if (touch.x > 1920 - NavigationBar.SIZE) {
+			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
 				return;
 			}
 			yPosition += lastY - touch.y;
@@ -643,7 +637,7 @@ public class LibraryPageScreen extends AliteScreen {
 			deltaY = 0;
 		}
 		if (touch.type == TouchEvent.TOUCH_UP && touch.pointer == 0) {
-			if (touch.x > 1920 - NavigationBar.SIZE) {
+			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
 				return;
 			}
 			if (Math.abs(startX - touch.x) < 20 && Math.abs(startY - touch.y) < 20) {
@@ -673,7 +667,7 @@ public class LibraryPageScreen extends AliteScreen {
 				}
 			}
 		}
-		if (touch.type == TouchEvent.TOUCH_SWEEP && touch.x < 1920 - NavigationBar.SIZE) {
+		if (touch.type == TouchEvent.TOUCH_SWEEP && touch.x < AliteConfig.DESKTOP_WIDTH) {
 			deltaY = touch.y2;
 		}
 	}

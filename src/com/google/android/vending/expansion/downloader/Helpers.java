@@ -22,14 +22,13 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
 import java.util.TimeZone;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.os.Environment;
 import android.os.StatFs;
 import android.os.SystemClock;
 import android.util.Log;
+import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.R;
 
 /**
@@ -39,30 +38,7 @@ public class Helpers {
 
     public static Random sRandom = new Random(SystemClock.uptimeMillis());
 
-    /** Regex used to parse content-disposition headers */
-    private static final Pattern CONTENT_DISPOSITION_PATTERN = Pattern
-            .compile("attachment;\\s*filename\\s*=\\s*\"([^\"]*)\"");
-
     private Helpers() {
-    }
-
-    /*
-     * Parse the Content-Disposition HTTP Header. The format of the header is
-     * defined here: http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html This
-     * header provides a filename for content that is going to be downloaded to
-     * the file system. We only support the attachment type.
-     */
-    static String parseContentDisposition(String contentDisposition) {
-        try {
-            Matcher m = CONTENT_DISPOSITION_PATTERN.matcher(contentDisposition);
-            if (m.find()) {
-                return m.group(1);
-            }
-        } catch (IllegalStateException ex) {
-            // This function is defined as returning null when it can't parse
-            // the header
-        }
-        return null;
     }
 
     /**
@@ -115,23 +91,11 @@ public class Helpers {
                 || filename.startsWith(Environment.getExternalStorageDirectory().toString());
     }
 
-    /*
-     * Delete the given file from device
-     */
-    /* package */static void deleteFile(String path) {
-        try {
-            File file = new File(path);
-            file.delete();
-        } catch (Exception e) {
-            Log.w(Constants.TAG, "file: '" + path + "' couldn't be deleted", e);
-        }
-    }
-
     /**
      * Showing progress in MB here. It would be nice to choose the unit (KB, MB,
      * GB) based on total file size, but given what we know about the expected
      * ranges of file sizes for APK expansion files, it's probably not necessary.
-     * 
+     *
      * @param overallProgress
      * @param overallTotal
      * @return
@@ -144,30 +108,8 @@ public class Helpers {
             }
             return "";
         }
-        return String.format("%.2f",
-                (float) overallProgress / (1024.0f * 1024.0f))
-                + "MB /" +
-                String.format("%.2f", (float) overallTotal /
-                        (1024.0f * 1024.0f)) + "MB";
-    }
-
-    /**
-     * Adds a percentile to getDownloadProgressString.
-     * 
-     * @param overallProgress
-     * @param overallTotal
-     * @return
-     */
-    static public String getDownloadProgressStringNotification(long overallProgress,
-            long overallTotal) {
-        if (overallTotal == 0) {
-            if ( Constants.LOGVV ) {
-                Log.e(Constants.TAG, "Notification called when total is zero");
-            }
-            return "";
-        }
-        return getDownloadProgressString(overallProgress, overallTotal) + " (" +
-                getDownloadProgressPercent(overallProgress, overallTotal) + ")";
+        return String.format("%.2f", overallProgress / AliteLog.MB) + "MB /" +
+                String.format("%.2f", overallTotal / AliteLog.MB) + "MB";
     }
 
     public static String getDownloadProgressPercent(long overallProgress, long overallTotal) {
@@ -177,11 +119,7 @@ public class Helpers {
             }
             return "";
         }
-        return Long.toString(overallProgress * 100 / overallTotal) + "%";
-    }
-
-    public static String getSpeedString(float bytesPerMillisecond) {
-        return String.format("%.2f", bytesPerMillisecond * 1000 / 1024);
+        return overallProgress * 100 / overallTotal + "%";
     }
 
     public static String getTimeRemaining(long durationInMilliseconds) {
@@ -197,7 +135,7 @@ public class Helpers {
     /**
      * Returns the file name (without full path) for an Expansion APK file from
      * the given context.
-     * 
+     *
      * @param c the context
      * @param mainFile true for main file, false for patch file
      * @param versionCode the version of the file
@@ -212,21 +150,17 @@ public class Helpers {
      * download
      */
     static public String generateSaveFileName(Context c, String fileName) {
-        String path = getSaveFilePath(c)
-                + File.separator + fileName;
-        return path;
+        return getSaveFilePath(c) + File.separator + fileName;
     }
 
     static public String getSaveFilePath(Context c) {
-        File root = Environment.getExternalStorageDirectory();
-        String path = root.toString() + Constants.EXP_PATH + c.getPackageName();
-        return path;
+        return Environment.getExternalStorageDirectory().getPath() + Constants.EXP_PATH + c.getPackageName();
     }
 
     /**
      * Helper function to ascertain the existence of a file and return
      * true/false appropriately
-     * 
+     *
      * @param c the app/activity/service context
      * @param fileName the name (sans path) of the file to query
      * @param fileSize the size that the file must match
@@ -253,7 +187,7 @@ public class Helpers {
     }
 
     /**
-     * Converts download states that are returned by the {@link 
+     * Converts download states that are returned by the {@link
      * IDownloaderClient#onDownloadStateChanged} callback into usable strings.
      * This is useful if using the state strings built into the library to display user messages.
      * @param state One of the STATE_* constants from {@link IDownloaderClient}.

@@ -31,12 +31,7 @@ import android.opengl.GLES11;
 import android.widget.Toast;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.impl.gl.font.GLText;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteIntro;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
@@ -169,7 +164,8 @@ public class FatalExceptionScreen extends AliteScreen {
 			emailIntent.setType("plain/text");
 			emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[] {"alite.crash.report@gmail.com"});
 			String subject = StringUtil.computeSHAString(plainCauseText);
-			emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, subject.isEmpty() ? "Alite Crash Report." : subject);
+			emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, subject.isEmpty() ?
+				AliteConfig.GAME_NAME + " Crash Report." : subject);
 			emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, getErrorReportText());
 			game.startActivityForResult(Intent.createChooser(emailIntent, "Sending email..."), 0);
 		} catch (Throwable t) {
@@ -178,7 +174,8 @@ public class FatalExceptionScreen extends AliteScreen {
 	}
 
 	private String getErrorReportText() {
-		return "The following crash occurred in Alite (" + Alite.VERSION_STRING + "):\n\n" + plainCauseText +
+		return "The following crash occurred in " + AliteConfig.GAME_NAME +
+			" (" + AliteConfig.VERSION_STRING + "):\n\n" + plainCauseText +
 			"\n\nDevice details:\n" + AliteLog.getDeviceInfo() +
 			"\n\nGL Details:\n" + getGlDetails() +
 			"\n\nMemory data:\n" + AliteLog.getMemoryData() +

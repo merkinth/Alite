@@ -28,10 +28,7 @@ import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.AndroidGame;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.DiskScreen;
 import de.phbouillon.android.games.alite.screens.canvas.QuitScreen;
@@ -39,8 +36,6 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 
 public class NavigationBar {
-	public static final int SIZE = 200;
-
 	private int position;
 	private int activeIndex;
 	private int pendingIndex = -1;
@@ -91,14 +86,14 @@ public class NavigationBar {
 				realSize--;
 			}
 		}
-		boolean found = (position + 1080) / SIZE > activeIndex + 1;
+		boolean found = (position + AliteConfig.SCREEN_HEIGHT) / AliteConfig.NAVIGATION_BAR_SIZE > activeIndex + 1;
 		while (!found) {
-			position += SIZE;
-			if (position > SIZE * realSize - 1080) {
+			position += AliteConfig.NAVIGATION_BAR_SIZE;
+			if (position > AliteConfig.NAVIGATION_BAR_SIZE * realSize - AliteConfig.SCREEN_HEIGHT) {
 				found = true;
-				position = SIZE * realSize - 1080;
+				position = AliteConfig.NAVIGATION_BAR_SIZE * realSize - AliteConfig.SCREEN_HEIGHT;
 			} else {
-				found = (position + 1080) / SIZE > activeIndex + 1;
+				found = (position + AliteConfig.SCREEN_HEIGHT) / AliteConfig.NAVIGATION_BAR_SIZE > activeIndex + 1;
 			}
 		}
 
@@ -151,7 +146,7 @@ public class NavigationBar {
 				counter++;
 				continue;
 			}
-			if (counter * SIZE + SIZE < position) {
+			if ((counter + 1) * AliteConfig.NAVIGATION_BAR_SIZE < position) {
 				counter++;
 				positionCounter++;
 				continue;
@@ -159,10 +154,11 @@ public class NavigationBar {
 			int halfWidth  = g.getTextWidth(entry.title, Assets.regularFont) >> 1;
 			int halfHeight = g.getTextHeight(entry.title, Assets.regularFont) >> 1;
 
-			int y = positionCounter * SIZE - position + 1;
-			int x = 1920 - SIZE;
+			int y = positionCounter * AliteConfig.NAVIGATION_BAR_SIZE - position + 1;
+			int x = AliteConfig.DESKTOP_WIDTH;
 
-			g.diagonalGradientRect(x + 5, y + 5, SIZE - 6, SIZE - 6,
+			g.diagonalGradientRect(x + 5, y + 5,
+				AliteConfig.NAVIGATION_BAR_SIZE - 6, AliteConfig.NAVIGATION_BAR_SIZE - 6,
 				ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
 			if (entry.image != null) {
 				g.drawPixmap(entry.image, x + 5, y + 5);
@@ -171,21 +167,23 @@ public class NavigationBar {
 				selX = x;
 				selY = y;
 			}
-			g.rec3d(x, y, SIZE, SIZE, 5, ColorScheme.get(counter == activeIndex ? ColorScheme.COLOR_SELECTED_COLORED_FRAME_LIGHT : ColorScheme.COLOR_FRAME_LIGHT),
-					ColorScheme.get(counter == activeIndex ? ColorScheme.COLOR_SELECTED_COLORED_FRAME_DARK :ColorScheme.COLOR_FRAME_DARK));
+			g.rec3d(x, y, AliteConfig.NAVIGATION_BAR_SIZE, AliteConfig.NAVIGATION_BAR_SIZE, 5,
+				ColorScheme.get(counter == activeIndex ? ColorScheme.COLOR_SELECTED_COLORED_FRAME_LIGHT : ColorScheme.COLOR_FRAME_LIGHT),
+				ColorScheme.get(counter == activeIndex ? ColorScheme.COLOR_SELECTED_COLORED_FRAME_DARK :ColorScheme.COLOR_FRAME_DARK));
 
-			y = positionCounter * SIZE;
-			int yPos = entry.image == null ? (int) (y + (SIZE >> 1) - halfHeight + Assets.regularFont.getSize() / 2) - position :
-				                             (int) (y + SIZE - position - 10);
+			y = positionCounter * AliteConfig.NAVIGATION_BAR_SIZE;
+			int yPos = entry.image == null ? (int) (y + (AliteConfig.NAVIGATION_BAR_SIZE >> 1) -
+				halfHeight + Assets.regularFont.getSize() / 2) - position : y + AliteConfig.NAVIGATION_BAR_SIZE - position - 10;
 
-			g.drawText(entry.title, 1920 - (SIZE >> 1) - halfWidth, yPos,
+			g.drawText(entry.title, AliteConfig.DESKTOP_WIDTH + (AliteConfig.NAVIGATION_BAR_SIZE >> 1) - halfWidth, yPos,
 				ColorScheme.get(counter == activeIndex ? ColorScheme.COLOR_SELECTED_TEXT : ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 			counter++;
 			positionCounter++;
 		}
 		if (selX != -1 && selY != -1) {
-			g.rec3d(selX, selY, SIZE, SIZE, 5, ColorScheme.get(ColorScheme.COLOR_SELECTED_COLORED_FRAME_LIGHT),
-					ColorScheme.get(ColorScheme.COLOR_SELECTED_COLORED_FRAME_DARK));
+			g.rec3d(selX, selY, AliteConfig.NAVIGATION_BAR_SIZE, AliteConfig.NAVIGATION_BAR_SIZE, 5,
+				ColorScheme.get(ColorScheme.COLOR_SELECTED_COLORED_FRAME_LIGHT),
+				ColorScheme.get(ColorScheme.COLOR_SELECTED_COLORED_FRAME_DARK));
 		}
 	}
 
@@ -203,8 +201,8 @@ public class NavigationBar {
 			}
 		}
 
-		if (position > SIZE * realSize - 1080) {
-			position = SIZE * realSize - 1080;
+		if (position > AliteConfig.NAVIGATION_BAR_SIZE * realSize - AliteConfig.SCREEN_HEIGHT) {
+			position = AliteConfig.NAVIGATION_BAR_SIZE * realSize - AliteConfig.SCREEN_HEIGHT;
 		}
 	}
 
@@ -219,7 +217,7 @@ public class NavigationBar {
 				realSize--;
 			}
 		}
-		return position == SIZE * realSize - 1080;
+		return position == AliteConfig.NAVIGATION_BAR_SIZE * realSize - AliteConfig.SCREEN_HEIGHT;
 	}
 
 	public void decreasePosition(int delta) {
@@ -230,12 +228,12 @@ public class NavigationBar {
 	}
 
 	public Screen touched(Alite game, int x, int y) {
-		if (x < 1920 - SIZE || !active) {
+		if (x < AliteConfig.DESKTOP_WIDTH || !active) {
 			return null;
 		}
 
 		int targetY = y + position;
-		int index = targetY / SIZE;
+		int index = targetY / AliteConfig.NAVIGATION_BAR_SIZE;
 		int realIndex = index;
 		for (int i = 0; i <= realIndex; i++) {
 			if (i >= targets.size()) {
@@ -260,8 +258,7 @@ public class NavigationBar {
 			// Nothing to do... Otherwise, if index is DiskScreen and
 			// the current screen is _not_ instance of DiskScreen, we are in
 			// a sub menu of the disk screen and want to return to the
-			// disk screen. This feels like a hack. To much explanation
-			// necessary... :(
+			// disk screen. This feels like a hack. To much explanation necessary... :(
 			return null;
 		}
 		NavigationEntry entry = targets.get(index);
@@ -280,31 +277,31 @@ public class NavigationBar {
 				InvocationTargetException | ClassNotFoundException | InstantiationException e) {
 				e.printStackTrace();
 			}
+			return newScreen;
 		}
-		else {
-			switch (entry.title) {
-				case "Launch":
-					SoundManager.play(Assets.click);
-					try {
-						AliteLog.d("[ALITE]", "Performing autosave. [Launch]");
-						game.autoSave();
-					} catch (IOException e) {
-						AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
-					}
-					InGameManager.safeZoneViolated = false;
-					newScreen = new FlightScreen(game, true);
-					break;
-				case "Front":
-					SoundManager.play(Assets.click);
-					((FlightScreen) game.getCurrentScreen()).setForwardView();
-					((FlightScreen) game.getCurrentScreen()).setInformationScreen(null);
-					break;
-				case "Quit":
-					SoundManager.play(Assets.click);
-					FlightScreen fs = game.getCurrentScreen() instanceof FlightScreen ? (FlightScreen) game.getCurrentScreen() : null;
-					newScreen = new QuitScreen(game, fs);
-					break;
-			}
+
+		switch (entry.title) {
+			case "Launch":
+				SoundManager.play(Assets.click);
+				try {
+					AliteLog.d("[ALITE]", "Performing autosave. [Launch]");
+					game.autoSave();
+				} catch (IOException e) {
+					AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
+				}
+				InGameManager.safeZoneViolated = false;
+				newScreen = new FlightScreen(game, true);
+				break;
+			case "Front":
+				SoundManager.play(Assets.click);
+				((FlightScreen) game.getCurrentScreen()).setForwardView();
+				((FlightScreen) game.getCurrentScreen()).setInformationScreen(null);
+				break;
+			case "Quit":
+				SoundManager.play(Assets.click);
+				FlightScreen fs = game.getCurrentScreen() instanceof FlightScreen ? (FlightScreen) game.getCurrentScreen() : null;
+				newScreen = new QuitScreen(game, fs);
+				break;
 		}
 		return newScreen;
 	}

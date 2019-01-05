@@ -32,7 +32,7 @@ class ScrollingText implements Serializable {
 	private static final long serialVersionUID = -9124382771601908756L;
 
 	private final String textToDisplay;
-	private float x = 1920.0f;
+	private float x = AliteConfig.SCREEN_WIDTH;
 	private int width;
 
 	ScrollingText(Alite alite) {
@@ -59,7 +59,7 @@ class ScrollingText implements Serializable {
 			AliteColor.colorAlpha(ColorScheme.get(ColorScheme.COLOR_SCROLLING_TEXT), 1.0f),
 			Assets.regularFont, 1.5f);
 		if (x + width < -20) {
-			x = 1920.0f;
+			x = AliteConfig.SCREEN_WIDTH;
 		}
 	}
 }

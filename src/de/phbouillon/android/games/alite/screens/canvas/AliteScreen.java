@@ -103,25 +103,28 @@ public abstract class AliteScreen extends Screen {
 	}
 
 	protected void centerText(String text, int y, GLText f, int color) {
-		int center = ((1920 - NavigationBar.SIZE) >> 1) - (game.getGraphics().getTextWidth(text, f) >> 1);
-		game.getGraphics().drawText(text, center, y, color, f);
+		centerText(text, 0, AliteConfig.DESKTOP_WIDTH, y, f, color);
 	}
 
 	void centerText(String text, int minX, int maxX, int y, GLText f, int color) {
-		int center = ((maxX - minX) >> 1) + minX - (game.getGraphics().getTextWidth(text, f) >> 1);
+		int center = maxX + minX - game.getGraphics().getTextWidth(text, f) >> 1;
 		game.getGraphics().drawText(text, center, y, color, f);
 	}
 
 	void centerTextWide(String text, int y, GLText f, int color) {
-		int center = (1920 >> 1) - (game.getGraphics().getTextWidth(text, f) >> 1);
-		game.getGraphics().drawText(text, center, y, color, f);
+		centerText(text, 0, AliteConfig.SCREEN_WIDTH, y, f, color);
 	}
 
 	protected void displayTitle(String title) {
+		displayTitle(title, AliteConfig.DESKTOP_WIDTH);
+	}
+
+	private void displayTitle(String title, int width) {
 		Graphics g = game.getGraphics();
-		g.verticalGradientRect(0, 0, 1719, 80, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT));
+		g.verticalGradientRect(0, 0, width - 1, 80,
+			ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT));
 		g.drawPixmap(Assets.aliteLogoSmall, 20, 5);
-		g.drawPixmap(Assets.aliteLogoSmall, 1600, 5);
+		g.drawPixmap(Assets.aliteLogoSmall, width - 120, 5);
 		centerText(title, 60, Assets.titleFont, ColorScheme.get(ColorScheme.COLOR_MESSAGE));
 	}
 

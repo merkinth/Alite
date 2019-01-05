@@ -25,12 +25,7 @@ import java.io.IOException;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
@@ -652,7 +647,7 @@ public class HackerScreen extends AliteScreen {
 			startY = lastY = touch.y;
 		}
 		if (touch.type == TouchEvent.TOUCH_DRAGGED && touch.pointer == 0) {
-			if (touch.x > 1920 - NavigationBar.SIZE) {
+			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
 				return;
 			}
 			yPosition += lastY - touch.y;

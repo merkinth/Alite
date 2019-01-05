@@ -31,12 +31,7 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.PulsingHighlighter;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteConfig;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
@@ -67,12 +62,7 @@ public abstract class TutorialScreen extends AliteScreen {
 	private int currentHeight = -1;
 
 	TutorialScreen(Alite alite) {
-		super(alite);
-		isGl = false;
-		this.alite = alite;
-		currentLineIndex = -1;
-		currentLine = null;
-		mediaPlayer = new MediaPlayer();
+		this(alite, false);
 	}
 
 	TutorialScreen(Alite alite, boolean gl) {
@@ -101,7 +91,7 @@ public abstract class TutorialScreen extends AliteScreen {
 			currentHeight = currentLine.getHeight();
 			if (currentHeight != 0 && textData != null && textData.length > 0) {
 				currentHeight = textData[textData.length - 1].y + 30 - currentY;
-				if (currentY + currentHeight > 1080) {
+				if (currentY + currentHeight > AliteConfig.SCREEN_HEIGHT) {
 					AliteLog.e("Overfull VBox", "Attention: Overfull VBox for " + currentLine.getText() + " => " + (currentY + currentHeight));
 				}
 				currentLine.setHeight(currentHeight);
@@ -173,11 +163,11 @@ public abstract class TutorialScreen extends AliteScreen {
 	Screen updateNavBar() {
 		NavigationBar navBar = game.getNavigationBar();
 		for (TouchEvent event: game.getInput().getTouchEvents()) {
-			if (event.type == TouchEvent.TOUCH_DOWN && event.x >= 1920 - NavigationBar.SIZE) {
+			if (event.type == TouchEvent.TOUCH_DOWN && event.x >= AliteConfig.DESKTOP_WIDTH) {
 				startX = event.x;
 				startY = lastY = event.y;
 			}
-			if (event.type == TouchEvent.TOUCH_DRAGGED && event.x >= 1920 - NavigationBar.SIZE) {
+			if (event.type == TouchEvent.TOUCH_DRAGGED && event.x >= AliteConfig.DESKTOP_WIDTH) {
 				if (event.y < lastY) {
 					navBar.increasePosition(lastY - event.y);
 				} else {

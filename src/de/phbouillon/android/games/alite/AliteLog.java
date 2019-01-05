@@ -33,8 +33,8 @@ import android.util.Log;
 import de.phbouillon.android.framework.FileIO;
 
 public class AliteLog {
-	private static final float KB = 1024;
-	private static final float MB = 1024 * KB;
+	static final float KB = 1024;
+	public static final float MB = 1024 * KB;
 	private static final float GB = 1024 * MB;
 
 	private static FileIO fileIO;
@@ -183,7 +183,8 @@ public class AliteLog {
 			if (first) {
 				first = false;
 				started = System.currentTimeMillis();
-				logFile.write(("Info - Alite Started - Alite version " + Alite.VERSION_STRING + " started on " +
+				logFile.write(("Info - " + AliteConfig.GAME_NAME + " Started - " +
+					AliteConfig.GAME_NAME + " version " + AliteConfig.VERSION_STRING + " started on " +
 					SimpleDateFormat.getDateTimeInstance().format(new Date()) + "\n").getBytes());
 				outputDeviceInfo(logFile);
 			}
