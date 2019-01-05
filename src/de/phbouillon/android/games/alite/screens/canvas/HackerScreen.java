@@ -39,7 +39,6 @@ import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
-import de.phbouillon.android.games.alite.screens.NavigationBar;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -80,6 +79,22 @@ public class HackerScreen extends AliteScreen {
 		private void setBitToState(boolean value, int offset, int bit) {
 			int val = 1 << (bit - 1);
 			values[offset] = (byte) ((values[offset] & (255 - val)) + (value ? val : 0));
+		}
+
+		private int getLowerHalfByte(int offset) {
+			return values[offset] & 15;
+		}
+
+		private void setLowerHalfByte(int value, int offset) {
+			values[offset] = (byte) ((value & 15) + (values[offset] & 240));
+		}
+
+		private int getUpperHalfByte(int offset) {
+			return (values[offset] & 240) >> 4;
+		}
+
+		private void setUpperHalfByte(int value, int offset) {
+			values[offset] = (byte) (((value & 15) << 4) + (values[offset] & 15));
 		}
 
 		private long getLongFromState(int offset, int bytes) {
@@ -218,19 +233,19 @@ public class HackerScreen extends AliteScreen {
 		}
 
 		int getNumberOfMissiles() {
-			return values[48] & 15;
+			return getLowerHalfByte(48);
 		}
 
 		void setNumberOfMissiles(int missiles) {
-			values[48] = (byte) ((missiles & 0xFF) + (values[48] & 240));
+			setLowerHalfByte(missiles, 48);
 		}
 
 		int getExtraEnergyUnit() {
-			return values[48] & 240;
+			return getUpperHalfByte(48);
 		}
 
 		void setExtraEnergyUnit(int eeu) {
-			values[48] = (byte) (((eeu & 0xFF) << 4) + (values[48] & 15));
+			setUpperHalfByte(eeu, 48);
 		}
 
 		boolean isLargeCargoBay() {
@@ -298,35 +313,35 @@ public class HackerScreen extends AliteScreen {
 		}
 
 		int getPulseLaser() {
-			return values[50] & 15;
+			return getLowerHalfByte(50);
 		}
 
 		void setPulseLaser(int pulseLaser) {
-			values[50] = (byte) ((pulseLaser & 0xFF) + (values[50] & 240));
+			setLowerHalfByte(pulseLaser, 50);
 		}
 
 		int getBeamLaser() {
-			return (values[50] & 240) >> 4;
+			return getUpperHalfByte(50);
 		}
 
 		void setBeamLaser(int beamLaser) {
-			values[50] = (byte) (((beamLaser & 0xFF) << 4) + (values[50] & 15));
+			setUpperHalfByte(beamLaser, 50);
 		}
 
 		int getMiningLaser() {
-			return values[51] & 15;
+			return getLowerHalfByte(51);
 		}
 
 		void setMiningLaser(int miningLaser) {
-			values[51] = (byte) ((miningLaser & 0xFF) + (values[51] & 240));
+			setLowerHalfByte(miningLaser, 51);
 		}
 
 		int getMilitaryLaser() {
-			return (values[51] & 240) >> 4;
+			return getUpperHalfByte(51);
 		}
 
 		void setMilitaryLaser(int militaryLaser) {
-			values[51] = (byte) (((militaryLaser & 0xFF) << 4) + (values[51] & 15));
+			setUpperHalfByte(militaryLaser, 51);
 		}
 
 		boolean isCloakingDevice() {
