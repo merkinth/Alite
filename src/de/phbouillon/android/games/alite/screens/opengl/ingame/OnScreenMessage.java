@@ -22,9 +22,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.graphics.Color;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.colors.AliteColor;
 
 class OnScreenMessage implements Serializable {
 	private static final long serialVersionUID = 1948958480746165833L;
@@ -164,6 +164,6 @@ class OnScreenMessage implements Serializable {
 		}
 		lastRepetitionInactive = 0;
 		alite.getGraphics().drawCenteredText(text, 960, 650, 0x99F0F000, Assets.regularFont, scale);
-		alite.getGraphics().setColor(AliteColor.WHITE);
+		alite.getGraphics().setColor(Color.WHITE);
 	}
 }

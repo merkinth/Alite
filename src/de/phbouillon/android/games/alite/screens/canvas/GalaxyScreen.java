@@ -344,7 +344,7 @@ public class GalaxyScreen extends AliteScreen {
 		if (system.y + 40 > HALF_HEIGHT << 1) {
 			positionY = -40;
 		}
-		g.drawText(system.system.getName(), system.x + positionX, system.y + positionY, getColor(system.system.getEconomy()), Assets.regularFont);
+		g.drawText(system.system.getName(), system.x + positionX, system.y + positionY, system.system.getEconomy().getColor(), Assets.regularFont);
 	}
 
 	public void updateMap() {
@@ -440,7 +440,7 @@ public class GalaxyScreen extends AliteScreen {
 
 		g.setClip(0, -1, -1, 1000);
 		for (MappedSystemData system: systemData) {
-			g.fillCircle(system.x + system.xDiff, system.y, (int) (3 * zoomFactor), getColor(system.system.getEconomy()), 32);
+			g.fillCircle(system.x + system.xDiff, system.y, (int) (3 * zoomFactor), system.system.getEconomy().getColor(), 32);
 			if (zoomFactor >= 4.0f && system.x > 0 && system.x < 1920 && system.y > 0 && system.y < 1080) {
 				renderName(system);
 			}

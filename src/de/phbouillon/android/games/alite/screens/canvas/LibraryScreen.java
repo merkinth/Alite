@@ -25,24 +25,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import android.graphics.Color;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.Button.TextPosition;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.model.library.LibraryPage;
 import de.phbouillon.android.games.alite.model.library.Toc;
 import de.phbouillon.android.games.alite.model.library.TocEntry;
-import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -338,7 +331,7 @@ public class LibraryScreen extends AliteScreen {
 			return;
 		}
 		Graphics g = game.getGraphics();
-		g.clear(AliteColor.BLACK);
+		g.clear(Color.BLACK);
 		displayTitle("Library");
 
 		searchButton.render(g);

@@ -23,6 +23,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Locale;
 
+import android.graphics.Color;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
@@ -34,7 +35,6 @@ import de.phbouillon.android.games.alite.ButtonRegistry;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.Weight;
@@ -48,15 +48,15 @@ import de.phbouillon.android.games.alite.model.trading.Unit;
 @SuppressWarnings("serial")
 public class BuyScreen extends TradeScreen {
 	private static final String MARKET_HINT = "(Tap again to buy)";
-	private static final int[] availColors = new int[] {AliteColor.RED, 0xFFFF3E00, 0xFFFF7D00,
-		0xFFFFBD00, AliteColor.YELLOW, 0xFFFFFF3B, 0xFFFFFF7D, 0xFFFFFFBF, AliteColor.WHITE };
+	private static final int[] availColors = new int[] {Color.RED, 0xFFFF3E00, 0xFFFF7D00,
+		0xFFFFBD00, Color.YELLOW, 0xFFFFFF3B, 0xFFFFFF7D, 0xFFFFFFBF, Color.WHITE };
 	private int currentAvailabiltyColor;
 	private String boughtAmount = null;
 	private long startTime = System.nanoTime();
 	private Pixmap[] tradegoods;
 	private Pixmap[] beam;
 	private String pendingSelection = null;
-	TradeGood goodToBuy;
+	private TradeGood goodToBuy;
 
 	public BuyScreen(Alite game) {
 		super(game, 0);

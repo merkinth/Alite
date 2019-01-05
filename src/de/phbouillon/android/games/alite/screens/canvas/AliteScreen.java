@@ -28,16 +28,9 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ButtonRegistry;
-import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.colors.AliteColor;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.model.generator.enums.Economy;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
-import de.phbouillon.android.games.alite.screens.canvas.StatusScreen.Direction;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -316,20 +309,6 @@ public abstract class AliteScreen extends Screen {
 			messageIsModal = false;
 			largeMessage = false;
 		}
-	}
-
-	protected int getColor(Economy economy) {
-		switch (economy) {
-			case RICH_INDUSTRIAL:      return ColorScheme.get(ColorScheme.COLOR_RICH_INDUSTRIAL);
-			case AVERAGE_INDUSTRIAL:   return ColorScheme.get(ColorScheme.COLOR_AVERAGE_INDUSTRIAL);
-			case POOR_INDUSTRIAL:      return ColorScheme.get(ColorScheme.COLOR_POOR_INDUSTRIAL);
-			case MAINLY_INDUSTRIAL:    return ColorScheme.get(ColorScheme.COLOR_MAIN_INDUSTRIAL);
-			case MAINLY_AGRICULTURAL:  return ColorScheme.get(ColorScheme.COLOR_MAIN_AGRICULTURAL);
-			case RICH_AGRICULTURAL:    return ColorScheme.get(ColorScheme.COLOR_RICH_AGRICULTURAL);
-			case AVERAGE_AGRICULTURAL: return ColorScheme.get(ColorScheme.COLOR_AVERAGE_AGRICULTURAL);
-			case POOR_AGRICULTURAL:    return ColorScheme.get(ColorScheme.COLOR_POOR_AGRICULTURAL);
-		}
-		return AliteColor.BLACK;
 	}
 
 	final TextData[] computeCenteredTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int color) {

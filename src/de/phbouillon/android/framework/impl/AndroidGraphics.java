@@ -33,7 +33,6 @@ import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.screens.opengl.TextureManager;
 
 public class AndroidGraphics implements Graphics {
@@ -155,7 +154,7 @@ public class AndroidGraphics implements Graphics {
 
 	@Override
 	public void clear(int color) {
-		GLES11.glClearColor(AliteColor.red(color), AliteColor.green(color), AliteColor.blue(color), AliteColor.alpha(color));
+		GLES11.glClearColor(Color.red(color), Color.green(color), Color.blue(color), Color.alpha(color));
 		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT);
 	}
 
@@ -275,10 +274,10 @@ public class AndroidGraphics implements Graphics {
 	}
 
 	private void putToColorBuffer(int color) {
-		colorBuffer.put(AliteColor.red(color) / 255.0f);
-		colorBuffer.put(AliteColor.green(color) / 255.0f);
-		colorBuffer.put(AliteColor.blue(color) / 255.0f);
-		colorBuffer.put(AliteColor.alpha(color) / 255.0f);
+		colorBuffer.put(Color.red(color) / 255.0f);
+		colorBuffer.put(Color.green(color) / 255.0f);
+		colorBuffer.put(Color.blue(color) / 255.0f);
+		colorBuffer.put(Color.alpha(color) / 255.0f);
 	}
 
 	@Override
@@ -418,12 +417,12 @@ public class AndroidGraphics implements Graphics {
 
 	@Override
 	public void setColor(int color, float alpha) {
-		GLES11.glColor4f(AliteColor.red(color) / 255.0f, AliteColor.green(color) / 255.0f, AliteColor.blue(color) / 255.0f, alpha);
+		GLES11.glColor4f(Color.red(color) / 255.0f, Color.green(color) / 255.0f, Color.blue(color) / 255.0f, alpha);
 	}
 
 	@Override
 	public void setColor(int color) {
-		setColor(color, AliteColor.alpha(color) / 255.0f);
+		setColor(color, Color.alpha(color) / 255.0f);
 	}
 
 	@Override

@@ -695,7 +695,7 @@ public class LibraryPageScreen extends AliteScreen {
 		}
 		Graphics g = game.getGraphics();
 		displayTitle(tocEntry.getName());
-		g.clear(AliteColor.BLACK);
+		g.clear(Color.BLACK);
 		displayTitle(tocEntry.getName());
 
 		if (deltaY != 0) {

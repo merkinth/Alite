@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
+import android.graphics.Color;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
@@ -454,7 +455,7 @@ public class AliteButtons implements Serializable {
 		if (sweepRightPossible) {
 			cycleRight.render();
 		}
-		alite.getGraphics().setColor(AliteColor.WHITE);
+		alite.getGraphics().setColor(Color.WHITE);
 	}
 
 	public void renderYesNoButtons() {
@@ -469,7 +470,7 @@ public class AliteButtons implements Serializable {
 			overlay.setPosition(noButton.getPosition());
 			overlay.render();
 		}
-		alite.getGraphics().setColor(AliteColor.WHITE);
+		alite.getGraphics().setColor(Color.WHITE);
 	}
 
 	private void sweepLeft() {

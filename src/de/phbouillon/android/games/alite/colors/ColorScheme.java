@@ -18,6 +18,7 @@ package de.phbouillon.android.games.alite.colors;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import android.graphics.Color;
 import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -107,46 +108,46 @@ public class ColorScheme {
 
 	private static int[][] classicColorSchemeColors = new int[][] {
 		{AliteColor.LIGHT_GREEN, AliteColor.LIGHT_GREEN}, // COLOR_CONDITION_GREEN
-		{AliteColor.YELLOW, AliteColor.YELLOW}, // COLOR_CONDITION_YELLOW
-		{AliteColor.RED, AliteColor.RED}, // COLOR_CONDITION_RED
-		{AliteColor.BLACK, AliteColor.BLACK}, // COLOR_BACKGROUND
-		{AliteColor.WHITE, AliteColor.WHITE}, // COLOR_BASE_INFORMATION
-		{AliteColor.YELLOW, AliteColor.YELLOW}, // COLOR_MAIN_TEXT
-		{AliteColor.MAGENTA, AliteColor.MAGENTA}, // COLOR_INFORMATION_TEXT
+		{Color.YELLOW, Color.YELLOW}, // COLOR_CONDITION_YELLOW
+		{Color.RED, Color.RED}, // COLOR_CONDITION_RED
+		{Color.BLACK, Color.BLACK}, // COLOR_BACKGROUND
+		{Color.WHITE, Color.WHITE}, // COLOR_BASE_INFORMATION
+		{Color.YELLOW, Color.YELLOW}, // COLOR_MAIN_TEXT
+		{Color.MAGENTA, Color.MAGENTA}, // COLOR_INFORMATION_TEXT
 		{AliteColor.LIGHT_GREEN, AliteColor.LIGHT_GREEN}, // COLOR_ADDITIONAL_TEXT
-		{AliteColor.WHITE, AliteColor.WHITE}, // COLOR_MESSAGE
+		{Color.WHITE, Color.WHITE}, // COLOR_MESSAGE
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_WARNING_MESSAGE
-		{AliteColor.RED, AliteColor.RED}, // COLOR_FUEL_CIRCLE
+		{Color.RED, Color.RED}, // COLOR_FUEL_CIRCLE
 		{AliteColor.GRAYISH_BLUE, AliteColor.GRAYISH_BLUE}, // COLOR_DASHED_FUEL_CIRCLE
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_INHABITANT_INFORMATION
-		{AliteColor.GRAY, AliteColor.GRAY}, // COLOR_ARROW
+		{Color.GRAY, Color.GRAY}, // COLOR_ARROW
 		{AliteColor.GRAYISH_BLUE, AliteColor.GRAYISH_BLUE}, // COLOR_ECONOMY
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_GOVERNMENT
-		{AliteColor.WHITE, AliteColor.WHITE}, // COLOR_TECH_LEVEL
-		{AliteColor.YELLOW, AliteColor.YELLOW}, // COLOR_POPULATION
+		{Color.WHITE, Color.WHITE}, // COLOR_TECH_LEVEL
+		{Color.YELLOW, Color.YELLOW}, // COLOR_POPULATION
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_SHIP_DISTANCE
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_DIAMETER
-		{AliteColor.WHITE, AliteColor.WHITE}, // COLOR_GNP
+		{Color.WHITE, Color.WHITE}, // COLOR_GNP
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_CURRENT_SYSTEM_NAME
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_HYPERSPACE_SYSTEM_NAME
-		{AliteColor.WHITE, AliteColor.WHITE}, // COLOR_LEGAL_STATUS
-		{AliteColor.YELLOW, AliteColor.YELLOW}, // COLOR_REMAINING_FUEL
-		{AliteColor.YELLOW, AliteColor.YELLOW}, // COLOR_BALANCE
+		{Color.WHITE, Color.WHITE}, // COLOR_LEGAL_STATUS
+		{Color.YELLOW, Color.YELLOW}, // COLOR_REMAINING_FUEL
+		{Color.YELLOW, Color.YELLOW}, // COLOR_BALANCE
 		{AliteColor.GRAYISH_BLUE, AliteColor.GRAYISH_BLUE}, // COLOR_RATING
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_MISSION_OBJECTIVE
 		{AliteColor.GRAYISH_BLUE, AliteColor.GRAYISH_BLUE}, // COLOR_EQUIPMENT_DESCRIPTION
 		{AliteColor.GRAYISH_BLUE, AliteColor.GRAYISH_BLUE}, // COLOR_RICH_INDUSTRIAL
 		{AliteColor.LIGHT_GREEN, AliteColor.LIGHT_GREEN}, // COLOR_AVERAGE_INDUSTRIAL
-		{AliteColor.MAGENTA, AliteColor.MAGENTA}, // COLOR_POOR_INDUSTRIAL
-		{AliteColor.RED, AliteColor.RED}, // COLOR_MAIN_INDUSTRIAL
-		{AliteColor.YELLOW, AliteColor.YELLOW}, // COLOR_MAIN_AGRICULTURAL
-		{AliteColor.WHITE, AliteColor.WHITE}, // COLOR_RICH_AGRICULTURAL
+		{Color.MAGENTA, Color.MAGENTA}, // COLOR_POOR_INDUSTRIAL
+		{Color.RED, Color.RED}, // COLOR_MAIN_INDUSTRIAL
+		{Color.YELLOW, Color.YELLOW}, // COLOR_MAIN_AGRICULTURAL
+		{Color.WHITE, Color.WHITE}, // COLOR_RICH_AGRICULTURAL
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_AVERAGE_AGRICULTURAL
-		{AliteColor.GRAY, AliteColor.GRAY}, // COLOR_POOR_AGRICULTURAL
+		{Color.GRAY, Color.GRAY}, // COLOR_POOR_AGRICULTURAL
 		{AliteColor.LIGHT_BLUE, AliteColor.LIGHT_BLUE}, // COLOR_BACKGROUND_LIGHT
 		{AliteColor.DARK_BLUE, AliteColor.DARK_BLUE}, // COLOR_BACKGROUND_DARK
-		{AliteColor.WHITE, AliteColor.WHITE}, // COLOR_FRAME_LIGHT
-		{AliteColor.GRAY, AliteColor.GRAY}, // COLOR_FRAME_DARK
+		{Color.WHITE, Color.WHITE}, // COLOR_FRAME_LIGHT
+		{Color.GRAY, Color.GRAY}, // COLOR_FRAME_DARK
 		{AliteColor.LIGHT_ORANGE, AliteColor.LIGHT_ORANGE}, // COLOR_SELECTED_COLORED_FRAME_LIGHT
 		{AliteColor.DARK_ORANGE, AliteColor.DARK_ORANGE}, // COLOR_SELECTED_COLORED_FRAME_DARK
 		{AliteColor.DARK_RED_LOW_ALPHA, AliteColor.DARK_RED_LOW_ALPHA}, // COLOR_PULSING_HIGHLIGHTER_DARK
@@ -154,27 +155,27 @@ public class ColorScheme {
 		{AliteColor.DKGRAY_MED_ALPHA, AliteColor.DKGRAY_MED_ALPHA}, // COLOR_TUTORIAL_BUBBLE_DARK
 		{AliteColor.GRAY_MED_ALPHA, AliteColor.GRAY_MED_ALPHA}, // COLOR_TUTORIAL_BUBBLE_LIGHT
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_SHIP_TITLE
-		{AliteColor.GRAY, AliteColor.GRAY}, // COLOR_TEXT_AREA_BACKGROUND
+		{Color.GRAY, Color.GRAY}, // COLOR_TEXT_AREA_BACKGROUND
 		{AliteColor.LIGHT_BLUE, AliteColor.LIGHT_BLUE}, // COLOR_CURSOR
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_PRICE
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_SCROLLING_TEXT
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_SELECTED_TEXT
-		{AliteColor.WHITE, AliteColor.WHITE}, // COLOR_CREDITS_DESCRIPTION
-		{AliteColor.YELLOW, AliteColor.YELLOW}, // COLOR_CREDITS_PERSON
+		{Color.WHITE, Color.WHITE}, // COLOR_CREDITS_DESCRIPTION
+		{Color.YELLOW, Color.YELLOW}, // COLOR_CREDITS_PERSON
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_CREDITS_ADDITION
-		{AliteColor.MAGENTA, AliteColor.RED}, // COLOR_FRONT_SHIELD
-		{AliteColor.MAGENTA, AliteColor.RED}, // COLOR_AFT_SHIELD
-		{AliteColor.GREEN, AliteColor.RED}, // COLOR_FUEL
-		{AliteColor.GREEN, AliteColor.RED}, // COLOR_CABIN_TEMPERATURE
-		{AliteColor.GREEN, AliteColor.RED}, // COLOR_LASER_TEMPERATURE
-		{AliteColor.GREEN, AliteColor.RED}, // COLOR_ALTITUDE
-		{AliteColor.RED, AliteColor.GREEN}, // COLOR_SPEED
-		{AliteColor.MAGENTA, AliteColor.MAGENTA}, // COLOR_ENERGY_BANK_1
-		{AliteColor.MAGENTA, AliteColor.MAGENTA}, // COLOR_ENERGY_BANK_2
-		{AliteColor.MAGENTA, AliteColor.MAGENTA}, // COLOR_ENERGY_BANK_3
-		{AliteColor.MAGENTA, AliteColor.RED}, // COLOR_ENERGY_BANK_4
-		{AliteColor.TRANSPARENT, AliteColor.TRANSPARENT}, // COLOR_ENERGY_BANK_WHOLE
-		{AliteColor.MAGENTA, AliteColor.MAGENTA}, // COLOR_INDICATOR_BAR
+		{Color.MAGENTA, Color.RED}, // COLOR_FRONT_SHIELD
+		{Color.MAGENTA, Color.RED}, // COLOR_AFT_SHIELD
+		{Color.GREEN, Color.RED}, // COLOR_FUEL
+		{Color.GREEN, Color.RED}, // COLOR_CABIN_TEMPERATURE
+		{Color.GREEN, Color.RED}, // COLOR_LASER_TEMPERATURE
+		{Color.GREEN, Color.RED}, // COLOR_ALTITUDE
+		{Color.RED, Color.GREEN}, // COLOR_SPEED
+		{Color.MAGENTA, Color.MAGENTA}, // COLOR_ENERGY_BANK_1
+		{Color.MAGENTA, Color.MAGENTA}, // COLOR_ENERGY_BANK_2
+		{Color.MAGENTA, Color.MAGENTA}, // COLOR_ENERGY_BANK_3
+		{Color.MAGENTA, Color.RED}, // COLOR_ENERGY_BANK_4
+		{Color.TRANSPARENT, Color.TRANSPARENT}, // COLOR_ENERGY_BANK_WHOLE
+		{Color.MAGENTA, Color.MAGENTA}, // COLOR_INDICATOR_BAR
 		{AliteColor.DARK_RED_LOW_ALPHA, AliteColor.DARK_RED_LOW_ALPHA} // COLOR_HIGHLIGHT_COLOR
 	};
 
@@ -182,17 +183,17 @@ public class ColorScheme {
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_CONDITION_GREEN
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_CONDITION_YELLOW
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_CONDITION_RED
-		{AliteColor.BLACK, AliteColor.BLACK}, // COLOR_BACKGROUND
+		{Color.BLACK, Color.BLACK}, // COLOR_BACKGROUND
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_BASE_INFORMATION
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_MAIN_TEXT
 		{AliteColor.DARK_ELECTRIC_BLUE, AliteColor.DARK_ELECTRIC_BLUE}, // COLOR_INFORMATION_TEXT
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_ADDITIONAL_TEXT
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_MESSAGE
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_WARNING_MESSAGE
-		{AliteColor.RED, AliteColor.RED}, // COLOR_FUEL_CIRCLE
+		{Color.RED, Color.RED}, // COLOR_FUEL_CIRCLE
 		{AliteColor.GRAYISH_BLUE, AliteColor.GRAYISH_BLUE}, // COLOR_DASHED_FUEL_CIRCLE
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_INHABITANT_INFORMATION
-		{AliteColor.GRAY, AliteColor.GRAY}, // COLOR_ARROW
+		{Color.GRAY, Color.GRAY}, // COLOR_ARROW
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_ECONOMY
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_GOVERNMENT
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_TECH_LEVEL
@@ -210,16 +211,16 @@ public class ColorScheme {
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_EQUIPMENT_DESCRIPTION
 		{AliteColor.GRAYISH_BLUE, AliteColor.GRAYISH_BLUE}, // COLOR_RICH_INDUSTRIAL
 		{AliteColor.LIGHT_GREEN, AliteColor.LIGHT_GREEN}, // COLOR_AVERAGE_INDUSTRIAL
-		{AliteColor.MAGENTA, AliteColor.MAGENTA}, // COLOR_POOR_INDUSTRIAL
-		{AliteColor.RED, AliteColor.RED}, // COLOR_MAIN_INDUSTRIAL
-		{AliteColor.YELLOW, AliteColor.YELLOW}, // COLOR_MAIN_AGRICULTURAL
-		{AliteColor.WHITE, AliteColor.WHITE}, // COLOR_RICH_AGRICULTURAL
+		{Color.MAGENTA, Color.MAGENTA}, // COLOR_POOR_INDUSTRIAL
+		{Color.RED, Color.RED}, // COLOR_MAIN_INDUSTRIAL
+		{Color.YELLOW, Color.YELLOW}, // COLOR_MAIN_AGRICULTURAL
+		{Color.WHITE, Color.WHITE}, // COLOR_RICH_AGRICULTURAL
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_AVERAGE_AGRICULTURAL
-		{AliteColor.GRAY, AliteColor.GRAY}, // COLOR_POOR_AGRICULTURAL
-		{AliteColor.GRAY, AliteColor.GRAY}, // COLOR_BACKGROUND_LIGHT
-		{AliteColor.DKGRAY, AliteColor.DKGRAY}, // COLOR_BACKGROUND_DARK
-		{AliteColor.WHITE, AliteColor.WHITE}, // COLOR_FRAME_LIGHT
-		{AliteColor.GRAY, AliteColor.GRAY}, // COLOR_FRAME_DARK
+		{Color.GRAY, Color.GRAY}, // COLOR_POOR_AGRICULTURAL
+		{Color.LTGRAY, Color.LTGRAY}, // COLOR_BACKGROUND_LIGHT
+		{Color.DKGRAY, Color.DKGRAY}, // COLOR_BACKGROUND_DARK
+		{Color.WHITE, Color.WHITE}, // COLOR_FRAME_LIGHT
+		{Color.GRAY, Color.GRAY}, // COLOR_FRAME_DARK
 		{AliteColor.LIGHT_ORANGE, AliteColor.LIGHT_ORANGE}, // COLOR_SELECTED_COLORED_FRAME_LIGHT
 		{AliteColor.DARK_ORANGE, AliteColor.DARK_ORANGE}, // COLOR_SELECTED_COLORED_FRAME_DARK
 		{AliteColor.DARK_GREEN_LOW_ALPHA, AliteColor.DARK_GREEN_LOW_ALPHA}, // COLOR_PULSING_HIGHLIGHTER_DARK
@@ -227,7 +228,7 @@ public class ColorScheme {
 		{AliteColor.DKGRAY_MED_ALPHA, AliteColor.DKGRAY_MED_ALPHA}, // COLOR_TUTORIAL_BUBBLE_DARK
 		{AliteColor.GRAY_MED_ALPHA, AliteColor.GRAY_MED_ALPHA}, // COLOR_TUTORIAL_BUBBLE_LIGHT
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_SHIP_TITLE
-		{AliteColor.GRAY, AliteColor.GRAY}, // COLOR_TEXT_AREA_BACKGROUND
+		{Color.GRAY, Color.GRAY}, // COLOR_TEXT_AREA_BACKGROUND
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_CURSOR
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_PRICE
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_SCROLLING_TEXT
@@ -235,18 +236,18 @@ public class ColorScheme {
 		{AliteColor.DARK_ELECTRIC_BLUE, AliteColor.DARK_ELECTRIC_BLUE}, // COLOR_CREDITS_DESCRIPTION
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_CREDITS_PERSON
 		{AliteColor.DARK_ORANGE, AliteColor.DARK_ORANGE}, // COLOR_CREDITS_ADDITION
-		{AliteColor.LIGHT_GREEN, AliteColor.RED}, // COLOR_FRONT_SHIELD
-		{AliteColor.LIGHT_GREEN, AliteColor.RED}, // COLOR_AFT_SHIELD
-		{AliteColor.LIGHT_GREEN, AliteColor.RED}, // COLOR_FUEL
-		{AliteColor.LIGHT_GREEN, AliteColor.RED}, // COLOR_CABIN_TEMPERATURE
-		{AliteColor.LIGHT_GREEN, AliteColor.RED}, // COLOR_LASER_TEMPERATURE
-		{AliteColor.LIGHT_GREEN, AliteColor.RED}, // COLOR_ALTITUDE
-		{AliteColor.RED, AliteColor.LIGHT_GREEN}, // COLOR_SPEED
+		{AliteColor.LIGHT_GREEN, Color.RED}, // COLOR_FRONT_SHIELD
+		{AliteColor.LIGHT_GREEN, Color.RED}, // COLOR_AFT_SHIELD
+		{AliteColor.LIGHT_GREEN, Color.RED}, // COLOR_FUEL
+		{AliteColor.LIGHT_GREEN, Color.RED}, // COLOR_CABIN_TEMPERATURE
+		{AliteColor.LIGHT_GREEN, Color.RED}, // COLOR_LASER_TEMPERATURE
+		{AliteColor.LIGHT_GREEN, Color.RED}, // COLOR_ALTITUDE
+		{Color.RED, AliteColor.LIGHT_GREEN}, // COLOR_SPEED
 		{AliteColor.LIGHT_GREEN, AliteColor.LIGHT_GREEN}, // COLOR_ENERGY_BANK_1
 		{AliteColor.LIGHT_GREEN, AliteColor.LIGHT_GREEN}, // COLOR_ENERGY_BANK_2
 		{AliteColor.LIGHT_GREEN, AliteColor.LIGHT_GREEN}, // COLOR_ENERGY_BANK_3
-		{AliteColor.LIGHT_GREEN, AliteColor.RED}, // COLOR_ENERGY_BANK_4
-		{AliteColor.TRANSPARENT, AliteColor.TRANSPARENT}, // COLOR_ENERGY_BANK_WHOLE
+		{AliteColor.LIGHT_GREEN, Color.RED}, // COLOR_ENERGY_BANK_4
+		{Color.TRANSPARENT, Color.TRANSPARENT}, // COLOR_ENERGY_BANK_WHOLE
 		{AliteColor.LIGHT_GREEN, AliteColor.LIGHT_GREEN}, // COLOR_INDICATOR_BAR
 		{AliteColor.DARK_GREEN_LOW_ALPHA, AliteColor.DARK_GREEN_LOW_ALPHA} // COLOR_HIGHLIGHT_COLOR
 	};
@@ -263,7 +264,8 @@ public class ColorScheme {
 			case COLOR_SCHEME_CLASSIC: colors = classicColorSchemeColors; break;
 			case COLOR_SCHEME_MODERN: colors = modernColorSchemeColors; break;
 			default:
-				AliteLog.d("Load color scheme file", "file name: " + DIRECTORY_COLOR_SCHEMES + schemeName);
+				AliteLog.d("Load color scheme file", "file name: " +
+					DIRECTORY_COLOR_SCHEMES + File.separator + schemeName);
 				try {
 					return loadColorSchemeValues(schemeContent == null ?
 						new String(f.readFileContents(DIRECTORY_COLOR_SCHEMES + File.separator + schemeName)) : schemeContent);
@@ -291,7 +293,7 @@ public class ColorScheme {
 				while (i.hasNext()) {
 					colorItem = i.next();
 					color = colorItems.getString(colorItem);
-					colorNameMap.put(colorItem.toLowerCase(), AliteColor.parseColor(color));
+					colorNameMap.put(colorItem.toLowerCase(), Color.parseColor(color));
 				}
 			}
 
@@ -324,7 +326,7 @@ public class ColorScheme {
 
 	private static int parseColor(String colorString, HashMap<String, Integer> localColorNameMap) {
 		try {
-			return AliteColor.parseColor(colorString);
+			return Color.parseColor(colorString);
 		} catch (IllegalArgumentException ignored) {
 			Integer color = localColorNameMap.get(colorString.toLowerCase());
 			if (color != null) {
@@ -382,7 +384,7 @@ public class ColorScheme {
 	public static int get(int index) {
 		if (index < 0 || index > MAX_COLORS) {
 			AliteLog.e("ColorScheme.get", "Required color " + index + " is out of bounds (0 - " + MAX_COLORS + ")");
-			return AliteColor.TRANSPARENT;
+			return Color.TRANSPARENT;
 		}
 		return colors[index][0];
 	}
@@ -394,7 +396,6 @@ public class ColorScheme {
 		return getGradient(colors[index][1], colors[index][0], value);
 	}
 
-	// Color class is allowed only from API 26
 	private static int getGradient(int startColor, int endColor, float mixRatio) {
 		if (mixRatio <= 0) {
 			return startColor;
@@ -405,13 +406,13 @@ public class ColorScheme {
 		startColor = convertEntireColorLinearSRGBtoRGB(startColor);
 		endColor = convertEntireColorLinearSRGBtoRGB(endColor);
 
-		return AliteColor.rgb(convertLinearRGBtoSRGB(interpolate(mixRatio, AliteColor.red(startColor), AliteColor.red(endColor))),
-			convertLinearRGBtoSRGB(interpolate(mixRatio, AliteColor.green(startColor), AliteColor.green(endColor))),
-			convertLinearRGBtoSRGB(interpolate(mixRatio, AliteColor.blue(startColor), AliteColor.blue(endColor))));
+		return Color.rgb(convertLinearRGBtoSRGB(interpolate(mixRatio, Color.red(startColor), Color.red(endColor))),
+			convertLinearRGBtoSRGB(interpolate(mixRatio, Color.green(startColor), Color.green(endColor))),
+			convertLinearRGBtoSRGB(interpolate(mixRatio, Color.blue(startColor), Color.blue(endColor))));
 	}
 
 	private static int convertEntireColorLinearSRGBtoRGB(int c) {
-		return AliteColor.rgb(convertSRGBtoLinearRGB(AliteColor.red(c)), convertSRGBtoLinearRGB(AliteColor.green(c)), convertSRGBtoLinearRGB(AliteColor.blue(c)));
+		return Color.rgb(convertSRGBtoLinearRGB(Color.red(c)), convertSRGBtoLinearRGB(Color.green(c)), convertSRGBtoLinearRGB(Color.blue(c)));
 	}
 
 	private static int convertSRGBtoLinearRGB(int color) {

@@ -312,7 +312,7 @@ public class ConstrictorScreen extends AliteScreen {
 		if (p.x < 900 || p.x > 1700 || p.y < 100 || p.y > 1000) {
 			return;
 		}
-		g.fillCircle(p.x, p.y, (int) (3 * zoomFactor), getColor(system.getEconomy()), 32);
+		g.fillCircle(p.x, p.y, (int) (3 * zoomFactor), system.getEconomy().getColor(), 32);
 		int nameWidth = g.getTextWidth(system.getName(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
 		int nameHeight = g.getTextHeight(system.getName(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
 		int positionX = (int) (3 * zoomFactor) + 2;
@@ -326,7 +326,7 @@ public class ConstrictorScreen extends AliteScreen {
 		if (clearBackground) {
 			g.fillRect(p.x + positionX, p.y + positionY - nameHeight, nameWidth, nameHeight, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		}
-		g.drawText(system.getName(), p.x + positionX, p.y + positionY, getColor(system.getEconomy()), system == targetSystem ? Assets.regularFont : Assets.smallFont);
+		g.drawText(system.getName(), p.x + positionX, p.y + positionY, system.getEconomy().getColor(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
 		if (system == targetSystem) {
 			g.drawLine(p.x, p.y - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.x, p.y - GalaxyScreen.CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
 			g.drawLine(p.x, p.y + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.x, p.y + GalaxyScreen.CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));

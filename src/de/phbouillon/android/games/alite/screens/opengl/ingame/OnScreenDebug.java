@@ -20,31 +20,31 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 import java.util.List;
 
+import android.graphics.Color;
 import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.ObjectUtils;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 
 public class OnScreenDebug {
 	private static void displayDockingAlignment(Alite alite, GraphicObject ship, SpaceObject spaceStation, float distanceSq) {
-		alite.getGraphics().drawText("Dist: " + distanceSq, 400, 50, AliteColor.WHITE, Assets.regularFont, 1.0f);
+		alite.getGraphics().drawText("Dist: " + distanceSq, 400, 50, Color.WHITE, Assets.regularFont, 1.0f);
 		float fz = spaceStation.getDisplayMatrix()[10];
-		alite.getGraphics().drawText("fz: " + fz, 400, 90, fz < 0.98f ? AliteColor.RED : AliteColor.GREEN,
+		alite.getGraphics().drawText("fz: " + fz, 400, 90, fz < 0.98f ? Color.RED : Color.GREEN,
 			Assets.regularFont, 1.0f);
 
 		float angle = ship.getForwardVector().angleInDegrees(spaceStation.getForwardVector());
 		alite.getGraphics().drawText(String.format("%4.2f", angle), 400, 130,
-			Math.abs(angle) > 15.0f ? AliteColor.RED : AliteColor.GREEN, Assets.regularFont, 1.0f);
+			Math.abs(angle) > 15.0f ? Color.RED : Color.GREEN, Assets.regularFont, 1.0f);
 
 		float ux = Math.abs(spaceStation.getDisplayMatrix()[4]);
-		alite.getGraphics().setColor(ux < 0.95f ? AliteColor.RED : AliteColor.GREEN);
+		alite.getGraphics().setColor(ux < 0.95f ? Color.RED : Color.GREEN);
 		alite.getGraphics().drawText("ux: " + ux, 400, 170,
-			ux < 0.95f ? AliteColor.RED : AliteColor.GREEN, Assets.regularFont, 1.0f);
-		alite.getGraphics().setColor(AliteColor.WHITE);
+			ux < 0.95f ? Color.RED : Color.GREEN, Assets.regularFont, 1.0f);
+		alite.getGraphics().setColor(Color.WHITE);
 	}
 
 	static void debugDocking(final Alite alite, final GraphicObject ship, final List<DepthBucket> sortedObjectsToDraw) {
@@ -59,12 +59,12 @@ public class OnScreenDebug {
 				}
 			}
 		}
-		alite.getGraphics().setColor(AliteColor.WHITE);
+		alite.getGraphics().setColor(Color.WHITE);
 	}
 
 	public static void debugHitArea(final Alite alite, final SpaceObject enemy, float scaleFactor) {
 		alite.getGraphics().drawText("Hit area of " + enemy.getName() + ": " +
-		String.format("%3.2f", (scaleFactor * 100.0f)) + "%", 960, 50, AliteColor.WHITE, Assets.regularFont, 1.0f);
+		String.format("%3.2f", (scaleFactor * 100.0f)) + "%", 960, 50, Color.WHITE, Assets.regularFont, 1.0f);
 	}
 
 	public static void debugBuckets(Alite alite, final List <DepthBucket> sortedObjectsToDraw) {
@@ -76,21 +76,21 @@ public class OnScreenDebug {
 			}
 			String debugString = "Bucket " + depthBucketIndex + ": " + String.format("%7.2f", depthBucket.near) + ", " +
 				String.format("%7.2f", depthBucket.far) + ": " + objectsString;
-			alite.getGraphics().drawText(debugString, 200, 10 + 40 * (depthBucketIndex - 1), AliteColor.WHITE,
+			alite.getGraphics().drawText(debugString, 200, 10 + 40 * (depthBucketIndex - 1), Color.WHITE,
 				Assets.regularFont, 0.8f);
 			depthBucketIndex++;
 		}
-		alite.getGraphics().setColor(AliteColor.WHITE);
+		alite.getGraphics().setColor(Color.WHITE);
 	}
 
 	static void debugFPS(Alite alite) {
 		alite.getGraphics().drawText(String.format("FPS: %3.1f", AndroidGame.fps), 400, 10, 0xFFE6B300,
 			Assets.regularFont, 1.0f);
-		alite.getGraphics().setColor(AliteColor.WHITE);
+		alite.getGraphics().setColor(Color.WHITE);
 	}
 
 	public static void debugMessage(Alite alite, String msg) {
 		alite.getGraphics().drawText(msg, 400, 10, 0xFFE6B300, Assets.regularFont, 1.0f);
-		alite.getGraphics().setColor(AliteColor.WHITE);
+		alite.getGraphics().setColor(Color.WHITE);
 	}
 }

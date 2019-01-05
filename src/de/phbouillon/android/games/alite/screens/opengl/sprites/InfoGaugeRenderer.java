@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
+import android.graphics.Color;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -142,7 +143,7 @@ public final class InfoGaugeRenderer implements Serializable {
 
 	private float extractEnergyBank(int bank) {
 		float energyValue = alite.getCobra().getEnergy(bank);
-		alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_ENERGY_BANK_WHOLE) == AliteColor.TRANSPARENT ?
+		alite.getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_ENERGY_BANK_WHOLE) == Color.TRANSPARENT ?
 			ColorScheme.get(ColorScheme.COLOR_ENERGY_BANK_X + bank, energyValue / PlayerCobra.MAX_ENERGY_BANK) :
 			ColorScheme.get(ColorScheme.COLOR_ENERGY_BANK_WHOLE, alite.getCobra().getEnergy() / 4.0f /
 				PlayerCobra.MAX_ENERGY_BANK), Settings.alpha);
