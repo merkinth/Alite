@@ -51,10 +51,6 @@ public class StatusScreen extends AliteScreen {
 	private boolean requireAnswer = false;
 	private boolean pendingShowControlOptions = false;
 
-	enum Direction {
-		DIR_LEFT, DIR_UP, DIR_RIGHT, DIR_DOWN
-	}
-
 	public StatusScreen(Alite game) {
 		super(game);
 	}
@@ -137,7 +133,7 @@ public class StatusScreen extends AliteScreen {
 			g.drawText(front.getShortName(), SHIP_X + 630, SHIP_Y - 20, textColor, Assets.smallFont);
 			int halfWidth = g.getTextWidth(front.getShortName(), Assets.smallFont) >> 1;
 			g.drawLine(SHIP_X + 630 + halfWidth, SHIP_Y - 10, SHIP_X + 630 + halfWidth, SHIP_Y + 20, lineColor);
-			drawArrow(g, SHIP_X + 630 + halfWidth, SHIP_Y + 20, SHIP_X + 490, SHIP_Y + 20, lineColor, Direction.DIR_LEFT);
+			g.drawArrow(SHIP_X + 630 + halfWidth, SHIP_Y + 20, SHIP_X + 490, SHIP_Y + 20, lineColor, Graphics.ArrowDirection.LEFT);
 		}
 		Laser back = cobra.getLaser(PlayerCobra.DIR_REAR);
 		if (back != null) {
@@ -145,21 +141,21 @@ public class StatusScreen extends AliteScreen {
 			int halfWidth = g.getTextWidth(back.getShortName(), Assets.smallFont) >> 1;
 			g.drawLine(SHIP_X + 130 + halfWidth, SHIP_Y + 580, SHIP_X + 130 + halfWidth, SHIP_Y + 590, lineColor);
 			g.drawLine(SHIP_X + 130 + halfWidth, SHIP_Y + 580, SHIP_X + 480, SHIP_Y + 580, lineColor);
-			drawArrow(g, SHIP_X + 480, SHIP_Y + 580, SHIP_X + 480, SHIP_Y + 550, lineColor, Direction.DIR_UP);
+			g.drawArrow(SHIP_X + 480, SHIP_Y + 580, SHIP_X + 480, SHIP_Y + 550, lineColor, Graphics.ArrowDirection.UP);
 		}
 		Laser right = cobra.getLaser(PlayerCobra.DIR_RIGHT);
 		if (right != null) {
 			g.drawText(right.getShortName(), SHIP_X + 1000, SHIP_Y + 420, textColor, Assets.smallFont);
 			int halfWidth = g.getTextWidth(right.getShortName(), Assets.smallFont) >> 1;
 			g.drawLine(SHIP_X + 1000 + halfWidth, SHIP_Y + 390, SHIP_X + 1000 + halfWidth, SHIP_Y + 370, lineColor);
-			drawArrow(g, SHIP_X + 940, SHIP_Y + 370, SHIP_X + 1000 + halfWidth, SHIP_Y + 370, lineColor, Direction.DIR_LEFT);
+			g.drawArrow(SHIP_X + 940, SHIP_Y + 370, SHIP_X + 1000 + halfWidth, SHIP_Y + 370, lineColor, Graphics.ArrowDirection.LEFT);
 		}
 		Laser left = cobra.getLaser(PlayerCobra.DIR_LEFT);
 		if (left != null) {
 			g.drawText(left.getShortName(), SHIP_X - 250, SHIP_Y + 420, textColor, Assets.smallFont);
 			int halfWidth = g.getTextWidth(left.getShortName(), Assets.smallFont) >> 1;
 			g.drawLine(SHIP_X - 250 + halfWidth, SHIP_Y + 390, SHIP_X - 250 + halfWidth, SHIP_Y + 370, lineColor);
-			drawArrow(g, SHIP_X + 20, SHIP_Y + 370, SHIP_X - 250 + halfWidth, SHIP_Y + 370, lineColor, Direction.DIR_RIGHT);
+			g.drawArrow(SHIP_X + 20, SHIP_Y + 370, SHIP_X - 250 + halfWidth, SHIP_Y + 370, lineColor, Graphics.ArrowDirection.RIGHT);
 		}
 	}
 
@@ -186,8 +182,8 @@ public class StatusScreen extends AliteScreen {
 		}
 		if (missileCount > 0 || !installedEquipment.isEmpty()) {
 			g.drawLine(SHIP_X + 930, beginY + 18, SHIP_X + 930, SHIP_Y + 200, ColorScheme.get(ColorScheme.COLOR_ARROW));
-			drawArrow(g, SHIP_X + 780, SHIP_Y + 200, SHIP_X + 930, SHIP_Y + 200,
-				ColorScheme.get(ColorScheme.COLOR_ARROW), Direction.DIR_LEFT);
+			g.drawArrow(SHIP_X + 780, SHIP_Y + 200, SHIP_X + 930, SHIP_Y + 200,
+				ColorScheme.get(ColorScheme.COLOR_ARROW), Graphics.ArrowDirection.LEFT);
 		}
 	}
 

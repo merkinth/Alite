@@ -38,7 +38,6 @@ import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
-import de.phbouillon.android.games.alite.screens.canvas.StatusScreen.Direction;
 import de.phbouillon.android.games.alite.screens.opengl.objects.PlanetSpaceObject;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -463,7 +462,7 @@ public class PlanetScreen extends AliteScreen {
 		g.drawText(system.getPopulation(),                  800, 270, ColorScheme.get(ColorScheme.COLOR_POPULATION), Assets.regularFont);
 
 		g.drawPixmap(cobraRight, 450, 320);
-		drawArrow(g, 720, 560, 1000, 560, ColorScheme.get(ColorScheme.COLOR_ARROW), Direction.DIR_RIGHT);
+		g.drawArrow(720, 560, 1000, 560, ColorScheme.get(ColorScheme.COLOR_ARROW), Graphics.ArrowDirection.RIGHT);
 
 		int halfWidth = g.getTextWidth("Light Years", Assets.regularFont) >> 1;
 		g.drawText("Light Years", 860 - halfWidth, 605, ColorScheme.get(ColorScheme.COLOR_SHIP_DISTANCE), Assets.regularFont);
@@ -472,8 +471,8 @@ public class PlanetScreen extends AliteScreen {
 		halfWidth = g.getTextWidth(distString, Assets.regularFont) >> 1;
 		g.drawText(distString, 860 - halfWidth, 545, ColorScheme.get(ColorScheme.COLOR_SHIP_DISTANCE), Assets.regularFont);
 
-		drawArrow(g, 1090, 270, 1210, 270, ColorScheme.get(ColorScheme.COLOR_ARROW), Direction.DIR_LEFT);
-		drawArrow(g, 1630, 270, 1510, 270, ColorScheme.get(ColorScheme.COLOR_ARROW), Direction.DIR_RIGHT);
+		g.drawArrow(1090, 270, 1210, 270, ColorScheme.get(ColorScheme.COLOR_ARROW), Graphics.ArrowDirection.LEFT);
+		g.drawArrow(1630, 270, 1510, 270, ColorScheme.get(ColorScheme.COLOR_ARROW), Graphics.ArrowDirection.RIGHT);
 		String diameter = system.getDiameter() + " km";
 		halfWidth = g.getTextWidth(diameter, Assets.regularFont) >> 1;
 		g.drawText(diameter, 1370 - halfWidth, 280, ColorScheme.get(ColorScheme.COLOR_DIAMETER), Assets.regularFont);

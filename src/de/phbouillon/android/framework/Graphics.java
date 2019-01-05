@@ -28,13 +28,20 @@ public interface Graphics {
 		ARGB8888, ARGB4444, RGB565
 	}
 
-	Pixmap newPixmap(String fileName);
-	Pixmap newPixmap(String fileName, int width, int height);
-	Pixmap newPixmap(Bitmap bitmap, String fileName);
+	enum ArrowDirection {
+		LEFT, UP, RIGHT, DOWN
+	}
+
 
 	Rect getVisibleArea();
 	boolean existsAssetsFile(String fileName);
+
 	void clear(int color);
+	void setClip(int x1, int y1, int x2, int y2);
+
+	void setColor(int color, float alpha);
+	void setColor(int color);
+
 	void drawLine(int x, int y, int x2, int y2, int color);
 	void drawRect(int x, int y, int width, int height, int color);
 	void fillRect(int x, int y, int width, int height, int color);
@@ -43,16 +50,23 @@ public interface Graphics {
 	void diagonalGradientRect(int x, int y, int width, int height, int color1, int color2);
 	void drawCircle(int cx, int cy, int r, int color, int segments);
 	void fillCircle(int cx, int cy, int r, int color, int segments);
+	void drawDashedCircle(int cx, int cy, int r, int color, int segments);
+	void drawArrow(int x1, int y1, int x2, int y2, int color, ArrowDirection arrowHead);
+
 	void drawText(String text, int x, int y, int color, GLText font);
 	void drawText(String text, int x, int y, int color, GLText font, float scale);
 	void drawCenteredText(String text, int x, int y, int color, GLText font, float scale);
+
 	int getTextWidth(String text, GLText font);
 	int getTextHeight(String text, GLText font);
+
+	Pixmap newPixmap(String fileName);
+	Pixmap newPixmap(String fileName, int width, int height);
+	Pixmap newPixmap(Bitmap bitmap, String fileName);
+
 	void drawPixmap(Pixmap pixmap, int x, int y);
+	void drawPixmap(Pixmap pixmap, int x, int y, float pixmapAlpha);
 	void applyFilterToPixmap(Pixmap pixmap, ColorFilter filter);
 	void drawPixmapUnscaled(Pixmap pixmap, int x, int y, int srcX, int srcY, int srcWidth, int srcHeight);
-	void setClip(int x1, int y1, int x2, int y2);
-	void drawDashedCircle(int cx, int cy, int r, int color, int segments);
-	void setColor(int color, float alpha);
-	void setColor(int color);
+
 }

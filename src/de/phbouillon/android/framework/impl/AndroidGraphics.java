@@ -425,4 +425,29 @@ public class AndroidGraphics implements Graphics {
 	public void setColor(int color) {
 		setColor(color, AliteColor.alpha(color) / 255.0f);
 	}
+
+	@Override
+	public void drawArrow(int x1, int y1, int x2, int y2, int color, ArrowDirection arrowHead) {
+		int temp;
+		if (x1 > x2) {
+			temp = x1;
+			x1 = x2;
+			x2 = temp;
+		}
+		if (y1 > y2) {
+			temp = y1;
+			y1 = y2;
+			y2 = temp;
+		}
+		drawLine(x1, y1, x2, y2, color);
+		for (int i = 1; i < 10; i++) {
+			switch (arrowHead) {
+				case LEFT:  drawLine(x1 + i, y1 - i, x1 + i, y1 + i, color); break;
+				case RIGHT: drawLine(x2 - i, y1 - i, x2 - i, y1 + i, color); break;
+				case UP:    drawLine(x1 - i, y1 + i, x1 + i, y1 + i, color); break;
+				case DOWN:  drawLine(x1 - i, y2 - i, x1 + i, y2 - i, color); break;
+			}
+		}
+	}
+
 }

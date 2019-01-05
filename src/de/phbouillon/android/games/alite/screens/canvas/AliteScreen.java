@@ -318,29 +318,6 @@ public abstract class AliteScreen extends Screen {
 		}
 	}
 
-	void drawArrow(final Graphics g, int x1, int y1, int x2, int y2, int color, Direction arrowHead) {
-		int temp;
-		if (x1 > x2) {
-			temp = x1;
-			x1 = x2;
-			x2 = temp;
-		}
-		if (y1 > y2) {
-			temp = y1;
-			y1 = y2;
-			y2 = temp;
-		}
-		g.drawLine(x1, y1, x2, y2, color);
-		for (int i = 1; i < 10; i++) {
-			switch (arrowHead) {
-				case DIR_LEFT:  g.drawLine(x1 + i, y1 - i, x1 + i, y1 + i, color); break;
-				case DIR_RIGHT: g.drawLine(x2 - i, y1 - i, x2 - i, y1 + i, color); break;
-				case DIR_UP:    g.drawLine(x1 - i, y1 + i, x1 + i, y1 + i, color); break;
-				case DIR_DOWN:  g.drawLine(x1 - i, y2 - i, x1 + i, y2 - i, color); break;
-			}
-		}
-	}
-
 	protected int getColor(Economy economy) {
 		switch (economy) {
 			case RICH_INDUSTRIAL:      return ColorScheme.get(ColorScheme.COLOR_RICH_INDUSTRIAL);
