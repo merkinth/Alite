@@ -31,7 +31,6 @@ import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ButtonRegistry;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.SoundManager;
@@ -70,12 +69,6 @@ public class BuyScreen extends TradeScreen {
 	public void activate() {
 		if (tradeButton == null) {
 			createButtons();
-		} else {
-			for (Button[] bs: tradeButton) {
-				for (Button b: bs) {
-					ButtonRegistry.get().addButton(this, b);
-				}
-			}
 		}
 		if (pendingSelection != null) {
 			for (Button[] bs: tradeButton) {

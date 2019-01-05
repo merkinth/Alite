@@ -427,6 +427,10 @@ public class HackerScreen extends AliteScreen {
 		offset = game.getGraphics().getTextWidth("MM", Assets.titleFont) - 8;
 		game.getNavigationBar().setActive(false);
 		initializeState(game);
+	}
+
+	@Override
+	public void activate() {
 		done = Button.createGradientTitleButton(1720, 880, 200, 200, "Done");
 		int counter = 0;
 		for (int y = 0; y < 16; y++) {
@@ -436,10 +440,6 @@ public class HackerScreen extends AliteScreen {
 				counter++;
 			}
 		}
-	}
-
-	@Override
-	public void activate() {
 		game.getPlayer().setCheater(true);
 	}
 

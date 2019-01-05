@@ -162,10 +162,10 @@ public class AndroidGraphics implements Graphics {
 	public void drawLine(int x, int y, int x2, int y2, int color) {
 		x = transX(x);
 		y = transY(y);
-		x2 = transX(x2);
-		y2 = transY(y2);
+		x2 = transX(x2 + 1);
+		y2 = transY(y2 + 1);
 
-		GLES11.glLineWidth(5 * scaleFactor);
+		GLES11.glLineWidth(scaleFactor);
 		setColor(color);
 		lineBuffer.clear();
 		lineBuffer.put(x);
@@ -181,8 +181,8 @@ public class AndroidGraphics implements Graphics {
 
 	@Override
 	public void drawRect(int x, int y, int width, int height, int color) {
-		int x2 = transX(x + width - 1);
-		int y2 = transY(y + height - 1);
+		int x2 = transX(x + width);
+		int y2 = transY(y + height);
 		x = transX(x);
 		y = transY(y);
 		int ty = y < 0 ? 0 : y;
@@ -190,7 +190,7 @@ public class AndroidGraphics implements Graphics {
 			return;
 		}
 
-		GLES11.glLineWidth(5 * scaleFactor);
+		GLES11.glLineWidth(scaleFactor);
 		setColor(color);
 		setRectBuffer(x, ty, x2, y2);
 		GLES11.glVertexPointer(2, GLES11.GL_FLOAT, 0, rectBuffer);
@@ -214,17 +214,17 @@ public class AndroidGraphics implements Graphics {
 	@Override
 	public void rec3d(int x, int y, int width, int height, int borderSize, int lightColor, int darkColor) {
 		for (int i = 0; i < borderSize; i++) {
-			drawLine(x + i, y + i, x + i, y + height - 1 - i, lightColor);
-			drawLine(x + i, y + i, x + width - 1 - i, y + i, lightColor);
-			drawLine(x + width - 1 - i, y + i, x + width - 1 - i, y + height - 1, darkColor);
+			drawLine(x + i, y + i + 1, x + i, y + height - 2 - i, lightColor);
+			drawLine(x + i, y + i, x + width - 2 - i, y + i, lightColor);
+			drawLine(x + width - 1 - i, y + i, x + width - 1 - i, y + height - 2 - i, darkColor);
 			drawLine(x + i, y + height - 1 - i, x + width - 1 - i, y + height - 1 - i, darkColor);
 		}
 	}
 
 	@Override
 	public void fillRect(int x, int y, int width, int height, int color) {
-		int x2 = transX(x + width - 1);
-		int y2 = transY(y + height - 1);
+		int x2 = transX(x + width);
+		int y2 = transY(y + height);
 		x = transX(x);
 		y = transY(y);
 		int ty = y < 0 ? 0 : y;
@@ -249,8 +249,8 @@ public class AndroidGraphics implements Graphics {
 	}
 
 	private void gradientRect(int x, int y, int width, int height, boolean horizontal, int color1, int color2) {
-		int x2 = transX(x + width - 1);
-		int y2 = transY(y + height - 1);
+		int x2 = transX(x + width);
+		int y2 = transY(y + height);
 		x = transX(x);
 		y = transY(y);
 		int ty = y < 0 ? 0 : y;
@@ -326,13 +326,18 @@ public class AndroidGraphics implements Graphics {
 
 		pixmap.setTextureCoordinates(srcX, srcY, srcX + srcWidth - 1, srcY + srcHeight - 1);
 		pixmap.setCoordinates(x, y, x + srcWidth - 1, y + srcHeight - 1);
-		pixmap.render();
+		pixmap.render(1);
 		pixmap.resetTextureCoordinates();
 	}
 
 	@Override
 	public void drawPixmap(Pixmap pixmap, int x, int y) {
 		pixmap.render(transX(x), transY(y));
+	}
+
+	@Override
+	public void drawPixmap(Pixmap pixmap, int x, int y, float pixmapAlpha) {
+		pixmap.render(transX(x), transY(y), pixmapAlpha);
 	}
 
 	@Override
@@ -349,7 +354,6 @@ public class AndroidGraphics implements Graphics {
 		if (font == null) {
 			return;
 		}
-		GLES11.glEnable(GLES11.GL_BLEND);
 		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE);
 		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
 		drawTextCommon(text, x, y, color, font, 1);
@@ -357,6 +361,7 @@ public class AndroidGraphics implements Graphics {
 	}
 
 	private void drawTextCommon(String text, int x, int y, int color, GLText font, float scale) {
+		GLES11.glEnable(GLES11.GL_BLEND);
 	    setColor(color);
 		font.begin();
 		font.draw(text, transX(x), transY(y - (int) font.getSize()), scale);
@@ -372,10 +377,8 @@ public class AndroidGraphics implements Graphics {
 		}
 		GLES11.glDisable(GLES11.GL_LIGHTING);
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
-		GLES11.glEnable(GLES11.GL_BLEND);
 		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
 		drawTextCommon(text, x, y, color, font, scale);
-		GLES11.glDisable(GLES11.GL_BLEND);
 		GLES11.glEnable(GLES11.GL_CULL_FACE);
 		GLES11.glEnable(GLES11.GL_LIGHTING);
 	}

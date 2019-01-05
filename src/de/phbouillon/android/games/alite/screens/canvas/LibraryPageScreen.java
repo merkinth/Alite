@@ -61,10 +61,6 @@ public class LibraryPageScreen extends AliteScreen {
 	private String imageText = null;
 	private Button largeImage = null;
 	private String currentFilter;
-	private TextData[] nextTextData;
-	private TextData[] prevTextData;
-	private TextData[] tocTextData;
-	private TextData[] largeImageTextData;
 	private GLText currentFont = Assets.regularFont;
 	private GLText newFont = null;
 	private int currentColor = ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT);
@@ -164,31 +160,36 @@ public class LibraryPageScreen extends AliteScreen {
 		super(game);
 		tocEntry = entry;
 		this.currentFilter = currentFilter;
+	}
+
+	@Override
+	public void activate() {
 		Graphics g = game.getGraphics();
-		if (entry.getLinkedPage() != null) {
-			computePageText(game.getGraphics(), entry.getLinkedPage().getParagraphs());
-			if (entry.getLinkedPage().getNextPage(game.getFileIO()) != null) {
-				next = Button.createGradientRegularButton(1200, 960, 500, 120, "");
-				nextTextData = computeCenteredTextDisplay(g, "Next: "+ tocEntry.getLinkedPage().getNextPage(game.getFileIO()).getHeader(),
-					next.getX(), next.getY() + 50, next.getWidth(), ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+		if (tocEntry.getLinkedPage() != null) {
+			computePageText(game.getGraphics(), tocEntry.getLinkedPage().getParagraphs());
+			if (tocEntry.getLinkedPage().getNextPage(game.getFileIO()) != null) {
+				next = Button.createGradientRegularButton(1200, 960, 500, 120, null)
+					.setTextData(computeCenteredTextDisplay(g, "Next: "+ tocEntry.getLinkedPage().getNextPage(game.getFileIO()).getHeader(),
+					0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
 			}
-			if (entry.getLinkedPage().getPrevPage(game.getFileIO()) != null) {
-				prev = Button.createGradientRegularButton(45, 960, 500, 120, "");
-				prevTextData = computeCenteredTextDisplay(g, "Prev: " + tocEntry.getLinkedPage().getPrevPage(game.getFileIO()).getHeader(),
-					prev.getX(), prev.getY() + 50, prev.getWidth(), ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+			if (tocEntry.getLinkedPage().getPrevPage(game.getFileIO()) != null) {
+				prev = Button.createGradientRegularButton(45, 960, 500, 120, null)
+					.setTextData(computeCenteredTextDisplay(g, "Prev: " + tocEntry.getLinkedPage().getPrevPage(game.getFileIO()).getHeader(),
+					0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
 			}
-			ItemDescriptor bgImageDesc = entry.getLinkedPage().getBackgroundImage();
+			ItemDescriptor bgImageDesc = tocEntry.getLinkedPage().getBackgroundImage();
 			if (bgImageDesc != null) {
 				Pixmap pixmap = game.getGraphics().newPixmap("library/" + bgImageDesc.getFileName() + ".png");
 				backgroundImage = Button.createPictureButton(AliteConfig.SCREEN_WIDTH - pixmap.getWidth(), 955 - pixmap.getHeight(),
-					pixmap.getWidth(), pixmap.getHeight(), pixmap);
+					pixmap.getWidth(), pixmap.getHeight(), pixmap, 0.6f);
 			}
 
 			int counter = 0;
-			for (ItemDescriptor id: entry.getLinkedPage().getImages()) {
+			for (ItemDescriptor id: tocEntry.getLinkedPage().getImages()) {
 				try {
 					Pixmap pixmap = game.getGraphics().newPixmap("library/" + id.getFileName() + ".png", 500, 250);
-					Button b = Button.createGradientPictureButton(1100, PAGE_BEGIN + counter * 275, 500, 250, pixmap);
+					Button b = Button.createGradientPictureButton(1100, PAGE_BEGIN + counter * 275,
+						500 + 2 * Button.BORDER_SIZE, 250 + 2 * Button.BORDER_SIZE, pixmap);
 					images.add(b);
 					counter++;
 				} catch (RuntimeException e) {
@@ -200,13 +201,9 @@ public class LibraryPageScreen extends AliteScreen {
 				}
 			}
 		}
-		toc = Button.createGradientRegularButton(624, 960, 500, 120, "");
-		tocTextData = computeCenteredTextDisplay(g, "Table of Contents", toc.getX(), toc.getY() + 50, toc.getWidth(),
-			ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
-	}
-
-	@Override
-	public void activate() {
+		toc = Button.createGradientRegularButton(624, 960, 500, 120, null)
+			.setTextData(computeCenteredTextDisplay(g, "Table of Contents", 0, 50,
+			500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
 	}
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
@@ -674,11 +671,10 @@ public class LibraryPageScreen extends AliteScreen {
 
 	private void fullScreenImage(Pixmap pixmap, String imageText) {
 		this.imageText = imageText;
-		largeImage = Button.createGradientPictureButton(50, 100, 1650, 920, pixmap);
-		largeImage.setPixmapOffset((int) (largeImage.getWidth() - pixmap.getWidth() / AndroidGame.scaleFactor) >> 1, 0);
-		largeImageTextData = computeTextDisplay(game.getGraphics(), imageText, largeImage.getX(),
-			largeImage.getY() + largeImage.getHeight() - 180, largeImage.getWidth(), 40,
-			ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+		largeImage = Button.createGradientPictureButton(50, 100, 1650, 920, pixmap)
+			.setPixmapOffset((int) (1650 - pixmap.getWidth() / AndroidGame.scaleFactor) >> 1, 0)
+			.setTextData(computeTextDisplay(game.getGraphics(), imageText, 0, 920 - 180,
+				1650 - 2 * Button.BORDER_SIZE, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT)));
 		SoundManager.play(Assets.alert);
 	}
 
@@ -705,14 +701,11 @@ public class LibraryPageScreen extends AliteScreen {
 
 		if (next != null) {
 			next.render(g);
-			displayText(g, nextTextData);
 		}
 		if (prev != null) {
 			prev.render(g);
-			displayText(g, prevTextData);
 		}
 		toc.render(g);
-		displayText(g, tocTextData);
 
 		for (Button b: images) {
 			b.render(g);
@@ -758,7 +751,6 @@ public class LibraryPageScreen extends AliteScreen {
 
 		if (largeImage != null) {
 			largeImage.render(g);
-			displayText(g, largeImageTextData);
 		}
 	}
 

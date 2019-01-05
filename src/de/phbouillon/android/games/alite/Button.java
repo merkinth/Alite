@@ -21,21 +21,30 @@ package de.phbouillon.android.games.alite;
 import android.annotation.SuppressLint;
 import android.graphics.Point;
 import de.phbouillon.android.framework.Graphics;
+import de.phbouillon.android.framework.Input;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
+import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.screens.canvas.TextData;
 
 @SuppressLint("RtlHardcoded")
 public class Button {
+
+	public static final int BORDER_SIZE = 5;
+	private static final double BUTTON_BORDER_DIFF_PERCENT = 0.1;
+
 	private int x;
 	private int y;
 	private final int width;
 	private final int height;
 	private String text;
+	private TextData[] textData;
 	private Pixmap pixmap;
 	private Pixmap pushedBackground;
 	private Pixmap[] animation;
 	private Pixmap[] overlay = null;
+	private float pixmapAlpha = 1;
 	private GLText font;
 	private TextPosition textPosition = TextPosition.ONTOP;
 	private boolean useBorder = true;
@@ -46,12 +55,17 @@ public class Button {
 	private int buttonEnd = 0;
 	private int fingerDown = 0;
 	private int textColor = ColorScheme.get(ColorScheme.COLOR_MESSAGE);
-	private int borderColorLt = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT);
-	private int borderColorDk = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK);
+	private int bkgColorLt = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT);
+	private int bkgColorDk = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK);
+	private int borderColorLt = AliteColor.lighten(bkgColorLt, BUTTON_BORDER_DIFF_PERCENT);
+	private int borderColorDk = AliteColor.lighten(bkgColorDk, -BUTTON_BORDER_DIFF_PERCENT);
+
 	private int pixmapXOffset = 0;
 	private int pixmapYOffset = 0;
 	private boolean visible = true;
 	private String name;
+	private boolean touchedDown;
+	private int command;
 
 	public enum TextPosition {
 		ABOVE, LEFT, RIGHT, BELOW, ONTOP
@@ -81,6 +95,10 @@ public class Button {
 		return new Button(x, y, width, height).setPixmap(pixmap).setBorderOff();
 	}
 
+	public static Button createPictureButton(int x, int y, int width, int height, Pixmap pixmap, float pixmapAlpha) {
+		return new Button(x, y, width, height).setPixmap(pixmap, pixmapAlpha).setBorderOff();
+	}
+
 	public static Button createGradientPictureButton(int x, int y, int width, int height, Pixmap pixmap) {
 		return new Button(x, y, width, height).setPixmap(pixmap).setGradientOn();
 	}
@@ -98,12 +116,13 @@ public class Button {
 		this.y = y;
 		this.width = width;
 		this.height = height;
-		ButtonRegistry.get().addButton(Alite.getDefiningScreen(), this);
+		ButtonRegistry.get().addButton(this);
 	}
 
-	public void move(int newX, int newY) {
+	public Button move(int newX, int newY) {
 		x = newX;
 		y = newY;
+		return this;
 	}
 
 	public Button setName(String name) {
@@ -115,9 +134,10 @@ public class Button {
 		return name;
 	}
 
-	public void setPixmapOffset(int x, int y) {
+	public Button setPixmapOffset(int x, int y) {
 		pixmapXOffset = x;
 		pixmapYOffset = y;
+		return this;
 	}
 
 	public Button setTextColor(int textColor) {
@@ -125,16 +145,23 @@ public class Button {
 		return this;
 	}
 
-	public void setXOffset(int x) {
+	public Button setXOffset(int x) {
 		xOffset = x;
+		return this;
 	}
 
-	public void setYOffset(int y) {
+	public Button setYOffset(int y) {
 		yOffset = y;
+		return this;
 	}
 
 	public Button setText(String text) {
 		this.text = text;
+		return this;
+	}
+
+	public Button setTextData(TextData[] textData) {
+		this.textData = textData;
 		return this;
 	}
 
@@ -173,6 +200,12 @@ public class Button {
 		return this;
 	}
 
+	private Button setPixmap(Pixmap pixmap, float pixmapAlpha) {
+		this.pixmap = pixmap;
+		this.pixmapAlpha = pixmapAlpha;
+		return this;
+	}
+
 	public Button setPushedBackground(Pixmap pushedBackground) {
 		this.pushedBackground = pushedBackground;
 		return this;
@@ -182,61 +215,68 @@ public class Button {
 		return text;
 	}
 
+	void clearFingerDown() {
+		fingerDown = 0;
+	}
+
 	void fingerDown(int pointer) {
-		int val = 1 << pointer;
-		if ((fingerDown & val) == 0) {
-			fingerDown += val;
-		}
+		fingerDown |= 1 << pointer;
 	}
 
 	void fingerUp(int pointer) {
-		int val = 1 << pointer;
-		if ((fingerDown & val) != 0) {
-			fingerDown -= val;
-		}
+		fingerDown &= ~(1 << pointer);
 	}
 
-	public void render(Graphics g) {
+	public Button render(Graphics g) {
 		render(g, 0);
+		return this;
 	}
 
 	private Point calculateTextPosition(Graphics g) {
 		int halfWidth  = g.getTextWidth(text, font) >> 1;
 		int halfHeight = g.getTextHeight(text, font) >> 1;
+		int height = this.height - (useBorder ? 2 * BORDER_SIZE : 0);
+		int width = this.width - (useBorder ? 2 * BORDER_SIZE : 0);
 
 		TextPosition local = textPosition;
 		if (pixmap == null && animation == null) {
 			local = TextPosition.ONTOP;
 		}
-		Point result = new Point();
+		Point result = getInterior();
 
+		if (local == TextPosition.ABOVE) {
+			result.offset((width >> 1) - halfWidth, 0);
+			return result;
+		}
+		if (local == TextPosition.LEFT) {
+			result.offset(0, (int) ((height >> 1) - halfHeight + font.getSize()));
+			return result;
+		}
+		if (local == TextPosition.RIGHT) {
+			result.offset((width + pixmap.getWidth() >> 1) - halfWidth,
+				(int) ((height >> 1) - halfHeight + font.getSize()));
+			return result;
+		}
+		if (local == TextPosition.BELOW) {
+			result.offset((width >> 1) - halfWidth, height - (halfHeight << 1));
+			return result;
+		}
+		if (local == TextPosition.ONTOP) {
+			result.offset((width >> 1) - halfWidth,
+				(int) ((height >> 1) - halfHeight + font.getSize()));
+			return result;
+		}
+		return result;
+	}
+
+	private Point getInterior() {
 		int x = this.x + xOffset;
 		int y = this.y + yOffset;
-		switch (local) {
-			case ABOVE: result.y = y;
-						result.x = x + (width >> 1) - halfWidth;
-			            break;
-
-			case LEFT:  result.x = x;
-						result.y = (int) (y + (height >> 1) - halfHeight + font.getSize());
-				        break;
-
-			case RIGHT: int l = x + pixmap.getWidth();
-			            int r = x + width;
-				        result.x = l + ((r - l) >> 1) - halfWidth;
-				        result.y = (int) (y + (height >> 1) - halfHeight + font.getSize());
-				        break;
-
-			case BELOW: result.y = y + height - (halfHeight << 1);
-				        result.x = x + (width >> 1) - halfWidth;
-			            break;
-
-			case ONTOP: result.x = x + (width >> 1) - halfWidth;
-			            result.y = (int) (y + (height >> 1) - halfHeight + font.getSize());
-			            break;
+		if (useBorder) {
+			x += BORDER_SIZE;
+			y += BORDER_SIZE;
 		}
-
-		return result;
+		return new Point(x,y);
 	}
 
 	public void setButtonEnd(int pixel) {
@@ -247,39 +287,56 @@ public class Button {
 		if (!visible) {
 			return;
 		}
-		int x = this.x + xOffset;
-		int y = this.y + yOffset;
+		Point interior = getInterior();
+
 		if (gradient && useBorder) {
-			g.diagonalGradientRect(x + 5, y + 5, width - 10, height - 10, borderColorLt, borderColorDk);
+			g.diagonalGradientRect(interior.x, interior.y,
+				width - 2 * BORDER_SIZE, height - 2 * BORDER_SIZE, bkgColorLt, bkgColorDk);
 		}
 		if (frame > 0 && animation != null && frame < animation.length && animation[frame] != null) {
-			g.drawPixmap(animation[frame], x, y);
+			g.drawPixmap(animation[frame], interior.x, interior.y);
 		} else {
 			if (pixmap != null) {
+				Point shiftedInterior = new Point(interior);
+				if (fingerDown > 0 && pushedBackground == null) {
+					shiftedInterior.offset(BORDER_SIZE, BORDER_SIZE);
+				}
 				if (buttonEnd == 0) {
-					g.drawPixmap(fingerDown == 0 || pushedBackground == null ? pixmap : pushedBackground, x + pixmapXOffset, y + pixmapYOffset);
+					g.drawPixmap(fingerDown == 0 || pushedBackground == null ? pixmap : pushedBackground,
+						shiftedInterior.x + pixmapXOffset, shiftedInterior.y + pixmapYOffset, pixmapAlpha);
 				} else {
 					g.drawPixmapUnscaled(fingerDown == 0 || pushedBackground == null ? pixmap : pushedBackground,
-						x, y, 0, 0, width - buttonEnd + 1, height);
+						shiftedInterior.x, shiftedInterior.y, 0, 0, width - buttonEnd + 1, height);
 					// Draw last portion of image
 					g.drawPixmapUnscaled(fingerDown == 0 || pushedBackground == null ? pixmap : pushedBackground,
-						x + width - buttonEnd, y, pixmap.getWidth() - buttonEnd, 0, buttonEnd, height);
+						shiftedInterior.x + width - buttonEnd, shiftedInterior.y,
+						pixmap.getWidth() - buttonEnd, 0, buttonEnd, height);
 				}
 			}
 			if (frame > 0 && overlay != null && frame < overlay.length) {
-				g.drawPixmap(overlay[frame], x, y);
+				g.drawPixmap(overlay[frame], interior.x, interior.y);
 			}
 		}
 		if (useBorder) {
+			interior.offset(-BORDER_SIZE, -BORDER_SIZE);
 			if (fingerDown == 0) {
-				g.rec3d(x, y, width, height, 5, borderColorLt, borderColorDk);
+				g.rec3d(interior.x, interior.y, width, height, BORDER_SIZE, borderColorLt, borderColorDk);
 			} else {
-				g.rec3d(x, y, width, height, 5, borderColorDk, borderColorLt);
+				g.rec3d(interior.x, interior.y, width, height, BORDER_SIZE, borderColorDk, borderColorLt);
 			}
+			interior.offset(BORDER_SIZE, BORDER_SIZE);
 		}
 		if (text != null) {
 			Point p = calculateTextPosition(g);
+			if (fingerDown > 0) {
+				p.offset(BORDER_SIZE, BORDER_SIZE);
+			}
 			g.drawText(text, p.x, p.y, textColor, font);
+		} else if (textData != null) {
+			int offset = fingerDown > 0 ? BORDER_SIZE : 0;
+			for (TextData td: textData) {
+				g.drawText(td.text, interior.x + td.x + offset, interior.y + td.y + offset, td.color, td.font);
+			}
 		}
 	}
 
@@ -289,6 +346,24 @@ public class Button {
 		}
 		return x >= this.x + xOffset && x <= this.x + xOffset + width - 1 &&
 			   y >= this.y + yOffset && y <= this.y + yOffset + height - 1;
+	}
+
+	public boolean isPressed(Input.TouchEvent e) {
+		if (!visible) {
+			return false;
+		}
+		if (e.x < x + xOffset || e.x > x + xOffset + width - 1 ||
+				e.y < y + yOffset || e.y > y + yOffset + height - 1) {
+			return false;
+		}
+		if (e.type == Input.TouchEvent.TOUCH_UP && touchedDown) {
+			touchedDown = false;
+			return true;
+		}
+		if (e.type == Input.TouchEvent.TOUCH_DOWN) {
+			touchedDown = true;
+		}
+		return false;
 	}
 
 	public int getX() {
@@ -326,5 +401,14 @@ public class Button {
 	public Button setVisible(boolean visible) {
 		this.visible = visible;
 		return this;
+	}
+
+	public Button setCommand(int command) {
+		this.command = command;
+		return this;
+	}
+
+	public int getCommand() {
+		return command;
 	}
 }

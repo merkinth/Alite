@@ -151,7 +151,6 @@ public class LibraryScreen extends AliteScreen {
 			}
 		}
 		if (!filteredEntries.isEmpty()) {
-			Alite.setDefiningScreen(this);
 			buildTocButtons(filteredEntries.toArray(new TocEntryData[0]));
 		}
 	}
@@ -295,10 +294,9 @@ public class LibraryScreen extends AliteScreen {
 			return;
 		}
 		for (TocEntry entry: entries) {
-			Button b = Button.createPictureButton(20 + level * 100, 80 + button.size() * 140, 1680 - level * 100, 120, buttonBackground)
-				.setPushedBackground(buttonBackgroundPushed)
-				.setText("")
-				.setFont(Assets.regularFont);
+			Button b = Button.createPictureButton(20 + level * 100, 80 + button.size() * 140,
+				1680 - level * 100, 120, buttonBackground)
+				.setPushedBackground(buttonBackgroundPushed);
 			if (level != 0) {
 				b.setButtonEnd(50);
 			}
@@ -315,9 +313,7 @@ public class LibraryScreen extends AliteScreen {
 		for (TocEntryData entry: entries) {
 			Button b = Button.createPictureButton(20 + entry.level * 100, 80 + button.size() * 140,
 				1680 - entry.level * 100, 120, buttonBackground)
-				.setPushedBackground(buttonBackgroundPushed)
-				.setText("")
-				.setFont(Assets.regularFont);
+				.setPushedBackground(buttonBackgroundPushed);
 			if (entry.level != 0) {
 				b.setButtonEnd(50);
 			}
@@ -352,12 +348,13 @@ public class LibraryScreen extends AliteScreen {
 
 		g.setClip(0, 100, -1, 1000);
 		for (int i = 0, n = button.size(); i < n; i++) {
-			Button b = button.get(i);
 			TocEntryData ted = currentFilter == null ? entries.get(i) : filteredEntries.get(i);
-			b.setYOffset(-yPosition);
-			b.render(g);
-			g.drawText(ted.entry.getName(), 50 + ted.level * 100, 150 - yPosition + i * 140,
-				ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
+			button.get(i)
+				.setYOffset(-yPosition)
+				.setTextData(computeTextDisplay(g, ted.entry.getName(), 30,
+					30 + (120 - (int) Assets.regularFont.getSize() >> 1),
+					1680, 0, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)))
+				.render(g);
 		}
 		g.setClip(-1, -1, -1, -1);
 	}

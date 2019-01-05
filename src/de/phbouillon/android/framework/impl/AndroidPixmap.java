@@ -143,7 +143,7 @@ public class AndroidPixmap implements Pixmap {
 	}
 
 	@Override
-	public void render() {
+	public void render(float alpha) {
 		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
 		if (!textureManager.checkTexture(fileName)) {
 			if (bitmap != null && !bitmap.isRecycled()) {
@@ -154,7 +154,7 @@ public class AndroidPixmap implements Pixmap {
 		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
 		GLES11.glVertexPointer(2, GLES11.GL_FLOAT, 0, vertexBuffer);
 		GLES11.glTexCoordPointer(2, GLES11.GL_FLOAT, 0, texCoordBuffer);
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		GLES11.glColor4f(1.0f, 1.0f, 1.0f, alpha);
 		GLES11.glEnable(GLES11.GL_BLEND);
 		GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE_MINUS_SRC_ALPHA);
 		textureManager.setTexture(fileName);
@@ -168,11 +168,16 @@ public class AndroidPixmap implements Pixmap {
 
 	@Override
 	public void render(int x, int y) {
+		render(x, y, 1);
+	}
+
+	@Override
+	public void render(int x, int y, float pixmapAlpha) {
 		if (x != lastX || y != lastY) {
 			setCoordinates(x, y, x + width - 1, y + height - 1);
 			lastX = x;
 			lastY = y;
 		}
-		render();
+		render(pixmapAlpha);
 	}
 }

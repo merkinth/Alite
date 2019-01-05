@@ -31,6 +31,7 @@ public interface Pixmap {
 	void setTextureCoordinates(int left, int top, int right, int bottom);
 	void setCoordinates(int left, int top, int right, int bottom);
 	void resetTextureCoordinates();
-	void render();
+	void render(float alpha);
 	void render(int x, int y);
+	void render(int x, int y, float pixmapAlpha);
 }

@@ -34,8 +34,8 @@ import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.*;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
-import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
+import de.phbouillon.android.games.alite.screens.canvas.tutorial.TutorialScreen;
 import de.phbouillon.android.games.alite.screens.opengl.TextureManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
@@ -66,7 +66,6 @@ public class Alite extends AndroidGame {
 	private long startTime;
 	private long elapsedTime;
 	private NavigationBar navigationBar;
-	private static AliteScreen definingScreen;
 	private final FileUtils fileUtils;
 	private LaserManager laserManager;
 	private static Alite alite;
@@ -372,12 +371,24 @@ public class Alite extends AndroidGame {
 		NAVIGATION_BAR_QUIT = navigationBar.add("Quit", Assets.quitIcon, null);
 		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
 
-		Assets.regularFont    = getFont(R.font.robotor, 40);
-		Assets.boldFont       = getFont(R.font.robotob, 40);
-		Assets.italicFont     = getFont(R.font.robotoi, 40);
+		Assets.yesIcon = getGraphics().newPixmap("yes_icon_small.png");
+		Assets.noIcon = getGraphics().newPixmap("no_icon_small.png");
+
+		loadFonts();
+	}
+
+	private void loadFonts() {
+		Assets.regularFont = getFont(R.font.robotor, 40);
+		Assets.boldFont = getFont(R.font.robotob, 40);
+		Assets.italicFont = getFont(R.font.robotoi, 40);
 		Assets.boldItalicFont = getFont(R.font.robotobi, 40);
-		Assets.titleFont      = getFont(R.font.robotor, 60);
-		Assets.smallFont      = getFont(R.font.robotor, 30);
+		// Although the following fonts are regular font as well,
+		// because of the different size it must be created.
+		// Scaling of the original font results different width of text
+		// and not so smooth appearance mainly in small font
+		Assets.titleFont = getFont(R.font.robotor, 60);
+		Assets.smallFont = getFont(R.font.robotor, 30);
+		AliteLog.d("loadFonts", "Fonts are loaded");
 	}
 
 	private static GLText getFont(int fontId, int size) {
@@ -403,14 +414,6 @@ public class Alite extends AndroidGame {
 		}
 		invalidateOptionsMenu();
 		return true;
-	}
-
-	public static void setDefiningScreen(AliteScreen definingScreen) {
-		Alite.definingScreen = definingScreen;
-	}
-
-	static AliteScreen getDefiningScreen() {
-		return Alite.definingScreen;
 	}
 
 	public TextureManager getTextureManager() {
@@ -440,6 +443,9 @@ public class Alite extends AndroidGame {
 	}
 
 	public final void autoSave() throws IOException {
+		if (getCurrentScreen() != null && getCurrentScreen() instanceof TutorialScreen) {
+			return;
+		}
 		fileUtils.autoSave();
 	}
 
