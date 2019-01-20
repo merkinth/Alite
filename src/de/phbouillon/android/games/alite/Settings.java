@@ -18,10 +18,7 @@ package de.phbouillon.android.games.alite;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 
 import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Sound;
@@ -46,8 +43,9 @@ public class Settings {
 	public static final int CLOAKING_DEVICE        =  10;
 	public static final int ECM_JAMMER             =  11;
 
+	public static final String DEFAULT_LOCALE_FILE = "en_US";
+
 	public static boolean animationsEnabled = true;
-	public static String keyboardLayout = "QWERTY";
 	private static boolean debugActive = false;
 	public static boolean logToFile = ALWAYS_WRITE_LOG;
 	public static boolean displayFrameRate = false;
@@ -58,7 +56,7 @@ public class Settings {
 	public static int colorDepth = 1;
 	public static float alpha = 0.75f;
 	public static float controlAlpha = 0.5f;
-	public static float volumes[] = { 1.0f, 0.5f, 0.5f, 0.5f };
+	public static float[] volumes = {1.0f, 0.5f, 0.5f, 0.5f};
 	public static float vibrateLevel = 0.5f;
 	public static ShipControl controlMode = ShipControl.ACCELEROMETER;
 	public static int controlPosition = 1;
@@ -88,15 +86,16 @@ public class Settings {
     public static int difficultyLevel = 3;
 	private static int restoredCommanderCount = 0;
     public static boolean navButtonsVisible = true;
+	public static String localeFileName = DEFAULT_LOCALE_FILE;
 
 	public static void load(FileIO files) {
 		resetButtonPosition();
 		boolean fastDC = false;
 		try(BufferedReader in = new BufferedReader(new InputStreamReader(files.readFile(SETUP_FILE_NAME)))) {
 			animationsEnabled = Boolean.parseBoolean(in.readLine());
-			keyboardLayout = in.readLine();
-			if (keyboardLayout != null) {
-				keyboardLayout = keyboardLayout.trim();
+			String s = in.readLine();
+			if (s != null) {
+				localeFileName = s;
 			}
 			debugActive = Boolean.parseBoolean(in.readLine());
 			logToFile = Boolean.parseBoolean(in.readLine()) || ALWAYS_WRITE_LOG;
@@ -141,9 +140,8 @@ public class Settings {
 			difficultyLevel = Integer.parseInt(in.readLine());
 			restoredCommanderCount = Integer.parseInt(in.readLine());
 			navButtonsVisible = Boolean.parseBoolean(in.readLine());
-		} catch (Throwable t) {
+		} catch (Throwable ignored) {
 			dockingComputerSpeed = fastDC ? 2 : 0;
-			// Ignore
 		}
 		ColorScheme.setColorScheme(files, null, colorScheme);
 	}
@@ -157,7 +155,7 @@ public class Settings {
 	public static void save(FileIO files) {
 		try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(files.writeFile(SETUP_FILE_NAME)))) {
 			out.write(animationsEnabled + "\n");
-			out.write(keyboardLayout + "\n");
+			out.write(localeFileName + "\n");
 			out.write(debugActive + "\n");
 			out.write(logToFile + "\n");
 			out.write(displayFrameRate + "\n");
@@ -200,8 +198,6 @@ public class Settings {
 			out.write(difficultyLevel + "\n");
 			out.write(restoredCommanderCount + "\n");
 			out.write(navButtonsVisible + "\n");
-		} catch (Exception e) {
-			// Ignore
-		}
+		} catch (IOException ignored) { }
 	}
 }

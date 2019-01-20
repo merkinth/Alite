@@ -23,7 +23,6 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 
 import android.opengl.Matrix;
-import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.framework.Updater;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -32,6 +31,7 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.SoundManager;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
+import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallback;
@@ -68,14 +68,18 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 			alite = Alite.get();
 			AliteLog.e("readObject", "DockingComputerAI.readObject II");
 			if (isActive()) {
-				if (Assets.danube == null) {
-					Assets.danube = alite.getAudio().newMusic("music/blue_danube.ogg", Sound.SoundType.MUSIC);
-				}
+				loadBlueDanube();
 				// Do not start music playback here: The game is in paused state, so play music
 				// only after resume is called.
 			}
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
+		}
+	}
+
+	private void loadBlueDanube() {
+		if (Assets.danube == null) {
+			Assets.danube = alite.getAudio().newMusic(LoadingScreen.DIRECTORY_MUSIC + "blue_danube.ogg");
 		}
 	}
 
@@ -123,9 +127,7 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 
 	final void resumeMusic() {
 		if (active) {
-			if (Assets.danube == null) {
-				Assets.danube = alite.getAudio().newMusic("music/blue_danube.ogg", Sound.SoundType.MUSIC);
-			}
+			loadBlueDanube();
 			if (Assets.danube == null) {
 				inGame.setMessage("The Blue Danube now playing in your head.");
 			}
@@ -154,9 +156,7 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		if (Settings.dockingComputerSpeed == 1) {
 			alite.setTimeFactor(PlayerCobra.SPEED_UP_FACTOR);
 		}
-		if (Assets.danube == null) {
-			Assets.danube = alite.getAudio().newMusic("music/blue_danube.ogg", Sound.SoundType.MUSIC);
-		}
+		loadBlueDanube();
 		if (Assets.danube == null) {
 			inGame.setMessage("The Blue Danube now playing in your head.");
 		} else {
@@ -243,12 +243,12 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		int v = inGame.getViewDirection();
 		float fz = spaceStation.getDisplayMatrix()[10];
 		float ux = Math.abs(spaceStation.getDisplayMatrix()[4]);
-		if (v == 1) {
+		if (v == PlayerCobra.DIR_RIGHT) {
 			fz = spaceStation.getDisplayMatrix()[8];
 			ux = Math.abs(spaceStation.getDisplayMatrix()[6]);
-		} else if (v == 2) {
+		} else if (v == PlayerCobra.DIR_REAR) {
 			fz = -spaceStation.getDisplayMatrix()[10];
-		} else if (v == 3) {
+		} else if (v == PlayerCobra.DIR_LEFT) {
 			fz = -spaceStation.getDisplayMatrix()[8];
 			ux = Math.abs(spaceStation.getDisplayMatrix()[6]);
 		}

@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.IOException;
 
 import android.graphics.Rect;
@@ -29,14 +28,10 @@ import de.phbouillon.android.framework.Geometry;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Music;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.SkySphereSpaceObject;
@@ -83,7 +78,6 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Wolf
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Yellowbelly;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class ShipIntroScreen extends AliteScreen {
 	private static final boolean DEBUG_EXHAUST = false;
 	private static final boolean ONLY_CHANGE_SHIPS_AFTER_SWEEP = false;
@@ -250,11 +244,12 @@ public class ShipIntroScreen extends AliteScreen {
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayShip();
 		if (showLoadNewCommander) {
-			g.drawText("Load New Commander?", 400, 1010, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
+			g.drawText("Load New Commander?", 300, 1015, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
 		}
 		centerTextWide(currentShip.getName(), 80, Assets.titleFont, ColorScheme.get(ColorScheme.COLOR_SHIP_TITLE));
-		g.drawText("Alite is inspired by classic Elite", 1450, 1020, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.smallFont);
-		g.drawText("\u00a9 Acornsoft, Bell & Braben", 1450, 1050, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.smallFont);
+		g.drawText(L.string(R.string.about_game_inspired_by, AliteConfig.GAME_NAME),
+			1350, 1020, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.smallFont);
+		g.drawText(L.string(R.string.about_elite_copyright), 1350, 1050, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.smallFont);
 		debugExhausts();
 		game.getTextureManager().setTexture(null);
 		yesButton.render(g);
@@ -355,7 +350,7 @@ public class ShipIntroScreen extends AliteScreen {
 
 	@Override
 	public void loadAssets() {
-		theChase = game.getAudio().newMusic("music/the_chase.mp3");
+		theChase = game.getAudio().newMusic(LoadingScreen.DIRECTORY_MUSIC + "the_chase.mp3");
 		super.loadAssets();
 	}
 
@@ -422,13 +417,13 @@ public class ShipIntroScreen extends AliteScreen {
 	}
 
 	private void dance() {
-		if (DANCE && System.nanoTime() - lastChangeTime > 4000000000L) {
+		if (DANCE && TimeUtil.hasPassed(lastChangeTime, 4, TimeUtil.SECONDS)) {
 			targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			lastChangeTime = System.nanoTime();
 		}
-		if (System.nanoTime() - startTime > 15000000000L && !ONLY_CHANGE_SHIPS_AFTER_SWEEP) {
+		if (TimeUtil.hasPassed(startTime, 15, TimeUtil.SECONDS) && !ONLY_CHANGE_SHIPS_AFTER_SWEEP) {
 			displayMode = DisplayMode.ZOOM_OUT;
 			startTime = System.nanoTime();
 		}

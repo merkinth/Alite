@@ -38,19 +38,30 @@ import android.opengl.GLES11;
 import android.opengl.GLUtils;
 import android.support.v4.content.res.ResourcesCompat;
 import de.phbouillon.android.framework.MemUtil;
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
 
 public class GLText {
 
-	private static final char[][] charRanges = {
-		{0x0020, 0x007e}, // Latin Base
-		{0x00a1, 0x00ff}, // Latin Extended A
-		{0x0180, 0x024f}, // Latin Extended B
-		{0x0400, 0x052f}  // Cyrill and Extended Cyrill
-	};
+	/*
+	Every strings.xml must contain a string array with name "char_sets".
+	Its items must contain start and end char code of required chars for the current locale
+	in format "start_char_code..end_char_code".
+	In default values/strings.xml resource file can be used '\\uXXXX' form
+	but the form '&#xXXXX;' can be used in the all other "external" language packs
+	since those are plain xml files rather than resource files.
+	See the following example to defining char sets in
+	strings.xml resource				strings.xml of language packs
+	<string-array name="char_sets">		<string-array name="char_sets">
+		<item>\u0020..\u007e</item>			<item>&#x0020;..&#x007e;</item>
+		<item>\u00a1..\u00ff</item>			<item>&#x00a1;..&#x00ff;</item>
+		<item>\u0100..\u017f</item>			<item>&#x0100;..&#x017f;</item>
+	</string-array>						</string-array>
+	*/
 
 	private static final char CHAR_UNKNOWN = '\u00b0'; // Code of the Unknown Character
 
-	private static final int charCount = getCharCount();
+	private final int charCount = getCharCount();
 
 	private static final int FONT_SIZE_MIN = 6; // Minumum Font Size (Pixels)
 	private static final int FONT_SIZE_MAX = 180; // Maximum Font Size (Pixels)
@@ -75,7 +86,7 @@ public class GLText {
 
 	private float charWidthMax; // Character Width (Maximum; Pixels)
 	private float charHeight; // Character Height (Maximum; Pixels)
-	private final float[] charWidths = new float[charCount]; // Width of Each Character (Actual; Pixels)
+	private float[] charWidths = new float[charCount]; // Width of Each Character (Actual; Pixels)
 	private CharacterData[] charData = new CharacterData[charCount]; // Data of Each Character (Width, height, texture Coordinates)
 	private int cellWidth;
 	private int cellHeight; // Character Cell Width/Height
@@ -88,7 +99,8 @@ public class GLText {
 	// --Constructor--//
 	// D: save GL instance + asset manager, create arrays, and initialize the members
 	// A: gl - OpenGL ES 10 Instance
-	public GLText(int colorDepth) {
+
+	private GLText(int colorDepth) {
 		config = colorDepth == 1 ? Bitmap.Config.ARGB_8888 : Bitmap.Config.ARGB_4444;
 		batch = new SpriteBatch(CHAR_BATCH_SIZE); // Create Sprite Batch (with Defined Size)
 
@@ -151,15 +163,13 @@ public class GLText {
 
 		// determine the width of each character (including unknown character)
 		// also determine the maximum character width
-		char[] s = new char[2]; // Create Character Array
 		charWidthMax = 0;
 		charHeight = 0; // Reset Character Width/Height Maximums
 		float[] w = new float[2]; // Working Width Value
 		int cnt = 0; // Array Counter
-		for (char[] charRange : charRanges) {
-			for (char c = charRange[0]; c <= charRange[1]; c++) { // FOR Each Character
-				s[0] = c; // Set Character
-				paint.getTextWidths(s, 0, 1, w); // Get Character Bounds
+		for (String charRange : L.stringArray(R.array.char_sets)) {
+			for (char c = charRange.charAt(0); c <= charRange.charAt(3); c++) { // FOR Each Character
+				paint.getTextWidths("" + c, 0, 1, w); // Get Character Bounds
 				charWidths[cnt] = w[0]; // Get Width
 				if (charWidths[cnt] > charWidthMax) // IF Width Larger Than Max Width
 					charWidthMax = charWidths[cnt]; // Save New Max Width
@@ -195,9 +205,8 @@ public class GLText {
 		float y = 0;// Set Start Position (Y)
 		float yShift = (cellHeight - 1) - fontDescent - fontPadY;
 		cnt = 0;
-		for (char[] charRange : charRanges) {
-			for (char c = charRange[0]; c <= charRange[1]; c++) { // FOR Each Character
-				s[0] = c; // Set Character to Draw
+		for (String charRange : L.stringArray(R.array.char_sets)) {
+			for (char c = charRange.charAt(0); c <= charRange.charAt(3); c++) { // FOR Each Character
 				canvas.drawText("" + c, x + fontPadX, y + yShift, paint); // Draw Character
 				charData[cnt] = new CharacterData((int)charWidths[cnt], (int)charHeight, textureWidth, textureHeight,
 					x, y, cellWidth - 1, cellHeight - 1); // Create Region for Character
@@ -225,15 +234,24 @@ public class GLText {
 		GLUtils.texImage2D(GLES11.GL_TEXTURE_2D, 0, bitmap, 0); // Load Bitmap to Texture
 		GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, 0); // Unbind Texture
 
+/*
+		// Save font bitmap to file 'font.png' for test purposes
+		try {
+			FileOutputStream fos = new FileOutputStream(new File(
+				new AndroidFileIO(Alite.get().getApplicationContext()).getFileName("font.png")));
+			bitmap.compress(Bitmap.CompressFormat.PNG, 85, fos);
+			fos.flush();
+			fos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+*/
 		// release the bitmap
 		MemUtil.freeBitmap(bitmap);
 		return this;
 	}
 
 	public void begin() {
-//		if (texture2D) {
-//			GLES11.glEnable(GLES11.GL_TEXTURE_2D);
-//		}
 		GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, textureId); // Bind the Texture
 		batch.beginBatch(); // Begin Batch
 	}
@@ -241,9 +259,6 @@ public class GLText {
 	public void end() {
 		batch.endBatch(); // End Batch
 		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); // Restore Default Color/Alpha
-//		if (texture2D) {
-//			GLES11.glDisable(GLES11.GL_TEXTURE_2D);
-//		}
 	}
 
 	// --Draw Text--//
@@ -260,27 +275,27 @@ public class GLText {
 		for (int i = 0; i < len; i++) { // FOR Each Character in String
 			int c = getCharIndex(text.charAt(i));
 			batch.drawSprite(x, y, chrWidth, chrHeight, charData[c]); // Draw the Character
-			x += (charWidths[c] + spaceX) * scale; // Advance X Position by Scaled Character Width
+			x += (charWidths[c] + spaceX)  * scale; // Advance X Position by Scaled Character Width
 		}
 	}
 
-	private static int getCharCount() {
+	private int getCharCount() {
 		int count = 0;
-		for (char[] charRange : charRanges) {
-			count += charRange[1] - charRange[0] + 1;
+		for (String charRange : L.stringArray(R.array.char_sets)) {
+			count += charRange.charAt(3) - charRange.charAt(0) + 1;
 		}
 		return count;
 	}
 
 	private int getCharIndex(char c) {
 		int index = 0;
-		for (char[] charRange : charRanges) {
-			if (c >= charRange[0] && c <= charRange[1]) {
-				return index + c - charRange[0];
+		for (String charRange : L.stringArray(R.array.char_sets)) {
+			if (c >= charRange.charAt(0) && c <= charRange.charAt(3)) {
+				return index + c - charRange.charAt(0);
 			}
-			index += charRange[1] - charRange[0] + 1;
+			index += charRange.charAt(3) - charRange.charAt(0) + 1;
 		}
-		return getCharIndex(CHAR_UNKNOWN);
+		return c == CHAR_UNKNOWN ? 0 : getCharIndex(CHAR_UNKNOWN);
 	}
 
 	// --Set Space--//
@@ -348,16 +363,6 @@ public class GLText {
 
 	public float getHeight() {
 		return fontHeight;
-	}
-
-	// --Draw Font Texture--//
-	// D: draw the entire font texture for testing purposes only
-	public void drawTexture() {
-		batch.beginBatch(textureId); // Begin Batch (Bind Texture)
-		batch.drawSprite(0, 0, textureWidth, textureHeight,
-			new CharacterData(0, 0, textureWidth, textureHeight,
-				0, 0, textureWidth, textureHeight)); // Draw
-		batch.endBatch(); // End Batch
 	}
 
 	public float getSize() {

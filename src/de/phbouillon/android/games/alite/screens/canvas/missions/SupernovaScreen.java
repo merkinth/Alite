@@ -23,7 +23,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import android.media.MediaPlayer;
-import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
@@ -41,7 +40,6 @@ import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class SupernovaScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
 
@@ -91,21 +89,20 @@ public class SupernovaScreen extends AliteScreen {
 		givenState = state;
 		mission = (SupernovaMission) MissionManager.getInstance().get(SupernovaMission.ID);
 		mediaPlayer = new MediaPlayer();
-		FileIO fio = game.getFileIO();
-		String path = "sound/mission/3/";
+		String path = MissionManager.DIRECTORY_SOUND_MISSION + "3/";
 		try {
 			if (state == 0) {
-				announcement = new MissionLine(fio, path + "01.mp3", supernovaAnnouncement);
-				missionLine = new MissionLine(fio, path + "02.mp3", missionDescription);
-				acceptMission = new MissionLine(fio, path + "06.mp3", accept);
+				announcement = new MissionLine(path + "01.mp3", supernovaAnnouncement);
+				missionLine = new MissionLine(path + "02.mp3", missionDescription);
+				acceptMission = new MissionLine(path + "06.mp3", accept);
 			} else if (state == 1) {
-				missionLine = new MissionLine(fio, path + "05.mp3", missionDecline);
+				missionLine = new MissionLine(path + "05.mp3", missionDecline);
 				mission.setSupernovaSystem(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex());
 			} else if (state == 2) {
-				missionLine = new MissionLine(fio, path + "03.mp3", dropUsOff);
+				missionLine = new MissionLine(path + "03.mp3", dropUsOff);
 				mission.setSupernovaSystem(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex());
 			} else if (state == 3) {
-				missionLine = new MissionLine(fio, path + "04.mp3", success);
+				missionLine = new MissionLine(path + "04.mp3", success);
 				mission.onMissionComplete();
 				Player player = game.getPlayer();
 				player.removeActiveMission(mission);

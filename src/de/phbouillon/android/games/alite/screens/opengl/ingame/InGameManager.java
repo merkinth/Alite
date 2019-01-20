@@ -37,17 +37,19 @@ import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.AliteColor;
+import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.LegalStatus;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
+import de.phbouillon.android.games.alite.model.Rating;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.generator.enums.Government;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.statistics.ShipType;
-import de.phbouillon.android.games.alite.model.statistics.WeaponType;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.ShipIntroScreen;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
+import de.phbouillon.android.games.alite.screens.canvas.TradeScreen;
 import de.phbouillon.android.games.alite.screens.canvas.tutorial.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
@@ -60,6 +62,7 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.MathHelper;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceStation;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Missile;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargon;
@@ -145,7 +148,7 @@ public class InGameManager implements Serializable {
 	private boolean                     viewDirectionChanged = false;
     private boolean                     vipersWillEngage = false;
 
-	private int                         viewDirection = 0;
+	private int                         viewDirection = PlayerCobra.DIR_FRONT;
 	private int                         lastX = -1;
 	private int                         lastY = -1;
 	private int                         hudIndex = 0;
@@ -296,7 +299,7 @@ public class InGameManager implements Serializable {
 	}
 
 	public void repeatMessage(String text, int times) {
-		message.repeatText(text, 1000000000L, times);
+		message.repeatText(text, 1, times);
 	}
 
 	public AliteHud getHud() {
@@ -321,12 +324,14 @@ public class InGameManager implements Serializable {
 		if (!((SpaceStation) getStation()).accessAllowed()) {
 			if (playSound) {
 				SoundManager.play(Assets.com_accessDeclined);
+				message.setText("Access to the station has been declined!");
 			}
 			return;
 		}
 		if (dockingComputerAI.isActive()) {
 			if (playSound) {
 				SoundManager.play(Assets.com_dockingComputerDisengaged);
+				setMessage("Docking computer disengaged");
 			}
 			if (hud != null) {
 				hud.mapDirections(false, false, false, false);
@@ -335,6 +340,7 @@ public class InGameManager implements Serializable {
 		} else {
 			if (playSound) {
 				SoundManager.play(Assets.com_dockingComputerEngaged);
+				setMessage("Docking computer engaged");
 			}
 			dockingComputerAI.engage();
 		}
@@ -343,6 +349,7 @@ public class InGameManager implements Serializable {
 	public void toggleStationHandsDocking() {
 		if (!((SpaceStation) getStation()).accessAllowed()) {
 			SoundManager.play(Assets.com_accessDeclined);
+			message.setText("Access to the station has been declined!");
 			return;
 		}
 		if (feeText != null || dockingComputerAI.isActive()) {
@@ -351,7 +358,7 @@ public class InGameManager implements Serializable {
 			return;
 		}
 		long dockingFee = getDockingFee();
-		feeText = String.format("The fee for assisted docking is %s.%s Cr. Accept?", dockingFee / 10, dockingFee % 10);
+		feeText = TradeScreen.getOneDecimalFormatString("The fee for assisted docking is %s.%s Cr. Accept?", dockingFee);
 	}
 
 	private long getDockingFee() {
@@ -362,6 +369,7 @@ public class InGameManager implements Serializable {
 	private void initiateStationHandsDocking() {
 		// TODO different sound ("Transaction has been received. Lean back and enjoy the flight.")
 		SoundManager.play(Assets.com_dockingComputerEngaged);
+		setMessage("Docking computer engaged");
 		dockingComputerAI.engage();
 	}
 
@@ -554,7 +562,7 @@ public class InGameManager implements Serializable {
 
 	private synchronized void spawnMissile(SpaceObject so) {
 		Missile missile = helper.spawnMissile(so, getShip());
-        message.repeatText("Incoming Missile", 2000000000L);
+        message.repeatText("Incoming Missile", 2);
         missile.addDestructionCallback(new DestructionCallback() {
 			private static final long serialVersionUID = -4168441227358105959L;
 
@@ -621,7 +629,7 @@ public class InGameManager implements Serializable {
 
 	private synchronized void updateObjects(float deltaTime, List <AliteObject> allObjects) {
 		helper.checkShipObjectCollision(allObjects);
-		laserManager.update(deltaTime, ship, allObjects, objectsToBeAdded);
+		laserManager.update(deltaTime, ship, allObjects);
 		Iterator <AliteObject> objectIterator = allObjects.iterator();
 		if (hud != null) {
 			buttons.update();
@@ -725,7 +733,7 @@ public class InGameManager implements Serializable {
 			starDust.update(ship.getPosition(), ship.getForwardVector());
 		}
 
-		laserManager.performUpdate(deltaTime, viewDirection, ship);
+		laserManager.performUpdate(viewDirection, ship);
 
 		updateTimedEvents();
 		if (dockingComputerAI.isActive() && Settings.dockingComputerSpeed == 2) {
@@ -741,9 +749,7 @@ public class InGameManager implements Serializable {
 		}
 		updateObjects(deltaTime, allObjects);
 
-		for (AliteObject eo: objectsToBeAdded) {
-			allObjects.add(eo);
-		}
+		allObjects.addAll(objectsToBeAdded);
 		objectsToBeAdded.clear();
 		if (!isPlayerControl() && dockingComputerAI.isActive() || needsSpeedAdjustment) {
 			if (!isPlayerAlive()) {
@@ -1163,7 +1169,7 @@ public class InGameManager implements Serializable {
 					continue;
 				}
 				if (go instanceof LaserCylinder) {
-					laserManager.renderLaser((LaserCylinder) go, ship);
+					laserManager.renderLaser((LaserCylinder) go);
 					continue;
 				}
 				if (go instanceof ExplosionBillboard) {
@@ -1177,7 +1183,7 @@ public class InGameManager implements Serializable {
 				}
 				GLES11.glPushMatrix();
 				MathHelper.copyMatrix(tempMatrix[0], viewMatrix);
-				if (viewDirection == 0) {
+				if (viewDirection == PlayerCobra.DIR_FRONT) {
 					renderHudObject(deltaTime, go);
 				}
 				if (go.needsDepthTest()) {
@@ -1290,7 +1296,7 @@ public class InGameManager implements Serializable {
 		viewingTransformationHelper.clearObjects(sortedObjectsToDraw);
 		hudIndex = 0;
 		planetWasSet = false;
-		if (viewDirection != 0) {
+		if (viewDirection != PlayerCobra.DIR_FRONT) {
 			MathHelper.copyMatrix(viewMatrix, tempMatrix[0]);
 			for (AliteObject go: objects) {
 				MathHelper.copyMatrix(tempMatrix[0], viewMatrix);
@@ -1456,7 +1462,7 @@ public class InGameManager implements Serializable {
 				scrollingText = new ScrollingText(alite);
 			}
 			message = new OnScreenMessage();
-			message.repeatText(AliteConfig.GAME_NAME + " is Paused (tap screen to continue)...", 5000000000L, -1, 3000000000L);
+			message.repeatText(AliteConfig.GAME_NAME + " is Paused (tap screen to continue)...", 5, -1, 3);
 		} else {
 			scrollingText = null;
 			message.clearRepetition();
@@ -1485,13 +1491,13 @@ public class InGameManager implements Serializable {
 	}
 
 	public void forceForwardView() {
-		viewDirection = 0;
+		viewDirection = PlayerCobra.DIR_FRONT;
 		if (hud != null) {
 			hud.setZoomFactor(1);
 		}
 	}
 
-	void killHyperspaceJump() {
+	private void killHyperspaceJump() {
 		if (hyperspaceTimer != null) {
 			hyperspaceTimer.pause();
 			hyperspaceTimer.setRemove(true);
@@ -1541,22 +1547,6 @@ public class InGameManager implements Serializable {
 		return viewDirection;
 	}
 
-	public void explode(SpaceObject so, boolean createCanisters, WeaponType weaponType) {
-		laserManager.explode(so, createCanisters, weaponType);
-	}
-
-	public void gameOver() {
-		laserManager.gameOver(getShip());
-	}
-
-	void computeBounty(SpaceObject destroyedObject, WeaponType weaponType) {
-		laserManager.computeBounty(destroyedObject, weaponType);
-	}
-
-	public void computeScore(SpaceObject destroyedObject, WeaponType weaponType) {
-		laserManager.computeScore(destroyedObject, weaponType);
-	}
-
 	public boolean isDestroyed() {
 		return destroyed;
 	}
@@ -1567,6 +1557,77 @@ public class InGameManager implements Serializable {
 		if (alite.getCobra().getEnergy() <= 0) {
 			gameOver();
 		}
+	}
+
+	private void checkPromotion() {
+		int score = alite.getPlayer().getScore();
+		boolean promoted = false;
+		while (score >= alite.getPlayer().getRating().getScoreThreshold() && alite.getPlayer().getRating().getScoreThreshold() > 0) {
+			alite.getPlayer().setRating(Rating.values()[alite.getPlayer().getRating().ordinal() + 1]);
+			promoted = true;
+		}
+		if (promoted) {
+			message.setText("Right On, Commander.");
+		}
+	}
+
+	final void computeBounty(SpaceObject destroyedObject) {
+		int bounty = destroyedObject.getBounty();
+		alite.getPlayer().setCash(alite.getPlayer().getCash() + bounty);
+		computeScore(destroyedObject);
+		if (!(destroyedObject instanceof CargoCanister)) {
+			SoundManager.play(Assets.com_targetDestroyed);
+			String bountyString = "Bounty for " + destroyedObject.getName() + ": " +
+				(bounty == 0 ? "None." : TradeScreen.getOneDecimalFormatString("%d.%d Cr.", bounty));
+			message.setDelayedText(bountyString);
+		}
+	}
+
+	public final void computeScore(SpaceObject destroyedObject) {
+		int points = destroyedObject.getScore();
+		if (Settings.difficultyLevel == 0) {
+			points >>= 1;
+		} else if (Settings.difficultyLevel == 1) {
+			points = (int) (points * 0.75f);
+		} else if (Settings.difficultyLevel == 2) {
+			points = (int) (points * 0.85f);
+		} else if (Settings.difficultyLevel == 4) {
+			points = (int) (points * 1.25f);
+		} else if (Settings.difficultyLevel == 5) {
+			points <<= 1;
+		}
+		AliteLog.d("Player kill", "Destroyed " + destroyedObject.getName() + " at Difficulty " + Settings.difficultyLevel + " for " + points + " points.");
+		alite.getPlayer().setScore(alite.getPlayer().getScore() + points);
+		checkPromotion();
+		if (destroyedObject.getScore() > 0) {
+			alite.getPlayer().increaseKillCount(1);
+			if (alite.getPlayer().getKillCount() % 1024 == 0) {
+				message.setText("Good Shooting, Commander!");
+			} else if (alite.getPlayer().getKillCount() % 256 == 0) {
+				message.setText("Right On, Commander.");
+			}
+		}
+	}
+
+	public final void gameOver() {
+		if (isDockingComputerActive()) {
+			toggleDockingComputer(false);
+		}
+		killHyperspaceJump();
+		if (ship.getUpdater() instanceof GameOverUpdater) {
+			return;
+		}
+		SoundManager.stop(Assets.energyLow);
+		SoundManager.stop(Assets.criticalCondition);
+		message.clearRepetition();
+		setPlayerControl(false);
+		if (alite.getCurrentScreen() instanceof FlightScreen) {
+			((FlightScreen) alite.getCurrentScreen()).setInformationScreen(null);
+		}
+		forceForwardView();
+		killHud();
+		ship.setUpdater(new GameOverUpdater(alite, this, ship, System.nanoTime()));
+		alite.getPlayer().setCondition(Condition.DOCKED);
 	}
 
 	public IMethodHook getHyperspaceHook() {
@@ -1631,7 +1692,7 @@ public class InGameManager implements Serializable {
 		return vipersWillEngage;
 	}
 
-	void setVipersWillEngage(boolean b) {
-		vipersWillEngage = b;
+	void setVipersWillEngage() {
+		vipersWillEngage = true;
 	}
 }

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -37,12 +37,12 @@ public class WitchSpaceRender implements Serializable {
 	private TimedEvent driveRepairedMessage = null;
 	private boolean hyperdriveMalfunction = false;
 	private boolean witchSpace = false;
-	
+
 	WitchSpaceRender(Alite alite, InGameManager inGame) {
 		this.alite = alite;
 		this.inGame = inGame;
 	}
-	
+
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
 			AliteLog.e("readObject", "WitchSpaceRender.readObject");
@@ -58,14 +58,14 @@ public class WitchSpaceRender implements Serializable {
 	void increaseWitchSpaceKillCounter() {
 		witchSpaceKillCounter++;
 		if (driveRepairedMessage == null) {
-			if (hyperdriveMalfunction && witchSpaceKillCounter >= Math.min(8, (alite.getPlayer().getRating().ordinal() + 1))) {
-				driveRepairedMessage = new TimedEvent((long) ((Math.random() * 5 + 3) * 1000000000l)) {					
+			if (hyperdriveMalfunction && witchSpaceKillCounter >= Math.min(8, alite.getPlayer().getRating().ordinal() + 1)) {
+				driveRepairedMessage = new TimedEvent((long) ((Math.random() * 5 + 3) * 1000000000L)) {
 					private static final long serialVersionUID = -5599485138177057364L;
 
 					@Override
 					public void doPerform() {
 						hyperdriveMalfunction = false;
-						inGame.getMessage().repeatText("Drive Repaired!", 1000000000l, 4);
+						inGame.getMessage().repeatText("Hyperdrive repaired!", 1, 4);
 						SoundManager.play(Assets.com_hyperdriveRepaired);
 						setRemove(true);
 					}
@@ -75,7 +75,7 @@ public class WitchSpaceRender implements Serializable {
 		}
 	}
 
-	public boolean isHyperdriveMalfunction() {
+	boolean isHyperdriveMalfunction() {
 		return hyperdriveMalfunction;
 	}
 
@@ -91,7 +91,7 @@ public class WitchSpaceRender implements Serializable {
 		if (inGame.getHud() != null) {
 			inGame.getHud().setWitchSpace(true);
 		}
-		inGame.getMessage().repeatText("Drive Malfunction!", 1000000000l, 4);
+		inGame.getMessage().repeatText("Hyperdrive malfunction!", 1, 4);
 		SoundManager.play(Assets.com_hyperdriveMalfunction);
 		int maxAttackersNumber = alite.getPlayer().getRating().ordinal() - Rating.AVERAGE.ordinal();
 		if (maxAttackersNumber < 1) {
@@ -107,6 +107,6 @@ public class WitchSpaceRender implements Serializable {
 		}
 		for (int i = 0; i < attackers; i++) {
 			inGame.getSpawnManager().spawnThargoidInWitchSpace();
-		}		
+		}
 	}
 }

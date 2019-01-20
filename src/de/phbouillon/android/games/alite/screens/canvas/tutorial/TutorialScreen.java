@@ -18,6 +18,7 @@ package de.phbouillon.android.games.alite.screens.canvas.tutorial;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,6 @@ import java.util.List;
 import android.graphics.Rect;
 import android.media.MediaPlayer;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
@@ -35,12 +35,13 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
+import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public abstract class TutorialScreen extends AliteScreen {
 	private static final int TEXT_LINE_HEIGHT = 50;
+	private static final String DIRECTORY_SOUND_TUTORIAL = LoadingScreen.DIRECTORY_SOUND + "tutorial" + File.separator;
 
 	protected final transient Alite alite;
 	private final transient List <TutorialLine> lines = new ArrayList<>();
@@ -122,28 +123,18 @@ public abstract class TutorialScreen extends AliteScreen {
 	}
 
 	TutorialLine addLine(int tutorialIndex, String line) {
-		String path = "sound/tutorial/" + tutorialIndex + "/";
-		try {
-			int index = lines.size() + 1;
-			FileIO afi = alite.getFileIO();
-			String audioName = path + (index < 10 ? "0" + index : index) + ".mp3";
-			TutorialLine result = new TutorialLine(afi.getPrivatePath(audioName), line);
-			lines.add(result);
-			return result;
-		} catch (IOException e) {
-			AliteLog.e("Error Reading Tutorial", "Error reading Tutorial", e);
-			return null;
-		}
+		return addLine(tutorialIndex, line, null);
 	}
 
 	TutorialLine addLine(int tutorialIndex, String line, String option) {
-		String path = "sound/tutorial/" + tutorialIndex + "/";
+		String path = DIRECTORY_SOUND_TUTORIAL + tutorialIndex + "/";
 		int index = lines.size() + 1;
-		FileIO afi = alite.getFileIO();
 		String audioName = path + (index < 10 ? "0" + index : index);
 		try {
-			TutorialLine result = new TutorialLine(afi.getPrivatePath(audioName + ".mp3"), line);
-			result.addSpeech(afi.getPrivatePath(audioName + option + ".mp3"));
+			TutorialLine result = new TutorialLine(L.rawDescriptor(audioName + ".mp3"), line);
+			if (option != null) {
+				result.addSpeech(L.rawDescriptor(audioName + option + ".mp3"));
+			}
 			lines.add(result);
 			return result;
 		} catch (IOException e) {
@@ -291,7 +282,7 @@ public abstract class TutorialScreen extends AliteScreen {
 										  TEXT_LINE_HEIGHT,
 										  ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		} else {
-			if (!currentLine.isPlaying(mediaPlayer)) {
+			if (!currentLine.isPlaying()) {
 				currentLine.executeFinishHook();
 				currentLine = null;
 			}

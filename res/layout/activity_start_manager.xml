@@ -13,7 +13,7 @@
         android:gravity="top"
         android:lines="1"
         android:padding="10dp"
-        android:text="Downloading Alite assets. This only needs to be done once."
+        android:text="@string/notification_download_assets"
         tools:ignore="HardcodedText" />
 
     <TextView
@@ -23,7 +23,7 @@
         android:gravity="center|left"
         android:lines="5"
         android:padding="10dp"
-        android:text="File Downloading... Please wait..."
+        android:text="@string/notification_download_start"
         tools:ignore="HardcodedText" />
 
     <LinearLayout
@@ -56,6 +56,5 @@
         android:gravity="center"
         android:lines="2"
         android:padding="10dp"
-        android:text="Working..." />
-    
+        android:text="@string/notification_download_working" />
 </LinearLayout>

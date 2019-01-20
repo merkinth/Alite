@@ -39,7 +39,6 @@ import de.phbouillon.android.games.alite.model.library.TocEntry;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class LibraryScreen extends AliteScreen {
 	private final List <Button> button = new ArrayList<>();
 	private final List <TocEntryData> entries = new ArrayList<>();
@@ -87,18 +86,21 @@ public class LibraryScreen extends AliteScreen {
 			button.clear();
 			entries.clear();
 			filteredEntries.clear();
-			Toc toc = Toc.read(game.getFileIO().readPrivateFile("library/toc.xml"), game.getFileIO());
-			buildTocButtons(toc.getEntries(), 0);
+			buildTocButtons(Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(), 0);
 			if (currentFilter != null) {
 				filter();
 			}
-			Button last = button.get(button.size() - 1);
-			maxY = last.getY() + last.getHeight() - 870;
-			if (maxY < 0) {
-				maxY = 0;
-			}
+			setMaxY();
 		} catch (IOException e) {
 			AliteLog.e("[ALITE] Library", "Error reading Library TOC file.", e);
+		}
+	}
+
+	private void setMaxY() {
+		Button last = button.get(button.size() - 1);
+		maxY = last.getY() + last.getHeight() - 870;
+		if (maxY < 0) {
+			maxY = 0;
 		}
 	}
 

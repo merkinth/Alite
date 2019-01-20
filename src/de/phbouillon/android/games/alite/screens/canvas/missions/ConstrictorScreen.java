@@ -26,10 +26,10 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.media.MediaPlayer;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -49,7 +49,6 @@ import de.phbouillon.android.games.alite.screens.canvas.TextData;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Constrictor;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class ConstrictorScreen extends AliteScreen {
 	static final int STRETCH_X = 7;
 	static final int STRETCH_Y = 7;
@@ -129,28 +128,27 @@ public class ConstrictorScreen extends AliteScreen {
 		givenState = state;
 		mission = (ConstrictorMission) MissionManager.getInstance().get(ConstrictorMission.ID);
 		mediaPlayer = new MediaPlayer();
-		FileIO fio = game.getFileIO();
-		String path = "sound/mission/1/";
+		String path = MissionManager.DIRECTORY_SOUND_MISSION + "1/";
 		try {
-			attCommander = new MissionLine(fio, path + "01.mp3", attentionCommander);
+			attCommander = new MissionLine(path + "01.mp3", attentionCommander);
 			if (state == 0) {
-				missionLine = new MissionLine(fio, path + "02.mp3", missionDescription);
-				acceptMission = new MissionLine(fio, path + "03.mp3", accept);
+				missionLine = new MissionLine(path + "02.mp3", missionDescription);
+				acceptMission = new MissionLine(path + "03.mp3", accept);
 				constrictor = new Constrictor(game);
 				constrictor.setPosition(200, 0, -700.0f);
 			} else if (state == 1) {
-				missionLine = new MissionLine(fio, path + "04.mp3", reportToBase);
+				missionLine = new MissionLine(path + "04.mp3", reportToBase);
 				targetSystem = mission.findMostDistantSystem();
 				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), state);
 			} else if (state == 2) {
-				missionLine = new MissionLine(fio, path + "06.mp3", intergalacticJump);
+				missionLine = new MissionLine(path + "06.mp3", intergalacticJump);
 				mission.setTarget(game.getGenerator().getNextSeed(), -1, state);
 			} else if (state == 3) {
-				missionLine = new MissionLine(fio, path + "05.mp3", hyperspaceJump);
+				missionLine = new MissionLine(path + "05.mp3", hyperspaceJump);
 				targetSystem = mission.findRandomSystemInRange(75, 120);
 				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), mission.getState() + 1);
 			} else if (state == 4) {
-				missionLine = new MissionLine(fio, path + "07.mp3", success);
+				missionLine = new MissionLine(path + "07.mp3", success);
 				mission.onMissionComplete();
 				Player player = game.getPlayer();
 				player.removeActiveMission(mission);
@@ -166,7 +164,7 @@ public class ConstrictorScreen extends AliteScreen {
 	}
 
 	private void dance() {
-		if (System.nanoTime() - lastChangeTime > 4000000000L) {
+		if (TimeUtil.hasPassed(lastChangeTime, 4, TimeUtil.SECONDS)) {
 			targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
@@ -316,10 +314,10 @@ public class ConstrictorScreen extends AliteScreen {
 		int nameHeight = g.getTextHeight(system.getName(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
 		int positionX = (int) (3 * zoomFactor) + 2;
 		int positionY = 40;
-		if (p.x + nameWidth > (GalaxyScreen.HALF_WIDTH << 1)) {
+		if (p.x + nameWidth > GalaxyScreen.HALF_WIDTH << 1) {
 			positionX = -positionX - nameWidth;
 		}
-		if (p.y + 40 > (GalaxyScreen.HALF_HEIGHT << 1)) {
+		if (p.y + 40 > GalaxyScreen.HALF_HEIGHT << 1) {
 			positionY = -40;
 		}
 		if (clearBackground) {

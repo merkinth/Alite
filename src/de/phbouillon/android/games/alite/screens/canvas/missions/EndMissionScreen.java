@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 import android.media.MediaPlayer;
-import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -34,7 +33,6 @@ import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class EndMissionScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
 
@@ -62,13 +60,11 @@ public class EndMissionScreen extends AliteScreen {
 		super(game);
 		EndMission mission = (EndMission) MissionManager.getInstance().get(EndMission.ID);
 		mediaPlayer = new MediaPlayer();
-		FileIO fio = game.getFileIO();
-		String path = "sound/mission/";
 		try {
 			if (state == 0) {
-				welcomeLine = new MissionLine(fio, path + "01.mp3", welcomeCommander);
-				missionLine = new MissionLine(fio, null, missionDescription);
-				congratulationsLine = new MissionLine(fio, null, congratulations);
+				welcomeLine = new MissionLine(MissionManager.DIRECTORY_SOUND_MISSION + "01.mp3", welcomeCommander);
+				missionLine = new MissionLine(null, missionDescription);
+				congratulationsLine = new MissionLine(null, congratulations);
 			} else {
 				AliteLog.e("Unknown State", "Invalid state variable has been passed to EndMissionScreen: " + state);
 			}

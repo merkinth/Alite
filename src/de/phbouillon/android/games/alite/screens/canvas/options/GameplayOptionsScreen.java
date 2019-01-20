@@ -31,13 +31,11 @@ import de.phbouillon.android.games.alite.SoundManager;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class GameplayOptionsScreen extends OptionsScreen {
 	private Button difficultyLevel;
-	private Button keyboardLayout;
-	private Button laserAutoFire;
-	private Button dockingSpeed;
 	private Button autoId;
+	private Button dockingSpeed;
+	private Button laserAutoFire;
 	private Button back;
 
 	GameplayOptionsScreen(Alite game) {
@@ -50,13 +48,8 @@ public class GameplayOptionsScreen extends OptionsScreen {
 		autoId            = createButton(2, getAutoIdButtonText());
 		dockingSpeed      = createButton(3, getDockingComputerButtonText());
 		laserAutoFire     = createButton(4, getLaserButtonText());
-		keyboardLayout    = createButton(5, getKeyboardButtonText());
 
 		back              = createButton(6, "Back");
-	}
-
-	private String getKeyboardButtonText() {
-		return "Keyboard: " + Settings.keyboardLayout;
 	}
 
 	private String getLaserButtonText() {
@@ -112,53 +105,52 @@ public class GameplayOptionsScreen extends OptionsScreen {
 		autoId.render(g);
 		dockingSpeed.render(g);
 		laserAutoFire.render(g);
-		keyboardLayout.render(g);
 
 		back.render(g);
 	}
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (difficultyLevel.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.difficultyLevel++;
-				if (Settings.difficultyLevel > 5) {
-					Settings.difficultyLevel = 0;
-				}
-				difficultyLevel.setText(getDifficultyButtonText());
-				Settings.save(game.getFileIO());
-			} else if (autoId.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.autoId = !Settings.autoId;
-				autoId.setText(getAutoIdButtonText());
-				Settings.save(game.getFileIO());
-			} else if (keyboardLayout.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				if ("QWERTY".equals(Settings.keyboardLayout)) {
-					Settings.keyboardLayout = "QWERTZ";
-				} else {
-					Settings.keyboardLayout = "QWERTY";
-				}
-				keyboardLayout.setText(getKeyboardButtonText());
-				Settings.save(game.getFileIO());
-			} else if (dockingSpeed.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.dockingComputerSpeed++;
-				if (Settings.dockingComputerSpeed > 2) {
-					Settings.dockingComputerSpeed = 0;
-				}
-				dockingSpeed.setText(getDockingComputerButtonText());
-				Settings.save(game.getFileIO());
-			} else if (laserAutoFire.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				Settings.laserButtonAutoFire = !Settings.laserButtonAutoFire;
-				laserAutoFire.setText(getLaserButtonText());
-				Settings.save(game.getFileIO());
-			} else if (back.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new OptionsScreen(game);
+		if (touch.type != TouchEvent.TOUCH_UP) {
+			return;
+		}
+		if (difficultyLevel.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.difficultyLevel++;
+			if (Settings.difficultyLevel > 5) {
+				Settings.difficultyLevel = 0;
 			}
+			difficultyLevel.setText(getDifficultyButtonText());
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (autoId.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.autoId = !Settings.autoId;
+			autoId.setText(getAutoIdButtonText());
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (dockingSpeed.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.dockingComputerSpeed++;
+			if (Settings.dockingComputerSpeed > 2) {
+				Settings.dockingComputerSpeed = 0;
+			}
+			dockingSpeed.setText(getDockingComputerButtonText());
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (laserAutoFire.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.laserButtonAutoFire = !Settings.laserButtonAutoFire;
+			laserAutoFire.setText(getLaserButtonText());
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (back.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new OptionsScreen(game);
 		}
 	}
 

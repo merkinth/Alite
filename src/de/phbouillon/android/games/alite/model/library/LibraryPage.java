@@ -23,14 +23,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.w3c.dom.Document;
+import de.phbouillon.android.games.alite.L;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.games.alite.AliteLog;
 
 public class LibraryPage {
@@ -138,11 +136,8 @@ public class LibraryPage {
 	public static LibraryPage load(String fileName, InputStream is) {
 		LibraryPage result = new LibraryPage();
 
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		try {
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(is);
-			Element root = doc.getDocumentElement();
+			Element root = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is).getDocumentElement();
 			root.normalize();
 			result.header            = getHeader(root);
 			result.paragraphs        = getParagraphsFromText(getPageText(root));
@@ -153,17 +148,15 @@ public class LibraryPage {
 			result.next              = getNext(root);
 		} catch (Throwable t) {
 			AliteLog.e("Error reading Library Page " + fileName, "An error occurred while parsing page " + fileName + ".", t);
-		} finally {
-			try {
-				is.close();
-			} catch (IOException ignored) {
-			}
 		}
 
 		return result;
 	}
 
 	public String getParagraphs() {
+		if (paragraphs == null) {
+			return null;
+		}
 		StringBuilder builder = new StringBuilder();
 		for (String s: paragraphs) {
 			builder.append(s);
@@ -206,30 +199,25 @@ public class LibraryPage {
 		return builder.toString();
 	}
 
-	private static LibraryPage parsePageRef(String fileNameAbbrev, FileIO io) {
-		LibraryPage linkedPage = null;
-		String fileName = "library/" + fileNameAbbrev + ".xml";
+	private static LibraryPage parsePageRef(String fileNameAbbrev) {
 		try {
-			if (io.existsPrivateFile(fileName)) {
-				linkedPage = LibraryPage.load(fileName, io.readPrivateFile(fileName));
-			}
-			return linkedPage;
-		} catch (IOException e) {
-			AliteLog.e("[ALITE] LibraryPage", "Error reading library node " + fileNameAbbrev + " with fileName " + fileName + ".");
+			return LibraryPage.load(fileNameAbbrev, L.raw(Toc.DIRECTORY_LIBRARY + fileNameAbbrev + ".xml"));
+		} catch (IOException ignored) {
+			AliteLog.e("[ALITE] LibraryPage", "Error reading library node " + fileNameAbbrev + ".");
 		}
 		return null;
 	}
 
-	public LibraryPage getNextPage(FileIO io) {
+	public LibraryPage getNextPage() {
 		if (nextPage == null && next != null) {
-			nextPage = parsePageRef(next, io);
+			nextPage = parsePageRef(next);
 		}
 		return nextPage;
 	}
 
-	public LibraryPage getPrevPage(FileIO io) {
+	public LibraryPage getPrevPage() {
 		if (previousPage == null && previous != null) {
-			previousPage = parsePageRef(previous, io);
+			previousPage = parsePageRef(previous);
 		}
 		return previousPage;
 	}

@@ -18,6 +18,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import java.io.File;
 import java.io.IOException;
 
 import de.phbouillon.android.framework.Sound;
@@ -27,8 +28,11 @@ import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Settings;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class LoadingScreen extends AliteScreen {
+	public static final String DIRECTORY_SOUND = "sound" + File.separator;
+	public static final String DIRECTORY_MUSIC = "music" + File.separator;
+	private static final String DIRECTORY_SOUND_COMPUTER = DIRECTORY_SOUND + "computer" + File.separator;
+
 	public LoadingScreen(Alite game) {
 		super(game);
 	}
@@ -38,52 +42,68 @@ public class LoadingScreen extends AliteScreen {
 	}
 
 	private void loadSounds() {
-		Assets.click                         = game.getAudio().newSound("sound/guiclick.ogg",Sound.SoundType.SOUND_FX);
-		Assets.alert                         = game.getAudio().newSound("sound/beep.ogg",Sound.SoundType.SOUND_FX);
-		Assets.kaChing                       = game.getAudio().newSound("sound/buy.ogg",Sound.SoundType.SOUND_FX);
-		Assets.fireLaser                     = game.getAudio().newSound("sound/laser.ogg",Sound.SoundType.COMBAT_FX);
-		Assets.laserHit                      = game.getAudio().newSound("sound/laserhit.ogg",Sound.SoundType.COMBAT_FX);
-		Assets.enemyFireLaser                = game.getAudio().newSound("sound/enemy_laser.ogg",Sound.SoundType.COMBAT_FX);
-		Assets.hullDamage                    = game.getAudio().newSound("sound/enemy_laserhit.ogg",Sound.SoundType.COMBAT_FX);
+		Assets.click = game.getAudio().newSound(DIRECTORY_SOUND + "guiclick.ogg");
+		Assets.alert = game.getAudio().newSound(DIRECTORY_SOUND + "beep.ogg");
+		Assets.kaChing = game.getAudio().newSound(DIRECTORY_SOUND + "buy.ogg");
+		Assets.fireLaser = game.getAudio().newCombatSound(DIRECTORY_SOUND + "laser.ogg");
+		Assets.laserHit = game.getAudio().newCombatSound(DIRECTORY_SOUND + "laserhit.ogg");
+		Assets.enemyFireLaser = game.getAudio().newCombatSound(DIRECTORY_SOUND + "enemy_laser.ogg");
+		Assets.hullDamage = game.getAudio().newCombatSound(DIRECTORY_SOUND + "enemy_laserhit.ogg");
 
-		Assets.energyLow                     = game.getAudio().newSound("sound/alert.ogg",Sound.SoundType.SOUND_FX);
-		Assets.altitudeLow                   = Assets.energyLow;
-		Assets.temperatureHigh               = Assets.energyLow;
-		Assets.criticalCondition             = Assets.energyLow;
-		Assets.error                         = game.getAudio().newSound("sound/witchabort.ogg",Sound.SoundType.SOUND_FX);
+		Assets.energyLow = game.getAudio().newSound(DIRECTORY_SOUND + "alert.ogg");
+		Assets.altitudeLow = Assets.energyLow;
+		Assets.temperatureHigh = Assets.energyLow;
+		Assets.criticalCondition = Assets.energyLow;
+		Assets.error = game.getAudio().newSound(DIRECTORY_SOUND + "witchabort.ogg");
 
-		Assets.shipDestroyed                 = game.getAudio().newSound("sound/explosion.ogg",Sound.SoundType.COMBAT_FX);
-		Assets.scooped                       = game.getAudio().newSound("sound/scoop.ogg",Sound.SoundType.SOUND_FX);
-		Assets.fireMissile                   = game.getAudio().newSound("sound/missile.ogg",Sound.SoundType.SOUND_FX);
-		Assets.missileLocked                 = Assets.alert;
-		Assets.torus                         = game.getAudio().newSound("sound/torus.ogg",Sound.SoundType.SOUND_FX);
-		Assets.ecm                           = game.getAudio().newSound("sound/ecm.ogg",Sound.SoundType.SOUND_FX);
-		Assets.identify                      = game.getAudio().newSound("sound/boop.ogg",Sound.SoundType.SOUND_FX);
-		Assets.retroRocketsOrEscapeCapsuleFired = game.getAudio().newSound("sound/retros.ogg",Sound.SoundType.SOUND_FX);
-		Assets.hyperspace                    = game.getAudio().newSound("sound/hyperspace.ogg",Sound.SoundType.SOUND_FX);
+		Assets.shipDestroyed = game.getAudio().newCombatSound(DIRECTORY_SOUND + "explosion.ogg");
+		Assets.scooped = game.getAudio().newSound(DIRECTORY_SOUND + "scoop.ogg");
+		Assets.fireMissile = game.getAudio().newSound(DIRECTORY_SOUND + "missile.ogg");
+		Assets.missileLocked = Assets.alert;
+		Assets.torus = game.getAudio().newSound(DIRECTORY_SOUND + "torus.ogg");
+		Assets.ecm = game.getAudio().newSound(DIRECTORY_SOUND + "ecm.ogg");
+		Assets.identify = game.getAudio().newSound(DIRECTORY_SOUND + "boop.ogg");
+		Assets.retroRocketsOrEscapeCapsuleFired = game.getAudio().newSound(DIRECTORY_SOUND + "retros.ogg");
+		Assets.hyperspace = game.getAudio().newSound(DIRECTORY_SOUND + "hyperspace.ogg");
+	}
 
-		Assets.com_aftShieldHasFailed        = game.getAudio().newSound("sound/computer/aft_shield_failed.ogg",Sound.SoundType.VOICE);
-		Assets.com_frontShieldHasFailed      = game.getAudio().newSound("sound/computer/front_shield_failed.ogg",Sound.SoundType.VOICE);
-		Assets.com_conditionRed              = game.getAudio().newSound("sound/computer/condition_red.ogg",Sound.SoundType.VOICE);
-		Assets.com_dockingComputerEngaged    = game.getAudio().newSound("sound/computer/docking_on.ogg",Sound.SoundType.VOICE);
-		Assets.com_dockingComputerDisengaged = game.getAudio().newSound("sound/computer/docking_off.ogg",Sound.SoundType.VOICE);
-		Assets.com_hyperdriveMalfunction     = game.getAudio().newSound("sound/computer/hyperdrive_malfunction.ogg",Sound.SoundType.VOICE);
-		Assets.com_hyperdriveRepaired        = game.getAudio().newSound("sound/computer/hyperdrive_repaired.ogg",Sound.SoundType.VOICE);
-		Assets.com_incomingMissile           = game.getAudio().newSound("sound/computer/incoming_missile.ogg",Sound.SoundType.VOICE);
-		Assets.com_laserTemperatureCritical  = game.getAudio().newSound("sound/computer/laser_temperature.ogg",Sound.SoundType.VOICE);
-		Assets.com_cabinTemperatureCritical  = game.getAudio().newSound("sound/computer/cabin_temperature.ogg",Sound.SoundType.VOICE);
-		Assets.com_targetDestroyed           = game.getAudio().newSound("sound/computer/target_destroyed.ogg",Sound.SoundType.VOICE);
-		Assets.com_fuelSystemMalfunction     = game.getAudio().newSound("sound/mission/3/00.mp3",Sound.SoundType.VOICE);
-		Assets.com_accessDeclined            = game.getAudio().newSound("sound/computer/access_declined.ogg",Sound.SoundType.VOICE);
+	private void loadLocalizedSounds() {
+		Assets.com_aftShieldHasFailed = safeLoadSound(Assets.com_aftShieldHasFailed, "aft_shield_failed");
+		Assets.com_frontShieldHasFailed = safeLoadSound(Assets.com_frontShieldHasFailed, "front_shield_failed");
+		Assets.com_conditionRed = safeLoadSound(Assets.com_conditionRed, "condition_red");
+		Assets.com_dockingComputerEngaged = safeLoadSound(Assets.com_dockingComputerEngaged, "docking_on");
+		Assets.com_dockingComputerDisengaged = safeLoadSound(Assets.com_dockingComputerDisengaged, "docking_off");
+		Assets.com_hyperdriveMalfunction = safeLoadSound(Assets.com_hyperdriveMalfunction, "hyperdrive_malfunction");
+		Assets.com_hyperdriveRepaired = safeLoadSound(Assets.com_hyperdriveRepaired, "hyperdrive_repaired");
+		Assets.com_incomingMissile = safeLoadSound(Assets.com_incomingMissile, "incoming_missile");
+		Assets.com_laserTemperatureCritical = safeLoadSound(Assets.com_laserTemperatureCritical, "laser_temperature");
+		Assets.com_cabinTemperatureCritical = safeLoadSound(Assets.com_cabinTemperatureCritical, "cabin_temperature");
+		Assets.com_targetDestroyed = safeLoadSound(Assets.com_targetDestroyed, "target_destroyed");
+		Assets.com_fuelSystemMalfunction = safeLoadSound(Assets.com_fuelSystemMalfunction, "fuel_malfunction");
+		Assets.com_accessDeclined = safeLoadSound(Assets.com_accessDeclined, "access_declined");
 
-		Assets.com_lostDockingComputer       = game.getAudio().newSound("sound/computer/lost_docking.ogg",Sound.SoundType.VOICE);
-		Assets.com_lostEcm                   = game.getAudio().newSound("sound/computer/lost_ecm.ogg",Sound.SoundType.VOICE);
-		Assets.com_lostEnergyBomb            = game.getAudio().newSound("sound/computer/lost_bomb.ogg",Sound.SoundType.VOICE);
-		Assets.com_lostEscapeCapsule         = game.getAudio().newSound("sound/computer/lost_escape.ogg",Sound.SoundType.VOICE);
-		Assets.com_lostExtraEnergyUnit       = game.getAudio().newSound("sound/computer/lost_energy.ogg",Sound.SoundType.VOICE);
-		Assets.com_lostFuelScoop             = game.getAudio().newSound("sound/computer/lost_fuel_scoop.ogg",Sound.SoundType.VOICE);
-		Assets.com_lostGalacticHyperdrive    = game.getAudio().newSound("sound/computer/lost_galactic.ogg",Sound.SoundType.VOICE);
-		Assets.com_lostRetroRockets          = game.getAudio().newSound("sound/computer/lost_retro_rockets.ogg",Sound.SoundType.VOICE);
+		Assets.com_lostDockingComputer = safeLoadSound(Assets.com_lostDockingComputer, "lost_docking");
+		Assets.com_lostEcm = safeLoadSound(Assets.com_lostEcm, "lost_ecm");
+		Assets.com_lostEnergyBomb = safeLoadSound(Assets.com_lostEnergyBomb, "lost_bomb");
+		Assets.com_lostEscapeCapsule = safeLoadSound(Assets.com_lostEscapeCapsule, "lost_escape");
+		Assets.com_lostExtraEnergyUnit = safeLoadSound(Assets.com_lostExtraEnergyUnit, "lost_energy");
+		Assets.com_lostFuelScoop = safeLoadSound(Assets.com_lostFuelScoop, "lost_fuel_scoop");
+		Assets.com_lostGalacticHyperdrive = safeLoadSound(Assets.com_lostGalacticHyperdrive, "lost_galactic");
+		Assets.com_lostRetroRockets = safeLoadSound(Assets.com_lostRetroRockets, "lost_retro_rockets");
+		Assets.com_escapeMalfunction = safeLoadSound(Assets.com_escapeMalfunction, "escape_malfunction");
+	}
+
+	private Sound safeLoadSound(Sound current, String soundFileName) {
+		Sound sound = game.getAudio().newSoundAsset(DIRECTORY_SOUND_COMPUTER + soundFileName + ".ogg");
+		return sound != null ? sound : current;
+	}
+
+	public void changeLocale() {
+		new Thread(){
+			public void run() {
+				loadLocalizedSounds();
+			}
+		}.start();
 	}
 
 	@Override
@@ -93,12 +113,12 @@ public class LoadingScreen extends AliteScreen {
 		AliteLog.d("Debug-1", "Now loading Alite Logo");
 		Assets.aliteLogoSmall = game.getGraphics().newPixmap("alite_logo_small.png");
 		AliteLog.d("Debug-2", "Logo loaded; skipping sound load");
-		Thread t = new Thread(){
+		new Thread(){
 			public void run() {
 				loadSounds();
+				loadLocalizedSounds();
 			}
-		};
-		t.start();
+		}.start();
 		AliteLog.d("Debug-3", "Now loading Alite Settings");
 		Settings.load(game.getFileIO());
 		AliteLog.d("Debug-4", "Settings loaded");

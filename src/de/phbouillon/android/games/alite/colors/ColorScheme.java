@@ -20,8 +20,8 @@ package de.phbouillon.android.games.alite.colors;
 
 import android.graphics.Color;
 import de.phbouillon.android.framework.FileIO;
-import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
+import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -100,8 +100,9 @@ public class ColorScheme {
 	public static int COLOR_ENERGY_BANK_WHOLE = 67;
 	public static int COLOR_INDICATOR_BAR = 68;
 	public static int COLOR_HIGHLIGHT_COLOR = 69;
+	public static int COLOR_HUD_MESSAGE = 70;
 
-	private static int MAX_COLORS = 69;
+	private static int MAX_COLORS = 70;
 
 	public static final String COLOR_SCHEME_CLASSIC = "0";
 	private static final String COLOR_SCHEME_MODERN = "1";
@@ -176,7 +177,8 @@ public class ColorScheme {
 		{Color.MAGENTA, Color.RED}, // COLOR_ENERGY_BANK_4
 		{Color.TRANSPARENT, Color.TRANSPARENT}, // COLOR_ENERGY_BANK_WHOLE
 		{Color.MAGENTA, Color.MAGENTA}, // COLOR_INDICATOR_BAR
-		{AliteColor.DARK_RED_LOW_ALPHA, AliteColor.DARK_RED_LOW_ALPHA} // COLOR_HIGHLIGHT_COLOR
+		{AliteColor.DARK_RED_LOW_ALPHA, AliteColor.DARK_RED_LOW_ALPHA}, // COLOR_HIGHLIGHT_COLOR
+		{0x99F0F000, 0x99F0F000} // COLOR_HUD_MESSAGE - MedAlphaDarkYellow
 	};
 
 	private static int[][] modernColorSchemeColors = new int[][]{
@@ -249,7 +251,8 @@ public class ColorScheme {
 		{AliteColor.LIGHT_GREEN, Color.RED}, // COLOR_ENERGY_BANK_4
 		{Color.TRANSPARENT, Color.TRANSPARENT}, // COLOR_ENERGY_BANK_WHOLE
 		{AliteColor.LIGHT_GREEN, AliteColor.LIGHT_GREEN}, // COLOR_INDICATOR_BAR
-		{AliteColor.DARK_GREEN_LOW_ALPHA, AliteColor.DARK_GREEN_LOW_ALPHA} // COLOR_HIGHLIGHT_COLOR
+		{AliteColor.DARK_GREEN_LOW_ALPHA, AliteColor.DARK_GREEN_LOW_ALPHA}, // COLOR_HIGHLIGHT_COLOR
+		{0x99F0F000, 0x99F0F000} // COLOR_HUD_MESSAGE - MedAlphaDarkYellow
 	};
 
 	private static final String DIRECTORY_COLOR_SCHEMES = "color_schemes";
@@ -346,8 +349,8 @@ public class ColorScheme {
 	}
 
 	public static String getSchemeDisplayName(String schemeName) {
-		if (COLOR_SCHEME_CLASSIC.equals(schemeName)) return Alite.get().getResources().getString(R.string.color_scheme_classic);
-		if (COLOR_SCHEME_MODERN.equals(schemeName)) return Alite.get().getResources().getString(R.string.color_scheme_modern);
+		if (COLOR_SCHEME_CLASSIC.equals(schemeName)) return L.string(R.string.color_scheme_classic);
+		if (COLOR_SCHEME_MODERN.equals(schemeName)) return L.string(R.string.color_scheme_modern);
 		return schemeName.substring(0, schemeName.indexOf(ALITE_COLOR_SCHEME_EXTENSION));
 	}
 
@@ -497,7 +500,8 @@ public class ColorScheme {
 		"energybank4",
 		"energybankwhole",
 		"indicatorbar",
-		"highlightcolor"
+		"highlightcolor",
+		"hudmessage"
 	};
 
 }

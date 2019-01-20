@@ -28,7 +28,6 @@ import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class HexNumberPadScreen extends AliteScreen {
 	private static final int OFFSET_X = 20;
 	private static final int OFFSET_Y = 20;
@@ -37,7 +36,11 @@ public class HexNumberPadScreen extends AliteScreen {
 
 	private final int x;
 	private final int y;
-	private final String[] buttonTexts = new String[] {"7", "8", "9", "E", "F", "4", "5", "6", "C", "D", "1", "2", "3", "A", "B", "0", "<-", "OK"};
+	private final String[] buttonTexts = new String[] {
+		"7", "8", "9", "E", "F",
+		"4", "5", "6", "C", "D",
+		"1", "2", "3", "A", "B",
+		"0", "<-", "OK"};
 	private final Button[] pads;
 	private String currentValueString = "";
 	private final HackerScreen hackerScreen;
@@ -102,7 +105,8 @@ public class HexNumberPadScreen extends AliteScreen {
 				pads[y * 5 + x] = Button.createRegularButton(this.x + x * (BUTTON_SIZE + GAP) + OFFSET_X,
 					 this.y + y * (BUTTON_SIZE + GAP) + OFFSET_Y,
 					 BUTTON_SIZE, BUTTON_SIZE,
-					 buttonTexts[y * 5 + x]);
+					y == 3 && x > 0 || x > 2 ? buttonTexts[y * 5 + x] : String.format(L.currentLocale, "%d",
+						Integer.parseInt(buttonTexts[y * 5 + x])));
 			}
 		}
 	}

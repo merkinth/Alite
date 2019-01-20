@@ -30,13 +30,16 @@ import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Music;
 import de.phbouillon.android.framework.Sound;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
+import de.phbouillon.android.games.alite.R;
 
 // ??              - Adder Mk II          - Gopher
 //                 - Mosquito Trader      - Indigo
@@ -75,125 +78,35 @@ public class AboutScreen extends GlScreen {
 
 	private int pendingMode = -1;
 
-	private final String credits = "[  03.0y]Alite\n" +
-	                               "[3001.5w]A Game By\n" +
-			                       "[ 602.0y]Philipp Bouillon\n" +
-			                       "[ 902.0y]Duane McDonnell\n" +
+	private static final String SPACE_300 = "300";
+	private static final String SPACE_250 = "250";
+	private static final String SPACE_200 = "200";
+	private static final String SPACE_100 = "100";
+	private static final String SPACE_90  = " 90";
+	private static final String SPACE_60  = " 60";
+	private static final String SPACE_0   = "  0";
 
-			                       "[2501.5w]Programming\n" +
-	                               "[ 602.0y]Philipp Bouillon\n" +
+	private static final String SCALE_3_0 = "3.0";
+	private static final String SCALE_2_0 = "2.0";
+	private static final String SCALE_1_5 = "1.5";
 
-			                       "[2501.5w]Additional Programming\n" +
-			                       "[ 602.0y]Steven Phillips\n" +
+	private static final char DESCRIPTION_COLOR = 'w';
+	private static final char PERSON_COLOR      = 'y';
+	private static final char ADDITION_COLOR    = 'o';
 
-	                               "[2501.5y]Alite is inspired by classic Elite\n" +
-			                       "[ 601.5y]\u00a9 Acornsoft, Bell & Braben\n" +
-
-	                               "[2501.5w]Intro Movie\n" +
-	                               "[1001.5w]Production, Modeling, Rendering\n" +
-			                       "[ 602.0y]James Scott\n" +
-	                               "[ 902.0o]jscottmedia.com\n" +
-
-	                               "[2001.5w]Docking Computer Music\n" +
-	                               "[ 601.5w]The Blue Danube (Op. 314)\n" +
-	                               "[ 601.5w]by Johann Strauss\n" +
-	                               "[ 602.0y]Arranged by Chris Huelsbeck\n" +
-	                               "[2001.5w]Background Music\n" +
-			                       "[ 602.0y]Antti Martikainen\n" +
-	                               "[ 902.0o]www.youtube.com/user/AJMartikainen\n" +
-			                       "[ 902.0y]The Chase\n" +
-	                               "[ 902.0o]anttimartikainen.bandcamp.com/track/the-chase\n" +
-			                       "[ 902.0y]To Valhalla\n" +
-			                       "[ 902.0o]anttimartikainen.bandcamp.com/track/to-valhalla\n" +
-
-			                       "[2001.5w]Voice Acting\n" +
-	                               "[1001.5w]Commander Quelo\n" +
-			                       "[ 602.0y]R.J. O'Connell\n" +
-	                               "[1501.5w]Lave Station Commander\n" +
-			                       "[ 602.0y]Amy Perkins\n" +
-	                               "[1001.5w]Commander Ripley (Viper 4)\n" +
-			                       "[ 602.0y]Cliff Thompson\n" +
-	                               "[1001.5w]Commander Stevenson\n" +
-			                       "[ 602.0y]Bret Newton\n" +
-	                               "[ 902.0o]www.bretnewton.com\n" +
-			                       "[1001.5w]Computer Voice\n" +
-			                       "[ 602.0y]Dahlia Lynn\n" +
-			                       "[1001.5w]Constrictor General\n" +
-			                       "[ 602.0y]David Bodtcher\n" +
-			                       "[1001.5w]Thargoid Documents General\n" +
-			                       "[ 602.0y]River Kanoff\n" +
-			                       "[1001.5w]Emergency Announcements\n" +
-			                       "[ 602.0y]Cass McPhee\n" +
-			                       "[ 902.0o]https://cassmcphee.wordpress.com\n" +
-			                       "[1001.5w]Refugee\n" +
-			                       "[ 602.0y]Caitlin Buckley\n" +
-			                       "[ 902.0o]https://caitlinva.wordpress.com\n" +
-			                       "[1001.5w]Thargoid Station General\n" +
-			                       "[ 602.0y]Adoxographist\n" +
-			                       "[ 902.0o]http://adoxtalks.tumblr.com\n" +
-
-			                       "[2001.5w]Modeling\n" +
-	                               "[ 602.0y]Phil Griff\n" +
-	                               "[ 902.0y]Rolf Schuetteler\n" +
-	                               "[ 902.0y]Giles Williams\n" +
-	                               "[ 902.0y]Jens Ayton\n" +
-	                               "[ 902.0y]Clym Angus\n" +
-	                               "[ 902.0y]Marko Susimets\u00e4\n" +
-	                               "[ 902.0y]ADCK\n" +
-	                               "[ 902.0y]Captain Beatnik\n" +
-	                               "[ 902.0y]DeepSpace\n" +
-	                               "[ 902.0y]Galileo\n" +
-	                               "[ 902.0y]Murgh\n" +
-
-	                               "[2001.5w]Icon and Alien Graphics\n" +
-	                               "[ 602.0y]Stan Stoyanov\n" +
-	                               "[2001.5w]Commander Quelo Portrait\n" +
-	                               "[ 602.0y]Aleksandar Grujic - Dimmensa\n" +
-	                               "[2001.5w]Planetary Textures\n" +
-	                               "[ 602.0y]Planetcreator\n" +
-	                               "[ 902.0y]by Christian Hart\n" +
-	                               "[2001.5w]Star Textures\n" +
-	                               "[ 602.0y]From Celestia User gradius_fanatic\n" +
-	                               "[2001.5w]Cobra Mk III Image\n" +
-	                               "[ 602.0y]From www.kennyscrap.com\n" +
-
-	                               "[2001.5w]Game Testers\n" +
-	                               "[ 602.0y]Arnd Houben\n" +
-	                               "[ 902.0y]Cornelius Dirmeier\n" +
-	                               "[ 902.0y]Duane McDonnell\n" +
-	                               "[ 902.0y]Franz-Josef Bongartz\n" +
-	                               "[ 902.0y]Gunnar Tacke\n" +
-	                               "[ 902.0y]Hussein Baagil\n" +
-	                               "[ 902.0y]Jens-Peter Hack\n" +
-	                               "[ 902.0y]Manuel Schupp\n" +
-	                               "[ 902.0y]Mathias Busche\n" +
-	                               "[ 902.0y]Michael Breuer\n" +
-	                               "[ 902.0y]Michael Raue\n" +
-	                               "[ 902.0y]Olav Riediger\n" +
-	                               "[ 902.0y]Rolf Paulsen\n" +
-	                               "[ 902.0y]Scott McGeachie\n" +
-	                               "[ 902.0y]Stefan Widmaier\n" +
-
-	                               "[2001.5w]Special Thanks To\n" +
-	                               "[ 602.0y]Duane McDonnell\n" +
-	                               "[ 902.0o]This game would not have been completed\n" +
-	                               "[ 902.0o]without your help. You are the real\n" +
-	                               "[ 902.0o]Elite wizard\n" +
-	                               "[ 902.0o]and you taught me everything I know about 3D.\n" +
-	                               "[2002.0y]The Oolite Community\n" +
-	                               "[ 902.0o]Alite would not have been possible without\n" +
-	                               "[ 902.0o]the support of the Oolite fan community.\n" +
-	                               "[2002.0y]Ian Bell and David Braben\n" +
-	                               "[ 902.0o]Thank you for Elite.\n" +
-	                               "[ 902.0o]The best game in history.\n" +
-	                               "[2002.0y]Rob Nicholson\n" +
-	                               "[ 902.0o]You have created my favorite Elite version:\n" +
-	                               "[ 902.0o]Amiga Elite. Thank you also for your\n" +
-	                               "[ 902.0o]encouragement to write this game.\n" +
-	                               "[2002.0y]My Wife Klaudia\n" +
-	                               "[ 902.0o]Thank you for letting me write this game\n" +
-	                               "[ 902.0o]during all those long hours in the night.\n" +
-	                               "[ 902.0o]For this, and so much more, I love you!";
+	private static final String[] formatter = new String[] {
+		SPACE_0 + SCALE_3_0 + PERSON_COLOR, // 0 - MAIN_TITLE
+		SPACE_300 + SCALE_1_5 + DESCRIPTION_COLOR, // 1 - TITLE_1
+		SPACE_250 + SCALE_1_5 + DESCRIPTION_COLOR, // 2 - TITLE_2
+		SPACE_200 + SCALE_1_5 + DESCRIPTION_COLOR, // 3 - TITLE_3
+		SPACE_100 + SCALE_1_5 + DESCRIPTION_COLOR, // 4 - TITLE_4
+		SPACE_60 + SCALE_2_0 + PERSON_COLOR, // 5 - FIRST_ELEMENT
+		SPACE_90 + SCALE_2_0 + PERSON_COLOR, // 6 - FURTHER_ELEMENT
+		SPACE_90 + SCALE_2_0 + ADDITION_COLOR, // 7 - ADDITIONAL_TEXT
+		SPACE_200 + SCALE_2_0 + PERSON_COLOR, // 8 - VIP_TEXT
+		SPACE_250 + SCALE_1_5 + PERSON_COLOR, // 9 - ELITE_TEXT
+		SPACE_60 + SCALE_1_5 + PERSON_COLOR, // 10 - ELITE_TEXT
+		SPACE_60 + SCALE_1_5 + DESCRIPTION_COLOR }; // 11 - BLUE_DANUBE_TEXT
 
 	private final List <TextData> texts;
 
@@ -209,35 +122,35 @@ public class AboutScreen extends GlScreen {
 		windowHeight = visibleArea.height();
 		startTime = System.nanoTime();
 		lastTime = startTime;
-		endCreditsMusic = game.getAudio().newMusic("music/end_credits.mp3", Sound.SoundType.MUSIC);
+		endCreditsMusic = game.getAudio().newMusic(LoadingScreen.DIRECTORY_MUSIC + "end_credits.mp3");
 		texts = new ArrayList<>();
-		int curY = 0;
-		for (String s: credits.split("\n")) {
-			TextData td = new TextData("", 960, curY, ColorScheme.get(ColorScheme.COLOR_MESSAGE), null);
-			if (s.startsWith("[")) {
-				curY += parseControlSequence(td, s.substring(1, s.indexOf("]")), s.substring(s.indexOf("]") + 1));
-			} else {
-				td.text = s;
-				curY += 40;
-			}
-			td.y = curY;
-			texts.add(td);
+		for (String s: L.string(R.string.about, AliteConfig.GAME_NAME).split("\n")) {
+			int b = s.indexOf('[');
+			int e = s.indexOf(']');
+			addLine(Integer.parseInt(s.substring(b + 1, e)), s.substring(e+1));
 		}
 	}
 
-	private int parseControlSequence(TextData td, String sequence, String text) {
-		td.text = text;
+	private void addLine(int formatIndex, String text) {
+		String sequence = formatter[formatIndex];
 		int height = Integer.parseInt(sequence.substring(0, 3).trim());
-		td.scale = Float.parseFloat(sequence.substring(3, 6));
-		char c = sequence.charAt(6);
-		if (c == 'w') {
-			td.color = ColorScheme.get(ColorScheme.COLOR_CREDITS_DESCRIPTION);
-		} else if (c == 'y') {
-			td.color = ColorScheme.get(ColorScheme.COLOR_CREDITS_PERSON);
-		} else if (c == 'o') {
-			td.color = ColorScheme.get(ColorScheme.COLOR_CREDITS_ADDITION);
+		float scale = Float.parseFloat(sequence.substring(3, 6));
+		int color = ColorScheme.get(ColorScheme.COLOR_MESSAGE);
+		switch (sequence.charAt(6)) {
+			case DESCRIPTION_COLOR:
+				color = ColorScheme.get(ColorScheme.COLOR_CREDITS_DESCRIPTION);
+				break;
+			case PERSON_COLOR:
+				color = ColorScheme.get(ColorScheme.COLOR_CREDITS_PERSON);
+				break;
+			case ADDITION_COLOR:
+				color = ColorScheme.get(ColorScheme.COLOR_CREDITS_ADDITION);
+				break;
 		}
-		return height;
+		TextData td = new TextData(text, 960, (texts.isEmpty() ? 0 : texts.get(texts.size()-1).y) +
+			height, color, null);
+		td.scale = scale;
+		texts.add(td);
 	}
 
 	@Override
@@ -272,88 +185,81 @@ public class AboutScreen extends GlScreen {
 
 	private void initializeGl() {
 		float ratio = windowWidth / (float) windowHeight;
-        GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-        GlUtils.setViewport(visibleArea);
-        GLES11.glLoadIdentity();
-        GlUtils.gluPerspective(game, 45.0f, ratio, 10.0f, 1000.0f);
-        GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-        GLES11.glLoadIdentity();
-        GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT | GLES11.GL_DEPTH_BUFFER_BIT);
-        GLES11.glHint(GLES11.GL_PERSPECTIVE_CORRECTION_HINT, GLES11.GL_NICEST);
-        GLES11.glEnable(GLES11.GL_DEPTH_TEST);
-        GLES11.glDepthFunc(GLES11.GL_LEQUAL);
+		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
+		GlUtils.setViewport(visibleArea);
+		GLES11.glLoadIdentity();
+		GlUtils.gluPerspective(game, 45.0f, ratio, 10.0f, 1000.0f);
+		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
+		GLES11.glLoadIdentity();
+		GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT | GLES11.GL_DEPTH_BUFFER_BIT);
+		GLES11.glHint(GLES11.GL_PERSPECTIVE_CORRECTION_HINT, GLES11.GL_NICEST);
+		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
+		GLES11.glDepthFunc(GLES11.GL_LEQUAL);
 		GLES11.glEnable(GLES11.GL_BLEND);
 		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE);
 	}
 
-	private void performFadeIn(float deltaTime) {
-        if (System.nanoTime() - lastTime > 50000) {
-        	y -= 2;
-        }
-        if (System.nanoTime() - lastTime > 1000000) {
-        	alpha *= 1.1f;
-        	lastTime = System.nanoTime();
-        	if (alpha >= 1.0f) {
-        		alpha = 1.0f;
-        		startTime = System.nanoTime();
-        		mode = 1;
-        	}
-        }
+	private void performFadeIn() {
+		if (TimeUtil.hasPassed(lastTime, 1, TimeUtil.MILLIS)) {
+			alpha *= 1.1f;
+			lastTime = System.nanoTime();
+			if (alpha >= 1.0f) {
+				alpha = 1.0f;
+				startTime = System.nanoTime();
+				mode = 1;
+			}
+		}
 	}
 
-	private void performWait(long timeToWait) {
-        if (System.nanoTime() - lastTime > 50000) {
-        	y -= 2;
-        }
-		if (System.nanoTime() - startTime > timeToWait) {
+	private void performWait(long sec) {
+		if (TimeUtil.hasPassed(startTime, sec, TimeUtil.SECONDS)) {
 			lastTime = System.nanoTime();
 			mode++;
 		}
 	}
 
-	private void performFadeOut(float deltaTime) {
-        if (System.nanoTime() - lastTime > 50000) {
-        	y -= 2;
-        }
-        if (System.nanoTime() - lastTime > 1000000) {
-        	alpha *= 0.99f;
-        	lastTime = System.nanoTime();
-        	if (alpha <= 0.3f) {
-        		alpha = 0.3f;
-        		startTime = System.nanoTime();
-        		mode = 3;
-        	}
-        }
+	private void performFadeOut() {
+		if (TimeUtil.hasPassed(lastTime, 1, TimeUtil.MILLIS)) {
+			alpha *= 0.99f;
+			lastTime = System.nanoTime();
+			if (alpha <= 0.3f) {
+				alpha = 0.3f;
+				startTime = System.nanoTime();
+				mode = 3;
+			}
+		}
 	}
 
-	private void performUpdateLines(float deltaTime) {
-        if (System.nanoTime() - lastTime > 50000) {
-        	if (mode == 4) {
-        		int n = texts.size();
-        		// Leave the Thanks to Klaudia part on the screen,
-        		// but scroll everything else...
-        		for (int i = 1; i < 5; i++) {
-        			texts.get(n - i).y += 2;
-        		}
-        	}
-        	y -= 2;
-        	if (end) {
-        		mode = 4;
-        	}
-        }
+	private void performUpdateLines() {
+		if (TimeUtil.hasPassed(lastTime, 50, TimeUtil.MICROS)) {
+			if (mode == 4) {
+				int n = texts.size();
+				// Leave the Thanks to Klaudia part on the screen,
+				// but scroll everything else...
+				for (int i = 1; i < 5; i++) {
+					texts.get(n - i).y += 2;
+				}
+			}
+			if (end) {
+				mode = 4;
+			}
+		}
 	}
 
 	@Override
 	public void performUpdate(float deltaTime) {
-		if (mode == 0) {
-			performFadeIn(deltaTime);
-		} else if (mode == 1) {
-			performWait(3000000000L);
-		} else if (mode == 2) {
-			performFadeOut(deltaTime);
-		} else if (mode == 3 || mode == 4) {
-			performUpdateLines(deltaTime);
+		if (TimeUtil.hasPassed(lastTime, 50, TimeUtil.MICROS)) {
+			y -= 2;
+			if (mode == 0) {
+				performFadeIn();
+			} else if (mode == 1) {
+				performWait(3);
+			} else if (mode == 2) {
+				performFadeOut();
+			} else if (mode == 3 || mode == 4) {
+				performUpdateLines();
+			}
 		}
 		if (returnToOptions) {
 			globalAlpha *= 0.95f;
@@ -379,12 +285,12 @@ public class AboutScreen extends GlScreen {
 			return;
 		}
 		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT | GLES11.GL_DEPTH_BUFFER_BIT);
-        GLES11.glClearDepthf(1.0f);
+		GLES11.glClearDepthf(1.0f);
 
-        GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-        GLES11.glLoadIdentity();
+		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
+		GLES11.glLoadIdentity();
 
-        GLES11.glEnable(GLES11.GL_TEXTURE_2D);
+		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glPushMatrix();
 		GLES11.glLoadIdentity();
@@ -396,25 +302,25 @@ public class AboutScreen extends GlScreen {
 		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
 		GLES11.glColor4f(globalAlpha, globalAlpha, globalAlpha, globalAlpha);
 		background.render();
-        GLES11.glColor4f(globalAlpha * alpha, globalAlpha * alpha, globalAlpha * alpha, globalAlpha * alpha);
-        aliteLogo.render();
-        if (y < 1200) {
-        	int i = 0;
-        	for (TextData text: texts) {
-        		i++;
-        		if (y + text.y > -120) {
-            		if (y + text.y > AliteConfig.SCREEN_HEIGHT) {
-            			break;
-            		}
-            		game.getGraphics().drawCenteredText(text.text, text.x, y + text.y,
-						AliteColor.colorAlpha(text.color, globalAlpha), Assets.regularFont, text.scale);
-            		if (y + text.y < 525 && i == texts.size() - 1) {
-            			end = true;
-            		}
-        		}
-        	}
-        }
-        game.getGraphics().drawText(AliteConfig.GAME_NAME + " Version " + AliteConfig.VERSION_STRING, 0, 1030,
+		GLES11.glColor4f(globalAlpha * alpha, globalAlpha * alpha, globalAlpha * alpha, globalAlpha * alpha);
+		aliteLogo.render();
+		if (y < 1200) {
+			int i = 0;
+			for (TextData text: texts) {
+				i++;
+				if (y + text.y > -120) {
+					if (y + text.y > AliteConfig.SCREEN_HEIGHT) {
+						break;
+					}
+					game.getGraphics().drawCenteredText(text.text, text.x, y + text.y,
+						AliteColor.colorAlpha(text.color, globalAlpha), Assets.boldFont, text.scale);
+					if (y + text.y < 525 && i == texts.size() - 1) {
+						end = true;
+					}
+				}
+			}
+		}
+		game.getGraphics().drawText(AliteConfig.GAME_NAME + " Version " + AliteConfig.VERSION_STRING, 0, 1030,
 			AliteColor.argb(globalAlpha, globalAlpha, globalAlpha, globalAlpha), Assets.regularFont, 1.0f);
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
@@ -422,7 +328,7 @@ public class AboutScreen extends GlScreen {
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
 
-        GLES11.glDisable(GLES11.GL_TEXTURE_2D);
+		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
 		GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, 0);
 	}
 
@@ -433,6 +339,10 @@ public class AboutScreen extends GlScreen {
 	@Override
 	public void pause() {
 		super.pause();
+		disposeMusic();
+	}
+
+	private void disposeMusic() {
 		if (endCreditsMusic != null) {
 			endCreditsMusic.stop();
 			endCreditsMusic.dispose();
@@ -451,11 +361,7 @@ public class AboutScreen extends GlScreen {
 			background.destroy();
 			background = null;
 		}
-		if (endCreditsMusic != null) {
-			endCreditsMusic.stop();
-			endCreditsMusic.dispose();
-			endCreditsMusic = null;
-		}
+		disposeMusic();
 	}
 
 	@Override

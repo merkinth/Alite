@@ -43,4 +43,131 @@
     <string name="kilobytes_per_second">%1$s KB/s</string>
     <string name="time_remaining">Time remaining: %1$s</string>
     <string name="time_remaining_notification">%1$s left</string>
+    <string name="notification_download_start">File Downloading... Please wait...</string>
+    <string name="notification_download_assets">Downloading assets. This only needs to be done once...</string>
+    <string name="notification_download_working">Working...</string>
+
+    <string name="about_game_inspired_by">%1$s is inspired by classic Elite</string>
+    <string name="about_elite_copyright">\u00a9 Acornsoft, Bell &amp; Braben</string>
+
+    <string-array name="char_sets">
+        <item>\u0020..\u007e</item>
+        <item>\u00a1..\u00ff</item>
+        <item>\u0660..\u0669</item>
+    </string-array>
+
+    <string name="about">
+    [0]%1$s\n
+    [1]A Game By\n
+    [5]Philipp Bouillon\n
+    [6]Duane McDonnell\n
+    [1]Programming\n
+    [5]Philipp Bouillon\n
+    [1]Additional Programming\n
+    [5]Steven Phillips\n
+    [6]Tamás Molnár\n
+    [9]%1$s is inspired by classic Elite\n
+    [10]\u00a9 Acornsoft, Bell &amp; Braben\n
+    [2]Intro Movie\n
+    [4]Production, Modeling, Rendering\n
+    [5]James Scott\n
+    [7]jscottmedia.com\n
+    [3]Docking Computer Music\n
+    [11]The Blue Danube (Op. 314)\n
+    [11]by Johann Strauss\n
+    [5]Arranged by Chris Huelsbeck\n
+    [3]Background Music\n
+    [5]Antti Martikainen\n
+    [7]www.youtube.com/user/AJMartikainen\n
+    [6]The Chase\n
+    [7]anttimartikainen.bandcamp.com/track/the-chase\n
+    [6]To Valhalla\n
+    [7]anttimartikainen.bandcamp.com/track/to-valhalla\n
+    [3]Voice Acting\n
+    [4]Commander Quelo\n
+    [5]R.J. O\'Connell\n
+    [4]Lave Station Commander\n
+    [5]Amy Perkins\n
+    [4]Commander Ripley (Viper 4)\n
+    [5]Cliff Thompson\n
+    [4]Commander Stevenson\n
+    [5]Bret Newton\n
+    [7]www.bretnewton.com\n
+    [4]Computer Voice\n
+    [5]Dahlia Lynn\n
+    [4]Constrictor General\n
+    [5]David Bodtcher\n
+    [4]Thargoid Documents General\n
+    [5]River Kanoff\n
+    [4]Emergency Announcements\n
+    [5]Cass McPhee\n
+    [7]https:\\\\cassmcphee.wordpress.com\n
+    [4]Refugee\n
+    [5]Caitlin Buckley\n
+    [7]https:\\\\caitlinva.wordpress.com\n
+    [4]Thargoid Station General\n
+    [5]Adoxographist\n
+    [7]http:\\\\adoxtalks.tumblr.com\n
+    [3]Modeling\n
+    [5]Phil Griff\n
+    [6]Rolf Schuetteler\n
+    [6]Giles Williams\n
+    [6]Jens Ayton\n
+    [6]Clym Angus\n
+    [6]Marko Susimets\u00e4\n
+    [6]ADCK\n
+    [6]Captain Beatnik\n
+    [6]DeepSpace\n
+    [6]Galileo\n
+    [6]Murgh\n
+    [3]Icon and Alien Graphics\n
+    [5]Stan Stoyanov\n
+    [3]Commander Quelo Portrait\n
+    [5]Aleksandar Grujic - Dimmensa\n
+    [3]Planetary Textures\n
+    [5]Planetcreator by Christian Hart\n
+    [3]Star Textures\n
+    [5]From Celestia User gradius_fanatic\n
+    [3]Cobra Mk III Image\n
+    [5]From www.kennyscrap.com\n
+    [3]Game Testers\n
+    [5]Arnd Houben\n
+    [6]Cornelius Dirmeier\n
+    [6]Duane McDonnell\n
+    [6]Franz-Josef Bongartz\n
+    [6]Gunnar Tacke\n
+    [6]Hussein Baagil\n
+    [6]Jens-Peter Hack\n
+    [6]Manuel Schupp\n
+    [6]Mathias Busche\n
+    [6]Michael Breuer\n
+    [6]Michael Raue\n
+    [6]Olav Riediger\n
+    [6]Rolf Paulsen\n
+    [6]Scott McGeachie\n
+    [6]Stefan Widmaier\n
+    [3]Translations\n
+    [4]Hungarian\n
+    [5]Tamás Molnár\n
+    [3]Special Thanks To\n
+    [5]Duane McDonnell\n
+    [7]This game would not have been completed\n
+    [7]without your help. You are the real\n
+    [7]Elite wizard\n
+    [7]and you taught me everything I know about 3D.\n
+    [8]The Oolite Community\n
+    [7]%1$s would not have been possible without\n
+    [7]the support of the Oolite fan community.\n
+    [8]Ian Bell and David Braben\n
+    [7]Thank you for Elite.\n
+    [7]The best game in history.\n
+    [8]Rob Nicholson\n
+    [7]You have created my favorite Elite version:\n
+    [7]Amiga Elite. Thank you also for your\n
+    [7]encouragement to write this game.\n
+    [8]My Wife Klaudia\n
+    [7]Thank you for letting me write this game\n
+    [7]during all those long hours in the night.\n
+    [7]For this, and so much more, I love you!</string>
+
 </resources>

@@ -21,15 +21,14 @@ package de.phbouillon.android.framework.impl;
 import java.io.IOException;
 
 import android.app.Activity;
-import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import de.phbouillon.android.framework.Audio;
 import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Music;
 import de.phbouillon.android.framework.Sound;
-import de.phbouillon.android.games.alite.AliteConfig;
 import de.phbouillon.android.games.alite.AliteLog;
+import de.phbouillon.android.games.alite.L;
 
 public class AndroidAudio implements Audio {
 	private static final int MAXIMUM_NUMBER_OF_CONCURRENT_SAMPLES = 20;
@@ -44,9 +43,9 @@ public class AndroidAudio implements Audio {
 	}
 
 	@Override
-	public Music newMusic(String fileName, Sound.SoundType soundType) {
+	public Music newMusic(String fileName) {
 		try {
-			return new AndroidMusic(fileIO.getPrivatePath(fileName), soundType, fileName);
+			return new AndroidMusic(fileIO.getPrivatePath(fileName), Sound.SoundType.MUSIC, fileName);
 		} catch (IOException ignored) {
 			AliteLog.e("Cannot load music", "Music " + fileName + " not found.");
 			return null;
@@ -54,16 +53,34 @@ public class AndroidAudio implements Audio {
 	}
 
 	@Override
-	public Sound newSound(String fileName, Sound.SoundType soundType) {
+	public Sound newSound(String fileName) {
+		return newSound(fileName, Sound.SoundType.SOUND_FX);
+	}
+
+	@Override
+	public Sound newCombatSound(String fileName) {
+		return newSound(fileName, Sound.SoundType.COMBAT_FX);
+	}
+
+	private Sound newSound(String fileName, Sound.SoundType soundType) {
 		try {
 			AliteLog.d("Loading Sound", "Loading sound " + fileName);
-			Object assetsFile = fileIO.getPrivatePath(fileName);
-			int soundId = AliteConfig.HAS_EXTENSION_APK ?
-				soundPool.load((String) assetsFile, 0) :
-				soundPool.load((AssetFileDescriptor) assetsFile, 0);
+			int soundId = soundPool.load((String) fileIO.getPrivatePath(fileName), 0);
 			return new AndroidSound(soundPool, soundId, soundType);
 		} catch (IOException ignored) {
 			AliteLog.e("Cannot load sound", "Sound " + fileName + " not found.");
+			return null;
+		}
+	}
+
+	@Override
+	public Sound newSoundAsset(String fileName) {
+		try {
+			AliteLog.d("Loading Sound Asset", "Loading sound asset " + fileName);
+			int soundId = soundPool.load(L.rawDescriptor(fileName), 0);
+			return new AndroidSound(soundPool, soundId, Sound.SoundType.VOICE);
+		} catch (IOException ignored) {
+			AliteLog.e("Cannot load sound asset", "Sound asset " + fileName + " not found.");
 			return null;
 		}
 	}

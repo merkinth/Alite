@@ -23,6 +23,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.SoundManager;
@@ -95,17 +96,15 @@ public class SupernovaMission extends Mission {
 
 	@Override
 	public TimedEvent getPreStartEvent(InGameManager manager) {
-		manager.setMessage("Fuel leak");
+		manager.setMessage("Fuel system malfunction");
 		SoundManager.play(Assets.com_fuelSystemMalfunction);
 		return preStartEvent;
 	}
 
 	public void setSupernovaSystem(char [] galaxySeed, int target) {
 		this.galaxySeed = new char[3];
-		for (int i = 0; i < 3; i++) {
-			this.galaxySeed[i] = galaxySeed[i];
-		}
-		this.supernovaSystemIndex = target;
+		System.arraycopy(galaxySeed, 0, this.galaxySeed, 0, 3);
+		supernovaSystemIndex = target;
 	}
 
 	@Override
@@ -174,7 +173,8 @@ public class SupernovaMission extends Mission {
 		}
 		if (state == 1 && !positionMatchesTarget(galaxySeed, supernovaSystemIndex)) {
 			return new SupernovaScreen(alite, 3);
-		} else if (state == 2 && !positionMatchesTarget(galaxySeed, supernovaSystemIndex)) {
+		}
+		if (state == 2 && !positionMatchesTarget(galaxySeed, supernovaSystemIndex)) {
 			active = false;
 			alite.getPlayer().removeActiveMission(this);
 			alite.getPlayer().addCompletedMission(this);
@@ -211,18 +211,16 @@ public class SupernovaMission extends Mission {
 					sun.setNewSize(sun.getRadius() * 1.01f);
 					SphericalSpaceObject sunGlow = (SphericalSpaceObject) inGame.getSunGlow();
 					sunGlow.setNewSize(sun.getRadius() + 400.0f);
-					long passedTime = 0;
 					if (startTime == -1) {
 						inGame.setMessage("Danger: Supernova");
 						SoundManager.repeat(Assets.criticalCondition);
 						startTime = System.nanoTime();
 					} else {
-						passedTime = System.nanoTime() - startTime;
-					}
-					if (passedTime >= 20000000000l) {
-						setRemove(true);
-						startTime = -1;
-						inGame.gameOver();
+						if (TimeUtil.hasPassed(startTime, 20, TimeUtil.SECONDS)) {
+							setRemove(true);
+							startTime = -1;
+							inGame.gameOver();
+						}
 					}
 				}
 			};

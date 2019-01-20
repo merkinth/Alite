@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model.library;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,64 +18,53 @@ package de.phbouillon.android.games.alite.model.library;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.w3c.dom.Document;
+import de.phbouillon.android.games.alite.L;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.games.alite.AliteLog;
 
 public class Toc {
+	public static final String DIRECTORY_LIBRARY = "library" + File.separator;
+
 	private final TocEntry invisibleRoot;
-	
-	public static Toc read(InputStream is, FileIO io) {
+
+	public static Toc read(InputStream is) {
 		Toc toc = new Toc();
 
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		try {
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(is);
-			Element root = doc.getDocumentElement();
+			Element root = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is).getDocumentElement();
 			root.normalize();
-			getEntriesFromParent(root, toc.invisibleRoot, io);
-		} catch (ParserConfigurationException e) {
+			getEntriesFromParent(root, toc.invisibleRoot);
+		} catch (ParserConfigurationException | SAXException | IOException e) {
 			e.printStackTrace();
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				is.close();
-			} catch (IOException e) {
-			}
 		}
 
 		return toc;
 	}
-	
-	private static void getEntriesFromParent(Element parent, TocEntry parentEntry, FileIO io) {
+
+	private static void getEntriesFromParent(Element parent, TocEntry parentEntry) {
 		NodeList children = parent.getChildNodes();
 		if (children != null && children.getLength() > 0) {
 			for (int i = 0, n = children.getLength(); i < n; i++) {
 				if (children.item(i) instanceof Element) {
 					Element e = (Element) children.item(i);
 					if (e.getNodeName().equals("tocEntry")) {
-						TocEntry newEntry = parseTocEntryNode(e, parentEntry, io);
+						TocEntry newEntry = parseTocEntryNode(e, parentEntry);
 						parentEntry.addChild(newEntry);
-						getEntriesFromParent(e, newEntry, io);
+						getEntriesFromParent(e, newEntry);
 					}
 				}
 			}
-		} 
+		}
 	}
 
 	private static String getString(Element element) {
@@ -86,27 +75,25 @@ public class Toc {
 
         return null;
     }
-	
-	private static TocEntry parseTocEntryNode(Element tocEntryNode, TocEntry parent, FileIO io) {
+
+	private static TocEntry parseTocEntryNode(Element tocEntryNode, TocEntry parent) {
 		LibraryPage linkedPage = null;
-		String fileName = "library/" + tocEntryNode.getAttribute("file") + ".xml";
-		try {			
-			if (io.existsPrivateFile(fileName)) {
-				linkedPage = LibraryPage.load(fileName, io.readPrivateFile(fileName));
-			}
-		} catch (IOException e) {
-			AliteLog.e("[ALITE] Toc", "Error reading library node " + tocEntryNode.getAttribute("file") + " with fileName " + fileName + ".");
+		String fileName = tocEntryNode.getAttribute("file");
+		try {
+			linkedPage = LibraryPage.load(fileName, L.raw(DIRECTORY_LIBRARY + fileName + ".xml"));
+		} catch (IOException ignored) {
+			AliteLog.e("[ALITE] Toc", "Error reading library node " + fileName + ".");
 		}
 		String name = getString(tocEntryNode);
 		name = name == null ? "" : name.replaceAll("\\s+", " ").trim();
 		return new TocEntry(name, linkedPage, parent);
 	}
-	
+
 	public TocEntry [] getEntries() {
 		return invisibleRoot.getChildren();
 	}
-	
-	private Toc() {		
+
+	private Toc() {
 		invisibleRoot = new TocEntry("root", null, null);
 	}
 }

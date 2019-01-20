@@ -26,6 +26,7 @@ import android.opengl.GLES11;
 import android.os.Bundle;
 import android.view.Menu;
 import de.phbouillon.android.framework.Screen;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.io.FileUtils;
@@ -155,7 +156,7 @@ public class Alite extends AndroidGame {
 	}
 
 	public long getGameTime() {
-		return elapsedTime + System.nanoTime() - startTime;
+		return elapsedTime + TimeUtil.getPassedTime(startTime, TimeUtil.NANOS);
 	}
 
 	public Player getPlayer() {
@@ -393,7 +394,12 @@ public class Alite extends AndroidGame {
 
 	private static GLText getFont(int fontId, int size) {
 		return GLText.load(alite.getApplicationContext(), Settings.colorDepth, fontId,
-			(int) (size * scaleFactor), size, 0, 0);
+			(int) (size * scaleFactor), size, 2, 2);
+	}
+
+	public void changeLocale() {
+		new LoadingScreen(this).changeLocale();
+		loadFonts();
 	}
 
 	@Override

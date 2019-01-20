@@ -25,6 +25,7 @@ import java.io.Serializable;
 import android.graphics.Color;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.Alite;
@@ -269,7 +270,7 @@ public class AliteButtons implements Serializable {
 		if (buttons[MISSILE] == null) {
 			return;
 		}
-		if (downTime != -1 && System.nanoTime() - downTime > 1500000000L && buttons[MISSILE].red) {
+		if (downTime != -1 && TimeUtil.hasPassed(downTime, 1500, TimeUtil.MILLIS) && buttons[MISSILE].red) {
 			inGame.handleMissileIcons();
 			downTime = -1;
 			buttons[MISSILE].red = false;
@@ -677,8 +678,7 @@ public class AliteButtons implements Serializable {
 
 	private void engageEscapeCapsule() {
 		if (inGame.isWitchSpace()) {
-// TODO add computer voice file
-//			SoundManager.play(Assets.escapeCapsuleMalfunction);
+			SoundManager.play(Assets.com_escapeMalfunction);
 			inGame.setMessage("Escape Capsule Malfunction");
 			return;
 		}

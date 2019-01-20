@@ -19,7 +19,6 @@ package de.phbouillon.android.framework.impl;
  */
 
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.os.Environment;
 import de.phbouillon.android.framework.FileIO;
@@ -56,6 +55,11 @@ public class AndroidFileIO implements FileIO {
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public String getFileName(String fileName) {
+		return useExternalStorage ? externalStoragePath + fileName : stripPath(fileName);
 	}
 
 	@Override
@@ -191,7 +195,7 @@ public class AndroidFileIO implements FileIO {
 	public void zip(String zipName, String ...fileNames) throws IOException {
 		BufferedInputStream origin;
 		try (ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(getFile(zipName))))) {
-			byte data[] = new byte[65536];
+			byte[] data = new byte[65536];
 			for (String fileName : fileNames) {
 				FileInputStream fi = new FileInputStream(getFile(fileName));
 				origin = new BufferedInputStream(fi, 65536);

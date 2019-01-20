@@ -25,8 +25,8 @@ import java.io.IOException;
 import android.graphics.Rect;
 import android.media.MediaPlayer;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -39,7 +39,6 @@ import de.phbouillon.android.games.alite.screens.canvas.TextData;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cougar;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class CougarScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
 
@@ -78,11 +77,10 @@ public class CougarScreen extends AliteScreen {
 		givenState = state;
 		CougarMission mission = (CougarMission) MissionManager.getInstance().get(CougarMission.ID);
 		mediaPlayer = new MediaPlayer();
-		FileIO fio = game.getFileIO();
-		String path = "sound/mission/4/";
+		String path = MissionManager.DIRECTORY_SOUND_MISSION + "4/";
 		try {
 			if (state == 0) {
-				missionLine = new MissionLine(fio, path + "01.mp3", missionDescription);
+				missionLine = new MissionLine(path + "01.mp3", missionDescription);
 				cougar = new Cougar(game);
 				cougar.setPosition(200, 0, -700.0f);
 				mission.setPlayerAccepts(true);
@@ -96,7 +94,7 @@ public class CougarScreen extends AliteScreen {
 	}
 
 	private void dance() {
-		if (System.nanoTime() - lastChangeTime > 4000000000L) {
+		if (TimeUtil.hasPassed(lastChangeTime, 4, TimeUtil.SECONDS)) {
 			targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;

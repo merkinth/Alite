@@ -23,7 +23,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import android.media.MediaPlayer;
-import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -37,7 +36,6 @@ import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class ThargoidStationScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
 
@@ -68,16 +66,15 @@ public class ThargoidStationScreen extends AliteScreen {
 		givenState = state;
 		ThargoidStationMission mission = (ThargoidStationMission) MissionManager.getInstance().get(ThargoidStationMission.ID);
 		mediaPlayer = new MediaPlayer();
-		FileIO fio = game.getFileIO();
-		String path = "sound/mission/5/";
+		String path = MissionManager.DIRECTORY_SOUND_MISSION + "5/";
 		try {
-			attCommander = new MissionLine(fio, path + "01.mp3", attentionCommander);
+			attCommander = new MissionLine(path + "01.mp3", attentionCommander);
 			if (state == 0) {
-				missionLine = new MissionLine(fio, path + "02.mp3", missionDescription);
+				missionLine = new MissionLine(path + "02.mp3", missionDescription);
 				mission.setPlayerAccepts(true);
 				mission.setTarget(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex(), 1);
 			} else if (state == 1) {
-				missionLine = new MissionLine(fio, path + "04.mp3", success);
+				missionLine = new MissionLine(path + "04.mp3", success);
 			 	mission.onMissionComplete();
 				Player player = game.getPlayer();
 				player.removeActiveMission(mission);

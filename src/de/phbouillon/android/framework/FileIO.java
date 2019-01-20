@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public interface FileIO {
+	String getFileName(String fileName);
 	InputStream readFile(String fileName) throws IOException;
 	OutputStream writeFile(String fileName) throws IOException;
 	OutputStream appendFile(String fileName) throws IOException;

@@ -71,6 +71,7 @@ public class Assets {
 	public static Sound com_lostDockingComputer;
 	public static Sound com_lostGalacticHyperdrive;
 	public static Sound com_lostRetroRockets;
+	public static Sound com_escapeMalfunction;
 
 	public static Sound click;
 	public static Sound error;

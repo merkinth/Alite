@@ -41,7 +41,6 @@ import de.phbouillon.android.games.alite.model.library.Toc;
 import de.phbouillon.android.games.alite.model.library.TocEntry;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class LibraryPageScreen extends AliteScreen {
 	private static final int PAGE_BEGIN = 120;
 
@@ -167,19 +166,19 @@ public class LibraryPageScreen extends AliteScreen {
 		Graphics g = game.getGraphics();
 		if (tocEntry.getLinkedPage() != null) {
 			computePageText(game.getGraphics(), tocEntry.getLinkedPage().getParagraphs());
-			if (tocEntry.getLinkedPage().getNextPage(game.getFileIO()) != null) {
+			if (tocEntry.getLinkedPage().getNextPage() != null) {
 				next = Button.createGradientRegularButton(1200, 960, 500, 120, null)
-					.setTextData(computeCenteredTextDisplay(g, "Next: "+ tocEntry.getLinkedPage().getNextPage(game.getFileIO()).getHeader(),
+					.setTextData(computeCenteredTextDisplay(g, "Next: "+ tocEntry.getLinkedPage().getNextPage().getHeader(),
 					0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
 			}
-			if (tocEntry.getLinkedPage().getPrevPage(game.getFileIO()) != null) {
+			if (tocEntry.getLinkedPage().getPrevPage() != null) {
 				prev = Button.createGradientRegularButton(45, 960, 500, 120, null)
-					.setTextData(computeCenteredTextDisplay(g, "Prev: " + tocEntry.getLinkedPage().getPrevPage(game.getFileIO()).getHeader(),
+					.setTextData(computeCenteredTextDisplay(g, "Prev: " + tocEntry.getLinkedPage().getPrevPage().getHeader(),
 					0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
 			}
 			ItemDescriptor bgImageDesc = tocEntry.getLinkedPage().getBackgroundImage();
 			if (bgImageDesc != null) {
-				Pixmap pixmap = game.getGraphics().newPixmap("library/" + bgImageDesc.getFileName() + ".png");
+				Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY + bgImageDesc.getFileName() + ".png");
 				backgroundImage = Button.createPictureButton(AliteConfig.SCREEN_WIDTH - pixmap.getWidth(), 955 - pixmap.getHeight(),
 					pixmap.getWidth(), pixmap.getHeight(), pixmap, 0.6f);
 			}
@@ -187,7 +186,7 @@ public class LibraryPageScreen extends AliteScreen {
 			int counter = 0;
 			for (ItemDescriptor id: tocEntry.getLinkedPage().getImages()) {
 				try {
-					Pixmap pixmap = game.getGraphics().newPixmap("library/" + id.getFileName() + ".png", 500, 250);
+					Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY + id.getFileName() + ".png", 500, 250);
 					Button b = Button.createGradientPictureButton(1100, PAGE_BEGIN + counter * 275,
 						500 + 2 * Button.BORDER_SIZE, 250 + 2 * Button.BORDER_SIZE, pixmap);
 					images.add(b);
@@ -208,8 +207,7 @@ public class LibraryPageScreen extends AliteScreen {
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		try {
-			Toc toc = Toc.read(alite.getFileIO().readPrivateFile("library/toc.xml"), alite.getFileIO());
-			TocEntry[] entries = toc.getEntries();
+			TocEntry[] entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries();
 			int entryNo = dis.readInt();
 			TocEntry entry = findTocEntryForIndex(entries, entryNo, 0);
 			if (entry == null) {
@@ -272,8 +270,7 @@ public class LibraryPageScreen extends AliteScreen {
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
-		Toc toc = Toc.read(game.getFileIO().readPrivateFile("library/toc.xml"), game.getFileIO());
-		TocEntry[] entries = toc.getEntries();
+		TocEntry[] entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries();
 		int index = findTocEntryIndex(entries, tocEntry.getName(), 0);
 		if (index < 0) {
 			index = 0;
@@ -320,7 +317,7 @@ public class LibraryPageScreen extends AliteScreen {
 	private String loadInlineImage(String word) {
 		int index = word.indexOf("[G:");
 		String fileName = word.substring(index + 3, word.indexOf("]", index));
-		inlineImages.add(game.getGraphics().newPixmap("library/" + fileName + ".png"));
+		inlineImages.add(game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY + fileName + ".png"));
 		return "@I+" + (inlineImages.size() - 1) + ";";
 	}
 
@@ -640,17 +637,17 @@ public class LibraryPageScreen extends AliteScreen {
 				for (int i = 0; i < images.size(); i++) {
 					Button b = images.get(i);
 					if (b.isTouched(touch.x, touch.y)) {
-						Pixmap pixmap = game.getGraphics().newPixmap("library/" + tocEntry.getLinkedPage().getImages()[i].getFileName() + ".png");
+						Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY + tocEntry.getLinkedPage().getImages()[i].getFileName() + ".png");
 						fullScreenImage(pixmap, tocEntry.getLinkedPage().getImages()[i].getText());
 					}
 				}
 				if (next != null && next.isTouched(touch.x, touch.y)) {
-					LibraryPage linkedPage = tocEntry.getLinkedPage().getNextPage(game.getFileIO());
+					LibraryPage linkedPage = tocEntry.getLinkedPage().getNextPage();
 					newScreen = new LibraryPageScreen(game, new TocEntry(linkedPage.getHeader(), linkedPage, null), currentFilter);
 					SoundManager.play(Assets.click);
 				}
 				if (prev != null && prev.isTouched(touch.x, touch.y)) {
-					LibraryPage linkedPage = tocEntry.getLinkedPage().getPrevPage(game.getFileIO());
+					LibraryPage linkedPage = tocEntry.getLinkedPage().getPrevPage();
 					newScreen = new LibraryPageScreen(game, new TocEntry(linkedPage.getHeader(), linkedPage, null), currentFilter);
 					SoundManager.play(Assets.click);
 				}

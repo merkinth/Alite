@@ -25,16 +25,10 @@ import java.io.IOException;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class QuantityPadScreen extends AliteScreen {
 	private static final int OFFSET_X = 20;
 	private static final int OFFSET_Y = 20;
@@ -45,7 +39,11 @@ public class QuantityPadScreen extends AliteScreen {
 	private final int yPos;
 	private final int row;
 	private final int column;
-	private final String[] buttonTexts = new String[] {"7", "8", "9", "4", "5", "6", "1", "2", "3", "0", "<-", "OK"};
+	private final String[] buttonTexts = new String[] {
+		"7", "8", "9",
+		"4", "5", "6",
+		"1", "2", "3",
+		"0", "<-", "OK"};
 	private Button[] pads;
 	private final String maxAmountString;
 	private String currentAmountString = "";
@@ -119,7 +117,8 @@ public class QuantityPadScreen extends AliteScreen {
 				pads[y * 3 + x] = Button.createRegularButton(xPos + x * (BUTTON_SIZE + GAP) + OFFSET_X,
 					 yPos + y * (BUTTON_SIZE + GAP) + OFFSET_Y,
 					 BUTTON_SIZE, BUTTON_SIZE,
-					 buttonTexts[y * 3 + x]);
+					 y == 3 && x > 0 ? buttonTexts[y * 3 + x] : String.format(L.currentLocale, "%d",
+						 Integer.parseInt(buttonTexts[y * 3 + x])));
 			}
 		}
 	}
