@@ -55,6 +55,9 @@ import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteBut
 //hence they never need to be serialized, either.
 @SuppressWarnings("serial")
 public class TutBasicFlying extends TutorialScreen {
+
+	private static final int TUTORIAL_INDEX = 6;
+
 	private FlightScreen flight;
 	private char[] savedGalaxySeed;
 	private SystemData savedPresentSystem;
@@ -70,8 +73,8 @@ public class TutBasicFlying extends TutorialScreen {
 	private LegalStatus savedLegalStatus;
 	private int savedLegalValue;
 	private boolean resetShipPosition = true;
-	private Buoy target1;
-	private Buoy target2;
+	private Buoy yellowTarget;
+	private Buoy blueTarget;
 	private Buoy dockingBuoy;
 	private int[] savedButtonConfiguration = new int[Settings.buttonPosition.length];
 	private int savedMarketFluct;
@@ -88,9 +91,7 @@ public class TutBasicFlying extends TutorialScreen {
 		savedPresentSystem = alite.getPlayer().getCurrentSystem();
 		savedHyperspaceSystem = alite.getPlayer().getHyperspaceSystem();
 		savedInstalledEquipment = new ArrayList<>();
-		for (Equipment e: alite.getCobra().getInstalledEquipment()) {
-			savedInstalledEquipment.add(e);
-		}
+		savedInstalledEquipment.addAll(alite.getCobra().getInstalledEquipment());
 		savedLasers[0] = alite.getCobra().getLaser(PlayerCobra.DIR_FRONT);
 		savedLasers[1] = alite.getCobra().getLaser(PlayerCobra.DIR_RIGHT);
 		savedLasers[2] = alite.getCobra().getLaser(PlayerCobra.DIR_REAR);
@@ -113,13 +114,7 @@ public class TutBasicFlying extends TutorialScreen {
 		ObjectSpawnManager.TRADERS_ENABLED = false;
 		ObjectSpawnManager.VIPERS_ENABLED = false;
 
-		for (Equipment e: savedInstalledEquipment) {
-			alite.getCobra().removeEquipment(e);
-		}
-		alite.getCobra().setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.pulseLaser);
-		alite.getCobra().setLaser(PlayerCobra.DIR_RIGHT, null);
-		alite.getCobra().setLaser(PlayerCobra.DIR_REAR, null);
-		alite.getCobra().setLaser(PlayerCobra.DIR_LEFT, null);
+		alite.getCobra().clearEquipment();
 		alite.getGenerator().buildGalaxy(1);
 		alite.getGenerator().setCurrentGalaxy(1);
 		alite.getPlayer().setCurrentSystem(alite.getGenerator().getSystem(7)); // Lave
@@ -127,9 +122,7 @@ public class TutBasicFlying extends TutorialScreen {
 		alite.getPlayer().setLegalValue(0);
 		alite.getCobra().setFuel(70);
 		System.arraycopy(Settings.buttonPosition, 0, savedButtonConfiguration, 0, Settings.buttonPosition.length);
-		for (int i = 0; i < Settings.buttonPosition.length; i++) {
-			Settings.buttonPosition[i] = i;
-		}
+		Settings.resetButtonPosition();
 
 		initLine_00();
 		initLine_01();
@@ -169,7 +162,7 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private TutorialLine addTopLine(String text) {
-		return addLine(6, text).setX(250).setWidth(1420).setY(20).setHeight(140);
+		return addLine(TUTORIAL_INDEX, text).setX(250).setWidth(1420).setY(20).setHeight(140);
 	}
 
 	private void initLine_00() {
@@ -197,42 +190,35 @@ public class TutBasicFlying extends TutorialScreen {
 				addTopLine("Too difficult for you, rookie? Let me show you:");
 
 		line.setFinishHook((IMethodHook) deltaTime -> {
-			Vector3f position = new Vector3f(0, 0, 0);
-			Vector3f vec = new Vector3f(0, 0, 0);
-
-			target1 = new Buoy(alite);
-			flight.getInGameManager().getShip().getPosition().copy(position);
-			flight.getInGameManager().getShip().getRightVector().copy(vec);
-			vec.scale(-8000.0f);
-			position.add(vec);
-			flight.getInGameManager().getShip().getForwardVector().copy(vec);
-			vec.scale(-11000.0f);
-			position.add(vec);
-			flight.getInGameManager().getShip().getUpVector().copy(vec);
-			vec.scale(17000.0f);
-			position.add(vec);
-			target1.setPosition(position);
-			target1.scale(6.0f);
-			target1.setName("Yellow Target");
-			flight.getInGameManager().addObject(target1);
-
-			target2 = new Buoy(alite);
-			flight.getInGameManager().getShip().getPosition().copy(position);
-			flight.getInGameManager().getShip().getRightVector().copy(vec);
-			vec.scale(8000.0f);
-			position.add(vec);
-			flight.getInGameManager().getShip().getForwardVector().copy(vec);
-			vec.scale(14000.0f);
-			position.add(vec);
-			flight.getInGameManager().getShip().getUpVector().copy(vec);
-			vec.scale(-10000.0f);
-			position.add(vec);
-			target2.setPosition(position);
-			target2.setHudColor(0x00, 0x00, 0xef);
-			target2.scale(6.0f);
-			target2.setName("Blue Target");
-			flight.getInGameManager().addObject(target2);
+			yellowTarget = getBuoy("Yellow Target", new Vector3f(-8000, -11000, 17000),
+				new Vector3f(0xef, 0xef, 0x00));
+			blueTarget = getBuoy("Blue Target", new Vector3f(8000, 14000, -10000),
+				new Vector3f(0x00, 0x00, 0xef));
 		});
+	}
+
+	private Buoy getBuoy(String name, Vector3f relPos, Vector3f color) {
+		Vector3f position = new Vector3f(0, 0, 0);
+		Vector3f vec = new Vector3f(0, 0, 0);
+
+		flight.getInGameManager().getShip().getPosition().copy(position);
+		flight.getInGameManager().getShip().getRightVector().copy(vec);
+		vec.scale(relPos.x);
+		position.add(vec);
+		flight.getInGameManager().getShip().getForwardVector().copy(vec);
+		vec.scale(relPos.y);
+		position.add(vec);
+		flight.getInGameManager().getShip().getUpVector().copy(vec);
+		vec.scale(relPos.z);
+		position.add(vec);
+
+		Buoy buoy = new Buoy(alite);
+		buoy.setName(name);
+		buoy.setPosition(position);
+		buoy.setHudColor(new Vector3f(color.x, color.y, color.z));
+		buoy.scale(6.0f);
+		flight.getInGameManager().addObject(buoy);
+		return buoy;
 	}
 
 	private void initLine_03() {
@@ -274,7 +260,7 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_10() {
-		addLine(6, "I will let you control the pitch and roll of your " +
+		addLine(TUTORIAL_INDEX, "I will let you control the pitch and roll of your " +
 				"Cobra. To control pitch, "
 			+ (Settings.controlMode == ShipControl.ACCELEROMETER ||
 			   Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER ?
@@ -292,7 +278,7 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_11() {
-		addLine(6, "To control roll, "
+		addLine(TUTORIAL_INDEX, "To control roll, "
 			+ (Settings.controlMode == ShipControl.ACCELEROMETER ||
 			   Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER ?
 				"rotate the left side of your screen away from you to roll " +
@@ -314,31 +300,34 @@ public class TutBasicFlying extends TutorialScreen {
 				"bring the blue target into the crosshairs in front of you.").
 				setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
-			InGameManager.OVERRIDE_SPEED = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-			}
-			if (flight.getInGameManager().getLaserManager().isUnderCross(
-					target2,
-					flight.getInGameManager().getShip(),
-					flight.getInGameManager().getViewDirection())) {
-				SoundManager.play(Assets.identify);
-				line.setFinished();
-			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> targetToCrosshairs(line, blueTarget))
+		.setFinishHook((IMethodHook) deltaTime -> {
 			flight.getInGameManager().setPlayerControl(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
+			setButtons(false);
 			InGameManager.OVERRIDE_SPEED = false;
 		});
+	}
+
+	private void targetToCrosshairs(TutorialLine line, Buoy target) {
+		setButtons(true);
+		InGameManager.OVERRIDE_SPEED = true;
+		if (!flight.getInGameManager().isPlayerControl()) {
+			flight.getInGameManager().calibrate();
+			flight.getInGameManager().setPlayerControl(true);
+		}
+		if (flight.getInGameManager().getLaserManager().isUnderCross(target,
+				flight.getInGameManager().getShip(),
+				flight.getInGameManager().getViewDirection())) {
+			SoundManager.play(Assets.identify);
+			line.setFinished();
+		}
+	}
+
+	private void setButtons(boolean b) {
+		AliteButtons.OVERRIDE_HYPERSPACE = b;
+		AliteButtons.OVERRIDE_INFORMATION = b;
+		AliteButtons.OVERRIDE_MISSILE = b;
+		AliteButtons.OVERRIDE_LASER = b;
 	}
 
 	private void initLine_13() {
@@ -350,28 +339,9 @@ public class TutBasicFlying extends TutorialScreen {
 		final TutorialLine line = addTopLine(
 				"Why don't you get the yellow target in front of you?").setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
-			InGameManager.OVERRIDE_SPEED = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-			}
-			if (flight.getInGameManager().getLaserManager().isUnderCross(
-					target1,
-					flight.getInGameManager().getShip(),
-					flight.getInGameManager().getViewDirection())) {
-				SoundManager.play(Assets.identify);
-				line.setFinished();
-			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> targetToCrosshairs(line, yellowTarget))
+		.setFinishHook((IMethodHook) deltaTime -> {
+			setButtons(false);
 			InGameManager.OVERRIDE_SPEED = false;
 			flight.getInGameManager().setPlayerControl(false);
 		});
@@ -396,45 +366,50 @@ public class TutBasicFlying extends TutorialScreen {
 		final TutorialLine line = addTopLine(
 				"Go ahead, fly a little closer.").setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
-			if (target1.getPosition().distanceSq(flight.getInGameManager().getShip().getPosition()) < 360000000L) {
-				SoundManager.play(Assets.identify);
-				line.setFinished();
-			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
-			flight.getInGameManager().setPlayerControl(false);
-			flight.getInGameManager().getShip().adjustSpeed(0);
-			flight.getInGameManager().setNeedsSpeedAdjustment(true);
-			flight.setHandleUI(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
-		});
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> approachTarget(line, yellowTarget))
+			.setFinishHook((IMethodHook) deltaTime -> finishFlight());
+	}
+
+	private void approachTarget(TutorialLine line, Buoy target) {
+		startFlightWithButtons();
+		if (target.getPosition().distanceSq(flight.getInGameManager().getShip().getPosition()) < 360000000L) {
+			SoundManager.play(Assets.identify);
+			line.setFinished();
+		}
+	}
+
+	private void startFlightWithButtons() {
+		setButtons(true);
+		startFlight();
+	}
+
+	private void startFlight() {
+		if (!flight.getInGameManager().isPlayerControl()) {
+			flight.getInGameManager().calibrate();
+			flight.getInGameManager().setPlayerControl(true);
+			flight.setHandleUI(true);
+		}
+	}
+
+	private void finishFlight() {
+		flight.getInGameManager().setPlayerControl(false);
+		flight.getInGameManager().getShip().adjustSpeed(0);
+		flight.getInGameManager().setNeedsSpeedAdjustment(true);
+		flight.setHandleUI(false);
+		setButtons(false);
 	}
 
 	private void initLine_19() {
-		addTopLine("Good. That's close enough. Now, for a little target " +
-				"practice:");
+		addTopLine("Good. That's close enough. Now, for a little target practice:");
 	}
 
 	private void initLine_20() {
-		addTopLine("We are using simulated lasers, so don't worry, you " +
-				"cannot harm anyone.");
+		addTopLine("We are using simulated lasers, so don't worry, you cannot harm anyone.");
 	}
 
 	private void initLine_21() {
 		final TutorialLine line =
-			addLine(6, "Do try to destroy the target in front of you, " +
+			addLine(TUTORIAL_INDEX, "Do try to destroy the target in front of you, " +
 					"though. It will be affected by the simulated laser. To " +
 					"engage the laser, press the button on the upper left.").
 				setMustRetainEvents();
@@ -444,16 +419,15 @@ public class TutBasicFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_INFORMATION = true;
 			AliteButtons.OVERRIDE_MISSILE = true;
 			AliteButtons.OVERRIDE_LASER = false;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
-			if (target1.getDestructionCallbacks().isEmpty()) {
-				target1.addDestructionCallback(new DestructionCallback() {
+			startFlight();
+			if (yellowTarget.getDestructionCallbacks().isEmpty()) {
+				yellowTarget.addDestructionCallback(new DestructionCallback() {
 					@Override
 					public void onDestruction() {
 						line.setFinished();
+						if (flight.findObjectByName("Blue Target") == null) {
+							currentLineIndex+= 5;
+						}
 					}
 
 					@Override
@@ -463,15 +437,8 @@ public class TutBasicFlying extends TutorialScreen {
 				});
 			}
 		}).setFinishHook((IMethodHook) deltaTime -> {
-			flight.getInGameManager().setPlayerControl(false);
 			flight.getInGameManager().getLaserManager().setAutoFire(false);
-			flight.getInGameManager().getShip().adjustSpeed(0);
-			flight.getInGameManager().setNeedsSpeedAdjustment(true);
-			flight.setHandleUI(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
+			finishFlight();
 		});
 
 	}
@@ -482,38 +449,15 @@ public class TutBasicFlying extends TutorialScreen {
 
 	private void initLine_23() {
 		final TutorialLine line =
-			addTopLine("Now for the remaining target: Approach the blue " +
-					"target.").setMustRetainEvents();
+			addTopLine("Now for the remaining target: Approach the blue target.").setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
-			if (target2.getPosition().distanceSq(flight.getInGameManager().getShip().getPosition()) < 360000000L) {
-				SoundManager.play(Assets.identify);
-				line.setFinished();
-			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
-			flight.getInGameManager().setPlayerControl(false);
-			flight.getInGameManager().getShip().adjustSpeed(0);
-			flight.getInGameManager().setNeedsSpeedAdjustment(true);
-			flight.setHandleUI(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
-		});
+		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> approachTarget(line, blueTarget))
+			.setFinishHook((IMethodHook) deltaTime -> finishFlight());
 	}
 
 	private void initLine_24() {
 		final TutorialLine line =
-			addLine(6, "Ok, you're close enough, now tap the missile button " +
+			addLine(TUTORIAL_INDEX, "Ok, you're close enough, now tap the missile button " +
 					"on the left once to target the missile.").
 				setMustRetainEvents();
 
@@ -522,10 +466,10 @@ public class TutBasicFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_INFORMATION = true;
 			AliteButtons.OVERRIDE_MISSILE = false;
 			AliteButtons.OVERRIDE_LASER = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
+			startFlight();
+			if (flight.findObjectByName("Blue Target") == null) {
+				line.setFinished();
+				currentLineIndex+= 2;
 			}
 			if (alite.getCobra().isMissileTargetting()) {
 				line.setFinished();
@@ -533,16 +477,7 @@ public class TutBasicFlying extends TutorialScreen {
 				line.setFinished();
 				currentLineIndex++;
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
-			flight.getInGameManager().setPlayerControl(false);
-			flight.getInGameManager().getShip().adjustSpeed(0);
-			flight.getInGameManager().setNeedsSpeedAdjustment(true);
-			flight.setHandleUI(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
-		});
+		}).setFinishHook((IMethodHook) deltaTime -> finishFlight());
 	}
 
 	private void initLine_25() {
@@ -555,13 +490,8 @@ public class TutBasicFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_INFORMATION = true;
 			AliteButtons.OVERRIDE_MISSILE = false;
 			AliteButtons.OVERRIDE_LASER = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
-			if (flight.getInGameManager().getLaserManager().isUnderCross(
-					target2,
+			startFlight();
+			if (flight.getInGameManager().getLaserManager().isUnderCross(blueTarget,
 					flight.getInGameManager().getShip(),
 					flight.getInGameManager().getViewDirection())) {
 				SoundManager.play(Assets.identify);
@@ -570,16 +500,13 @@ public class TutBasicFlying extends TutorialScreen {
 		}).setFinishHook((IMethodHook) deltaTime -> {
 			flight.getInGameManager().setPlayerControl(false);
 			flight.setHandleUI(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
+			setButtons(false);
 		});
 	}
 
 	private void initLine_26() {
 		final TutorialLine line =
-			addLine(6, "And then tap the missile button again.").
+			addLine(TUTORIAL_INDEX, "And then tap the missile button again.").
 			setHeight(180).setMustRetainEvents();
 
 		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
@@ -600,63 +527,50 @@ public class TutBasicFlying extends TutorialScreen {
 				AliteButtons.OVERRIDE_INFORMATION = true;
 				AliteButtons.OVERRIDE_MISSILE = false;
 				AliteButtons.OVERRIDE_LASER = true;
-				if (!flight.getInGameManager().isPlayerControl()) {
-					flight.getInGameManager().calibrate();
-					flight.getInGameManager().setPlayerControl(true);
-					flight.setHandleUI(true);
+				startFlight();
+				if (!blueTarget.getDestructionCallbacks().isEmpty()) {
+					return;
 				}
-				// TARGET2 is being serialized!!
+				// blueTarget is being serialized!!
 				// So, the destruction callback is being serialized, _too_ (!).
 				// The destruction callback must have the reference to the tutorial line,
 				// which is not serializable. This causes problems, of course.
 				// Solution: Delete the destruction callbacks before calling write object....
-				if (target2.getDestructionCallbacks().isEmpty()) {
-					target2.addDestructionCallback(new DestructionCallback() {
-						transient TutorialLine tLine = line;
+				blueTarget.addDestructionCallback(new DestructionCallback() {
+					transient TutorialLine tLine = line;
 
-						private void writeObject(ObjectOutputStream out)
-					            throws IOException {
-							try {
-								AliteLog.e("Destruction Callback", "Destruction Callback");
-								out.defaultWriteObject();
-								AliteLog.e("DONEWriting", "DONE Writing Destruction Callback");
-							} catch(IOException e) {
-								AliteLog.e("PersistenceException", "WriteObject Destruction Callback!!", e);
-								throw e;
-							}
-					    }
-
-						private void readObject(ObjectInputStream in) throws IOException {
-							try {
-								in.defaultReadObject();
-								tLine = line;
-							} catch (ClassNotFoundException e) {
-								AliteLog.e("Error in Initializer", e.getMessage(), e);
-							}
+					private void writeObject(ObjectOutputStream out) throws IOException {
+						try {
+							AliteLog.e("Destruction Callback", "Destruction Callback");
+							out.defaultWriteObject();
+							AliteLog.e("DONEWriting", "DONE Writing Destruction Callback");
+						} catch(IOException e) {
+							AliteLog.e("PersistenceException", "WriteObject Destruction Callback!!", e);
+							throw e;
 						}
+					}
 
-						@Override
-						public void onDestruction() {
-							tLine.setFinished();
+					private void readObject(ObjectInputStream in) throws IOException {
+						try {
+							in.defaultReadObject();
+							tLine = line;
+						} catch (ClassNotFoundException e) {
+							AliteLog.e("Error in Initializer", e.getMessage(), e);
 						}
+					}
 
-						@Override
-						public int getId() {
-							return 6;
-						}
-					});
-				}
+					@Override
+					public void onDestruction() {
+						tLine.setFinished();
+					}
+
+					@Override
+					public int getId() {
+						return 6;
+					}
+				});
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
-			flight.getInGameManager().setPlayerControl(false);
-			flight.getInGameManager().getShip().adjustSpeed(0);
-			flight.getInGameManager().setNeedsSpeedAdjustment(true);
-			flight.setHandleUI(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
-		});
+		}).setFinishHook((IMethodHook) deltaTime -> finishFlight());
 	}
 
 	private void initLine_27() {
@@ -694,36 +608,19 @@ public class TutBasicFlying extends TutorialScreen {
 					position.add(man.getStation().getPosition());
 
 					dockingBuoy.setPosition(position);
-					dockingBuoy.setHudColor(0xef, 0x00, 0x00);
+					dockingBuoy.setHudColor(new Vector3f(0xef, 0x00, 0x00));
 					dockingBuoy.setName("Docking Buoy");
 					flight.getInGameManager().addObject(dockingBuoy);
 				}
 			}
 
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
+			startFlightWithButtons();
 			if (dockingBuoy.getPosition().distanceSq(flight.getInGameManager().getShip().getPosition()) < 40000) {
 				SoundManager.play(Assets.identify);
 				dockingBuoy.setRemove(true);
 				line.setFinished();
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
-			flight.getInGameManager().setPlayerControl(false);
-			flight.getInGameManager().getShip().adjustSpeed(0);
-			flight.getInGameManager().setNeedsSpeedAdjustment(true);
-			flight.setHandleUI(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
-		});
+		}).setFinishHook((IMethodHook) deltaTime -> finishFlight());
 
 	}
 
@@ -733,15 +630,7 @@ public class TutBasicFlying extends TutorialScreen {
 						"station.").setMustRetainEvents();
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
+			startFlightWithButtons();
 			if (flight.getInGameManager().getLaserManager().isUnderCross(
 					(SpaceObject) flight.getInGameManager().getStation(),
 					flight.getInGameManager().getShip(),
@@ -749,10 +638,7 @@ public class TutBasicFlying extends TutorialScreen {
 				line.setFinished();
 			}
 		}).setFinishHook((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
+			setButtons(false);
 			flight.getInGameManager().setPlayerControl(false);
 			flight.setHandleUI(false);
 		});
@@ -766,21 +652,13 @@ public class TutBasicFlying extends TutorialScreen {
 
 	private void initLine_34() {
 		final TutorialLine line =
-			addLine(6, "This will be the last thing I teach you, today. If " +
+			addLine(TUTORIAL_INDEX, "This will be the last thing I teach you, today. If " +
 				"you manage to dock successfully, you can officially call " +
 				"yourself 'Commander'. Good luck, wet-nose.").
 				setMustRetainEvents();
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
+			startFlightWithButtons();
 			if (flight.getInGameManager().getPostDockingHook() == null) {
 				flight.getInGameManager().setPostDockingHook((IMethodHook) deltaTime1 -> dispose());
 			}
@@ -788,31 +666,14 @@ public class TutBasicFlying extends TutorialScreen {
 				flight.getInGameManager().setPostDockingScreen(
 					new TutorialSelectionScreen(alite));
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
-			flight.getInGameManager().setPlayerControl(false);
-			flight.getInGameManager().getShip().adjustSpeed(0);
-			flight.getInGameManager().setNeedsSpeedAdjustment(true);
-			flight.setHandleUI(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
-		});
+		}).setFinishHook((IMethodHook) deltaTime -> finishFlight());
 	}
 
 	@Override
 	public void activate() {
 		super.activate();
-		for (int i = 0; i < Settings.buttonPosition.length; i++) {
-			Settings.buttonPosition[i] = i;
-		}
-		for (Equipment e: savedInstalledEquipment) {
-			alite.getCobra().removeEquipment(e);
-		}
-		alite.getCobra().setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.pulseLaser);
-		alite.getCobra().setLaser(PlayerCobra.DIR_RIGHT, null);
-		alite.getCobra().setLaser(PlayerCobra.DIR_REAR, null);
-		alite.getCobra().setLaser(PlayerCobra.DIR_LEFT, null);
+		Settings.resetButtonPosition();
+		alite.getCobra().clearEquipment();
 		alite.getGenerator().buildGalaxy(1);
 		alite.getGenerator().setCurrentGalaxy(1);
 		alite.getPlayer().setCurrentSystem(alite.getGenerator().getSystem(7)); // Lave
@@ -873,13 +734,13 @@ public class TutBasicFlying extends TutorialScreen {
 			tb.resetShipPosition = dis.readBoolean();
 			tb.savedMarketFluct = dis.readInt();
 
-			tb.target1 = (Buoy) tb.flight.findObjectByName("Yellow Target");
-			if (tb.target1 != null) {
-				tb.target1.setSaving(false);
+			tb.yellowTarget = (Buoy) tb.flight.findObjectByName("Yellow Target");
+			if (tb.yellowTarget != null) {
+				tb.yellowTarget.setSaving(false);
 			}
-			tb.target2 = (Buoy) tb.flight.findObjectByName("Blue Target");
-			if (tb.target2 != null) {
-				tb.target2.setSaving(false);
+			tb.blueTarget = (Buoy) tb.flight.findObjectByName("Blue Target");
+			if (tb.blueTarget != null) {
+				tb.blueTarget.setSaving(false);
 			}
 			Buoy buoy = (Buoy) tb.flight.findObjectByName("Docking Buoy");
 			if (buoy != null) {
@@ -898,11 +759,11 @@ public class TutBasicFlying extends TutorialScreen {
 		if (mediaPlayer != null) {
 			mediaPlayer.reset();
 		}
-		if (target1 != null) {
-			target1.setSaving(true);
+		if (yellowTarget != null) {
+			yellowTarget.setSaving(true);
 		}
-		if (target2 != null) {
-			target2.setSaving(true);
+		if (blueTarget != null) {
+			blueTarget.setSaving(true);
 		}
 		if (dockingBuoy != null) {
 			dockingBuoy.setSaving(true);
@@ -962,11 +823,11 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void rotateBuoys(float deltaTime) {
-		if (target1 != null && target1.getHullStrength() > 0 && !target1.mustBeRemoved()) {
-			rotate(target1, 3 * deltaTime, 5 * deltaTime, 2 * deltaTime);
+		if (yellowTarget != null && yellowTarget.getHullStrength() > 0 && !yellowTarget.mustBeRemoved()) {
+			rotate(yellowTarget, 3 * deltaTime, 5 * deltaTime, 2 * deltaTime);
 		}
-		if (target2 != null && target2.getHullStrength() > 0 && !target2.mustBeRemoved()) {
-			rotate(target2, 2 * deltaTime, 3 * deltaTime, 5 * deltaTime);
+		if (blueTarget != null && blueTarget.getHullStrength() > 0 && !blueTarget.mustBeRemoved()) {
+			rotate(blueTarget, 2 * deltaTime, 3 * deltaTime, 5 * deltaTime);
 		}
 		if (dockingBuoy != null && dockingBuoy.getHullStrength() > 0 && !dockingBuoy.mustBeRemoved()) {
 			rotate(dockingBuoy, 5 * deltaTime, 2 * deltaTime, 3 * deltaTime);

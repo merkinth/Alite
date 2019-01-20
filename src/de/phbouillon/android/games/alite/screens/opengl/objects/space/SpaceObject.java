@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import android.opengl.GLES11;
-import android.opengl.Matrix;
 import de.phbouillon.android.framework.Geometry;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
@@ -94,7 +93,6 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	protected float[] boundingBox;
 	private float[] originalBoundingBox = null;
 	private float[] vertices;
-	private float[] normals;
 	protected float maxSpeed;
 	protected float maxRollSpeed;
 	protected float maxPitchSpeed;
@@ -123,12 +121,12 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	protected String laserTexture = "textures/laser_orange.png";
 	protected transient List <EngineExhaust> exhaust = new ArrayList<>();
 	private boolean identified = false;
-
+ 	private float scale = 1;
 	private final List <ShipType> objectsToSpawn = new ArrayList<>();
 
 	private final SpaceObjectAI ai = new SpaceObjectAI(this);
 	private ObjectType type;
-	protected TargetBoxSpaceObject targetBox;
+	private TargetBoxSpaceObject targetBox;
 	private SpaceObject proximity;
 
 	private Vector3f overrideColor = new Vector3f(0, 0, 0);
@@ -145,8 +143,8 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	protected void initTargetBox() {
 		float size = getMaxExtentWithoutExhaust() * 1.25f;
 		targetBox = new TargetBoxSpaceObject(alite, "targetBox", size, size, size);
-		getHudColor().copy(v0);
-		targetBox.setColor(v0.x, v0.y, v0.z);
+		Vector3f color = hasOverrideColor() ? getOverrideColor() : getHudColor();
+		targetBox.setColor(color.x, color.y, color.z);
 	}
 
 	public void addExhaust(EngineExhaust exhaust) {
@@ -172,6 +170,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 			alite = Alite.get();
 			exhaust = new ArrayList<>();
 			init();
+			scaleBoundingBox(scale);
 			AliteLog.e("readObject", "SpaceObject.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
@@ -465,106 +464,45 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	}
 
 	protected final FloatBuffer createFaces(float[] vertexData, float[] normalData, int ...indices) {
-		vertices = new float[indices.length * 3];
-		normals  = new float[indices.length * 3];
-
-		int offset = 0;
-		for (int i: indices) {
-			vertices[offset]     = vertexData[i * 3];
-			vertices[offset + 1] = vertexData[i * 3 + 1];
-			vertices[offset + 2] = -vertexData[i * 3 + 2];
-
-			normals[offset]      = -normalData[i * 3];
-			normals[offset + 1]  = -normalData[i * 3 + 1];
-			normals[offset + 2]  = normalData[i * 3 + 2];
-			offset += 3;
-		}
-		normalBuffer = GlUtils.toFloatBufferPositionZero(normals);
-
-		return GlUtils.toFloatBufferPositionZero(vertices);
+		return createScaledFaces(1, vertexData, normalData, indices);
 	}
 
 	protected final FloatBuffer createScaledFaces(float scale, float[] vertexData, float[] normalData, int ...indices) {
+		return createFacesBase(scale, vertexData, normalData, 1, 1, indices);
+	}
+
+	private FloatBuffer createFacesBase(float scale, float[] vertexData, float[] normalData, float reversed, float rotated, int ...indices) {
 		vertices = new float[indices.length * 3];
-		normals  = new float[indices.length * 3];
+		float[] normals  = new float[indices.length * 3];
 
 		int offset = 0;
 		for (int i: indices) {
-			vertices[offset]     = vertexData[i * 3] * scale;
+			vertices[offset]     = vertexData[i * 3] * scale * rotated;
 			vertices[offset + 1] = vertexData[i * 3 + 1] * scale;
-			vertices[offset + 2] = -vertexData[i * 3 + 2] * scale;
+			vertices[offset + 2] = -vertexData[i * 3 + 2] * scale * reversed;
 
-			normals[offset]      = -normalData[i * 3];
+			normals[offset]      = -normalData[i * 3] * rotated;
 			normals[offset + 1]  = -normalData[i * 3 + 1];
-			normals[offset + 2]  = normalData[i * 3 + 2];
+			normals[offset + 2]  = normalData[i * 3 + 2] * reversed;
 			offset += 3;
 		}
 		normalBuffer = GlUtils.toFloatBufferPositionZero(normals);
-
 		return GlUtils.toFloatBufferPositionZero(vertices);
 	}
 
 	protected final FloatBuffer createReversedFaces(float[] vertexData, float[] normalData, int ...indices) {
-		vertices = new float[indices.length * 3];
-		normals  = new float[indices.length * 3];
-
-		int offset = 0;
-		for (int i: indices) {
-			vertices[offset]     = vertexData[i * 3];
-			vertices[offset + 1] = vertexData[i * 3 + 1];
-			vertices[offset + 2] = vertexData[i * 3 + 2];
-
-			normals[offset]      = -normalData[i * 3];
-			normals[offset + 1]  = -normalData[i * 3 + 1];
-			normals[offset + 2]  = -normalData[i * 3 + 2];
-			offset += 3;
-		}
-		normalBuffer = GlUtils.toFloatBufferPositionZero(normals);
-
-		return GlUtils.toFloatBufferPositionZero(vertices);
+		return createReversedScaledFaces(1, vertexData, normalData, indices);
 	}
 
 	protected final FloatBuffer createReversedRotatedFaces(float[] vertexData, float[] normalData, int ...indices) {
-		vertices = new float[indices.length * 3];
-		normals  = new float[indices.length * 3];
-
-		int offset = 0;
-		for (int i: indices) {
-			vertices[offset]     = -vertexData[i * 3];
-			vertices[offset + 1] = vertexData[i * 3 + 1];
-			vertices[offset + 2] = -vertexData[i * 3 + 2];
-
-			normals[offset]      = normalData[i * 3];
-			normals[offset + 1]  = -normalData[i * 3 + 1];
-			normals[offset + 2]  = normalData[i * 3 + 2];
-			offset += 3;
-		}
-		normalBuffer = GlUtils.toFloatBufferPositionZero(normals);
-
-		return GlUtils.toFloatBufferPositionZero(vertices);
+		return createFacesBase(1, vertexData, normalData, 1, -1, indices);
 	}
 
 // -1 0 0
 //	0 1 0
 //	0 0 -1
 	protected final FloatBuffer createReversedScaledFaces(float scale, float[] vertexData, float[] normalData, int ...indices) {
-		vertices = new float[indices.length * 3];
-		normals  = new float[indices.length * 3];
-
-		int offset = 0;
-		for (int i: indices) {
-			vertices[offset]     = vertexData[i * 3] * scale;
-			vertices[offset + 1] = vertexData[i * 3 + 1] * scale;
-			vertices[offset + 2] = vertexData[i * 3 + 2] * scale;
-
-			normals[offset]      = -normalData[i * 3];
-			normals[offset + 1]  = -normalData[i * 3 + 1];
-			normals[offset + 2]  = -normalData[i * 3 + 2];
-			offset += 3;
-		}
-		normalBuffer = GlUtils.toFloatBufferPositionZero(normals);
-
-		return GlUtils.toFloatBufferPositionZero(vertices);
+		return createFacesBase(scale, vertexData, normalData, -1, 1, indices);
 	}
 
 	public float[] getBoundingBox() {
@@ -583,10 +521,9 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 
 	@Override
 	public void scale(float scale) {
-		computeMatrix();
-		Matrix.scaleM(currentMatrix, 0, scale, scale, scale);
+		this.scale = scale;
+		super.scale(scale);
 		scaleBoundingBox(scale);
-		extractVectors();
 	}
 
 	public float getMaxExtent() {
@@ -594,15 +531,17 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		if (exhaust != null && !exhaust.isEmpty()) {
 			add = exhaust.get(0).getMaxLen();
 		}
+		return getMaxExtentBase(add);
+	}
+
+	private float getMaxExtentBase(float add) {
 		return Math.max(Math.abs(boundingBox[0]) + Math.abs(boundingBox[1]),
-			            Math.max(Math.abs(boundingBox[2]) + Math.abs(boundingBox[3]),
-					Math.abs(boundingBox[4]) + Math.abs(boundingBox[5]) + add));
+			Math.max(Math.abs(boundingBox[2]) + Math.abs(boundingBox[3]),
+			Math.abs(boundingBox[4]) + Math.abs(boundingBox[5]) + add));
 	}
 
 	public float getMaxExtentWithoutExhaust() {
-		return Math.max(Math.abs(boundingBox[0]) + Math.abs(boundingBox[1]),
-			            Math.max(Math.abs(boundingBox[2]) + Math.abs(boundingBox[3]),
-					Math.abs(boundingBox[4]) + Math.abs(boundingBox[5])));
+		return getMaxExtentBase(0);
 	}
 
 	public void dispose() {
@@ -978,6 +917,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 
 	public void setHudColor(Vector3f hudColor) {
 		hudColor.copy(overrideColor);
+		targetBox.setColor(hudColor.x, hudColor.y, hudColor.z);
 	}
 
 	public boolean hasOverrideColor() {
