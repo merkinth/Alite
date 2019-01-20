@@ -23,6 +23,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.Updater;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -72,13 +73,13 @@ public class CougarMission extends Mission {
 
 		private void computeNextUpdateTime() {
 			lastCheck = System.nanoTime();
-			// 6.5 - 12 seconds later.
-			nextUpdateEvent = 6500000000l + (long) (Math.random() * 5500000000l);
+			// 6 - 12 seconds later.
+			nextUpdateEvent = (long) (6 * Math.random() + 6);
 		}
 
 		@Override
 		public void onUpdate(float deltaTime) {
-			if (System.nanoTime() >= (lastCheck + nextUpdateEvent)) {
+			if (TimeUtil.hasPassed(lastCheck, nextUpdateEvent, TimeUtil.SECONDS)) {
 				computeNextUpdateTime();
 				cloaked = !cloaked;
 				cougar.setCloaked(cloaked);
@@ -222,7 +223,7 @@ public class CougarMission extends Mission {
 					setRemove(true);
 					SoundManager.play(Assets.com_conditionRed);
 					manager.getInGameManager().repeatMessage("Condition Red!", 3);
-					Vector3f spawnPosition = manager.spawnObject();
+					Vector3f spawnPosition = manager.getSpawnPosition();
 					final Cougar cougar = new Cougar(alite);
 					AspMkII asp1 = new AspMkII(alite);
 					AspMkII asp2 = new AspMkII(alite);

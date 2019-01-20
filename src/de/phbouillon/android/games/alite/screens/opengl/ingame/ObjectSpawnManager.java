@@ -24,6 +24,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import android.opengl.Matrix;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.Updater;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -71,12 +72,12 @@ public class ObjectSpawnManager implements Serializable {
 	private transient int maxNumberOfEnemies;
 	private transient int maxNumberOfVipers;
 
-	private static final long LAUNCH_BREAK_TIMER  = 15 * 1000000000L;
+	private static final long LAUNCH_BREAK_TIMER  = 15; // seconds
 
 	private static final float SPAWN_INTER_SHIP_DISTANCE            = 1500.0f;
 	private static final float TRANSPORT_PLANET_DISTANCE_SQ         = 7225000000.0f;
 
-	private static final int[] spawnMatrix = new int[] {0, 0,  1, 0,   -1, 0,   0, -1,   0, 1,   1, 1,
+	private static final float[] spawnMatrix = new float[] {0, 0,  1, 0,   -1, 0,   0, -1,   0, 1,   1, 1,
 		                                                 -2, -2,  2, 0,   -2, 0,   0, -2,   0, 2,   2, 2};
 
 	private static final float[] thargonSpawnMatrix = new float[] {0, -1,  0.7071067f, -0.7071067f,  1, 0,  0.7071067f, 0.7071067f,
@@ -90,7 +91,7 @@ public class ObjectSpawnManager implements Serializable {
     private SpawnTimer viperTimer = new SpawnTimer();
     private transient BoxSpaceObject gateWatcher;
 
-    private long launchBreak = -1;
+    private long launchTime = -1;
 
 	private static final Vector3f vector = new Vector3f(0, 0, 0);
 	private static final Vector3f vector2 = new Vector3f(0, 0, 0);
@@ -102,6 +103,7 @@ public class ObjectSpawnManager implements Serializable {
 	private boolean timedEventsMustBeInitialized = true;
 	private int launchAreaViolations = 0;
 	private long lastWarningTime = -1;
+	private long lastLogTime = 0;
 
 	private class SpawnTimer implements Serializable {
 		private static final long serialVersionUID = -4989102775350929292L;
@@ -404,18 +406,18 @@ public class ObjectSpawnManager implements Serializable {
 		return torus;
 	}
 
-	private Vector3f spawnObject(float distance) {
-		vector.x = (float) (0.7 - Math.random() * 1.4);
-		vector.y = (float) (0.7 - Math.random() * 1.4);
-		vector.z = (float) (0.7 - Math.random() * 1.4);
+	private Vector3f getSpawnPosition(float distance) {
+		MathHelper.setRandomDirection(vector);
 		Vector3f spawnPosition = MathHelper.getRandomPosition(inGame.getShip().getPosition(), vector, distance, 1000.0f);
-		vector.x = spawnPosition.x;
-		vector.y = spawnPosition.y;
-		vector.z = spawnPosition.z;
+		spawnPosition.copy(vector);
 		return spawnPosition;
 	}
 
 	private void spawnEnemyAndAttackPlayerWithoutCallback(final SpaceObject ship, int index, Vector3f spawnPosition) {
+		spawnEnemyAndAttackPlayerWithoutCallback(ship, index, spawnPosition, spawnMatrix);
+	}
+
+	private void spawnEnemyAndAttackPlayerWithoutCallback(final SpaceObject ship, int index, Vector3f spawnPosition, float[] spawnMatrix) {
 		ship.setPosition(vector);
 		ship.orientTowards(inGame.getShip(), 0);
 		inGame.addObject(ship);
@@ -450,7 +452,7 @@ public class ObjectSpawnManager implements Serializable {
 		if (inGame.getWitchSpace() == null) {
 			return;
 		}
-		Vector3f spawnPosition = spawnObject(getSpawnDistance());
+		Vector3f spawnPosition = getSpawnPosition(getSpawnDistance());
 		Thargoid thargoid = new Thargoid(alite);
 		thargoid.setSpawnThargonDistanceSq(computeSpawnThargonDistanceSq());
 		spawnEnemyAndAttackPlayerWithoutCallback(thargoid, 0, spawnPosition);
@@ -520,7 +522,7 @@ public class ObjectSpawnManager implements Serializable {
 		inGame.repeatMessage("Condition Red!", 3);
 		if (thargoidNum > 0 && THARGOIDS_ENABLED) {
 			conditionRedTimer.event.lock();
-			Vector3f spawnPosition = spawnObject(getSpawnDistance());
+			Vector3f spawnPosition = getSpawnPosition(getSpawnDistance());
 			for (int i = 0; i < thargoidNum; i++) {
 				Thargoid thargoid = new Thargoid(alite);
 				thargoid.setSpawnThargonDistanceSq(computeSpawnThargonDistanceSq());
@@ -529,7 +531,7 @@ public class ObjectSpawnManager implements Serializable {
 			return;
 		}
 		conditionRedTimer.event.lock();
-		Vector3f spawnPosition = spawnObject(getSpawnDistance());
+		Vector3f spawnPosition = getSpawnPosition(getSpawnDistance());
 		for (int i = 0; i < num; i++) {
 			SpaceObject ship = SpaceObject.createRandomEnemy(alite);
 			spawnEnemyAndAttackPlayer(ship, i, spawnPosition);
@@ -563,7 +565,7 @@ public class ObjectSpawnManager implements Serializable {
 		if (!inGame.isInSafeZone()) {
 			return false;
 		}
-		if (launchBreak != -1 && System.nanoTime() < launchBreak) {
+		if (launchTime != -1 && !TimeUtil.hasPassed(launchTime, LAUNCH_BREAK_TIMER, TimeUtil.SECONDS)) {
 			return false;
 		}
 		// Vipers fly out of the docking port, so it is forbidden for all other ships ;)
@@ -614,11 +616,10 @@ public class ObjectSpawnManager implements Serializable {
 	}
 
 	private void handleLaunchAreaViolations() {
-		long time = System.nanoTime();
-		if (lastWarningTime != -1 && time - lastWarningTime <= 5000000000L) {
+		if (lastWarningTime != -1 && !TimeUtil.hasPassed(lastWarningTime, 5, TimeUtil.SECONDS)) {
 			return;
 		}
-		lastWarningTime = time;
+		lastWarningTime = System.nanoTime();
 		if (launchAreaViolations == 0) {
 			// TODO Play sample
 			inGame.setMessage("Hey rookie! Clear the launch area immediately.");
@@ -643,9 +644,8 @@ public class ObjectSpawnManager implements Serializable {
 
 				@Override
 				public void onUpdate(float deltaTime) {
-					long time = System.nanoTime();
-					if (lastExecution == -1 || time - lastExecution >= 1000000000L) {
-						lastExecution = time;
+					if (lastExecution == -1 || TimeUtil.hasPassed(lastExecution, 1, TimeUtil.SECONDS)) {
+						lastExecution = System.nanoTime();
 						float distance = inGame.getShip().getPosition().distance(inGame.getSystemStationPosition());
 						AliteLog.d("Distance to Station", "Distance to Station: " + distance);
 						if (distance > 4000) {
@@ -695,7 +695,7 @@ public class ObjectSpawnManager implements Serializable {
 			});
 			return;
 		}
-		spawnObject(getSpawnDistance());
+		getSpawnPosition(getSpawnDistance());
 		final SpaceObject ship = SpaceObject.createRandomTrader(alite);
 		ship.setPosition(vector);
 		ship.setRandomOrientation(vector, inGame.getShip().getUpVector());
@@ -746,7 +746,7 @@ public class ObjectSpawnManager implements Serializable {
 		});
 		so.registerAiStateCallbackHandler(AiStateCallback.EndOfWaypointsReached, callback);
 		inGame.addObject(so);
-		launchBreak = System.nanoTime() + LAUNCH_BREAK_TIMER;
+		launchTime = System.nanoTime();
 	}
 
 	private void spawnAsteroid() {
@@ -761,43 +761,53 @@ public class ObjectSpawnManager implements Serializable {
 			// Do not spawn asteroids in safe zone; debatable...
 			return;
 		}
-		spawnObject(getSpawnDistance());
+		getSpawnPosition(getSpawnDistance());
 		final SpaceObject asteroid = SpaceObject.createRandomAsteroid(alite);
-		asteroid.setPosition(vector);
-		asteroid.setSpeed(0);
-		vector.x = (float) (-2.0 + Math.random() * 4.0);
-		vector.y = (float) (-2.0 + Math.random() * 4.0);
-		vector.z = (float) (-2.0 + Math.random() * 4.0);
-		vector.normalize();
-		final float rx = vector.x;
-		final float ry = vector.y;
-		final float rz = vector.z;
-		vector.x = (float) (-2.0 + Math.random() * 4.0);
-		vector.y = (float) (-2.0 + Math.random() * 4.0);
-		vector.z = (float) (-2.0 + Math.random() * 4.0);
-		vector.normalize();
-		final float ix = vector.x;
-		final float iy = vector.y;
-		final float iz = vector.z;
-		asteroid.setUpdater(new Updater() {
+		spawnObject(asteroid, asteroid.getMaxSpeed(), vector);
+	}
+
+	public void spawnTumbleObject(final SpaceObject createdObject, Vector3f position) {
+		spawnObject(createdObject, 0.2f + (createdObject.getMaxSpeed() - 0.2f) * (float) Math.random(), position);
+	}
+
+	private void spawnObject(SpaceObject createdObject, float speed, Vector3f position) {
+		createdObject.setPosition(position);
+		createdObject.setSpeed(0);
+
+		createRandomVector();
+		// preserve values of vector2
+		final float rx = vector2.x;
+		final float ry = vector2.y;
+		final float rz = vector2.z;
+
+		createRandomVector();
+		// preserve values of vector2
+		final float ix = vector2.x;
+		final float iy = vector2.y;
+		final float iz = vector2.z;
+
+		createdObject.setUpdater(new Updater() {
 			private static final long serialVersionUID = 5578311067399465378L;
 
 			@Override
 			public void onUpdate(float deltaTime) {
-				float speed = asteroid.getMaxSpeed();
-				asteroid.getPosition().copy(vector);
-				float x = vector.x + ix * speed * deltaTime;
-				float y = vector.y + iy * speed * deltaTime;
-				float z = vector.z + iz * speed * deltaTime;
-				asteroid.setPosition(x, y, z);
-				asteroid.applyDeltaRotation(rx, ry, rz);
-				if (asteroid.getPosition().distance(inGame.getShip().getPosition()) >= AliteHud.MAX_DISTANCE) {
-					asteroid.setRemove(true);
+				createdObject.setPosition(createdObject.getPosition().x + ix * speed * deltaTime,
+					createdObject.getPosition().y + iy * speed * deltaTime,
+					createdObject.getPosition().z + iz * speed * deltaTime);
+				createdObject.applyDeltaRotation(rx, ry, rz);
+				if (createdObject.getPosition().distance(inGame.getShip().getPosition()) >= AliteHud.MAX_DISTANCE) {
+					createdObject.setRemove(true);
 				}
 			}
 		});
+		inGame.addObject(createdObject);
+	}
 
-		inGame.addObject(asteroid);
+	private static void createRandomVector() {
+		vector2.x = (float) (-2.0 + Math.random() * 4.0);
+		vector2.y = (float) (-2.0 + Math.random() * 4.0);
+		vector2.z = (float) (-2.0 + Math.random() * 4.0);
+		vector2.normalize();
 	}
 
 	private void spawnShuttleOrTransporter() {
@@ -844,7 +854,11 @@ public class ObjectSpawnManager implements Serializable {
 	}
 
 	private void spawnViper() {
-		AliteLog.d("Spawn Viper", "SafeZoneViolated: " + InGameManager.safeZoneViolated + ", VipersWillEngage: " + inGame.isVipersWillEngage());
+		if (TimeUtil.hasPassed(lastLogTime, 1, TimeUtil.SECONDS)) {
+			AliteLog.d("Spawn Viper", "SafeZoneViolated: " + InGameManager.safeZoneViolated +
+				", VipersWillEngage: " + inGame.isVipersWillEngage());
+			lastLogTime = System.nanoTime();
+		}
 		if (inGame.getWitchSpace() != null) {
 			return;
 		}
@@ -883,7 +897,7 @@ public class ObjectSpawnManager implements Serializable {
 	    	if (!playerIsCurrentlyOffensive && !inGame.isVipersWillEngage()) {
 	    		return;
 	    	}
-	    	inGame.setVipersWillEngage(true);
+	    	inGame.setVipersWillEngage();
 	    	shipType = government == Government.ANARCHY || government == Government.FEUDAL ?
 	    			SpaceObject.createRandomDefensiveShip(alite) : new Viper(alite);
 	    	shipType.setHudColor(Viper.HUD_COLOR);
@@ -932,11 +946,11 @@ public class ObjectSpawnManager implements Serializable {
 		return (float) (16384 + 8192 * Math.random());
 	}
 
-	public final Vector3f spawnObject() {
-		return spawnObject(getSpawnDistance());
+	public final Vector3f getSpawnPosition() {
+		return getSpawnPosition(getSpawnDistance());
 	}
 
-	static void spawnThargons(Alite alite, final Thargoid mother, final InGameManager inGame) {
+	void spawnThargons(Alite alite, final Thargoid mother) {
 		if (!THARGONS_ENABLED) {
 			return;
 		}
@@ -947,13 +961,7 @@ public class ObjectSpawnManager implements Serializable {
 		vector.copy(vector2);
 		for (int i = 0; i < numberOfThargons; i++) {
 			final Thargon thargon = new Thargon(alite);
-			thargon.setPosition(vector);
-			thargon.orientTowards(inGame.getShip(), 0);
-			inGame.addObject(thargon);
-			thargon.assertOrthoNormal();
-			thargon.setAIState(AIState.ATTACK, inGame.getShip());
-			vector.x = vector2.x + thargonSpawnMatrix[i * 2]     * SPAWN_INTER_SHIP_DISTANCE;
-			vector.y = vector2.y + thargonSpawnMatrix[i * 2 + 1] * SPAWN_INTER_SHIP_DISTANCE;
+			spawnEnemyAndAttackPlayerWithoutCallback(thargon, i, vector2, thargonSpawnMatrix);
 			mother.addActiveThargon(thargon);
 			thargon.setMother(mother);
 			thargon.addDestructionCallback(new DestructionCallback() {

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites.buttons;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -21,6 +21,7 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites.buttons;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.Updater;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -38,7 +39,7 @@ class EscapeCapsuleUpdater implements Updater {
 		MOVE,
 		QUIT
 	}
-	
+
 	private transient Alite alite;
 	private final InGameManager inGame;
 	private final GraphicObject ship;
@@ -48,8 +49,8 @@ class EscapeCapsuleUpdater implements Updater {
 	private EscapeCapsule esc = null;
 	private final Vector3f vec1 = new Vector3f(0, 0, 0);
 	private final Vector3f vec2 = new Vector3f(0, 0, 0);
-	
-	public EscapeCapsuleUpdater(Alite alite, InGameManager inGame, GraphicObject ship, long startTime) {
+
+	EscapeCapsuleUpdater(Alite alite, InGameManager inGame, GraphicObject ship, long startTime) {
 		this.alite = alite;
 		this.inGame = inGame;
 		this.ship = ship;
@@ -61,7 +62,7 @@ class EscapeCapsuleUpdater implements Updater {
 			AliteLog.e("readObject", "EscapeCapsuleUpdate.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "EscapeCapsuleUpdate.readObject I");
-			this.alite = Alite.get();
+			alite = Alite.get();
 			AliteLog.e("readObject", "EscapeCapsuleUpdate.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
@@ -71,17 +72,17 @@ class EscapeCapsuleUpdater implements Updater {
 	@Override
 	public void onUpdate(float deltaTime) {
 		switch (state) {
-			case SPAWN: spawnShip(); 
+			case SPAWN: spawnShip();
 						spawnEscapeCapsule();
 						break;
-			case MOVE: moveShip(); 
+			case MOVE: moveShip();
 					   moveEscapeCapsule(deltaTime);
 					   break;
 			case QUIT: endSequence(); break;
 		}
 	}
 
-	private final void spawnShip() {
+	private void spawnShip() {
 		ship.computeMatrix();
 		cobra = new CobraMkIII(alite);
 		cobra.setUpVector(ship.getUpVector());
@@ -97,17 +98,17 @@ class EscapeCapsuleUpdater implements Updater {
 		vec1.add(vec2);
 		cobra.setPosition(vec1);
 		cobra.setSpeed(-cobra.getMaxSpeed());
-		ship.setSpeed(0);		
+		ship.setSpeed(0);
 		state = EscapeCapsuleState.MOVE;
 		inGame.addObject(cobra);
 	}
-	
-	private final void spawnEscapeCapsule() {
+
+	private void spawnEscapeCapsule() {
 		esc = new EscapeCapsule(alite);
 		cobra.getForwardVector().copy(vec1);
 		vec1.negate();
 		esc.setForwardVector(vec1);
-		
+
 		esc.setRightVector(cobra.getRightVector());
 		cobra.getUpVector().copy(vec1);
 		vec1.negate();
@@ -117,19 +118,19 @@ class EscapeCapsuleUpdater implements Updater {
 		esc.setSpeed(-esc.getMaxSpeed());
 		inGame.addObject(esc);
 	}
-	
-	private final void moveShip() {
-		if ((System.nanoTime() - startTime) > 4000000000l) {
+
+	private void moveShip() {
+		if (TimeUtil.hasPassed(startTime, 4, TimeUtil.SECONDS)) {
 			state = EscapeCapsuleState.QUIT;
 		}
 		// Nothing else to be done here; InGameRender advances the cobra...
 	}
 
-	private final void moveEscapeCapsule(float deltaTime) {
+	private void moveEscapeCapsule(float deltaTime) {
 		esc.moveForward(deltaTime);
 	}
-		
-	private final void endSequence() {
+
+	private void endSequence() {
 		inGame.terminateToStatusScreen();
 	}
 }

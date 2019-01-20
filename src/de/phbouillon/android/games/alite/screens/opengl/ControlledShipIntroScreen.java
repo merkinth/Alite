@@ -25,6 +25,7 @@ import android.graphics.Rect;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.Input.TouchEvent;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -75,7 +76,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 
 	private int windowWidth;
 	private int windowHeight;
-	private final List <AliteObject> allObjects = new ArrayList<AliteObject>();
+	private final List <AliteObject> allObjects = new ArrayList<>();
 	private final InGameManager inGame;
 	private long startTime;
 	private long screenStartTime;
@@ -232,7 +233,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 				return;
 			}
 		}
-		if (System.nanoTime() - screenStartTime < 1000000000L) {
+		if (TimeUtil.hasPassed(screenStartTime, 1, TimeUtil.SECONDS)) {
 			return;
 		}
 		for (TouchEvent event: touchEvents) {

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -21,6 +21,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects;
 import java.io.Serializable;
 
 import android.opengl.GLES11;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
@@ -28,41 +29,40 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjec
 
 public class Explosion implements Serializable {
 	private static final long serialVersionUID = 9198779337593261863L;
-	private static final long FRAME_TIME = 33333333l;
-	
-	private final Vector3f zOffset = new Vector3f(0, 0, 0);		
+	private static final long FRAME_TIME = 33; // ms
+
+	private final Vector3f zOffset = new Vector3f(0, 0, 0);
 	private InGameManager inGame;
 	private ExplosionBillboard [] explosions = new ExplosionBillboard[3];
 	private long lastCall = -1;
 	private boolean finished;
 	private boolean rendered;
 	private SpaceObject ref;
-	
+
 	public Explosion(Alite alite, SpaceObject ref, InGameManager inGame) {
 		this.inGame = inGame;
 		this.ref = ref;
-		
+
 		float size = ref.getMaxExtentWithoutExhaust();
 		ref.getPosition().copy(zOffset);
-		zOffset.z -= size / 3.0f;		
+		zOffset.z -= size / 3.0f;
 		for (int i = 0; i < 3; i++) {
 			explosions[i] = new ExplosionBillboard(this, alite, i);
-			explosions[i].setPosition(zOffset);				
-			explosions[i].resize(size, size);			
+			explosions[i].setPosition(zOffset);
+			explosions[i].resize(size, size);
 			inGame.addObject(explosions[i]);
 			zOffset.z += size / 3.0f;
 			explosions[i].update(inGame.getShip());
 		}
 		finished = false;
 	}
-	
+
 	public void update() {
 		if (finished) {
 			return;
 		}
-		long currentTime = System.nanoTime();
-		if (lastCall == -1 || (currentTime - lastCall) > FRAME_TIME) {
-			lastCall = currentTime;
+		if (lastCall == -1 || TimeUtil.hasPassed(lastCall, FRAME_TIME, TimeUtil.MILLIS)) {
+			lastCall = System.nanoTime();
 			for (int i = 0; i < 3; i++) {
 				if (explosions[i] == null) {
 					continue;
@@ -70,7 +70,7 @@ public class Explosion implements Serializable {
 				explosions[i].setFrame(explosions[i].getFrame() + 1);
 				explosions[i].resize(explosions[i].getWidth() * 1.1f, explosions[i].getHeight() * 1.1f);
 				explosions[i].scale(1.2f);
-			}			
+			}
 		}
 		boolean done = true;
 		float size = ref.getMaxExtentWithoutExhaust() / 3.0f;
@@ -90,21 +90,21 @@ public class Explosion implements Serializable {
 		}
 		rendered = false;
 	}
-	
+
 	public boolean isFinished() {
 		return finished;
 	}
-	
+
 	public void render() {
 		if (finished || rendered) {
 			return;
 		}
 		GLES11.glColor4f(0.94f, 0, 0, 1.0f);
 		GLES11.glDepthFunc(GLES11.GL_LESS);
-		GLES11.glDepthMask(false);		
+		GLES11.glDepthMask(false);
 		GLES11.glEnable(GLES11.GL_BLEND);
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
-		GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE);		
+		GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE);
 		for (int i = 0; i < 3; i++) {
 			if (explosions[i] == null) {
 				continue;
@@ -113,7 +113,7 @@ public class Explosion implements Serializable {
 			GLES11.glMultMatrixf(explosions[i].getMatrix(), 0);
 			explosions[i].batchRender();
 			GLES11.glPopMatrix();
-		}		
+		}
 		Alite.get().getTextureManager().setTexture(null);
 		GLES11.glEnable(GLES11.GL_CULL_FACE);
 		GLES11.glDepthFunc(GLES11.GL_LESS);

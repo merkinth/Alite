@@ -31,6 +31,7 @@ import android.opengl.GLES11;
 import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -166,7 +167,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 
 	public void togglePause() {
 		if (inGame != null) {
-			if (lastPauseCall == -1 || System.nanoTime() - lastPauseCall > 1000000000) {
+			if (lastPauseCall == -1 || TimeUtil.hasPassed(lastPauseCall, 1, TimeUtil.SECONDS)) {
 				paused = !paused;
 				inGame.setPaused(paused);
 				lastPauseCall = System.nanoTime();

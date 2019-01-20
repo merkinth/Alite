@@ -1,4 +1,4 @@
-package de.phbouillon.android.games.alite.screens.opengl.ingame;
+package de.phbouillon.android.framework;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
@@ -18,18 +18,18 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-public class CloakingEvent extends TimedEvent {
-	private static final long serialVersionUID = 4375455573382798491L;
-	private final InGameManager inGame;
+public class TimeUtil {
+	public static final long NANOS = 1;
+	public static final long MICROS = 1000 * NANOS;
+	public static final long MILLIS = 1000 * MICROS;
+	public static final long SECONDS = 1000 * MILLIS;
 
-	CloakingEvent(InGameManager inGame) {
-		super(359281437L);
-		this.inGame = inGame;
-		inGame.getMessage().repeatText("Cloaking active", 3);
+	public static long getPassedTime(long from, long unit) {
+		return (System.nanoTime() - from) / unit;
 	}
 
-	@Override
-	public void doPerform() {
-		inGame.reduceShipEnergy(1);
+	public static boolean hasPassed(long from, long time, long unit) {
+		return getPassedTime(from, unit) > time;
 	}
+
 }

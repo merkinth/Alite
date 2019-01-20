@@ -26,6 +26,7 @@ import java.util.List;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -55,6 +56,7 @@ import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteBut
 //also, all used inner classes (IMethodHook, etc.) will be reset upon state loading,
 //hence they never need to be serialized, either.
 @SuppressWarnings("serial")
+// TODO: pull common code base of classes TutBasicFlying and TutAdvancedFlying to new super class TutorialFlying
 public class TutAdvancedFlying extends TutorialScreen {
 	private FlightScreen flight;
 	private HyperspaceScreen hyperspace;
@@ -92,9 +94,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 		savedPresentSystem = alite.getPlayer().getCurrentSystem();
 		savedHyperspaceSystem = alite.getPlayer().getHyperspaceSystem();
 		savedInstalledEquipment = new ArrayList<>();
-		for (Equipment e: alite.getCobra().getInstalledEquipment()) {
-			savedInstalledEquipment.add(e);
-		}
+		savedInstalledEquipment.addAll(alite.getCobra().getInstalledEquipment());
 		AliteLog.w("Setting installed Equipment [constructor]", "Number of Equipment items: " + savedInstalledEquipment.size());
 		savedLasers[0] = alite.getCobra().getLaser(PlayerCobra.DIR_FRONT);
 		savedLasers[1] = alite.getCobra().getLaser(PlayerCobra.DIR_RIGHT);
@@ -118,22 +118,14 @@ public class TutAdvancedFlying extends TutorialScreen {
 			savedInventory[i].addUnpunished(currentItems[i].getUnpunished());
 		}
 
-		for (Equipment e: savedInstalledEquipment) {
-			alite.getCobra().removeEquipment(e);
-		}
-		alite.getCobra().setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.pulseLaser);
-		alite.getCobra().setLaser(PlayerCobra.DIR_RIGHT, null);
-		alite.getCobra().setLaser(PlayerCobra.DIR_REAR, null);
-		alite.getCobra().setLaser(PlayerCobra.DIR_LEFT, null);
+		alite.getCobra().clearEquipment();
 		alite.getGenerator().buildGalaxy(1);
 		alite.getGenerator().setCurrentGalaxy(1);
 		alite.getPlayer().setCurrentSystem(alite.getGenerator().getSystem(7)); // Lave
 		alite.getPlayer().setHyperspaceSystem(alite.getGenerator().getSystem(129)); // Zaonce
 		alite.getCobra().setFuel(70);
 		alite.getPlayer().setLegalValue(0);
-		for (int i = 0; i < Settings.buttonPosition.length; i++) {
-			Settings.buttonPosition[i] = i;
-		}
+		Settings.resetButtonPosition();
 
 		initLine_00();
 		initLine_01();
@@ -199,11 +191,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_INFORMATION = true;
 			AliteButtons.OVERRIDE_MISSILE = true;
 			AliteButtons.OVERRIDE_LASER = true;
-			if (flight != null && !flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
+			setPlayerControlOn();
 
 			if (flight != null && flight.getInGameManager().getHyperspaceHook() == null) {
 				flight.getInGameManager().setHyperspaceHook((IMethodHook) deltaTime1 -> {
@@ -239,9 +227,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 					switchScreen.savedPresentSystem = savedPresentSystem;
 					switchScreen.savedHyperspaceSystem = savedHyperspaceSystem;
 					switchScreen.savedInstalledEquipment = new ArrayList<>();
-					for (int i = 0; i < savedInstalledEquipment.size(); i++) {
-						switchScreen.savedInstalledEquipment.add(savedInstalledEquipment.get(i));
-					}
+					switchScreen.savedInstalledEquipment.addAll(savedInstalledEquipment);
 					switchScreen.savedFuel = savedFuel;
 					System.arraycopy(savedLasers, 0, switchScreen.savedLasers, 0, 4);
 					System.arraycopy(savedButtonConfiguration, 0, switchScreen.savedButtonConfiguration, 0, Settings.buttonPosition.length);
@@ -274,29 +260,36 @@ public class TutAdvancedFlying extends TutorialScreen {
 				setSkippable(false).setMustRetainEvents();
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
+			enableControlButtons(true);
+			setPlayerControlOn();
 			if (flight.getInGameManager().isTargetInCenter()) {
 				SoundManager.play(Assets.identify);
 				line.setFinished();
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
-			flight.getInGameManager().setPlayerControl(false);
-			flight.getInGameManager().getShip().adjustSpeed(0);
-			flight.getInGameManager().setNeedsSpeedAdjustment(true);
-			flight.setHandleUI(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
-		});
+		}).setFinishHook((IMethodHook) deltaTime -> setPlayerControlOff());
+	}
+
+	private void setPlayerControlOff() {
+		flight.getInGameManager().setPlayerControl(false);
+		flight.getInGameManager().getShip().adjustSpeed(0);
+		flight.getInGameManager().setNeedsSpeedAdjustment(true);
+		flight.setHandleUI(false);
+		enableControlButtons(false);
+	}
+
+	private void setPlayerControlOn() {
+		if (flight != null && !flight.getInGameManager().isPlayerControl()) {
+			flight.getInGameManager().calibrate();
+			flight.getInGameManager().setPlayerControl(true);
+			flight.setHandleUI(true);
+		}
+	}
+
+	private void enableControlButtons(boolean enable) {
+		AliteButtons.OVERRIDE_HYPERSPACE = enable;
+		AliteButtons.OVERRIDE_INFORMATION = enable;
+		AliteButtons.OVERRIDE_MISSILE = enable;
+		AliteButtons.OVERRIDE_LASER = enable;
 	}
 
 	private void initLine_05() {
@@ -304,25 +297,15 @@ public class TutAdvancedFlying extends TutorialScreen {
 				addTopLine("Good. Now accelerate to maximum speed by " +
 						"sliding your finger up.").setSkippable(false);
 		line.setMustRetainEvents().setUpdateMethod((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
+			enableControlButtons(true);
+			setPlayerControlOn();
 			if (alite.getCobra().getSpeed() <= -PlayerCobra.MAX_SPEED) {
 				line.setFinished();
 			}
 		}).setFinishHook((IMethodHook) deltaTime -> {
 			flight.getInGameManager().setPlayerControl(false);
 			flight.setHandleUI(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
+			enableControlButtons(false);
 		});
 	}
 
@@ -347,35 +330,21 @@ public class TutAdvancedFlying extends TutorialScreen {
 					addHighlight(makeHighlight(1560, 150, 200, 200));
 
 		line.setUpdateMethod((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
+			enableControlButtons(true);
 			AliteButtons.OVERRIDE_TORUS = false;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
+			setPlayerControlOn();
 			if (alite.getCobra().getSpeed() < -PlayerCobra.TORUS_TEST_SPEED) {
 				if (time == -1) {
 					time = System.nanoTime();
 				} else {
-					if (System.nanoTime() - time > 5000000000L) {
+					if (TimeUtil.hasPassed(time , 5, TimeUtil.SECONDS)) {
 						flight.getInGameManager().getSpawnManager().leaveTorus();
 						line.setFinished();
 					}
 				}
 			}
 		}).setFinishHook((IMethodHook) deltaTime -> {
-			flight.getInGameManager().setPlayerControl(false);
-			flight.setHandleUI(false);
-			flight.getInGameManager().getShip().adjustSpeed(0);
-			flight.getInGameManager().setNeedsSpeedAdjustment(true);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
+			setPlayerControlOff();
 			AliteButtons.OVERRIDE_TORUS = false;
 		});
 	}
@@ -424,17 +393,13 @@ public class TutAdvancedFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_MISSILE = false;
 			AliteButtons.OVERRIDE_LASER = false;
 			AliteButtons.OVERRIDE_TORUS = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
+			setPlayerControlOn();
 			if (adder == null) {
 				adder = (Adder) flight.findObjectByName("Adder");
 				if (adder == null) {
 					SoundManager.play(Assets.com_conditionRed);
 					flight.getInGameManager().repeatMessage("Condition Red!", 3);
-					Vector3f spawnPosition = flight.getInGameManager().getSpawnManager().spawnObject();
+					Vector3f spawnPosition = flight.getInGameManager().getSpawnManager().getSpawnPosition();
 					adder = new Adder(alite);
 					adder.setAggression(4);
 					adder.setMissileCount(0);
@@ -468,15 +433,8 @@ public class TutAdvancedFlying extends TutorialScreen {
 				});
 			}
 		}).setFinishHook((IMethodHook) deltaTime -> {
-			flight.getInGameManager().setPlayerControl(false);
-			flight.setHandleUI(false);
 			flight.getInGameManager().getLaserManager().setAutoFire(false);
-			flight.getInGameManager().getShip().adjustSpeed(0);
-			flight.getInGameManager().setNeedsSpeedAdjustment(true);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
+			setPlayerControlOff();
 			AliteButtons.OVERRIDE_TORUS = false;
 		});
 	}
@@ -509,16 +467,9 @@ public class TutAdvancedFlying extends TutorialScreen {
 				addEmptyLine().setSkippable(false).setMustRetainEvents();
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
+			enableControlButtons(true);
 			AliteButtons.OVERRIDE_TORUS = true;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
+			setPlayerControlOn();
 			if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop)) {
 				alite.getCobra().addEquipment(EquipmentStore.fuelScoop);
 			}
@@ -537,15 +488,8 @@ public class TutAdvancedFlying extends TutorialScreen {
 				});
 			}
 		}).setFinishHook((IMethodHook) deltaTime -> {
-			flight.getInGameManager().setPlayerControl(false);
 			flight.getInGameManager().getLaserManager().setAutoFire(false);
-			flight.getInGameManager().getShip().adjustSpeed(0);
-			flight.getInGameManager().setNeedsSpeedAdjustment(true);
-			flight.setHandleUI(false);
-			AliteButtons.OVERRIDE_HYPERSPACE = false;
-			AliteButtons.OVERRIDE_INFORMATION = false;
-			AliteButtons.OVERRIDE_MISSILE = false;
-			AliteButtons.OVERRIDE_LASER = false;
+			setPlayerControlOff();
 			AliteButtons.OVERRIDE_TORUS = false;
 		});
 
@@ -580,22 +524,12 @@ public class TutAdvancedFlying extends TutorialScreen {
 				setMustRetainEvents();
 
 		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
-			AliteButtons.OVERRIDE_HYPERSPACE = true;
-			AliteButtons.OVERRIDE_INFORMATION = true;
-			AliteButtons.OVERRIDE_MISSILE = true;
-			AliteButtons.OVERRIDE_LASER = true;
+			enableControlButtons(true);
 			AliteButtons.OVERRIDE_TORUS = false;
-			if (!flight.getInGameManager().isPlayerControl()) {
-				flight.getInGameManager().calibrate();
-				flight.getInGameManager().setPlayerControl(true);
-				flight.setHandleUI(true);
-			}
+			setPlayerControlOn();
 			if (flight.getInGameManager().getPostDockingHook() == null) {
 				flight.getInGameManager().setPostDockingHook((IMethodHook) deltaTime1 -> {
-					AliteButtons.OVERRIDE_HYPERSPACE = false;
-					AliteButtons.OVERRIDE_INFORMATION = false;
-					AliteButtons.OVERRIDE_MISSILE = false;
-					AliteButtons.OVERRIDE_LASER = false;
+					enableControlButtons(false);
 					AliteButtons.OVERRIDE_TORUS = false;
 					dispose();
 				});
@@ -609,9 +543,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 	@Override
 	public void activate() {
 		super.activate();
-		for (int i = 0; i < Settings.buttonPosition.length; i++) {
-			Settings.buttonPosition[i] = i;
-		}
+		Settings.resetButtonPosition();
 		for (Equipment e: savedInstalledEquipment) {
 			alite.getCobra().removeEquipment(e);
 		}

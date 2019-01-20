@@ -33,13 +33,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import de.phbouillon.android.framework.Audio;
-import de.phbouillon.android.framework.FileIO;
-import de.phbouillon.android.framework.Game;
-import de.phbouillon.android.framework.Graphics;
-import de.phbouillon.android.framework.Input;
-import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.framework.TimeFactorChangeListener;
+import de.phbouillon.android.framework.*;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.screens.canvas.FatalExceptionScreen;
@@ -318,10 +312,8 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		}
 		try {
 			GLGameState state = this.state;
+			while (!TimeUtil.hasPassed(startTime, 33, TimeUtil.MILLIS));
 			long nanoTime = System.nanoTime();
-			while ((nanoTime - startTime) < 33333333L) {
-				nanoTime = System.nanoTime();
-			}
 			if (state == GLGameState.Running && getCurrentView() == glView) {
 				float deltaTime = (nanoTime - startTime) / 1000000000.0f;
 				startTime = nanoTime;
@@ -335,12 +327,10 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 				frames++;
 				if (lastTime == 0) {
 					lastTime = nanoTime;
-				} else {
-					if (Settings.displayFrameRate && (nanoTime - lastTime) >= 1000000000L) {
-						fps = frames;
-						frames = 0;
-						lastTime = nanoTime;
-					}
+				} else if (Settings.displayFrameRate && nanoTime - lastTime >= 1000000000L) {
+					fps = frames;
+					frames = 0;
+					lastTime = nanoTime;
 				}
 			}
 			if (state == GLGameState.Paused) {

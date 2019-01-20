@@ -152,6 +152,7 @@
       "endColor": "Red"
     },
     "IndicatorBar": "Magenta",
-    "HighlightColor": "DarkRedLowAlpha"
+    "HighlightColor": "DarkRedLowAlpha",
+    "HudMessage": "#99f0f000"
   }
 }

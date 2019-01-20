@@ -25,6 +25,7 @@ import java.nio.FloatBuffer;
 
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Input.TouchEvent;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -36,8 +37,8 @@ import de.phbouillon.android.games.alite.screens.opengl.ICoordinateTransformer;
 
 public class AliteHud extends Sprite implements Serializable {
 	private static final long serialVersionUID      = -1218984695547293867L;
-	private static final long ENEMY_VISIBLE_PHASE   = 660000000l;
-	private static final long ENEMY_INVISIBLE_PHASE = 340000000l;
+	private static final long ENEMY_VISIBLE_PHASE   = 660; // ms
+	private static final long ENEMY_INVISIBLE_PHASE = 340; // ms
 
 	public static final int MAX_DISTANCE = 44000;
 	public static final int MAX_DISTANCE_SQ = MAX_DISTANCE * MAX_DISTANCE;
@@ -54,8 +55,8 @@ public class AliteHud extends Sprite implements Serializable {
 
 	public static ICoordinateTransformer ct;
 
-	protected transient FloatBuffer lollipopBar;
-	protected transient FloatBuffer lollipopStem;
+	private transient FloatBuffer lollipopBar;
+	private transient FloatBuffer lollipopStem;
 	private float [][] objects = new float[MAXIMUM_OBJECTS][3];
 	private float [][] objectColors = new float[MAXIMUM_OBJECTS][3];
 	private boolean [] enemy = new boolean[MAXIMUM_OBJECTS];
@@ -156,7 +157,7 @@ public class AliteHud extends Sprite implements Serializable {
 		return extendedSafeZone;
 	}
 
-	private final void computeLaser() {
+	private void computeLaser() {
 		Laser laser = null;
 		switch (viewDirection) {
 			case 0: laser = alite.getPlayer().getCobra().getLaser(PlayerCobra.DIR_FRONT); break;
@@ -323,15 +324,14 @@ public class AliteHud extends Sprite implements Serializable {
 	}
 
 	public void update(float deltaTime) {
-		long t = System.nanoTime();
 		if (lastCall == -1) {
-			lastCall = t;
+			lastCall = System.nanoTime();
 		} else {
-			if (enemiesVisible && (t - lastCall) >= ENEMY_VISIBLE_PHASE) {
-				lastCall = t;
+			if (enemiesVisible && TimeUtil.hasPassed(lastCall, ENEMY_VISIBLE_PHASE, TimeUtil.MILLIS)) {
+				lastCall = System.nanoTime();
 				enemiesVisible = false;
-			} else if (!enemiesVisible && (t - lastCall) >= ENEMY_INVISIBLE_PHASE) {
-				lastCall = t;
+			} else if (!enemiesVisible && TimeUtil.hasPassed(lastCall, ENEMY_INVISIBLE_PHASE, TimeUtil.MILLIS)) {
+				lastCall = System.nanoTime();
 				enemiesVisible = true;
 			}
 		}

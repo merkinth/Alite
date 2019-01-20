@@ -29,6 +29,7 @@ import java.util.List;
 
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Geometry;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -217,7 +218,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 		if (missileCount <= 0) {
 			return false;
 		}
-		if (lastMissileTime == -1 || System.nanoTime() - lastMissileTime > 4000000000L) {
+		if (lastMissileTime == -1 || TimeUtil.hasPassed(lastMissileTime, 4, TimeUtil.SECONDS)) {
 			lastMissileTime = System.nanoTime();
 			return true;
 		}

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -21,6 +21,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.Updater;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -38,7 +39,7 @@ class GameOverUpdater implements Updater {
 		EXPLODE,
 		QUIT
 	}
-	
+
 	private transient Alite alite;
 	private final InGameManager inGame;
 	private final GraphicObject ship;
@@ -48,8 +49,8 @@ class GameOverUpdater implements Updater {
 	private boolean needsDestruction = true;
 	private final Vector3f vec1 = new Vector3f(0, 0, 0);
 	private final Vector3f vec2 = new Vector3f(0, 0, 0);
-	
-	public GameOverUpdater(Alite alite, InGameManager inGame, GraphicObject ship, long startTime) {
+
+	GameOverUpdater(Alite alite, InGameManager inGame, GraphicObject ship, long startTime) {
 		this.alite = alite;
 		this.inGame = inGame;
 		this.ship = ship;
@@ -61,7 +62,7 @@ class GameOverUpdater implements Updater {
 			AliteLog.e("readObject", "GameOverUpdater.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "GameOverUpdater.readObject I");
-			this.alite = Alite.get();
+			alite = Alite.get();
 			AliteLog.e("readObject", "GameOverUpdater.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
@@ -78,7 +79,7 @@ class GameOverUpdater implements Updater {
 		}
 	}
 
-	private final void spawnShip() {
+	private void spawnShip() {
 		ship.computeMatrix();
 		cobra = new CobraMkIII(alite);
 		cobra.setIdentified();
@@ -95,31 +96,31 @@ class GameOverUpdater implements Updater {
 		vec1.add(vec2);
 		cobra.setPosition(vec1);
 		cobra.setSpeed(-cobra.getMaxSpeed());
-		ship.setSpeed(0);		
+		ship.setSpeed(0);
 		state = GameOverState.MOVE;
 		inGame.addObject(cobra);
-		inGame.getMessage().setScaledTextForDuration("Game Over", 14000000000l, 4.0f);
+		inGame.getMessage().setScaledTextForDuration("Game Over", 14, 4.0f);
 	}
-	
-	private final void moveShip() {
-		if ((System.nanoTime() - startTime) > 2000000000l) {
+
+	private void moveShip() {
+		if (TimeUtil.hasPassed(startTime, 2, TimeUtil.SECONDS)) {
 			state = GameOverState.EXPLODE;
 		}
 		// Nothing else to be done here; InGameManager advances the cobra...
 	}
-	
-	private final void destroyShip() {
+
+	private void destroyShip() {
 		if (needsDestruction) {
 			cobra.setHullStrength(0);
-			inGame.explode(cobra, true, WeaponType.BeamLaser);
+			inGame.getLaserManager().explode(cobra, WeaponType.BeamLaser);
 			needsDestruction = false;
 		}
-		if ((System.nanoTime() - startTime) > 10000000000l) {
+		if (TimeUtil.hasPassed(startTime, 10, TimeUtil.SECONDS)) {
 			state = GameOverState.QUIT;
 		}
 	}
-	
-	private final void endSequence() {
+
+	private void endSequence() {
 		inGame.terminateToTitleScreen();
 	}
 }

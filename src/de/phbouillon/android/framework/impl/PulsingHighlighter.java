@@ -19,10 +19,11 @@ package de.phbouillon.android.framework.impl;
  */
 
 import de.phbouillon.android.framework.Graphics;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.games.alite.Alite;
 
 public class PulsingHighlighter {
-	private static final long PULSE_UPDATE_FREQUENCY = 30000000l; // 0.3 s
+	private static final long PULSE_UPDATE_FREQUENCY = 30; // ms
 
 	private final Alite alite;
 	private final int x;
@@ -52,7 +53,7 @@ public class PulsingHighlighter {
 		Graphics g = alite.getGraphics();
 		g.diagonalGradientRect(x - currentDelta, y - currentDelta, width + 2 * currentDelta, height + 2 * currentDelta, lightColor, darkColor);
 		g.rec3d(x - currentDelta, y - currentDelta, width + 2 * currentDelta, height + 2 * currentDelta, 3, darkColor, lightColor);
-		if (lastDraw == -1 || (System.nanoTime() - lastDraw) > PULSE_UPDATE_FREQUENCY) {
+		if (lastDraw == -1 || TimeUtil.hasPassed(lastDraw, PULSE_UPDATE_FREQUENCY, TimeUtil.MILLIS)) {
 			lastDraw = System.nanoTime();
 			currentDelta += expansion;
 			if (currentDelta < 0 || currentDelta > delta) {

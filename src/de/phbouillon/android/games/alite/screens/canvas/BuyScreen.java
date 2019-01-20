@@ -21,18 +21,16 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Locale;
 
 import android.graphics.Color;
 import de.phbouillon.android.framework.Graphics;
-import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.SoundManager;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
@@ -52,13 +50,11 @@ public class BuyScreen extends TradeScreen {
 	private int currentAvailabiltyColor;
 	private String boughtAmount = null;
 	private long startTime = System.nanoTime();
-	private Pixmap[] tradegoods;
-	private Pixmap[] beam;
 	private String pendingSelection = null;
 	private TradeGood goodToBuy;
 
 	public BuyScreen(Alite game) {
-		super(game, 0);
+		super(game, false);
 		X_OFFSET = 50;
 		GAP_X = 270;
 		GAP_Y = 290;
@@ -125,7 +121,7 @@ public class BuyScreen extends TradeScreen {
 		for (int y = 0; y < ROWS; y++) {
 			for (int x = 0; x < COLUMNS; x++) {
 				tradeButton[x][y] = Button.createOverlayButton(x * GAP_X + X_OFFSET,
-						y * GAP_Y + Y_OFFSET, SIZE, SIZE, tradegoods[y * COLUMNS + x], beam)
+						y * GAP_Y + Y_OFFSET, SIZE, SIZE, tradeGoods[y * COLUMNS + x], beam)
 					.setName(TradeGoodStore.get().goods()[y * COLUMNS + x].getName());
 			}
 		}
@@ -133,9 +129,8 @@ public class BuyScreen extends TradeScreen {
 
 	@Override
 	protected String getCost(int row, int column) {
-		Market market = game.getPlayer().getMarket();
-		int price = market.getPrice(TradeGoodStore.get().goods()[row * COLUMNS + column]);
-		return String.format(Locale.getDefault(), "%d.%d Cr", price / 10, price % 10);
+		return getOneDecimalFormatString("%d.%d Cr",
+			game.getPlayer().getMarket().getPrice(TradeGoodStore.get().goods()[row * COLUMNS + column]));
 	}
 
 	public void resetSelection() {
@@ -143,20 +138,11 @@ public class BuyScreen extends TradeScreen {
 	}
 
 	public TradeGood getSelectedGood() {
-		if (selection == null) {
+		int index = getSelectionIndex();
+		if (index < 0) {
 			return null;
 		}
-		for (int y = 0; y < ROWS; y++) {
-			for (int x = 0; x < COLUMNS; x++) {
-				if (tradeButton[x][y] == null) {
-					continue;
-				}
-				if (selection == tradeButton[x][y]) {
-					return TradeGoodStore.get().goods()[y * COLUMNS + x];
-				}
-			}
-		}
-		return null;
+		return TradeGoodStore.get().goods()[index];
 	}
 
 	public TradeGood getGoodToBuy() {
@@ -173,7 +159,7 @@ public class BuyScreen extends TradeScreen {
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle("Buy Cargo");
 
-		long timeDiff = (System.nanoTime() - startTime) / 500000000; // half seconds
+		long timeDiff = TimeUtil.getPassedTime(startTime, TimeUtil.SECONDS);
 		currentAvailabiltyColor = (int) (timeDiff % availColors.length);
 		presentTradeGoods(deltaTime);
 		presentTradeStatus();
@@ -194,8 +180,7 @@ public class BuyScreen extends TradeScreen {
 	protected void presentSelection(int row, int column) {
 		TradeGood tradeGood = TradeGoodStore.get().goods()[row * COLUMNS + column];
 		int avail = game.getPlayer().getMarket().getQuantity(tradeGood);
-		int avgPrice = game.getGenerator().getAveragePrice(tradeGood);
-		String average = String.format(Locale.getDefault(), "%d.%d Cr ", avgPrice / 10, avgPrice % 10);
+		String average = getOneDecimalFormatString("%d.%d Cr ", game.getGenerator().getAveragePrice(tradeGood));
 		game.getGraphics().drawText(tradeGood.getName() + " - " + avail + tradeGood.getUnit().toUnitString() +
 			" available. Average Price: " + average + MARKET_HINT, X_OFFSET, 1050,
 			ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
@@ -261,7 +246,7 @@ public class BuyScreen extends TradeScreen {
 		player.getCobra().addTradeGood(tradeGood, buyWeight, totalPrice);
 		player.setCash(player.getCash() - totalPrice);
 		SoundManager.play(Assets.kaChing);
-		cashLeft = String.format("Cash left: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
+		cashLeft = getCashLeftString();
 		selection = null;
 		int chanceInPercent = game.getPlayer().getLegalProblemLikelihoodInPercent();
 		if (Math.random() * 100 < chanceInPercent) {
@@ -275,46 +260,9 @@ public class BuyScreen extends TradeScreen {
 		}
 	}
 
-	private void readBeamAnimation(final Graphics g) {
-		beam = new Pixmap[16];
-		beam[0] = g.newPixmap("trade_icons/beam.png");
-		for (int i = 1; i < 16; i++) {
-			beam[i] = g.newPixmap("trade_icons/beam/" + i + ".png");
-		}
-	}
-
-	private void readTradegoods(final Graphics g) {
-		tradegoods = new Pixmap[18];
-		tradegoods[ 0] = g.newPixmap("trade_icons/food.png");
-		tradegoods[ 1] = g.newPixmap("trade_icons/textiles.png");
-		tradegoods[ 2] = g.newPixmap("trade_icons/radioactives.png");
-		tradegoods[ 3] = g.newPixmap("trade_icons/slaves.png");
-		tradegoods[ 4] = g.newPixmap("trade_icons/liquor_wines.png");
-		tradegoods[ 5] = g.newPixmap("trade_icons/luxuries.png");
-		tradegoods[ 6] = g.newPixmap("trade_icons/narcotics.png");
-		tradegoods[ 7] = g.newPixmap("trade_icons/computers.png");
-		tradegoods[ 8] = g.newPixmap("trade_icons/machinery.png");
-		tradegoods[ 9] = g.newPixmap("trade_icons/alloys.png");
-		tradegoods[10] = g.newPixmap("trade_icons/firearms.png");
-		tradegoods[11] = g.newPixmap("trade_icons/furs.png");
-		tradegoods[12] = g.newPixmap("trade_icons/minerals.png");
-		tradegoods[13] = g.newPixmap("trade_icons/gold.png");
-		tradegoods[14] = g.newPixmap("trade_icons/platinum.png");
-		tradegoods[15] = g.newPixmap("trade_icons/gem_stones.png");
-		tradegoods[16] = g.newPixmap("trade_icons/alien_items.png");
-		tradegoods[17] = g.newPixmap("trade_icons/medical_supplies.png");
-	}
-
 	@Override
 	public void loadAssets() {
-		Graphics g = game.getGraphics();
-
-		if (beam == null && Settings.animationsEnabled) {
-			readBeamAnimation(g);
-		}
-		if (tradegoods == null) {
-			readTradegoods(g);
-		}
+		loadTradeGoodAssets();
 		super.loadAssets();
 	}
 
@@ -334,18 +282,7 @@ public class BuyScreen extends TradeScreen {
 	@Override
 	public void dispose() {
 		super.dispose();
-		if (beam != null) {
-			for (Pixmap p: beam) {
-				p.dispose();
-			}
-			beam = null;
-		}
-		if (tradegoods != null) {
-			for (Pixmap p: tradegoods) {
-				p.dispose();
-			}
-			tradegoods = null;
-		}
+		disposeTradeGoodAssets();
 	}
 
 	@Override

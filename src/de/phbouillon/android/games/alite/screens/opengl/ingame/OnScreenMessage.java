@@ -22,9 +22,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.graphics.Color;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 class OnScreenMessage implements Serializable {
 	private static final long serialVersionUID = 1948958480746165833L;
@@ -39,8 +40,8 @@ class OnScreenMessage implements Serializable {
 
 		DelayedText(String text, long time) {
 			this.text = text;
-			this.time = time;
-			duration = 5000000000L;
+			this.time = System.nanoTime() + time * TimeUtil.SECONDS;
+			duration = 5;
 			scale = 1.0f;
 		}
 	}
@@ -48,7 +49,6 @@ class OnScreenMessage implements Serializable {
 	private String text = "";
 	private long activationTime = 0;
 	private long duration;
-	private long repetitionTime;
 	private long repetitionInterval;
 	private long lastRepetitionInactive = 0;
 	private int repetitionTimes = -1;
@@ -60,17 +60,17 @@ class OnScreenMessage implements Serializable {
 	void setText(String text) {
 		this.text = text;
 		scale = 1.0f;
-		activate(System.nanoTime());
+		activate(5);
 	}
 
-	void setText(String text, long activationTimeDelay) {
-		delayedTexts.add(new DelayedText(text, System.nanoTime() + activationTimeDelay));
+	void setDelayedText(String text) {
+		delayedTexts.add(new DelayedText(text, 10));
 	}
 
 	void setScaledTextForDuration(String text, long duration, float scale) {
 		this.text = text;
 		this.scale = scale;
-		activate(System.nanoTime(), duration);
+		activate(duration);
 	}
 
 	void repeatText(String text, long interval) {
@@ -79,8 +79,8 @@ class OnScreenMessage implements Serializable {
 		}
 		scale = 1.0f;
 		this.text = text;
-		activate(System.nanoTime(), 1000000000L);
-		repetitionDuration = 1000000000L;
+		activate(1);
+		repetitionDuration = 1;
 		repetitionInterval = interval;
 		repetitionText = text;
 		repetitionTimes = -1;
@@ -92,7 +92,7 @@ class OnScreenMessage implements Serializable {
 		}
 		scale = 1.0f;
 		this.text = text;
-		activate(System.nanoTime(), duration);
+		activate(duration);
 		repetitionDuration = duration;
 		repetitionInterval = interval;
 		repetitionText = text;
@@ -105,8 +105,8 @@ class OnScreenMessage implements Serializable {
 		}
 		scale = 1.0f;
 		this.text = text;
-		activate(System.nanoTime(), 1000000000L);
-		repetitionDuration = 1000000000L;
+		activate(1);
+		repetitionDuration = 1;
 		repetitionInterval = interval;
 		repetitionText = text;
 		repetitionTimes = times;
@@ -114,11 +114,10 @@ class OnScreenMessage implements Serializable {
 
 	void clearRepetition() {
 		repetitionText = null;
-		repetitionTime = 0;
 	}
 
-	private void activate(long nanoTime) {
-		activate(nanoTime, 5000000000L);
+	private void activate(long duration) {
+		activate(System.nanoTime(), duration);
 	}
 
 	private void activate(long nanoTime, long duration) {
@@ -127,7 +126,7 @@ class OnScreenMessage implements Serializable {
 	}
 
 	boolean isActive() {
-		return activationTime > 0 && System.nanoTime() - activationTime < duration;
+		return activationTime > 0 && !TimeUtil.hasPassed(activationTime, duration, TimeUtil.SECONDS);
 	}
 
 	void render(Alite alite) {
@@ -147,9 +146,8 @@ class OnScreenMessage implements Serializable {
 		if (!isActive()) {
 			if (lastRepetitionInactive <= 0 && repetitionText != null) {
 				lastRepetitionInactive = System.nanoTime();
-				repetitionTime = lastRepetitionInactive + repetitionInterval;
 			}
-			if (repetitionText != null && System.nanoTime() >= repetitionTime && repetitionTime > 0) {
+			if (repetitionText != null && TimeUtil.hasPassed(lastRepetitionInactive, repetitionInterval, TimeUtil.SECONDS)) {
 				if (repetitionTimes > 0) {
 					repetitionTimes--;
 				} else if (repetitionTimes == 0) {
@@ -158,12 +156,12 @@ class OnScreenMessage implements Serializable {
 					return;
 				}
 				text = repetitionText;
-				activate(System.nanoTime(), repetitionDuration);
+				activate(repetitionDuration);
 			}
 			return;
 		}
 		lastRepetitionInactive = 0;
-		alite.getGraphics().drawCenteredText(text, 960, 650, 0x99F0F000, Assets.regularFont, scale);
-		alite.getGraphics().setColor(Color.WHITE);
+		alite.getGraphics().drawCenteredText(text, 960, 650, ColorScheme.get(ColorScheme.COLOR_HUD_MESSAGE),
+			Assets.regularFont, scale);
 	}
 }

@@ -27,6 +27,7 @@ import android.graphics.Rect;
 import android.opengl.GLES11;
 import android.opengl.Matrix;
 import de.phbouillon.android.framework.GlScreen;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -50,12 +51,16 @@ public class HyperspaceScreen extends GlScreen {
     private FloatBuffer textureBuffer;
     private float counter = 0.0f;
     private int totalIndices;
-    private int crossSectionSides = 20;
-    private int wholeTorusSides = 40;
-    private float torusRadius = 1.75f;
-    private float crossSectionRadius = 0.875f;
+
+    private static final int CROSS_SECTION_SIDES = 20;
+    private static final int WHOLE_TORUS_SIDES = 40;
+    private static final float TORUS_RADIUS = 1.75f;
+    private static final float CROSS_SECTION_RADIUS = 0.875f;
+
     private final String textureFilename = "textures/plasmabw.png";
-    private float red, green, blue;
+    private float red;
+	private float green;
+	private float blue;
     private int increase;
     private IMethodHook finishHook = null;
     private boolean restartedSound = true;
@@ -112,7 +117,7 @@ public class HyperspaceScreen extends GlScreen {
 		windowHeight = size[1];
 		startTime = System.nanoTime();
 		game.getTextureManager().addTexture(textureFilename);
-		makeTorus(wholeTorusSides, crossSectionSides, torusRadius, crossSectionRadius);
+		makeTorus(WHOLE_TORUS_SIDES, CROSS_SECTION_SIDES, TORUS_RADIUS, CROSS_SECTION_RADIUS);
 		Rect visibleArea = game.getGraphics().getVisibleArea();
 		initializeGl(visibleArea);
 		if (!screenLoad) {
@@ -133,7 +138,7 @@ public class HyperspaceScreen extends GlScreen {
 			SoundManager.play(Assets.hyperspace);
 			restartedSound = true;
 		}
-		if (System.nanoTime() - startTime > 8000000000L){
+		if (TimeUtil.hasPassed(startTime, 8, TimeUtil.SECONDS)){
 			if (finishHook != null) {
 				finishHook.execute(deltaTime);
 			} else {

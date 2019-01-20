@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Stack;
 
 import android.opengl.Matrix;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Quaternion;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -404,9 +405,9 @@ public final class SpaceObjectAI implements Serializable {
 			if (target instanceof SpaceObject && ((SpaceObject) target).isCloaked()) {
 				return;
 			}
-			long time = System.nanoTime();
 			int rating = Alite.get().getPlayer().getRating().ordinal();
-			if (rating >= 7 || lastShootCheck == -1 || time - lastShootCheck >= BASE_DELAY_BETWEEN_SHOOT_CHECKS - (rating + 2) * SHOOT_DELAY_REDUCE_PER_RATING_LEVEL) {
+			if (rating >= 7 || lastShootCheck == -1 || TimeUtil.hasPassed(lastShootCheck,
+					BASE_DELAY_BETWEEN_SHOOT_CHECKS - (rating + 2) * SHOOT_DELAY_REDUCE_PER_RATING_LEVEL, TimeUtil.NANOS)) {
 				int rand = (int) (Math.random() * 256);
 				if (so.getAggressionLevel() > rand) {
 					if (so.getGame().getLaserManager() != null) {
