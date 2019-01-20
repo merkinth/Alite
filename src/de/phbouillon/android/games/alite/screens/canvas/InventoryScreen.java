@@ -22,16 +22,15 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Locale;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Pixmap;
+import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
 import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.SoundManager;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
@@ -46,6 +45,8 @@ import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.model.trading.Unit;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -60,17 +61,17 @@ public class InventoryScreen extends TradeScreen {
 		}
 	}
 
+	private static final float CARGO_CANISTER_EJECTION_DISTANCE = 800.0f;
 	private static final String INVENTORY_HINT = "(Tap again to sell)";
 	private static final String EJECT_HINT = "(Tap again to eject)";
 	private final ArrayList<InventoryPair> inventoryList = new ArrayList<>();
-	private Pixmap[] tradeGoods;
-	private Pixmap[] beam;
 	private Pixmap thargoidDocuments;
 	private Pixmap unhappyRefugees;
 	private String pendingSelection = null;
+	private final Vector3f cargoVector = new Vector3f(0, 0, 0);
 
 	public InventoryScreen(Alite game) {
-		super(game, 0);
+		super(game, false);
 		X_OFFSET = 50;
 		GAP_X = 270;
 		GAP_Y = 290;
@@ -202,8 +203,7 @@ public class InventoryScreen extends TradeScreen {
 
 		int factor = pair.good.getUnit() == Unit.TON ? 1000000 : pair.good.getUnit() == Unit.KILOGRAM ? 1000 : 1;
 		long price = computePrice(market, factor, pair.item.getWeight().getWeightInGrams(), pair.good);
-
-		return String.format(Locale.getDefault(), "%d.%d Cr", price / 10, price % 10);
+		return getOneDecimalFormatString("%d.%d Cr", price);
 	}
 
 	private String computeGainLossString(InventoryPair pair) {
@@ -217,7 +217,7 @@ public class InventoryScreen extends TradeScreen {
 			loss = true;
 			gain = -gain;
 		}
-		return (loss ? "Loss: -" : "Gain: ") + String.format(Locale.getDefault(), "%d.%d Cr", gain / 10, gain % 10);
+		return (loss ? "Loss: -" : "Gain: ") + getOneDecimalFormatString("%d.%d Cr", gain);
 	}
 
 	@Override
@@ -300,13 +300,24 @@ public class InventoryScreen extends TradeScreen {
 			player.getCobra().setTradeGood(tradeGood, pair.item.getWeight().sub(ejectedWeight), pair.item.getPrice());
 			player.getCobra().subUnpunishedTradeGood(tradeGood, ejectedWeight);
 		}
-		InGameManager manager = ((FlightScreen) game.getCurrentScreen()).getInGameManager();
-		manager.getLaserManager().ejectPlayerCargoCanister(manager.getShip(), tradeGood, ejectedWeight, ejectedPrice);
+		ejectPlayerCargoCanister(tradeGood, ejectedWeight, ejectedPrice);
 
 		createButtons();
 	}
 
-    @Override
+	private void ejectPlayerCargoCanister(TradeGood tradeGood, Weight weight, long price) {
+		final CargoCanister cargo = new CargoCanister(game);
+		cargo.setContent(tradeGood, weight);
+		cargo.setPrice(price);
+		InGameManager inGame = ((FlightScreen) game.getCurrentScreen()).getInGameManager();
+		final SpaceObject ship = inGame.getShip();
+		ship.getForwardVector().copy(cargoVector);
+		cargoVector.scale(CARGO_CANISTER_EJECTION_DISTANCE);
+		cargoVector.add(ship.getPosition());
+		inGame.getSpawnManager().spawnTumbleObject(cargo, cargoVector);
+	}
+
+	@Override
 	public void performTrade(int row, int column) {
 		int index = row * COLUMNS + column;
 		if (index >= inventoryList.size()) {
@@ -330,7 +341,7 @@ public class InventoryScreen extends TradeScreen {
 		}
 		player.getCobra().removeTradeGood(tradeGood);
 		player.setCash(player.getCash() + price);
-		cashLeft = String.format("Cash: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
+		cashLeft = getOneDecimalFormatString("Cash: %d.%d Cr", player.getCash());
 		SoundManager.play(Assets.kaChing);
 		createButtons();
 		try {
@@ -344,46 +355,10 @@ public class InventoryScreen extends TradeScreen {
 		return cashLeft;
 	}
 
-	private void readBeamAnimation(final Graphics g) {
-		beam = new Pixmap[16];
-		beam[0] = g.newPixmap("trade_icons/beam.png");
-		for (int i = 1; i < 16; i++) {
-			beam[i] = g.newPixmap("trade_icons/beam/" + i + ".png");
-		}
-	}
-
-	private void readTradegoods(final Graphics g) {
-		tradeGoods = new Pixmap[18];
-		tradeGoods[ 0] = g.newPixmap("trade_icons/food.png");
-		tradeGoods[ 1] = g.newPixmap("trade_icons/textiles.png");
-		tradeGoods[ 2] = g.newPixmap("trade_icons/radioactives.png");
-		tradeGoods[ 3] = g.newPixmap("trade_icons/slaves.png");
-		tradeGoods[ 4] = g.newPixmap("trade_icons/liquor_wines.png");
-		tradeGoods[ 5] = g.newPixmap("trade_icons/luxuries.png");
-		tradeGoods[ 6] = g.newPixmap("trade_icons/narcotics.png");
-		tradeGoods[ 7] = g.newPixmap("trade_icons/computers.png");
-		tradeGoods[ 8] = g.newPixmap("trade_icons/machinery.png");
-		tradeGoods[ 9] = g.newPixmap("trade_icons/alloys.png");
-		tradeGoods[10] = g.newPixmap("trade_icons/firearms.png");
-		tradeGoods[11] = g.newPixmap("trade_icons/furs.png");
-		tradeGoods[12] = g.newPixmap("trade_icons/minerals.png");
-		tradeGoods[13] = g.newPixmap("trade_icons/gold.png");
-		tradeGoods[14] = g.newPixmap("trade_icons/platinum.png");
-		tradeGoods[15] = g.newPixmap("trade_icons/gem_stones.png");
-		tradeGoods[16] = g.newPixmap("trade_icons/alien_items.png");
-		tradeGoods[17] = g.newPixmap("trade_icons/medical_supplies.png");
-	}
-
 	@Override
 	public void loadAssets() {
+		loadTradeGoodAssets();
 		Graphics g = game.getGraphics();
-
-		if (beam == null && Settings.animationsEnabled) {
-			readBeamAnimation(g);
-		}
-		if (tradeGoods == null) {
-			readTradegoods(g);
-		}
 		if (thargoidDocuments == null) {
 			thargoidDocuments = g.newPixmap("trade_icons/thargoid_documents.png");
 		}
@@ -396,18 +371,7 @@ public class InventoryScreen extends TradeScreen {
 	@Override
 	public void dispose() {
 		super.dispose();
-		if (beam != null) {
-			for (Pixmap p: beam) {
-				p.dispose();
-			}
-			beam = null;
-		}
-		if (tradeGoods != null) {
-			for (Pixmap p: tradeGoods) {
-				p.dispose();
-			}
-			tradeGoods = null;
-		}
+		disposeTradeGoodAssets();
 		if (thargoidDocuments != null) {
 			thargoidDocuments.dispose();
 			thargoidDocuments = null;

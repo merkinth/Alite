@@ -23,7 +23,9 @@ import java.util.Locale;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
+import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
+import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
@@ -45,20 +47,21 @@ public abstract class TradeScreen extends AliteScreen {
 	int COLUMNS  = 5;
 	int ROWS     = 3;
 
+	Pixmap[] beam;
+	Pixmap[] tradeGoods;
 	Button[][] tradeButton = null;
 
 	int currentFrame = 0;
 	long startSelectionTime = 0;
 	Button selection = null;
-	boolean loopingAnimation = false;
 
-	private int endAnimationFrame;
+	private boolean continuousAnimation;
 	String cashLeft = null;
 	String errorText = null;
 
-	TradeScreen(Alite game, int endAnimationFrame) {
+	TradeScreen(Alite game, boolean continuousAnimation) {
 		super(game);
-		this.endAnimationFrame = endAnimationFrame;
+		this.continuousAnimation = continuousAnimation;
 	}
 
 	protected abstract void createButtons();
@@ -71,19 +74,37 @@ public abstract class TradeScreen extends AliteScreen {
 		// The default implementation does nothing.
 	}
 
+	int getSelectionIndex() {
+		if (selection == null) {
+			return -1;
+		}
+		for (int y = 0; y < ROWS; y++) {
+			for (int x = 0; x < COLUMNS; x++) {
+				if (tradeButton[x][y] == null) {
+					continue;
+				}
+				if (selection == tradeButton[x][y]) {
+					return y * COLUMNS + x;
+				}
+			}
+		}
+		return -1;
+	}
+
 	private void computeCurrentFrame() {
-		long timeDiff = (System.nanoTime() - startSelectionTime) / 41666666; // 1/24 second
-		if (loopingAnimation) {
-			currentFrame = (int) timeDiff % endAnimationFrame + 1;
-		} else {
-			if (timeDiff > 120) {
-				// Repeat the effect all 5 seconds (120 == 24 frames per second * 5)
-				startSelectionTime = System.nanoTime();
+		if (!continuousAnimation) {
+			if (TimeUtil.hasPassed(startSelectionTime, 5, TimeUtil.SECONDS)) {
 				currentFrame = 0;
 			}
-			currentFrame = (int) timeDiff;
 			if (currentFrame > 15) {
-				currentFrame = endAnimationFrame;
+				return;
+			}
+		}
+		if (TimeUtil.hasPassed(startSelectionTime, 42, TimeUtil.MILLIS)) { // 1/24 second
+			startSelectionTime = System.nanoTime();
+			currentFrame++;
+			if (continuousAnimation && currentFrame > 15) {
+				currentFrame = 1;
 			}
 		}
 	}
@@ -91,7 +112,7 @@ public abstract class TradeScreen extends AliteScreen {
 	void presentTradeStatus() {
 		Player player = game.getPlayer();
 		Graphics g = game.getGraphics();
-		String cash = String.format(Locale.getDefault(), "%d.%d", player.getCash() / 10, player.getCash() % 10);
+		String cash = getOneDecimalFormatString("%d.%d", player.getCash());
 		String freeCargo = player.getCobra().getFreeCargo().getStringWithoutUnit();
 		String spareText = Weight.getUnitString(player.getCobra().getFreeCargo().getAppropriateUnit()) + " spare";
 		int cashTextWidth = g.getTextWidth("Cash:_", Assets.regularFont);
@@ -192,5 +213,69 @@ public abstract class TradeScreen extends AliteScreen {
 
 	public Screen getNewScreen() {
 		return newScreen;
+	}
+
+	private void readTradegoods() {
+		Graphics g = game.getGraphics();
+		tradeGoods = new Pixmap[18];
+		tradeGoods[ 0] = g.newPixmap("trade_icons/food.png");
+		tradeGoods[ 1] = g.newPixmap("trade_icons/textiles.png");
+		tradeGoods[ 2] = g.newPixmap("trade_icons/radioactives.png");
+		tradeGoods[ 3] = g.newPixmap("trade_icons/slaves.png");
+		tradeGoods[ 4] = g.newPixmap("trade_icons/liquor_wines.png");
+		tradeGoods[ 5] = g.newPixmap("trade_icons/luxuries.png");
+		tradeGoods[ 6] = g.newPixmap("trade_icons/narcotics.png");
+		tradeGoods[ 7] = g.newPixmap("trade_icons/computers.png");
+		tradeGoods[ 8] = g.newPixmap("trade_icons/machinery.png");
+		tradeGoods[ 9] = g.newPixmap("trade_icons/alloys.png");
+		tradeGoods[10] = g.newPixmap("trade_icons/firearms.png");
+		tradeGoods[11] = g.newPixmap("trade_icons/furs.png");
+		tradeGoods[12] = g.newPixmap("trade_icons/minerals.png");
+		tradeGoods[13] = g.newPixmap("trade_icons/gold.png");
+		tradeGoods[14] = g.newPixmap("trade_icons/platinum.png");
+		tradeGoods[15] = g.newPixmap("trade_icons/gem_stones.png");
+		tradeGoods[16] = g.newPixmap("trade_icons/alien_items.png");
+		tradeGoods[17] = g.newPixmap("trade_icons/medical_supplies.png");
+	}
+
+	private void readBeamAnimation() {
+		Graphics g = game.getGraphics();
+		beam = new Pixmap[16];
+		beam[0] = g.newPixmap("trade_icons/beam.png");
+		for (int i = 1; i < 16; i++) {
+			beam[i] = g.newPixmap("trade_icons/beam/" + i + ".png");
+		}
+	}
+
+	void loadTradeGoodAssets() {
+		if (beam == null && Settings.animationsEnabled) {
+			readBeamAnimation();
+		}
+		if (tradeGoods == null) {
+			readTradegoods();
+		}
+	}
+
+	void disposeTradeGoodAssets() {
+		if (beam != null) {
+			for (Pixmap p: beam) {
+				p.dispose();
+			}
+			beam = null;
+		}
+		if (tradeGoods != null) {
+			for (Pixmap p: tradeGoods) {
+				p.dispose();
+			}
+			tradeGoods = null;
+		}
+	}
+
+	String getCashLeftString() {
+		return getOneDecimalFormatString("Cash left: %d.%d Cr", game.getPlayer().getCash());
+	}
+
+	public static String getOneDecimalFormatString(String format, long value) {
+		return String.format(Locale.getDefault(), format, value / 10, value % 10);
 	}
 }

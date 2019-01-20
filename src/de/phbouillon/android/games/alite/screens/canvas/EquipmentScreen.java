@@ -72,8 +72,7 @@ public class EquipmentScreen extends TradeScreen {
 			"equipment_icons/retro_rockets"};
 
 	public EquipmentScreen(Alite game) {
-		super(game, 15);
-		loopingAnimation = true;
+		super(game, true);
 	}
 
 	@Override
@@ -91,6 +90,8 @@ public class EquipmentScreen extends TradeScreen {
 					if (pendingSelection.equals(b.getName())) {
 						selection = b;
 						b.setSelected(true);
+						selectionIndex = getSelectionIndex();
+						loadSelectedEquipmentAnimation();
 					}
 				}
 			}
@@ -143,8 +144,7 @@ public class EquipmentScreen extends TradeScreen {
 				tradeButton[x][y].setName(paths[counter]);
 				counter++;
 				if (techLevel < 10 && counter - techLevel > 1) {
-					// Only show equipment items that are available on worlds
-					// with the given tech level.
+					// Only show equipment items that are available on worlds with the given tech level.
 					return;
 				}
 			}
@@ -155,13 +155,11 @@ public class EquipmentScreen extends TradeScreen {
 	protected String getCost(int row, int column) {
 		Equipment equipment = game.getCobra().getEquipment(row * COLUMNS + column);
 		int price = equipment.getCost();
-		String equipmentPrice = String.format(Locale.getDefault(), "%d Cr", price / 10); // No decimals for equipment other than fuel...
 		if (price == -1) { // variable price for fuel
 			SystemData currentSystem = game.getPlayer().getCurrentSystem();
-			price = currentSystem == null ? 10 : currentSystem.getFuelPrice();
-			equipmentPrice = String.format(Locale.getDefault(), "%d.%d Cr", price / 10, price % 10);
+			return getOneDecimalFormatString("%d.%d Cr", currentSystem == null ? 10 : currentSystem.getFuelPrice());
 		}
-		return equipmentPrice;
+		return String.format(Locale.getDefault(), "%d Cr", price / 10);
 	}
 
 	@Override
@@ -189,21 +187,11 @@ public class EquipmentScreen extends TradeScreen {
 	}
 
 	public Equipment getSelectedEquipment() {
-		if (selection == null) {
+		int index = getSelectionIndex();
+		if (index < 0) {
 			return null;
 		}
-		for (int y = 0; y < ROWS; y++) {
-			for (int x = 0; x < COLUMNS; x++) {
-				if (tradeButton[x][y] == null) {
-					continue;
-				}
-				if (selection == tradeButton[x][y]) {
-					return game.getCobra().getEquipment(y * COLUMNS + x);
-				}
-			}
-		}
-		return null;
-
+		return game.getCobra().getEquipment(index);
 	}
 
 	private int getNewLaserLocation(Laser laser, int row, int column) {
@@ -261,7 +249,7 @@ public class EquipmentScreen extends TradeScreen {
 		if (equipment.getCost() == -1) {
 			// Fuel
 			if (cobra.getFuel() == PlayerCobra.MAXIMUM_FUEL) {
-				showMessageDialog(String.format("Fuel system already full (%d.%d light years).", PlayerCobra.MAXIMUM_FUEL / 10, PlayerCobra.MAXIMUM_FUEL % 10));
+				showMessageDialog(getOneDecimalFormatString("Fuel system already full (%d.%d light years).", PlayerCobra.MAXIMUM_FUEL));
 				SoundManager.play(Assets.error);
 				return;
 			}
@@ -280,12 +268,9 @@ public class EquipmentScreen extends TradeScreen {
 		if (equipment instanceof Laser) {
 			player.setCash(player.getCash() - price);
 			cobra.setLaser(where, (Laser) equipment);
-			if (selectionIndex != -1) {
-				disposeEquipmentAnimation(selectionIndex);
-				selectionIndex = -1;
-			}
+			disposeSelectedEquipmentAnimation();
 			selection = null;
-			cashLeft = String.format("Cash left: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
+			cashLeft = getCashLeftString();
 
 			SoundManager.play(Assets.kaChing);
 		} else {
@@ -301,12 +286,9 @@ public class EquipmentScreen extends TradeScreen {
 				}
 				player.setCash(player.getCash() - priceToPay);
 				player.getCobra().setFuel(PlayerCobra.MAXIMUM_FUEL);
-				if (selectionIndex != -1) {
-					disposeEquipmentAnimation(selectionIndex);
-					selectionIndex = -1;
-				}
+				disposeSelectedEquipmentAnimation();
 				selection = null;
-				cashLeft = String.format("Cash left: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
+				cashLeft = getCashLeftString();
 				SoundManager.play(Assets.kaChing);
 				equippedEquipment = EquipmentStore.fuel;
 				return;
@@ -319,12 +301,9 @@ public class EquipmentScreen extends TradeScreen {
 				}
 				player.setCash(player.getCash() - price);
 				cobra.setMissiles(cobra.getMissiles() + 1);
-				if (selectionIndex != -1) {
-					disposeEquipmentAnimation(selectionIndex);
-					selectionIndex = -1;
-				}
+				disposeSelectedEquipmentAnimation();
 				selection = null;
-				cashLeft = String.format("Cash left: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
+				cashLeft = getCashLeftString();
 				SoundManager.play(Assets.kaChing);
 				equippedEquipment = EquipmentStore.missiles;
 				return;
@@ -335,12 +314,9 @@ public class EquipmentScreen extends TradeScreen {
 				cobra.setRetroRocketsUseCount(4 + (int) (Math.random() * 3));
 			}
 			SoundManager.play(Assets.kaChing);
-			if (selectionIndex != -1) {
-				disposeEquipmentAnimation(selectionIndex);
-				selectionIndex = -1;
-			}
+			disposeSelectedEquipmentAnimation();
 			selection = null;
-			cashLeft = String.format("Cash left: %d.%d Cr", player.getCash() / 10, player.getCash() % 10);
+			cashLeft = getCashLeftString();
 			equippedEquipment = equipment;
     		try {
 				game.autoSave();
@@ -350,7 +326,14 @@ public class EquipmentScreen extends TradeScreen {
 		}
 	}
 
-    public Equipment getEquippedEquipment() {
+	private void disposeSelectedEquipmentAnimation() {
+		if (selectionIndex != -1) {
+			disposeEquipmentAnimation(selectionIndex);
+			selectionIndex = -1;
+		}
+	}
+
+	public Equipment getEquippedEquipment() {
     	return equippedEquipment;
     }
 
@@ -376,21 +359,22 @@ public class EquipmentScreen extends TradeScreen {
 				}
 				equippedEquipment = null;
 				errorText = null;
-				int oldSelectionIndex = selectionIndex;
-				if (oldSelectionIndex != -1) {
-				  disposeEquipmentAnimation(selectionIndex);
-				}
+				disposeSelectedEquipmentAnimation();
 				selectionIndex = y * COLUMNS + x;
-				if (Settings.animationsEnabled) {
-					loadEquipmentAnimation(game.getGraphics(), selectionIndex, paths[selectionIndex]);
-					tradeButton[x][y].setAnimation(equipment[selectionIndex]);
-				}
+				selection = tradeButton[x][y];
+				loadSelectedEquipmentAnimation();
 				startSelectionTime = System.nanoTime();
 				currentFrame = 0;
-				selection = tradeButton[x][y];
 				cashLeft = null;
 				SoundManager.play(Assets.click);
 			}
+		}
+	}
+
+	private void loadSelectedEquipmentAnimation() {
+		if (Settings.animationsEnabled) {
+			loadEquipmentAnimation(game.getGraphics(), selectionIndex, paths[selectionIndex]);
+			selection.setAnimation(equipment[selectionIndex]);
 		}
 	}
 
