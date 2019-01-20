@@ -90,9 +90,7 @@ public class Settings {
     public static boolean navButtonsVisible = true;
 
 	public static void load(FileIO files) {
-		for (int i = 0; i < 12; i++) {
-			buttonPosition[i] = i;
-		}
+		resetButtonPosition();
 		boolean fastDC = false;
 		try(BufferedReader in = new BufferedReader(new InputStreamReader(files.readFile(SETUP_FILE_NAME)))) {
 			animationsEnabled = Boolean.parseBoolean(in.readLine());
@@ -148,6 +146,12 @@ public class Settings {
 			// Ignore
 		}
 		ColorScheme.setColorScheme(files, null, colorScheme);
+	}
+
+	public static void resetButtonPosition() {
+		for (int i = 0; i < 12; i++) {
+			buttonPosition[i] = i;
+		}
 	}
 
 	public static void save(FileIO files) {
