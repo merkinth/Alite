@@ -169,7 +169,7 @@ public class ConstrictorMission extends Mission {
 					setRemove(true);
 					SoundManager.play(Assets.com_conditionRed);
 					manager.getInGameManager().repeatMessage("Condition Red!", 3);
-					Vector3f spawnPosition = manager.spawnObject();
+					Vector3f spawnPosition = manager.getSpawnPosition();
 					Constrictor constrictor = new Constrictor(alite);
 					manager.spawnEnemyAndAttackPlayer(constrictor, 0, spawnPosition);
 					manager.lockConditionRedEvent();

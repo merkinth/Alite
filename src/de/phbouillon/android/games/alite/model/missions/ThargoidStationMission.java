@@ -218,7 +218,7 @@ public class ThargoidStationMission extends Mission {
 		SoundManager.play(Assets.com_conditionRed);
 		manager.getInGameManager().repeatMessage("Condition Red!", 3);
 		conditionRedEvent.pause();
-		Vector3f spawnPosition = manager.spawnObject();
+		Vector3f spawnPosition = manager.getSpawnPosition();
 		int thargoidNum = alite.getPlayer().getRating().ordinal() < 3 ? 1 : Math.random() < 0.5 ? 2 : 3;
 		for (int i = 0; i < thargoidNum; i++) {
 			Thargoid thargoid = new Thargoid(alite);
