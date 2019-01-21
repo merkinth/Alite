@@ -55,8 +55,10 @@ public class L {
 		currentLanguagePack = null;
 		String localeFile = Settings.DEFAULT_LOCALE_FILE;
 
-		if (languagePackFileName != null && !languagePackFileName.isEmpty() && !Settings.DEFAULT_LOCALE_FILE.equals(
-				languagePackFileName.substring(languagePackFileName.lastIndexOf(File.separator) + 1))) {
+		boolean defaultLanguage = languagePackFileName == null || languagePackFileName.isEmpty() ||
+			Settings.DEFAULT_LOCALE_FILE.equals(languagePackFileName.substring(languagePackFileName.lastIndexOf(File.separator) + 1));
+
+		if (!defaultLanguage) {
 			try {
 				ZipResourceFile languagePack = new ZipResourceFile(languagePackFileName);
 				InputStream is = languagePack.getInputStream("values" + File.separator + "strings.xml");
@@ -100,9 +102,11 @@ public class L {
 		for (Field field : R.string.class.getDeclaredFields()) {
 			try {
 				int id = field.getInt(field);
-				String value = currentResource.get(field.getName());
+				String value = defaultLanguage ? null : currentResource.get(field.getName());
 				if (value == null) {
-					AliteLog.e("Missing resource", "Missing string resource '" + field.getName() + "'");
+					if (!defaultLanguage) {
+						AliteLog.e("Missing resource", "Missing string resource '" + field.getName() + "'");
+					}
 					currentResourceBundle.put(id, res.getString(id));
 				} else {
 					currentResourceBundle.put(id, value);
@@ -116,9 +120,11 @@ public class L {
 		for (Field field : R.array.class.getDeclaredFields()) {
 			try {
 				int id = field.getInt(field);
-				String[] value = currentArrayResource.get(field.getName());
+				String[] value = defaultLanguage ? null : currentArrayResource.get(field.getName());
 				if (value == null) {
-					AliteLog.e("Missing resource", "Missing array resource '" + field.getName() + "'");
+					if (!defaultLanguage) {
+						AliteLog.e("Missing resource", "Missing array resource '" + field.getName() + "'");
+					}
 					currentResourceArrayBundle.put(id, res.getStringArray(id));
 				} else {
 					currentResourceArrayBundle.put(id, value);

@@ -53,7 +53,41 @@
     <string-array name="char_sets">
         <item>\u0020..\u007e</item>
         <item>\u00a1..\u00ff</item>
-        <item>\u0660..\u0669</item>
+    </string-array>
+
+    <string-array name="planet_name_syllable">
+        <item>..</item>
+        <item>LE</item>
+        <item>XE</item>
+        <item>GE</item>
+        <item>ZA</item>
+        <item>CE</item>
+        <item>BI</item>
+        <item>SO</item>
+        <item>SE</item>
+        <item>SU</item>
+        <item>AR</item>
+        <item>MA</item>
+        <item>IN</item>
+        <item>DI</item>
+        <item>RE</item>
+        <item>A.</item>
+        <item>ER</item>
+        <item>AT</item>
+        <item>EN</item>
+        <item>BE</item>
+        <item>RA</item>
+        <item>LA</item>
+        <item>VE</item>
+        <item>TI</item>
+        <item>ED</item>
+        <item>OR</item>
+        <item>QU</item>
+        <item>AN</item>
+        <item>TE</item>
+        <item>IS</item>
+        <item>RI</item>
+        <item>ON</item>
     </string-array>
 
     <string name="about">

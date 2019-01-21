@@ -399,6 +399,7 @@ public class Alite extends AndroidGame {
 
 	public void changeLocale() {
 		new LoadingScreen(this).changeLocale();
+		generator.buildGalaxy(generator.getCurrentGalaxy());
 		loadFonts();
 	}
 

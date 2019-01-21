@@ -10,6 +10,7 @@ package de.phbouillon.android.games.alite;
 public final class R {
   public static final class array {
     public static final int char_sets=0x7f010000;
+    public static final int planet_name_syllable=0x7f010001;
   }
   public static final class attr {
     /**
@@ -649,7 +650,7 @@ public final class R {
      * @see #CoordinatorLayout_Layout_layout_keyline
      */
     public static final int[] CoordinatorLayout_Layout={
-      0x010100b3, 0x7f020012, 0x7f020013, 0x7f020014,
+      0x010100b3, 0x7f020012, 0x7f020013, 0x7f020014, 
       0x7f020015, 0x7f020016, 0x7f020017
     };
     /**
@@ -808,7 +809,7 @@ public final class R {
      * @see #FontFamily_fontProviderQuery
      */
     public static final int[] FontFamily={
-      0x7f020006, 0x7f020007, 0x7f020008, 0x7f020009,
+      0x7f020006, 0x7f020007, 0x7f020008, 0x7f020009, 
       0x7f02000a, 0x7f02000b
     };
     /**
@@ -917,8 +918,8 @@ public final class R {
      * @see #FontFamilyFont_ttcIndex
      */
     public static final int[] FontFamilyFont={
-      0x01010532, 0x01010533, 0x0101053f, 0x0101056f,
-      0x01010570, 0x7f020005, 0x7f02000c, 0x7f02000d,
+      0x01010532, 0x01010533, 0x0101053f, 0x0101056f, 
+      0x01010570, 0x7f020005, 0x7f02000c, 0x7f02000d, 
       0x7f02000e, 0x7f02001a
     };
     /**
@@ -1069,8 +1070,8 @@ public final class R {
      * @see #GradientColor_android_endY
      */
     public static final int[] GradientColor={
-      0x0101019d, 0x0101019e, 0x010101a1, 0x010101a2,
-      0x010101a3, 0x010101a4, 0x01010201, 0x0101020b,
+      0x0101019d, 0x0101019e, 0x010101a1, 0x010101a2, 
+      0x010101a3, 0x010101a4, 0x01010201, 0x0101020b, 
       0x01010510, 0x01010511, 0x01010512, 0x01010513
     };
     /**
