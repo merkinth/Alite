@@ -22,10 +22,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -161,8 +158,11 @@ public class FileUtils {
     };
 
 	private static final String ENCRYPTION = "Blowfish";
+	private static final int COMMANDER_FILE_FORMAT_VERSION = 2;
+
 	private Cipher cipher;
 	private Alite game;
+	private byte formatVersionOfFileToLoad;
 
 	private static final String AB = "0123456789abcdefghijklmnopqrstuvwxyz_";
 	private static final Random rnd = new Random();
@@ -253,31 +253,19 @@ public class FileUtils {
 		return result;
 	}
 
-	private void writeString(DataOutputStream dos, String string, int size) {
-		int len = string.length();
-		while (len < size) {
-			string += " ";
-			len = string.length();
-		}
-		if (len > size) {
-			string = string.substring(0, size);
-		}
-		try {
-			dos.write(string.getBytes(StringUtil.CHARSET));
-		} catch (IOException e) {
-			AliteLog.e("[ALITE] File Utils", "Cannot write String.", e);
-		}
+	private void writeString(DataOutputStream dos, String string) throws IOException {
+		dos.writeByte(string.getBytes().length);
+		dos.write(string.getBytes());
 	}
 
-	private String readString(DataInputStream dis, int size) {
+	private String readStringWithLength(DataInputStream dis) throws IOException {
+		return readString(dis, dis.readByte());
+	}
+
+	private String readString(DataInputStream dis, int size) throws IOException {
 		byte[] input = new byte[size];
-		try {
-			dis.read(input);
-			return new String(input, StringUtil.CHARSET);
-		} catch (IOException e) {
-			AliteLog.e("[ALITE] File Utils", "Cannot read String.", e);
-		}
-		return null;
+		dis.read(input);
+		return new String(input);
 	}
 
 	private byte[] zipBytes(final byte[] input) throws IOException {
@@ -331,7 +319,7 @@ public class FileUtils {
 		GalaxyGenerator generator = game.getGenerator();
 		PlayerCobra cobra = player.getCobra();
 		cobra.reset();
-		player.setName(readString(dis, 16).trim());
+		player.setName(loadPlayerName(dis));
 		generator.buildGalaxy(readByte(dis));
 		char[] seed = new char[] {dis.readChar(), dis.readChar(), dis.readChar()};
 		generator.buildGalaxy(seed[0], seed[1], seed[2]);
@@ -490,6 +478,18 @@ public class FileUtils {
 		AliteLog.d("[ALITE] loadCommander", String.format("Loaded Commander '%s', galaxyNumber: %d, seed: %04x %04x %04x", player.getName(), generator.getCurrentGalaxy(), (int) generator.getCurrentSeed()[0], (int) generator.getCurrentSeed()[1], (int) generator.getCurrentSeed()[2]));
 	}
 
+	private String loadPlayerName(DataInputStream dis) throws IOException {
+		formatVersionOfFileToLoad = dis.readByte();
+		// Before versioning player name was placed here directly
+		if (formatVersionOfFileToLoad >= 32) {
+			// so the read byte is not the file version number but the first char of the player name
+			String playerName = (char)formatVersionOfFileToLoad + readString(dis, 15).trim();
+			formatVersionOfFileToLoad = 1;
+			return playerName;
+		}
+		return readStringWithLength(dis);
+	}
+
 	public final void loadCommander(String fileName) throws IOException {
 		AliteLog.d("LOADING COMMANDER", "Filename = " + fileName);
 		byte[] commanderData = getCommanderData(fileName);
@@ -532,8 +532,9 @@ public class FileUtils {
 
 		bos = new ByteArrayOutputStream(1024);
 		dos = new DataOutputStream(bos);
-		writeString(dos, commanderName, 16);
-		writeString(dos, player.getCurrentSystem() == null ? "Unknown" : player.getCurrentSystem().getName(), 8);
+		dos.writeByte(COMMANDER_FILE_FORMAT_VERSION);
+		writeString(dos, commanderName);
+		writeString(dos, player.getCurrentSystem() == null ? "Unknown" : player.getCurrentSystem().getName());
 		dos.writeLong(game.getGameTime());
 		dos.writeInt(player.getScore());
 		bos.write(player.getRating().ordinal());
@@ -561,7 +562,8 @@ public class FileUtils {
 		PlayerCobra cobra = player.getCobra();
 		int marketFluct = player.getMarket().getFluct();
 		List<Integer> quantities = player.getMarket().getQuantities();
-		writeString(dos, player.getName(), 16);
+		dos.writeByte(COMMANDER_FILE_FORMAT_VERSION);
+		writeString(dos, player.getName());
 		dos.writeByte(generator.getCurrentGalaxy());
 		char[] seed = generator.getCurrentSeed();
 		dos.writeChar(seed[0]);
@@ -633,7 +635,7 @@ public class FileUtils {
 		dos.writeShort(0); // Placeholder for number of kills to next "Good Shooting, Commander"-Msg.
 		dos.writeInt(player.getKillCount());
 		// Dummy String: Deprecated statistics filename
-		writeString(dos, "12345678901234567890123", 23);
+		writeString(dos, "12345678901234567890123");
 		dos.writeInt(player.getActiveMissions().size());
 		dos.writeInt(player.getCompletedMissions().size());
 		for (Mission m: player.getActiveMissions()) {
@@ -726,8 +728,8 @@ public class FileUtils {
 
 			bos = new ByteArrayOutputStream(1024);
 			DataOutputStream dos = new DataOutputStream(bos);
-			writeString(dos, info.getName(), 16);
-			writeString(dos, info.getDockedSystem(), 8);
+			writeString(dos, info.getName());
+			writeString(dos, info.getDockedSystem());
 			dos.writeLong(info.getGameTime());
 			dos.writeInt(info.getPoints());
 			bos.write(info.getRating().ordinal());
@@ -773,8 +775,8 @@ public class FileUtils {
 	public CommanderData getQuickCommanderInfo(String fileName) {
 		try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(decrypt(
 				game.getFileIO().readPartialFileContents(fileName, 2, getHeaderLength(fileName)), getKey(fileName))))) {
-			String name = readString(dis, 16).trim();
-			String currentSystem = readString(dis, 8).trim();
+			String name = loadPlayerName(dis);
+			String currentSystem = formatVersionOfFileToLoad == 1 ? readString(dis, 8).trim() : readStringWithLength(dis);
 			long gameTime = dis.readLong();
 			int points = dis.readInt();
 			Rating rating = Rating.values()[dis.read()];

@@ -399,8 +399,10 @@ public class Alite extends AndroidGame {
 
 	public void changeLocale() {
 		new LoadingScreen(this).changeLocale();
-		generator.buildGalaxy(generator.getCurrentGalaxy());
 		loadFonts();
+		generator.buildGalaxy(generator.getCurrentGalaxy());
+		player.setCurrentSystem(generator.getSystem(player.getCurrentSystem().getIndex()));
+		player.setHyperspaceSystem(generator.getSystem(player.getHyperspaceSystem().getIndex()));
 	}
 
 	@Override

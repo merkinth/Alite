@@ -239,7 +239,7 @@ public class FatalExceptionScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		StringBuilder buffer = new StringBuilder(cause == null ? "No additional information could be retrieved." :
-			cause.getMessage() == null ? cause.getClass().getName() : cause.getMessage());
+			cause.toString());
 		buffer.append("\n");
 		while (cause != null) {
 			if (cause.getStackTrace() != null) {
