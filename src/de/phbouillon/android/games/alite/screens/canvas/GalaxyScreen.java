@@ -21,8 +21,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 
@@ -36,11 +34,9 @@ import de.phbouillon.android.games.alite.Button.TextPosition;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.Rating;
-import de.phbouillon.android.games.alite.model.generator.Raxxla;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class GalaxyScreen extends AliteScreen {
 	public static final int HALF_WIDTH = 760;
 	public static final int HALF_HEIGHT = 460;
@@ -49,7 +45,7 @@ public class GalaxyScreen extends AliteScreen {
 
 	private static final int SCALE_CONST = 7;
 
-	protected float zoomFactor;
+	float zoomFactor;
 	float pendingZoomFactor = -1.0f;
 	protected String title;
 	private MappedSystemData[] systemData;
@@ -404,7 +400,8 @@ public class GalaxyScreen extends AliteScreen {
         	int distance = player.getCurrentSystem() == null ? computeDistance(player.getHyperspaceSystem(), player.getPosition())
 				 : player.getHyperspaceSystem().computeDistance(player.getCurrentSystem());
         	g.drawText(String.format("%s: %d.%d Light Years",
-				player.getHyperspaceSystem() == null ? "Unknown" : player.getHyperspaceSystem().getName(), distance / 10, distance % 10), 100, 1060, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
+				player.getHyperspaceSystem() == null ? "Unknown" : player.getHyperspaceSystem().getName(), distance / 10, distance % 10),
+				100, 1060, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
         }
 	}
 
@@ -489,26 +486,22 @@ public class GalaxyScreen extends AliteScreen {
 
 	private void initializeSystems() {
 		Player player = game.getPlayer();
-		if (player.getRating() == Rating.ELITE && game.getGenerator().getCurrentGalaxyFromSeed() == 8) {
-			ArrayList <SystemData> temp = new ArrayList<>(Arrays.asList(game.getGenerator().getSystems()));
-			Raxxla raxxla = new Raxxla();
-			temp.add(raxxla.getSystem());
-			systemData = new MappedSystemData[temp.size()];
-			int count = 0;
-			for (SystemData system: temp) {
-				int x = (system.getX() - 128) * SCALE_CONST + HALF_WIDTH;
-				int y = (system.getY() -  64) * SCALE_CONST + HALF_HEIGHT;
-				systemData[count++] = new MappedSystemData(system, x, y);
-			}
-		} else {
-			systemData = new MappedSystemData[256];
-			int count = 0;
-			for (SystemData system: game.getGenerator().getSystems()) {
-				int x = (system.getX() - 128) * SCALE_CONST + HALF_WIDTH;
-				int y = (system.getY() -  64) * SCALE_CONST + HALF_HEIGHT;
-				systemData[count++] = new MappedSystemData(system, x, y);
-			}
+		int raxlaa = player.getRating() == Rating.ELITE && game.getGenerator().getCurrentGalaxyFromSeed() == 8 ? 1 : 0;
+
+		SystemData[] systems = game.getGenerator().getSystems();
+		systemData = new MappedSystemData[systems.length + raxlaa];
+		for (int i = 0; i < systems.length; i++) {
+			systemData[i] = mapSystem(systems[i]);
 		}
+		if (raxlaa == 1) {
+			systemData[systems.length] = mapSystem(SystemData.RAXXLA_SYSTEM);
+		}
+	}
+
+	private MappedSystemData mapSystem(SystemData system) {
+		int x = (system.getX() - 128) * SCALE_CONST + HALF_WIDTH;
+		int y = (system.getY() -  64) * SCALE_CONST + HALF_HEIGHT;
+		return new MappedSystemData(system, x, y);
 	}
 
 	public boolean namesVisible() {

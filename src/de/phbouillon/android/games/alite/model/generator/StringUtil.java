@@ -5,7 +5,6 @@ import de.phbouillon.android.games.alite.AliteLog;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Locale;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
@@ -33,7 +32,7 @@ public class StringUtil {
 	}
 
 	public static void addSpaceAndStringToBuilder(String stringToAdd, StringBuilder builder) {
-		if (stringToAdd != null && stringToAdd.length() > 0) {
+		if (stringToAdd != null && !stringToAdd.isEmpty()) {
 			if (builder.length() > 0 && builder.charAt(builder.length() - 1) != ' ') {
 				builder.append(" ");
 			}
@@ -41,34 +40,25 @@ public class StringUtil {
 		}
 	}
 
-	public static String readableCase(String s) {
-		if (s == null || s.length() == 0) {
+	public static String capitalize(String text) {
+		int i = -1;
+		while (true) {
+			i = text.indexOf(' ', i + 1);
+			if (i < 0 || i == text.length() - 1) {
+				return readableCase(text);
+			}
+			text = text.substring(0, i + 1) + readableCase(text.substring(i + 1));
+		}
+	}
+
+	private static String readableCase(String s) {
+		if (s == null || s.isEmpty()) {
 			return "";
 		}
 		if (s.length() == 1) {
 			return s;
 		}
-		return s.charAt(0) + s.substring(1).toLowerCase(Locale.US);
-	}
-
-	/**
-	 * Searches the given String for occurrences of asterisks ('*'). If an
-	 * asterisk is found, it is removed along with any spaces before the asterisk.
-	 *
-	 * @param temp the String to be analyzed and modified.
-	 * @return a copy of the given String without white spaces and asterisks.
-	 */
-	public static String removeAdditionalWhitespaces(String temp) {
-		int index = -1;
-		int lastFound = -1;
-		StringBuilder builder = new StringBuilder();
-		while ((index = temp.indexOf("*", index + 1)) != -1) {
-			builder.append(temp.substring(lastFound + 1, index - 1)); // delete whitespace
-			lastFound = index;
-		}
-		builder.append(temp.substring(lastFound + 1));
-
-		return builder.toString();
+		return s.substring(0,1).toUpperCase() + s.substring(1);
 	}
 
 	public static String computeSHAString(String text) {

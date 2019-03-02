@@ -21,13 +21,9 @@ package de.phbouillon.android.games.alite.model.generator;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.L;
-import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.model.generator.enums.Economy;
 import de.phbouillon.android.games.alite.model.generator.enums.Government;
 import de.phbouillon.android.games.alite.screens.canvas.TradeScreen;
@@ -35,137 +31,83 @@ import de.phbouillon.android.games.alite.screens.canvas.TradeScreen;
 public class SystemData implements Serializable {
 	private static final long serialVersionUID = 6117084866118128888L;
 
-	/**
-	 * Simple helper method to save some casting: In Java, a character added
-	 * to a String will be concatenated to the String, BUT: If _two_
-	 * characters are added like this: "String" + c1 + c2, the sum of the
-	 * character ASCII values will be added to the String, yielding something
-	 * like "String 123". To prevent this, each character is cast using
-	 * this method.
-	 *
-	 * @param offset value of the character (as integer value to allow for
-	 *        specification of the argument without casting).
-	 * @return String representation of the character.
-	 */
-	private static String S(int offset) {
-		return "" + (char) offset;
+	private static final char REFERENCE_NORMAL = '%';
+	private static final char REFERENCE_CAPITALIZE = '!';
+	private static final char REFERENCE_EVALUATE = '?';
+	private static final char REFERENCE_ORDERED = '-';
+	private static final char REFERENCE_USE = '+';
+	private static final String REFERENCE_PREFIXES = String.valueOf(REFERENCE_NORMAL) +
+		REFERENCE_CAPITALIZE + REFERENCE_EVALUATE + REFERENCE_ORDERED + REFERENCE_USE;
+
+	public static final SystemData RAXXLA_SYSTEM = createRaxxlaSystem();
+
+	private static String[] planetNameSyllable;
+	private static Map<String,String[]> descriptionMap;
+
+	private int index; // 0-255
+	private int x; // 0-255
+	private int y; // 0-255
+	private Government govType; // 0-7
+	private Economy economy; // 0-7
+	private int techLevel; // 0-15 I think (original source says 0-16, which I doubt)
+				           //      The value will be increased by 1 before printing,
+	                       //      so 16 is the max tech level (and 1 the least).
+	private int population; // 0-255
+	private int productivity; // 0-65535
+	private int diameter; // 0-65535
+	private int fuelPrice; // 1-27 -- 32?!?!
+ 	private char goatSoupSeedA;
+ 	private char goatSoupSeedB;
+	private String name;
+	private String inhabitants;
+	private String inhabitantCode;
+	private String description;
+
+	private int planetTexture; // Index of the pre-generated planet texture
+	private int ringsTexture;  // Index of the ring texture or 0 for no rings
+	private int cloudsTexture; // Index of the cloud texture or 0 for no clouds
+	private int starTexture;   // 0-22 O-M class stars with 3 different luminosity settings, and two dwarf types.
+	private int dockingFee;    // Fee for automatic docking, if no docking computer is installed. 400-3300.
+
+	private final List <SystemData> reachableSystems = new ArrayList<>();
+
+	static void initialize(String[] syllables, String[] planetDescription) {
+		planetNameSyllable = syllables;
+		descriptionMap = new HashMap<>();
+		for (String description : planetDescription) {
+			int idIdx = description.indexOf(':');
+			if (idIdx < 0) {
+				AliteLog.e("Planet description initializer", "Missing id prefix in description line '" + description + "'");
+				continue;
+			}
+			descriptionMap.put(description.substring(0, idIdx).toLowerCase(), description.substring(idIdx + 1).split("\\|", 100));
+		}
 	}
 
-	// The following are "Commands" in the system description generation.
-
-	/**
-	 * PLANET_NAME will be expanded to the name of the current system.
-	 * For example: Lave.
-	 */
-	private static final String PLANET_NAME = S(0x01);
-
-	/**
-	 * PLANET_NAME_IAN will be expanded to the name of the current system
-	 * plus the string ian.
-	 * For example: Lavian.
-	 *
-	 * Note that the (original) Text Elite version checked for vowels at
-	 * the end of the system name and omitted them, so for the planet
-	 * Lave, the result of this command would be Lavian. However, the
-	 * Amiga version of Elite did not remove the terminating vowels. We
-	 * remove the vowels at the end, because it is easier to read; thus
-	 * diverging from the original Amiga version in favor of readability.
-	 */
-	private static final String PLANET_NAME_IAN = S(0x02);
-
-	/**
-	 * Returns a random name based on the same algorithm as the
-	 * system name generation.
-	 * For example: ORERVE.
-	 */
-	private static final String RANDOM_NAME = S(0x03);
-
-	/**
-	 * Removes the character before this command, if it is a space.
-	 */
-	private static final String REMOVE_PREVIOUS_SPACE = S(0x04);
-
-	/**
-	 * Every letter following a space after this command will be
-	 * capitalized until the command END_CAPITALIZATION is reached.
-	 */
-	private static final String BEGIN_CAPITALIZATION  = S(0x05);
-	private static final String END_CAPITALIZATION = S(0x06);
-
-	private boolean capitalize = false;
-
-	/**
-	 * All words from the Amiga version to generate the description texts for
-	 * all systems. I have also included the "dead code" fragments found in the
-	 * binary adf.
-	 */
-	private static final String [][] DESCRIPTION_TEXT_LIST = {
-		/* 0x80 */  {"fabled ", "notable ", "well known ", "famous ", "noted "},
-		/* 0x81 */	{"very ", "mildly ", "most ", "reasonably ", ""},
-		/* 0x82 */	{"ancient ", S(0x97), "great ", "vast ", "pink "},
-		/* 0x83 */	{BEGIN_CAPITALIZATION + S(0x9C) + " " + S(0x9B) + END_CAPITALIZATION + "plantations ", "mountains ", S(0x9A), S(0xa5) + "forests ", "oceans "},
-		/* 0x84 */  {S(0xA6), "mountain ", "edible ", "tree ", "spotted "},
-		/* 0x85 */  {S(0x9D), S(0x9E), S(0x86) + REMOVE_PREVIOUS_SPACE + "oid ", S(0xA4), S(0xA3)},
-		/* 0x86 */  {"walking " + S(0x8D), "crab ", "bat ", "lobst ", RANDOM_NAME},
-		/* 0x87 */  {"ancient ", "exceptional ", "eccentric ", "ingrained ", S(0x97)},
-		/* 0x88 */	{"shyness ", "silliness ", "mating traditions ", "loathing of " + S(0x89), "love for " + S(0x89)},
-		/* 0x89 */	{"food blenders ", "tourists ", "poetry ", "discos ", S(0x91)},
-		/* 0x8A */	{"its " + S(0x82) + S(0x83), "the " + PLANET_NAME_IAN + S(0x84) + S(0x85), "its inhabitants' " + S(0x87) + S(0x88), S(0x9F) + END_CAPITALIZATION, "its " + S(0x90) + S(0x91)},
-		/* 0x8B */	{"beset ", "plagued ", "ravaged ", "cursed ", "scourged "},
-		/* 0x8C */	{S(0x96) + "civil war", S(0x8D) + S(0x84) + S(0x85) + REMOVE_PREVIOUS_SPACE + "s ", "a " + S(0x8D) + "disease ", S(0x96) + "earthquakes ", S(0x96) + "solar activity "},
-		/* 0x8D */	{"killer ", "deadly ", "evil ", "lethal ", "vicious "},
-		/* 0x8E */	{"juice ", "brandy ", "water ", "brew ", "gargle blasters "},
-		/* 0x8F */	{RANDOM_NAME, PLANET_NAME_IAN + S(0x85), PLANET_NAME_IAN + RANDOM_NAME, PLANET_NAME_IAN + S(0x8D), S(0x8D) + RANDOM_NAME},
-		/* 0x90 */	{"fabulous ", "exotic ", "hoopy ", "unusual ", "exciting "},
-		/* 0x91 */	{"cuisine ", "night life ", "casinos ", "sitcoms ", S(0x9F) + END_CAPITALIZATION},
-		/* 0x92 */	{PLANET_NAME, "The planet " + PLANET_NAME, "The world " + PLANET_NAME, "This planet ", "This world "},
-		/* 0x93 */	{S(0x81) + S(0x80) + "for " + S(0x8A), S(0x81) + S(0x80) + "for " + S(0x8A) + "and " + S(0x8A), S(0x8B) + "by " + S(0x8C), S(0x81) + S(0x80) + "for " + S(0x8A) + "but is " + S(0x8B) + "by " + S(0x8C), "a " + S(0x94) + S(0x95)},
-		/* 0x94 */	{REMOVE_PREVIOUS_SPACE + "n unremarkable ", "boring ", "dull ", "tedious ", "revolting "},
-		/* 0x95 */	{"planet ", "world ", "place ", "little planet ", "dump "},
-		/* 0x96 */	{"frequent ", "occasional ", "unpredictable ", "dreadful ", "deadly "},
-		/* 0x97 */	{"funny ", "weird ", "unusual ", "strange ", "peculiar "},
-/*DeadCode 0x98 */  {"son of a bitch ", "scoundrel ", "blackguard ", "rogue ", "whoreson beetle headed flap ear'd knave"},
-/*DeadCode 0x99 */  {"", "", "", "", ""},
-		/* 0x9A */	{"parking meters ", "dust clouds ", "icebergs ", "rock formations ", "volcanoes "},
-		/* 0x9B */	{"plant ", "tulip ", "banana ", "corn ", "weed "},
-		/* 0x9C */	{RANDOM_NAME, PLANET_NAME_IAN + RANDOM_NAME, PLANET_NAME_IAN + S(0x8D), "inhabitant ", PLANET_NAME_IAN + RANDOM_NAME},
-		/* 0x9D */	{"shrew ", "beast ", "bison ", "snake ", "wolf "},
-		/* 0x9E */	{"leopard ", "cat ", "monkey ", "goat ", "fish "},
-		/* 0x9F */	{BEGIN_CAPITALIZATION + S(0x8F) + S(0x8E), PLANET_NAME_IAN + BEGIN_CAPITALIZATION + S(0x9D) + S(0xA0), "its " + BEGIN_CAPITALIZATION + S(0x90) + S(0x9E) + S(0xA0), S(0xA1) + S(0xA2), BEGIN_CAPITALIZATION + S(0x8F) + S(0x8E)},
-		/* 0xA0 */	{"meat ", "cutlet ", "steak ", "burgers ", "soup "},
-		/* 0xA1 */	{"ice ", "mud ", "zero-G ", "vacuum ", PLANET_NAME_IAN + "ultra "},
-		/* 0xA2 */	{"hockey ", "cricket ", "karate ", "polo ", "tennis "},
-		/* 0xA3 */	{"wasp ", "moth ", "grub ", "ant ", RANDOM_NAME},
-		/* 0xA4 */	{"poet ", "arts graduate ", "yak ", "snail ", "slug "},
-		/* 0xA5 */  {"dense ", "lush ", "rain ", "bamboo ", "deciduous "},
-		/* 0xA6 */  {"green ", "black ", "yellow stripey ", "pinky grey ", "white "},
-	};
-
-	int                     index;         // 0-255
-	int                     x;             // 0-255
-	int                     y;             // 0-255
-	Economy                 economy;       // 0-7
-	Government              govType;       // 0-7
-	int                     techLevel;     // 0-15 I think (original source says 0-16, which I doubt)
-							               //      The value will be increased by 1 before printing,
-	                                       //      so 16 is the max tech level (and 1 the least).
-	int                     population;    // 0-255
-	int                     productivity;  // 0-65535
-	int                     diameter;      // 0-65535
-	int                     fuelPrice;     // 1-27 -- 32?!?!
- 	FastSeedType            goatSoupSeed;
-	String                  name;
-	String                  inhabitants;
-	String                  inhabitantCode;
-	String                  description;
-
-	int                     planetTexture; // Index of the pre-generated planet texture
-	int                     ringsTexture;  // Index of the ring texture or 0 for no rings
-	int                     cloudsTexture; // Index of the cloud texture or 0 for no clouds
-	int                     starTexture;   // 0-22 O-M class stars with 3 different luminosity settings, and two dwarf types.
-	int                     dockingFee;    // Fee for automatic docking, if no docking computer is installed. 400-3300.
-
-	final List <SystemData> reachableSystems = new ArrayList<>();
+	private static SystemData createRaxxlaSystem() {
+		SystemData result = new SystemData();
+		result.index = 256;
+		result.x = 12;
+		result.y = 127;
+		result.govType = Government.CORPORATE_STATE;
+		result.economy = Economy.RICH_INDUSTRIAL;
+		result.techLevel = 22;
+		result.population = 4;
+		result.productivity = 63568;
+		result.diameter = 42000;
+		result.inhabitantCode = null;
+		result.inhabitants = "Friendly Green Treeards";
+		result.name = "Raxxla";
+		result.description = "The fabled planet Raxxla is the home of all Elite pilots in the universe. " +
+			"It provides retreat and peace for them along with a portal to another universe.";
+		result.fuelPrice = 1;
+		result.planetTexture = 1;
+		result.ringsTexture = 16;
+		result.cloudsTexture = 1;
+		result.starTexture = 0;
+		result.dockingFee = 0;
+		return result;
+	}
 
 	static SystemData createSystem(int index, SeedType seed) {
 		SystemData result = new SystemData();
@@ -181,18 +123,18 @@ public class SystemData implements Serializable {
 		result.computeDiameter(seed);
 
 		// Initialize goat soup seed:
-		char seedA = (char) (seed.getWord(0) ^ seed.getWord(1));
-		result.goatSoupSeed = new FastSeedType(seedA, (char) (seedA ^ seed.getWord(2)));
+		result.goatSoupSeedA = (char) (seed.getWord(0) ^ seed.getWord(1));
+		result.goatSoupSeedB = (char) (result.goatSoupSeedA ^ seed.getWord(2));
 
-		result.inhabitants = InhabitantComputation.computeInhabitantString(seed, result);
-		result.name = StringUtil.readableCase(result.generateRandomName(seed));
+		result.inhabitantCode = InhabitantComputation.computeInhabitantCode(seed);
+		result.inhabitants = InhabitantComputation.computeInhabitantString(seed);
+		result.name = StringUtil.capitalize(result.generateRandomName(seed));
 		result.computeDescriptionString();
 
 		// The fuel price is fixed for a given system and must be
 		// computed AFTER the planet description (because the seed
 		// is twisted four times during the description generation.
-		// If computed earlier, the fuel prices won't match the
-		// Amiga version).
+		// If computed earlier, the fuel prices won't match the Amiga version).
 		result.computeFuelPrice(seed);
 
 		result.computeTextures(seed);
@@ -268,48 +210,18 @@ public class SystemData implements Serializable {
 		dockingFee = (8 - govType.ordinal()) * 50;
 	}
 
-	/**
-	 * Modifies a String containing word pairs like "a evil" to read "an evil".
-	 * Note that this will also incorrectly alter "a universe" to "an universe",
-	 * but since this is not a construct possible from the goat soup string, we
-	 * get away with it...
-	 */
-	private String correctAAn(String temp) {
-		String [] words = temp.split(" ");
-		StringBuffer result = new StringBuffer();
-		for (int i = 0, n = words.length; i < n; i++) {
-			result.append(words[i]);
-			if (words[i].equalsIgnoreCase("a") && i < n - 1) {
-				char nextChar = Character.toLowerCase(words[i + 1].charAt(0));
-				if (nextChar == 'a' || nextChar == 'e' || nextChar == 'i' || nextChar == 'o' || nextChar == 'u') {
-					result.append("n");
-				}
-			}
-			result.append(" ");
-		}
-		return result.toString().trim();
-	}
-
 	private void computeDescriptionString() {
-		capitalize = false;
-		String temp = computeGoatSoup(END_CAPITALIZATION + S(0x92) + "is " + S(0x93) + REMOVE_PREVIOUS_SPACE + ".").
-						replaceAll(" +", " ");
-		// This call certainly lacks style (it is plain ugly), but it works :)
-		// I use the removeAdditionalWhitespaces method to get rid of strings as
-		// "The planet xy is a n unremarkable planet" (note the extra
-		// space between a and n).
-		// After that, "a" is corrected to "an", where necessary.
-		description = correctAAn(StringUtil.removeAdditionalWhitespaces(temp));
+		description = replaceGoatSoupString("starter", false);
 	}
 
 	// Goat soup description string generation
 
-	private char generateRandomNumber() {
-		char d0 = goatSoupSeed.b();
-		char d1 = goatSoupSeed.a();
-		goatSoupSeed.setA(d0);
+	private char generateRandomNumber(boolean set) {
+		char d0 = goatSoupSeedB;
+		char d1 = goatSoupSeedA;
+		if (set) goatSoupSeedA = d0;
 		d0 += d1;
-		goatSoupSeed.setB(d0);
+		if (set) goatSoupSeedB = d0;
 		d0 &= 0xFF;
 		return d0;
 	}
@@ -323,84 +235,46 @@ public class SystemData implements Serializable {
 	}
 
 	private String generateRandomName(SeedType nameSeed) {
-		char longNameFlag = (char) (nameSeed.getWord(0) & 64);
+		String planetName = "";
+		while (planetName.isEmpty()) {
+			char longNameFlag = (char) (nameSeed.getWord(0) & 64);
 
-		char [] pair = new char [4];
-		for (int i = 0; i < 4; i++) {
-			pair[i] = (char) (nameSeed.shiftRight(2, 8) & 31);
-			tweakSeed(nameSeed);
+			char [] pair = new char[4];
+			for (int i = 0; i < 4; i++) {
+				pair[i] = (char) (nameSeed.shiftRight(2, 8) & 31);
+				tweakSeed(nameSeed);
+			}
+
+			StringBuilder resultStringBuilder = new StringBuilder();
+			for (int i = 0; i < (longNameFlag > 0 ? 4 : 3); i++) {
+				// Syllables for the planet name generation algorithm; . represents non-printable characters.
+				resultStringBuilder.append(planetNameSyllable[pair[i]]);
+			}
+			planetName = resultStringBuilder.toString().replaceAll("\\.", "");
 		}
-
-		StringBuilder resultStringBuilder = new StringBuilder();
-		for (int i = 0; i < (longNameFlag > 0 ? 4 : 3); i++) {
-			// Syllables for the planet name generation algorithm; . represents non-printable characters.
-			resultStringBuilder.append(L.stringArray(R.array.planet_name_syllable)[pair[i]]);
-		}
-
-		return resultStringBuilder.toString().replaceAll("\\.", "");
+		return planetName;
 	}
 
-	private void appendPrintableCharacter(StringBuilder builder, char c) {
-		if (capitalize && (builder.length() == 0 || builder.charAt(builder.length() - 1) == ' ')) {
-			c = Character.toUpperCase(c);
+	private String replaceGoatSoupString(String id, boolean evaluate) {
+		String[] value = descriptionMap.get(id);
+		if (value == null) {
+			AliteLog.e("Missing planet description", "Invalid planet description reference '" + id + "'");
+			return "";
 		}
-		builder.append(c);
+		int rnd = generateRandomNumber(!evaluate && Character.isDigit(id.charAt(0))) / (255 / value.length + 1);
+		return computeGoatSoup(value[rnd]);
 	}
 
-	private void appendGoatSoupString(StringBuilder builder, char c) {
-		int rnd = generateRandomNumber() / 52; // [0..255] / 52 = [0..4]
-		builder.append(computeGoatSoup(DESCRIPTION_TEXT_LIST[c - 0x80][rnd]));
-	}
-
-	private void appendCommand(StringBuilder builder, char c) {
-		switch (c) {
-			case 0x01: // <Planet name>
-				       builder.append(StringUtil.readableCase(name));
-					   builder.append(" ");
-					   break;
-			case 0x02: // <Planet name>ian (omit vowels at the end of the planet name)
-					   char lastChar = Character.toLowerCase(name.charAt(name.length() - 1));
-				       if (lastChar == 'a' || lastChar == 'e' || lastChar == 'i' || lastChar == 'o' || lastChar == 'u') {
-				    	   builder.append(StringUtil.readableCase(name).substring(0, name.length() - 1));
-				       } else {
-				    	   builder.append(StringUtil.readableCase(name));
-				       }
-					   builder.append("ian ");
-					   break;
-			case 0x03: // <Random name>
-				       SeedType localSeed = new SeedType(goatSoupSeed.a(),
-											             goatSoupSeed.b(),
-											             (char) (goatSoupSeed.a() ^ goatSoupSeed.b()));
-					   builder.append(StringUtil.readableCase(generateRandomName(localSeed)));
-					   builder.append(" ");
-					   break;
-			case 0x04: // Deletes last space or appends "*" to the string if the string is empty.
-				       // The "*" will later be removed along with all preceding spaces.
-					   if (builder.length() > 0 && builder.charAt(builder.length() - 1) == ' ') {
-						   builder.deleteCharAt(builder.length() - 1);
-					   } else if (builder.length() == 0) {
-						   builder.append("*");
-					   }
-					   break;
-			case 0x05: // Turns on capitalization. All following words will have an upper case first character.
-					   capitalize = true;
-			           break;
-			case 0x06: // Turns off capitalization.
-					   capitalize = false;
-					   break;
+	private String replaceCommand(String id) {
+		switch (id) {
+			case "planet_name":
+				return name.toLowerCase();
+			case "random_name":
+			   SeedType localSeed = new SeedType(goatSoupSeedA, goatSoupSeedB, (char) (goatSoupSeedA ^ goatSoupSeedB));
+				return generateRandomName(localSeed);
 		    default:   // Whoops. Wrong op code. Issue error and continue.
-		    	       System.err.println("Invalid command code " + (int) c + " -- ignoring.");
-		    	       break;
-		}
-	}
-
-	private void appendCommandFlag(StringBuilder builder, char c) {
-		if (c >= 0x80) {
-			// Some goat soup string
-			appendGoatSoupString(builder, c);
-		} else {
-			// Command
-			appendCommand(builder, c);
+				System.err.println("Invalid command code '" + id + "' -- ignoring.");
+				return "";
 		}
 	}
 
@@ -410,20 +284,151 @@ public class SystemData implements Serializable {
 		}
 
 		StringBuilder builder = new StringBuilder();
-		int index = 0;
+		int index = -1;
+		int b = 0;
+		Map<String,char[]> seed = null;
 		do {
-			char c = source.charAt(index);
-			if (c < 0x80 && c >= 0x10) {
-				appendPrintableCharacter(builder, c);
+			int commandIdx = getFirstPrefixPos(source.substring(index + 1));
+			if (commandIdx >= 0) {
+				index += commandIdx + 1;
+				char mode = source.charAt(index);
+				if (b < index) {
+					builder.append(source.substring(b, index));
+				}
+				b = index + 1;
+				index = source.indexOf("%", b);
+				if (index < 0) {
+					index = source.length();
+					if (b - 1 < index) {
+						builder.append(source.substring(b - 1, index));
+					}
+					break;
+				}
+				String referenceName = source.substring(b, index).toLowerCase();
+				char[] pSeed = null;
+				if (mode == REFERENCE_ORDERED) {
+					if (seed == null) {
+						seed = new HashMap<>();
+					}
+					seed.put(referenceName, new char[] { goatSoupSeedA, goatSoupSeedB });
+				} else if (mode == REFERENCE_USE && seed != null) {
+					pSeed = seed.get(referenceName);
+					if (pSeed != null) {
+						seed.put("goatSoupSeed", new char[] { goatSoupSeedA, goatSoupSeedB });
+						goatSoupSeedA = pSeed[0];
+						goatSoupSeedB = pSeed[1];
+					}
+				}
+				String referenceResult = getReferenceResult(referenceName, mode);
+				// restore seed
+				if (pSeed != null) {
+					pSeed = seed.get("goatSoupSeed");
+					goatSoupSeedA = pSeed[0];
+					goatSoupSeedB = pSeed[1];
+				}
+				if (mode == REFERENCE_EVALUATE) {
+					int trueIndex = source.indexOf(":", index + 1);
+					int falseIndex = source.indexOf(":", trueIndex + 1);
+					int endIndex = source.indexOf(":", falseIndex + 1);
+					if (trueIndex >= 0 && falseIndex >= trueIndex && endIndex >= falseIndex) {
+						// comma separated values
+						if (Arrays.asList(source.substring(index + 1, trueIndex).split(",")).contains(referenceResult)) {
+							referenceResult = computeGoatSoup(source.substring(trueIndex + 1, falseIndex));
+						} else {
+							referenceResult = computeGoatSoup(source.substring(falseIndex + 1, endIndex));
+						}
+						index = endIndex;
+					}
+				}
+				if (mode != REFERENCE_ORDERED) {
+					builder.append(referenceResult);
+				}
+				b = index + 1;
 			} else {
-				appendCommandFlag(builder, c);
+				index = source.length();
+				if (b < index) {
+					builder.append(source.substring(b, index));
+				}
 			}
-			index++;
 		} while (index < source.length());
 
 		return builder.toString();
 	}
 
+	private String getReferenceResult(String command, char mode) {
+		int subStart = command.indexOf('(');
+		int[] subFromTo;
+		if (subStart >= 0) {
+			subFromTo = getFromTo(command.substring(subStart + 1));
+			command = command.substring(0, subStart);
+		} else {
+			subFromTo = new int[] {1,0};
+		}
+		command = descriptionMap.containsKey(command) ? replaceGoatSoupString(command,
+			mode == REFERENCE_EVALUATE) : replaceCommand(command);
+		if (mode == REFERENCE_CAPITALIZE) command = StringUtil.capitalize(command);
+
+		int len = command.length();
+		subFromTo[0] = subFromTo[0] <= 0 ? len + subFromTo[0] : subFromTo[0] - 1;
+		subFromTo[1] = subFromTo[1] <= 0 ? len + subFromTo[1] : subFromTo[1];
+		if (subFromTo[0] >= 0 && subFromTo[1] <= len && subFromTo[1] - subFromTo[0] >= 0) {
+			command = command.substring(subFromTo[0], subFromTo[1]);
+		}
+		return command;
+	}
+
+	private int getFirstPrefixPos(String source) {
+		int first = -1;
+		for (int i = 0; i < REFERENCE_PREFIXES.length(); i++) {
+			int p = source.indexOf(REFERENCE_PREFIXES.charAt(i));
+			if (p >= 0 && (first < 0 || p < first)) first = p;
+		}
+		return first;
+	}
+
+	/**
+	 * Formats (p) and (b,e) are allowed. p'th char or [b,e] substring.
+	 * Relative to the beginning must be a positive number starting with 1,
+	 * relative to the end must be 0 or negative number.
+	 * 1 is the 1st char, 2 is the 2nd, and so on.
+	 * 0 is the last char, -1 is the char before the last one and so on.
+	 * @param command for substring
+	 * @return begin and end indices for substring
+	 */
+	private int[] getFromTo(String command) {
+		int[] fullString = {1,0};
+		int subEnd = command.indexOf(')');
+		if (subEnd < 0) return fullString;
+
+		command = command.substring(0, subEnd).trim().toLowerCase();
+		int subTo = command.indexOf(',');
+		if (subTo < 0) {
+			try {
+				fullString[0] = Integer.parseInt(command);
+				if (fullString[0] > 0) {
+					fullString[1] = fullString[0];
+				} else {
+					fullString[1] = fullString[0];
+					fullString[0]--;
+				}
+			} catch (NumberFormatException ignored) { }
+			return fullString;
+		}
+
+		String index = command.substring(0, subTo).trim();
+		if (!index.isEmpty()) {
+			try {
+				fullString[0] = Integer.parseInt(index);
+			} catch (NumberFormatException ignored) { }
+		}
+		index = command.substring(subTo + 1).trim();
+		if (!index.isEmpty()) {
+			try {
+				fullString[1] = Integer.parseInt(index);
+			} catch (NumberFormatException ignored) { }
+		}
+		return fullString;
+	}
 
 	public void computeReachableSystems(SystemData [] allSystems) {
 		// Computes all reachable planets. (I.e. all planets with a
@@ -501,11 +506,6 @@ public class SystemData implements Serializable {
 		return y;
 	}
 
-	public void setNewPosition(int x, int y) {
-		this.x = x;
-		this.y = y;
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -526,8 +526,8 @@ public class SystemData implements Serializable {
 		return TradeScreen.getOneDecimalFormatString("%d.%d bn", population);
 	}
 
-	public int getDiameter() {
-		return diameter;
+	public String getDiameter() {
+		return String.format(Locale.getDefault(), "%,d km", diameter);
 	}
 
 	public String getDescription() {

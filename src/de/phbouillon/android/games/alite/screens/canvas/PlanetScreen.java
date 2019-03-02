@@ -41,7 +41,6 @@ import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.objects.PlanetSpaceObject;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class PlanetScreen extends AliteScreen {
 	private static final Vector3f PLANET_POSITION = new Vector3f(15000, -1000, -50000);
 
@@ -302,10 +301,10 @@ public class PlanetScreen extends AliteScreen {
 	}
 
 	private ColorFilter adjustLipColor(int lipColorType) {
-		switch (lipColorType) {
-			case  0: return ColorFilterGenerator.adjustColor(            100,   82);
-			default: return ColorFilterGenerator.adjustColor(                    0);
+		if (lipColorType == 0) {
+			return ColorFilterGenerator.adjustColor(100, 82);
 		}
+		return ColorFilterGenerator.adjustColor(0);
 	}
 
 	private ColorFilter adjustHairColor(int hairColorType) {
@@ -459,7 +458,7 @@ public class PlanetScreen extends AliteScreen {
 
 		g.drawArrow(1090, 270, 1210, 270, ColorScheme.get(ColorScheme.COLOR_ARROW), Graphics.ArrowDirection.LEFT);
 		g.drawArrow(1630, 270, 1510, 270, ColorScheme.get(ColorScheme.COLOR_ARROW), Graphics.ArrowDirection.RIGHT);
-		String diameter = system.getDiameter() + " km";
+		String diameter = system.getDiameter();
 		halfWidth = g.getTextWidth(diameter, Assets.regularFont) >> 1;
 		g.drawText(diameter, 1370 - halfWidth, 280, ColorScheme.get(ColorScheme.COLOR_DIAMETER), Assets.regularFont);
 

@@ -45,8 +45,8 @@ import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.Rating;
 import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
-import de.phbouillon.android.games.alite.model.generator.Raxxla;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
+import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
@@ -201,14 +201,12 @@ public class FileUtils {
 		if (cipher != null) {
 			try {
 				SecretKeySpec key = new SecretKeySpec(strKey.getBytes(StringUtil.CHARSET), ENCRYPTION);
-				strKey = null;
 				cipher.init(Cipher.ENCRYPT_MODE, key);
 				result = cipher.doFinal(toEncrypt);
 			} catch (GeneralSecurityException e) {
 				AliteLog.e("Encrypt", "Error During Encryption", e);
 			}
 		}
-		strKey = null;
 		return result;
 	}
 
@@ -217,14 +215,12 @@ public class FileUtils {
 		if (cipher != null) {
 			try {
 				SecretKeySpec key = new SecretKeySpec(strKey.getBytes(StringUtil.CHARSET), ENCRYPTION);
-				strKey = null;
 				cipher.init(Cipher.DECRYPT_MODE, key);
 				result = cipher.doFinal(toDecrypt);
 			} catch (GeneralSecurityException e) {
 				AliteLog.e("Decrypt", "Error During Decryption", e);
 			}
 		}
-		strKey = null;
 		return result;
 	}
 
@@ -352,14 +348,13 @@ public class FileUtils {
 		cobra.setRetroRocketsUseCount(dis.readInt());
 		int currentSystem = dis.readInt();
 		int hyperspaceSystem = dis.readInt();
-		Raxxla raxxla = new Raxxla();
-		if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == 0 &&
-			generator.getCurrentGalaxyFromSeed() == 8 && currentSystem == 1 && player.getRating() == Rating.ELITE) {
-			player.setCurrentSystem(raxxla.getSystem());
-		}
-		if (player.getHyperspaceSystem() != null && player.getHyperspaceSystem().getIndex() == 0 &&
-			generator.getCurrentGalaxyFromSeed() == 8 && hyperspaceSystem == 1 && player.getRating() == Rating.ELITE) {
-			player.setHyperspaceSystem(raxxla.getSystem());
+		if (generator.getCurrentGalaxyFromSeed() == 8 && player.getRating() == Rating.ELITE) {
+			if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == 0 && currentSystem == 1) {
+				player.setCurrentSystem(SystemData.RAXXLA_SYSTEM);
+			}
+			if (player.getHyperspaceSystem() != null && player.getHyperspaceSystem().getIndex() == 0 && hyperspaceSystem == 1) {
+				player.setHyperspaceSystem(SystemData.RAXXLA_SYSTEM);
+			}
 		}
 		AliteLog.d("LOADING COMMANDER", "Getting IJC, JC, and SCs");
 		player.setIntergalacticJumpCounter(dis.readInt());
@@ -475,7 +470,8 @@ public class FileUtils {
 			AliteLog.e("[ALITE] loadCommander", "Old version. Cmdr data lacks unpunished data for inventory", e);
 		}
 
-		AliteLog.d("[ALITE] loadCommander", String.format("Loaded Commander '%s', galaxyNumber: %d, seed: %04x %04x %04x", player.getName(), generator.getCurrentGalaxy(), (int) generator.getCurrentSeed()[0], (int) generator.getCurrentSeed()[1], (int) generator.getCurrentSeed()[2]));
+		AliteLog.d("[ALITE] loadCommander", String.format("Loaded Commander '%s', galaxyNumber: %d, seed: %04x %04x %04x",
+			player.getName(), generator.getCurrentGalaxy(), (int) generator.getCurrentSeed()[0], (int) generator.getCurrentSeed()[1], (int) generator.getCurrentSeed()[2]));
 	}
 
 	private String loadPlayerName(DataInputStream dis) throws IOException {
@@ -537,7 +533,7 @@ public class FileUtils {
 		writeString(dos, player.getCurrentSystem() == null ? "Unknown" : player.getCurrentSystem().getName());
 		dos.writeLong(game.getGameTime());
 		dos.writeInt(player.getScore());
-		bos.write(player.getRating().ordinal());
+		dos.write(player.getRating().ordinal());
 		byte[] headerData = encrypt(bos.toByteArray(), getKey(fileName));
 
 		game.getFileIO().mkDir(CommanderData.DIRECTORY_COMMANDER);
@@ -635,7 +631,7 @@ public class FileUtils {
 		dos.writeShort(0); // Placeholder for number of kills to next "Good Shooting, Commander"-Msg.
 		dos.writeInt(player.getKillCount());
 		// Dummy String: Deprecated statistics filename
-		writeString(dos, "12345678901234567890123");
+		writeString(dos, "1234567890123456789012");
 		dos.writeInt(player.getActiveMissions().size());
 		dos.writeInt(player.getCompletedMissions().size());
 		for (Mission m: player.getActiveMissions()) {
