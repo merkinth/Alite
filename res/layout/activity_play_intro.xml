@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout 
+<FrameLayout
    xmlns:android="http://schemas.android.com/apk/res/android"
-   android:id="@+id/introContainer"
+   xmlns:tools="http://schemas.android.com/tools" android:id="@+id/introContainer"
    android:layout_height="fill_parent"
    android:layout_width="fill_parent"
    android:layout_gravity="center"
    android:keepScreenOn="true"
    android:gravity="center">
-</RelativeLayout>
+    <Button
+            android:id="@+id/subtitle"
+            android:alpha="0.5"
+            android:layout_height="28dp" android:layout_width="34dp" android:layout_marginStart="30dp"
+            android:layout_marginTop="30dp" android:background="@drawable/subtitle" android:onClick="onClick"/>
+</FrameLayout>

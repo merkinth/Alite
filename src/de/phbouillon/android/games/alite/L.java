@@ -40,6 +40,8 @@ import java.util.*;
 public class L {
 
 	public static final String DIRECTORY_LOCALES = "locales" + File.separator;
+	private static final String DIRECTORY_ASSETS = "assets" + File.separator;
+
 	private static Resources res;
 	private static ZipResourceFile currentLanguagePack;
 	private static SparseArray<String> currentResourceBundle;
@@ -158,18 +160,22 @@ public class L {
 		if (currentLanguagePack == null) {
 			return res.getAssets().open(fileName);
 		}
-		return currentLanguagePack.getInputStream("assets" + File.separator + fileName);
+		return raw(DIRECTORY_ASSETS, fileName);
+	}
+
+	public static InputStream raw(String path, String fileName) throws IOException {
+		return currentLanguagePack.getInputStream(path + fileName);
 	}
 
 	public static AssetFileDescriptor rawDescriptor(String fileName) throws IOException {
 		if (currentLanguagePack == null) {
 			return res.getAssets().openFd(fileName);
 		}
-		AssetFileDescriptor fd = currentLanguagePack.getAssetFileDescriptor("assets" + File.separator + fileName);
+		AssetFileDescriptor fd = currentLanguagePack.getAssetFileDescriptor(DIRECTORY_ASSETS + fileName);
 		// if compressed file
 		if (fd == null) {
-			AliteLog.d("Save temp file", "Saving 'assets" + File.separator + fileName + "' to temp.");
-			return saveFile(currentLanguagePack.getInputStream("assets" + File.separator + fileName));
+			AliteLog.d("Save temp file", "Saving '" + DIRECTORY_ASSETS + fileName + "' to temp.");
+			return saveFile(currentLanguagePack.getInputStream(DIRECTORY_ASSETS + fileName));
 		}
 		return fd;
 	}
