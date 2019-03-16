@@ -724,6 +724,7 @@ public class FileUtils {
 
 			bos = new ByteArrayOutputStream(1024);
 			DataOutputStream dos = new DataOutputStream(bos);
+			dos.writeByte(COMMANDER_FILE_FORMAT_VERSION);
 			writeString(dos, info.getName());
 			writeString(dos, info.getDockedSystem());
 			dos.writeLong(info.getGameTime());
