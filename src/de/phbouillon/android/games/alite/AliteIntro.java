@@ -363,6 +363,8 @@ public class AliteIntro extends Activity implements OnClickListener {
 			currentSubtitle = currentSubtitle < 0 && nativeSubtitleIndex >= 0 ? 0 :
 				currentSubtitle < 0 || currentSubtitle == 0 && localizedSubtitleIndex >= 0 ? 1 : -1;
 			selectOrDeselectTrack(true);
+			findViewById(R.id.subtitle).setBackgroundResource(currentSubtitle < 0 ? R.drawable.subtitle :
+				currentSubtitle == 0 ? R.drawable.subtitle_nat : R.drawable.subtitle_loc);
 		}
 	}
 
