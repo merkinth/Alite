@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites.buttons;
 
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.model.statistics.WeaponType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.SpaceObjectTraverser;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
@@ -47,7 +46,7 @@ public class ECMTraverser implements SpaceObjectTraverser {
 				if (!missileDestroyed) {
 					SoundManager.play(Assets.ecm);
 					if (inGame.getHud() != null) {
-						inGame.getHud().showECM(6000);
+						inGame.getHud().showECM();
 					}
 					missileDestroyed = true;
 				}

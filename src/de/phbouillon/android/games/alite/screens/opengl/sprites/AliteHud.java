@@ -82,7 +82,7 @@ public class AliteHud extends Sprite implements Serializable {
 	private final InfoGaugeRenderer infoGauges;
 	private final CompassRenderer compass;
 	private float zoomFactor = 1.0f;
-	private long ecmActive;
+	private Timer ecmActive;
 	private boolean witchSpace = false;
 	private ControlPad controlPad;
 	private CursorKeys controlKeys;
@@ -311,8 +311,12 @@ public class AliteHud extends Sprite implements Serializable {
 		}
 	}
 
-	public void showECM(long time) {
-		ecmActive = System.currentTimeMillis() + time;
+	public void showECM() {
+		if (ecmActive == null) {
+			ecmActive = new Timer().setAutoReset();
+		} else {
+			ecmActive.reset();
+		}
 	}
 
 	public float getY() {
@@ -361,7 +365,6 @@ public class AliteHud extends Sprite implements Serializable {
 
 	@Override
 	public void render() {
-
 		setUp();
 		GLES11.glColor4f(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha);
 		GLES11.glDrawArrays(GLES11.GL_TRIANGLE_STRIP, 0, 4);
@@ -380,8 +383,10 @@ public class AliteHud extends Sprite implements Serializable {
 		if (safeZone) {
 			safeIcon.justRender();
 		}
-		if (System.currentTimeMillis() < ecmActive) {
+		if (ecmActive != null && !ecmActive.hasPassedSeconds(6)) {
 			ecmIcon.justRender();
+		} else{
+			ecmActive = null;
 		}
 
 		if (Settings.controlMode == ShipControl.CONTROL_PAD && controlPad != null) {

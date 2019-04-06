@@ -2,7 +2,7 @@ package de.phbouillon.android.framework.impl;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -20,14 +20,15 @@ package de.phbouillon.android.framework.impl;
 
 import android.media.SoundPool;
 import de.phbouillon.android.framework.Sound;
+import de.phbouillon.android.framework.Timer;
 
 public class AndroidSound implements Sound {
 	private final int soundId;
 	private final SoundPool soundPool;
 	private int currentStreamId = -1;
 	private final SoundType soundType;
-	private long delayToNextPlay = -1;
-	
+	private Timer delayToNextPlay = new Timer().setAutoResetWithImmediateAtFirstCall();
+
 	public AndroidSound(SoundPool soundPool, int soundId, SoundType st) {
 		this.soundId = soundId;
 		this.soundPool = soundPool;
@@ -38,21 +39,19 @@ public class AndroidSound implements Sound {
 	public SoundType getType() {
 		return soundType;
 	}
-	
+
 	@Override
 	public void play(float volume) {
 		soundPool.play(soundId, volume, volume, 0, 0, 1);
 	}
-	
+
 	@Override
 	public void playOnce(float volume, long delayInMs) {
-		long time = System.currentTimeMillis();		
-		if (delayToNextPlay == -1 || delayToNextPlay < time) {
-			delayToNextPlay = time + delayInMs;
+		if (delayToNextPlay.hasPassedMillis(delayInMs)) {
 			play(volume);
 		}
 	}
-	
+
 	@Override
 	public void repeat(float volume) {
 		if (currentStreamId != -1) {
@@ -60,12 +59,12 @@ public class AndroidSound implements Sound {
 		}
 		currentStreamId = soundPool.play(soundId, volume, volume, 0, -1, 1);
 	}
-	
+
 	@Override
 	public boolean isPlaying() {
 		return currentStreamId != -1;
 	}
-	
+
 	@Override
 	public void stop() {
 		if (currentStreamId != -1) {

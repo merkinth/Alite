@@ -403,7 +403,7 @@ class InGameHelper implements Serializable {
 			inGame.getLaserManager().explode(missile, WeaponType.ECM);
 			SoundManager.play(Assets.ecm);
 			if (inGame.getHud() != null) {
-				inGame.getHud().showECM(6000);
+				inGame.getHud().showECM();
 			}
 			return;
 		}
@@ -419,7 +419,7 @@ class InGameHelper implements Serializable {
 		if (missile.getWillBeDestroyedByECM() && !inGame.isECMJammer()) {
 			SoundManager.play(Assets.ecm);
 			if (inGame.getHud() != null) {
-				inGame.getHud().showECM(6000);
+				inGame.getHud().showECM();
 			}
 			return;
 		}

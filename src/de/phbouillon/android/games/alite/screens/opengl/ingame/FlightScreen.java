@@ -94,7 +94,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 	private boolean handleUi = true;
 	private boolean needsActivation = true;
 	private transient boolean isSaving = false;
-	private transient long timeToExitTimer = -1;
+	private transient Timer timeToExitTimer;
 	private transient Alite game;
 
 	private Vector3f v0 = new Vector3f(0, 0, 0);
@@ -103,7 +103,6 @@ public class FlightScreen extends GlScreen implements Serializable {
 
 	public FlightScreen(Alite game, boolean fromStation) {
 		this.game = game;
-		timeToExitTimer = -1;
 		AliteLog.e("Flight Screen Constructor", "FSC -- fromStation == " + fromStation);
 		SHIP_ENTRY_POSITION.z = Settings.enterInSafeZone ? 685000.0f : 400000.0f;
 		this.fromStation = fromStation;
@@ -129,7 +128,6 @@ public class FlightScreen extends GlScreen implements Serializable {
 		FlightScreen fs = (FlightScreen) ois.readObject();
 		fs.needsActivation = false;
 		fs.resetSpaceStation = false;
-		fs.timeToExitTimer = -1;
 		return fs;
 	}
 
@@ -476,10 +474,10 @@ public class FlightScreen extends GlScreen implements Serializable {
 					inGame.performUpdate(deltaTime, allObjects);
 				}
 			} else {
-				if (timeToExitTimer == -1) {
-					timeToExitTimer = System.currentTimeMillis();
+				if (timeToExitTimer == null) {
+					timeToExitTimer = new Timer();
 				}
-				if (System.currentTimeMillis() - timeToExitTimer > 10000) {
+				if (timeToExitTimer.hasPassedSeconds(10)) {
 					// Safeguard for endless loops...
 					inGame.terminateToTitleScreen();
 				}
