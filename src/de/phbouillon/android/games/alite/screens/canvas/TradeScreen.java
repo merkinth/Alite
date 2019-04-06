@@ -21,11 +21,8 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import java.util.Locale;
 
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Graphics;
+import de.phbouillon.android.framework.*;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
@@ -52,7 +49,7 @@ public abstract class TradeScreen extends AliteScreen {
 	Button[][] tradeButton = null;
 
 	int currentFrame = 0;
-	long startSelectionTime = 0;
+	final Timer selectionTimer = new Timer().setAutoReset();
 	Button selection = null;
 
 	private boolean continuousAnimation;
@@ -93,15 +90,14 @@ public abstract class TradeScreen extends AliteScreen {
 
 	private void computeCurrentFrame() {
 		if (!continuousAnimation) {
-			if (TimeUtil.hasPassed(startSelectionTime, 5, TimeUtil.SECONDS)) {
+			if (selectionTimer.hasPassedSeconds(5)) {
 				currentFrame = 0;
 			}
 			if (currentFrame > 15) {
 				return;
 			}
 		}
-		if (TimeUtil.hasPassed(startSelectionTime, 42, TimeUtil.MILLIS)) { // 1/24 second
-			startSelectionTime = System.nanoTime();
+		if (selectionTimer.hasPassedMillis(42)) { // 1/24 second
 			currentFrame++;
 			if (continuousAnimation && currentFrame > 15) {
 				currentFrame = 1;
@@ -202,7 +198,7 @@ public abstract class TradeScreen extends AliteScreen {
 					continue;
 				}
 				errorText = null;
-				startSelectionTime = System.nanoTime();
+				selectionTimer.reset();
 				currentFrame = 0;
 				selection = tradeButton[x][y];
 				cashLeft = null;

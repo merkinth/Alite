@@ -22,14 +22,14 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.games.alite.AliteLog;
 
 public class Laser extends Equipment implements Serializable {
 	private static final long serialVersionUID = -8132898632556359341L;
 
 	private final int index;
-	private long lastShot = 0;
+	private final Timer timer = new Timer().setAutoResetWithImmediateAtFirstCall();
 	private final long delayTime;
 	private final int power;
 	private final long color;
@@ -60,16 +60,8 @@ public class Laser extends Equipment implements Serializable {
 		return index;
 	}
 
-	private boolean canFireAgain() {
-		return lastShot == 0 || TimeUtil.hasPassed(lastShot, delayTime, TimeUtil.NANOS);
-	}
-
 	public boolean fire() {
-		if (!canFireAgain()) {
-			return false;
-		}
-		lastShot = System.nanoTime();
-		return true;
+		return timer.hasPassedNanos(delayTime);
 	}
 
 	public int getPower() {

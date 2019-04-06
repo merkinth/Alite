@@ -26,7 +26,7 @@ import android.graphics.Rect;
 import android.media.MediaPlayer;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -63,7 +63,7 @@ public class CougarScreen extends AliteScreen {
 	private int lineIndex = 0;
 	private Cougar cougar;
 	private TextData[] missionText;
-	private long lastChangeTime;
+	private final Timer timer = new Timer().setAutoReset();
 	private float currentDeltaX;
 	private float targetDeltaX;
 	private float currentDeltaY;
@@ -94,11 +94,10 @@ public class CougarScreen extends AliteScreen {
 	}
 
 	private void dance() {
-		if (TimeUtil.hasPassed(lastChangeTime, 4, TimeUtil.SECONDS)) {
+		if (timer.hasPassedSeconds(4)) {
 			targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-			lastChangeTime = System.nanoTime();
 		}
 		if (Math.abs(currentDeltaX - targetDeltaX) > 0.0001) {
 			currentDeltaX += (targetDeltaX - currentDeltaX) / 8.0f;
@@ -221,7 +220,6 @@ public class CougarScreen extends AliteScreen {
 		targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 		targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 		targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-		lastChangeTime = System.nanoTime();
 	}
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {

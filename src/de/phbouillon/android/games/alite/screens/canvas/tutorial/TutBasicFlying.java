@@ -45,7 +45,7 @@ import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
-import de.phbouillon.android.games.alite.screens.opengl.objects.DestructionCallback;
+import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Buoy;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteButtons;
@@ -168,7 +168,7 @@ public class TutBasicFlying extends TutorialScreen {
 	private void initLine_00() {
 		addTopLine("Good Morning kiddo, we'll do some real flying today, so " +
 				"you'd better pay attention...").
-				setUpdateMethod((IMethodHook) deltaTime -> {
+				setUpdateMethod(deltaTime -> {
 					flight.getInGameManager().getShip().setSpeed(0);
 					flight.getInGameManager().setPlayerControl(false);
 				});
@@ -189,7 +189,7 @@ public class TutBasicFlying extends TutorialScreen {
 		final TutorialLine line =
 				addTopLine("Too difficult for you, rookie? Let me show you:");
 
-		line.setFinishHook((IMethodHook) deltaTime -> {
+		line.setFinishHook(deltaTime -> {
 			yellowTarget = getBuoy("Yellow Target", new Vector3f(-8000, -11000, 17000),
 				new Vector3f(0xef, 0xef, 0x00));
 			blueTarget = getBuoy("Blue Target", new Vector3f(8000, 14000, -10000),
@@ -300,8 +300,8 @@ public class TutBasicFlying extends TutorialScreen {
 				"bring the blue target into the crosshairs in front of you.").
 				setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> targetToCrosshairs(line, blueTarget))
-		.setFinishHook((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> targetToCrosshairs(line, blueTarget))
+		.setFinishHook(deltaTime -> {
 			flight.getInGameManager().setPlayerControl(false);
 			setButtons(false);
 			InGameManager.OVERRIDE_SPEED = false;
@@ -339,8 +339,8 @@ public class TutBasicFlying extends TutorialScreen {
 		final TutorialLine line = addTopLine(
 				"Why don't you get the yellow target in front of you?").setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> targetToCrosshairs(line, yellowTarget))
-		.setFinishHook((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> targetToCrosshairs(line, yellowTarget))
+		.setFinishHook(deltaTime -> {
 			setButtons(false);
 			InGameManager.OVERRIDE_SPEED = false;
 			flight.getInGameManager().setPlayerControl(false);
@@ -366,8 +366,8 @@ public class TutBasicFlying extends TutorialScreen {
 		final TutorialLine line = addTopLine(
 				"Go ahead, fly a little closer.").setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> approachTarget(line, yellowTarget))
-			.setFinishHook((IMethodHook) deltaTime -> finishFlight());
+		line.setUnskippable().setUpdateMethod(deltaTime -> approachTarget(line, yellowTarget))
+			.setFinishHook(deltaTime -> finishFlight());
 	}
 
 	private void approachTarget(TutorialLine line, Buoy target) {
@@ -414,29 +414,21 @@ public class TutBasicFlying extends TutorialScreen {
 					"engage the laser, press the button on the upper left.").
 				setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			AliteButtons.OVERRIDE_HYPERSPACE = true;
 			AliteButtons.OVERRIDE_INFORMATION = true;
 			AliteButtons.OVERRIDE_MISSILE = true;
 			AliteButtons.OVERRIDE_LASER = false;
 			startFlight();
 			if (yellowTarget.getDestructionCallbacks().isEmpty()) {
-				yellowTarget.addDestructionCallback(new DestructionCallback() {
-					@Override
-					public void onDestruction() {
-						line.setFinished();
-						if (flight.findObjectByName("Blue Target") == null) {
-							currentLineIndex+= 5;
-						}
-					}
-
-					@Override
-					public int getId() {
-						return 5;
+				yellowTarget.addDestructionCallback(5, (IMethodHook) deltaTime1 -> {
+					line.setFinished();
+					if (flight.findObjectByName("Blue Target") == null) {
+						currentLineIndex+= 5;
 					}
 				});
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
+		}).setFinishHook(deltaTime -> {
 			flight.getInGameManager().getLaserManager().setAutoFire(false);
 			finishFlight();
 		});
@@ -451,8 +443,8 @@ public class TutBasicFlying extends TutorialScreen {
 		final TutorialLine line =
 			addTopLine("Now for the remaining target: Approach the blue target.").setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> approachTarget(line, blueTarget))
-			.setFinishHook((IMethodHook) deltaTime -> finishFlight());
+		line.setUnskippable().setUpdateMethod(deltaTime -> approachTarget(line, blueTarget))
+			.setFinishHook(deltaTime -> finishFlight());
 	}
 
 	private void initLine_24() {
@@ -461,7 +453,7 @@ public class TutBasicFlying extends TutorialScreen {
 					"on the left once to target the missile.").
 				setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			AliteButtons.OVERRIDE_HYPERSPACE = true;
 			AliteButtons.OVERRIDE_INFORMATION = true;
 			AliteButtons.OVERRIDE_MISSILE = false;
@@ -477,7 +469,7 @@ public class TutBasicFlying extends TutorialScreen {
 				line.setFinished();
 				currentLineIndex++;
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> finishFlight());
+		}).setFinishHook(deltaTime -> finishFlight());
 	}
 
 	private void initLine_25() {
@@ -485,7 +477,7 @@ public class TutBasicFlying extends TutorialScreen {
 			addTopLine("Get the blue target into your crosshairs, so that " +
 					"the missile indicator turns red.").setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			AliteButtons.OVERRIDE_HYPERSPACE = true;
 			AliteButtons.OVERRIDE_INFORMATION = true;
 			AliteButtons.OVERRIDE_MISSILE = false;
@@ -497,7 +489,7 @@ public class TutBasicFlying extends TutorialScreen {
 				SoundManager.play(Assets.identify);
 				line.setFinished();
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
+		}).setFinishHook(deltaTime -> {
 			flight.getInGameManager().setPlayerControl(false);
 			flight.setHandleUI(false);
 			setButtons(false);
@@ -509,9 +501,8 @@ public class TutBasicFlying extends TutorialScreen {
 			addLine(TUTORIAL_INDEX, "And then tap the missile button again.").
 			setHeight(180).setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod(new IMethodHook() {
-			private void writeObject(ObjectOutputStream out)
-		            throws IOException {
+		line.setUnskippable().setUpdateMethod(new IMethodHook() {
+			private void writeObject(ObjectOutputStream out) throws IOException {
 				try {
 					AliteLog.e("Writing", "Writing");
 					out.defaultWriteObject();
@@ -536,7 +527,7 @@ public class TutBasicFlying extends TutorialScreen {
 				// The destruction callback must have the reference to the tutorial line,
 				// which is not serializable. This causes problems, of course.
 				// Solution: Delete the destruction callbacks before calling write object....
-				blueTarget.addDestructionCallback(new DestructionCallback() {
+				blueTarget.addDestructionCallback(6, new IMethodHook() {
 					transient TutorialLine tLine = line;
 
 					private void writeObject(ObjectOutputStream out) throws IOException {
@@ -560,17 +551,13 @@ public class TutBasicFlying extends TutorialScreen {
 					}
 
 					@Override
-					public void onDestruction() {
+					public void execute(float deltaTime) {
 						tLine.setFinished();
 					}
 
-					@Override
-					public int getId() {
-						return 6;
-					}
 				});
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> finishFlight());
+		}).setFinishHook(deltaTime -> finishFlight());
 	}
 
 	private void initLine_27() {
@@ -595,7 +582,7 @@ public class TutBasicFlying extends TutorialScreen {
 		final TutorialLine line = addTopLine("Let me help you: See the new " +
 				"red target? Approach it.").setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (dockingBuoy == null) {
 				dockingBuoy = (Buoy) flight.findObjectByName("Docking Buoy");
 				if (dockingBuoy == null) {
@@ -620,7 +607,7 @@ public class TutBasicFlying extends TutorialScreen {
 				dockingBuoy.setRemove(true);
 				line.setFinished();
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> finishFlight());
+		}).setFinishHook(deltaTime -> finishFlight());
 
 	}
 
@@ -629,7 +616,7 @@ public class TutBasicFlying extends TutorialScreen {
 				addTopLine("Good. Now turn around so that you face the " +
 						"station.").setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			startFlightWithButtons();
 			if (flight.getInGameManager().getLaserManager().isUnderCross(
 					(SpaceObject) flight.getInGameManager().getStation(),
@@ -637,7 +624,7 @@ public class TutBasicFlying extends TutorialScreen {
 					flight.getInGameManager().getViewDirection())) {
 				line.setFinished();
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
+		}).setFinishHook(deltaTime -> {
 			setButtons(false);
 			flight.getInGameManager().setPlayerControl(false);
 			flight.setHandleUI(false);
@@ -657,16 +644,16 @@ public class TutBasicFlying extends TutorialScreen {
 				"yourself 'Commander'. Good luck, wet-nose.").
 				setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			startFlightWithButtons();
 			if (flight.getInGameManager().getPostDockingHook() == null) {
-				flight.getInGameManager().setPostDockingHook((IMethodHook) deltaTime1 -> dispose());
+				flight.getInGameManager().setPostDockingHook(deltaTime1 -> dispose());
 			}
 			if (flight.getInGameManager().getActualPostDockingScreen() == null) {
 				flight.getInGameManager().setPostDockingScreen(
 					new TutorialSelectionScreen(alite));
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> finishFlight());
+		}).setFinishHook(deltaTime -> finishFlight());
 	}
 
 	@Override

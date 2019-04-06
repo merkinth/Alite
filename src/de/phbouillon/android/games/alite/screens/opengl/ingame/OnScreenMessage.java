@@ -22,7 +22,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
@@ -34,25 +34,29 @@ class OnScreenMessage implements Serializable {
 		private static final long serialVersionUID = -936827160142919485L;
 
 		String text;
-		long time;
-		long duration;
-		float scale;
+		private Timer timer;
+		private int delayInSec;
+		long durationInSec;
 
-		DelayedText(String text, long time) {
+		DelayedText(String text, int delayInSec) {
 			this.text = text;
-			this.time = System.nanoTime() + time * TimeUtil.SECONDS;
-			duration = 5;
-			scale = 1.0f;
+			this.delayInSec = delayInSec;
+			timer = new Timer();
+			durationInSec = 5;
+		}
+
+		boolean passed() {
+			return timer.hasPassedSeconds(delayInSec);
 		}
 	}
 
 	private String text = "";
-	private long activationTime = 0;
-	private long duration;
-	private long repetitionInterval;
-	private long lastRepetitionInactive = 0;
+	private final Timer activationTime = new Timer();
+	private long durationInSec;
+	private long repetitionIntervalInSec;
+	private final Timer lastRepetitionInactive = new Timer();
 	private int repetitionTimes = -1;
-	private long repetitionDuration;
+	private long repetitionDurationInSec;
 	private String repetitionText;
 	private float scale = 1.0f;
 	private final List <DelayedText> delayedTexts = new ArrayList<>();
@@ -67,47 +71,25 @@ class OnScreenMessage implements Serializable {
 		delayedTexts.add(new DelayedText(text, 10));
 	}
 
-	void setScaledTextForDuration(String text, long duration, float scale) {
+	void setScaledTextForDuration(String text, long durationInSec, float scale) {
 		this.text = text;
 		this.scale = scale;
-		activate(duration);
+		activate(durationInSec);
 	}
 
-	void repeatText(String text, long interval) {
+	void repeatText(String text, long intervalInSec) {
+		repeatText(text, intervalInSec, -1, 1);
+	}
+
+	void repeatText(String text, long intervalInSec, int times, long durationInSec) {
 		if (repetitionText != null && repetitionText.equals(text)) {
 			return;
 		}
 		scale = 1.0f;
 		this.text = text;
-		activate(1);
-		repetitionDuration = 1;
-		repetitionInterval = interval;
-		repetitionText = text;
-		repetitionTimes = -1;
-	}
-
-	void repeatText(String text, long interval, int times, long duration) {
-		if (repetitionText != null && repetitionText.equals(text)) {
-			return;
-		}
-		scale = 1.0f;
-		this.text = text;
-		activate(duration);
-		repetitionDuration = duration;
-		repetitionInterval = interval;
-		repetitionText = text;
-		repetitionTimes = -1;
-	}
-
-	void repeatText(String text, long interval, int times) {
-		if (repetitionText != null && repetitionText.equals(text)) {
-			return;
-		}
-		scale = 1.0f;
-		this.text = text;
-		activate(1);
-		repetitionDuration = 1;
-		repetitionInterval = interval;
+		activate(durationInSec);
+		repetitionDurationInSec = durationInSec;
+		repetitionIntervalInSec = intervalInSec;
 		repetitionText = text;
 		repetitionTimes = times;
 	}
@@ -116,52 +98,45 @@ class OnScreenMessage implements Serializable {
 		repetitionText = null;
 	}
 
-	private void activate(long duration) {
-		activate(System.nanoTime(), duration);
-	}
-
-	private void activate(long nanoTime, long duration) {
-		activationTime = nanoTime;
-		this.duration = duration;
+	private void activate(long durationInSec) {
+		activationTime.reset();
+		this.durationInSec = durationInSec;
 	}
 
 	boolean isActive() {
-		return activationTime > 0 && !TimeUtil.hasPassed(activationTime, duration, TimeUtil.SECONDS);
+		return !activationTime.hasPassedSeconds(durationInSec);
 	}
 
 	void render(Alite alite) {
-		long time = System.nanoTime();
 		DelayedText toBeRemoved = null;
 		for (DelayedText dt: delayedTexts) {
-			if (time >= dt.time) {
+			if (dt.passed()) {
 				text = dt.text;
 				scale = 1.0f;
-				activate(time, dt.duration);
+				activate(dt.durationInSec);
 				toBeRemoved = dt;
 			}
 		}
 		if (toBeRemoved != null) {
 			delayedTexts.remove(toBeRemoved);
 		}
-		if (!isActive()) {
-			if (lastRepetitionInactive <= 0 && repetitionText != null) {
-				lastRepetitionInactive = System.nanoTime();
-			}
-			if (repetitionText != null && TimeUtil.hasPassed(lastRepetitionInactive, repetitionInterval, TimeUtil.SECONDS)) {
-				if (repetitionTimes > 0) {
-					repetitionTimes--;
-				} else if (repetitionTimes == 0) {
-					clearRepetition();
-					repetitionTimes = -1;
-					return;
-				}
-				text = repetitionText;
-				activate(repetitionDuration);
-			}
+		if (isActive()) {
+			lastRepetitionInactive.reset();
+			alite.getGraphics().drawCenteredText(text, 960, 650, ColorScheme.get(ColorScheme.COLOR_HUD_MESSAGE),
+				Assets.regularFont, scale);
 			return;
 		}
-		lastRepetitionInactive = 0;
-		alite.getGraphics().drawCenteredText(text, 960, 650, ColorScheme.get(ColorScheme.COLOR_HUD_MESSAGE),
-			Assets.regularFont, scale);
+		if (repetitionText == null || !lastRepetitionInactive.hasPassedSeconds(repetitionIntervalInSec)) {
+			return;
+		}
+		if (repetitionTimes > 0) {
+			repetitionTimes--;
+		} else if (repetitionTimes == 0) {
+			clearRepetition();
+			repetitionTimes = -1;
+			return;
+		}
+		text = repetitionText;
+		activate(repetitionDurationInSec);
 	}
 }

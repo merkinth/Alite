@@ -24,11 +24,8 @@ import java.io.IOException;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.Geometry;
-import de.phbouillon.android.framework.Graphics;
+import de.phbouillon.android.framework.*;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.Music;
-import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
@@ -99,8 +96,8 @@ public class ShipIntroScreen extends AliteScreen {
 
 	private static final float START_Z    = -40000.0f;
 
-	private long startTime;
-	private long lastChangeTime;
+	private final Timer timer = new Timer().setAutoReset();
+	private final Timer danceTimer = new Timer().setAutoReset();
 	private int currentShipIndex = 0;
 	private float currentDeltaX;
 	private float targetDeltaX;
@@ -329,7 +326,7 @@ public class ShipIntroScreen extends AliteScreen {
 		targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 		targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 		currentShip = ao;
-		startTime = System.nanoTime();
+		timer.reset();
 		displayMode = DisplayMode.DANCE;
 		ao.setAIState(AIState.IDLE, (Object[]) null);
 		ao.setSpeed(-ao.getMaxSpeed());
@@ -410,22 +407,19 @@ public class ShipIntroScreen extends AliteScreen {
 		}
 		if (end) {
 			displayMode = DisplayMode.DANCE;
-			startTime = System.nanoTime();
-			lastChangeTime = startTime;
+			timer.reset();
 		}
 		currentShip.setPosition(0, 0, newZ);
 	}
 
 	private void dance() {
-		if (DANCE && TimeUtil.hasPassed(lastChangeTime, 4, TimeUtil.SECONDS)) {
+		if (DANCE && danceTimer.hasPassedSeconds(4)) {
 			targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-			lastChangeTime = System.nanoTime();
 		}
-		if (TimeUtil.hasPassed(startTime, 15, TimeUtil.SECONDS) && !ONLY_CHANGE_SHIPS_AFTER_SWEEP) {
+		if (timer.hasPassedSeconds(15) && !ONLY_CHANGE_SHIPS_AFTER_SWEEP) {
 			displayMode = DisplayMode.ZOOM_OUT;
-			startTime = System.nanoTime();
 		}
 	}
 
@@ -442,7 +436,7 @@ public class ShipIntroScreen extends AliteScreen {
 			currentShip = getNextShip();
 			newZ = START_Z;
 			displayMode = DisplayMode.ZOOM_IN;
-			startTime = System.nanoTime();
+			timer.reset();
 		}
 		currentShip.setPosition(0, 0, newZ);
 	}

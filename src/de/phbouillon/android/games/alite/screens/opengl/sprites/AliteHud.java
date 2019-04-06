@@ -25,7 +25,7 @@ import java.nio.FloatBuffer;
 
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -86,7 +86,7 @@ public class AliteHud extends Sprite implements Serializable {
 	private boolean witchSpace = false;
 	private ControlPad controlPad;
 	private CursorKeys controlKeys;
-	private long lastCall = -1;
+	private final Timer timer = new Timer().setAutoResetWithSkipFirstCall();
 
 	public AliteHud(Alite alite) {
 		super(alite, ct.getTextureCoordX(RADAR_X1), ct.getTextureCoordY(RADAR_Y1), ct.getTextureCoordX(RADAR_X2), ct.getTextureCoordY(RADAR_Y2),
@@ -324,16 +324,10 @@ public class AliteHud extends Sprite implements Serializable {
 	}
 
 	public void update(float deltaTime) {
-		if (lastCall == -1) {
-			lastCall = System.nanoTime();
-		} else {
-			if (enemiesVisible && TimeUtil.hasPassed(lastCall, ENEMY_VISIBLE_PHASE, TimeUtil.MILLIS)) {
-				lastCall = System.nanoTime();
-				enemiesVisible = false;
-			} else if (!enemiesVisible && TimeUtil.hasPassed(lastCall, ENEMY_INVISIBLE_PHASE, TimeUtil.MILLIS)) {
-				lastCall = System.nanoTime();
-				enemiesVisible = true;
-			}
+		if (enemiesVisible && timer.hasPassedMillis(ENEMY_VISIBLE_PHASE)) {
+			enemiesVisible = false;
+		} else if (!enemiesVisible && timer.hasPassedMillis(ENEMY_INVISIBLE_PHASE)) {
+			enemiesVisible = true;
 		}
 		if (controlPad != null) {
 			controlPad.update(deltaTime);

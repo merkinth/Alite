@@ -29,7 +29,7 @@ import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -108,7 +108,7 @@ public class ConstrictorScreen extends AliteScreen {
 	private int lineIndex = 0;
 	private Constrictor constrictor;
 	private TextData[] missionText;
-	private long lastChangeTime;
+	private final Timer timer = new Timer().setAutoReset();
 	private float currentDeltaX;
 	private float targetDeltaX;
 	private float currentDeltaY;
@@ -164,11 +164,10 @@ public class ConstrictorScreen extends AliteScreen {
 	}
 
 	private void dance() {
-		if (TimeUtil.hasPassed(lastChangeTime, 4, TimeUtil.SECONDS)) {
+		if (timer.hasPassedSeconds(4)) {
 			targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 			targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-			lastChangeTime = System.nanoTime();
 		}
 		if (Math.abs(currentDeltaX - targetDeltaX) > 0.0001) {
 			currentDeltaX += (targetDeltaX - currentDeltaX) / 8.0f;
@@ -382,7 +381,6 @@ public class ConstrictorScreen extends AliteScreen {
 		targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 		targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
 		targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-		lastChangeTime = System.nanoTime();
 		if (acceptMission != null) {
 			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, acceptIcon);
 			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, declineIcon);

@@ -83,7 +83,7 @@ public class TutTrading extends TutorialScreen {
 				"remember how to do that, don't you?");
 
 		status = new StatusScreen(alite);
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (updateNavBar() instanceof BuyScreen) {
 				status.dispose();
 				status = null;
@@ -109,7 +109,7 @@ public class TutTrading extends TutorialScreen {
 		final TutorialLine line = addLine(2,
 			"Oh, don't be shy, try it: Tap one trade item once. Come on.");
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (buy.getSelectedGood() == null) {
 				buy.processAllTouches();
 			}
@@ -120,18 +120,17 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_03() {
-		final TutorialLine line = addLine(2,
+		addLine(2,
 				"See? That wasn't so hard after all, was it? Now, if you " +
-				"tap it again, and the item is available, you can buy some.");
-
-		line.setFinishHook((IMethodHook) deltaTime -> buy.resetSelection()).setHeight(150);
+				"tap it again, and the item is available, you can buy some.")
+		.setFinishHook(deltaTime -> buy.resetSelection()).setHeight(150);
 	}
 
 	private void initLine_04() {
 		final TutorialLine line = addLine(2,
 				"Let's try that: Tap on the symbol for food.");
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (buy.getSelectedGood() == null) {
 				buy.processAllTouches();
 			}
@@ -152,7 +151,7 @@ public class TutTrading extends TutorialScreen {
 				"No, I told you to tap on the food-icon, that's the one " +
 				"in the upper left corner, wet-nose.");
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (buy.getSelectedGood() == null) {
 				buy.processAllTouches();
 			}
@@ -170,7 +169,7 @@ public class TutTrading extends TutorialScreen {
 	private void initLine_06() {
 		final TutorialLine line = addLine(2, "Ok. Now tap it again.");
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			buy.processAllTouches();
 			if (buy.getGoodToBuy() == TradeGoodStore.get().food()) {
 				quantity = (QuantityPadScreen) buy.getNewScreen();
@@ -188,7 +187,7 @@ public class TutTrading extends TutorialScreen {
 				"Although this is a simulation only, and nothing will " +
 				"really be added to your cargo bay, enter a 1 followed by OK.");
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			quantity.processAllTouches();
 			if (quantity.getNewScreen() == buy) {
 				success = "1".equals(buy.getBoughtAmount());
@@ -197,7 +196,7 @@ public class TutTrading extends TutorialScreen {
 				}
 				line.setFinished();
 			}
-		}).setWidth(800).setHeight(350).setY(400).setFinishHook((IMethodHook) deltaTime -> {
+		}).setWidth(800).setHeight(350).setY(400).setFinishHook(deltaTime -> {
 			if (quantity != null) {
 				quantity.clearAmount();
 				if (success) {
@@ -216,7 +215,7 @@ public class TutTrading extends TutorialScreen {
 				"the number in the first column, third row, followed by OK; " +
 				"that's the third column, fourth row button.");
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			quantity.processAllTouches();
 			if (quantity.getNewScreen() == buy) {
 				success = "1".equals(buy.getBoughtAmount());
@@ -225,7 +224,7 @@ public class TutTrading extends TutorialScreen {
 					currentLineIndex--;
 				}
 			}
-		}).setWidth(800).setHeight(350).setY(400).setFinishHook((IMethodHook) deltaTime -> {
+		}).setWidth(800).setHeight(350).setY(400).setFinishHook(deltaTime -> {
 			if (success) {
 				quantity.dispose();
 				quantity = null;
@@ -243,7 +242,7 @@ public class TutTrading extends TutorialScreen {
 				"the inventory screen and see how that ton of food is " +
 				"displayed there.");
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (updateNavBar() instanceof InventoryScreen) {
 				buy.dispose();
 				buy = null;
@@ -265,9 +264,9 @@ public class TutTrading extends TutorialScreen {
 				"something, go to the inventory screen and tap the item you " +
 				"want to sell twice. Easy, right? Go ahead, do it...");
 
-		line.setSkippable(false).setY(500).
+		line.setUnskippable().setY(500).
 			addHighlight(makeHighlight(450, 970, 850, 40)).
-			setUpdateMethod((IMethodHook) deltaTime -> {
+			setUpdateMethod(deltaTime -> {
 				inventory.processAllTouches();
 				if (inventory.getCashLeft() != null) {
 					line.setFinished();

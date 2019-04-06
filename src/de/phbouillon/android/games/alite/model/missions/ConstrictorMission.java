@@ -33,7 +33,7 @@ import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ConstrictorScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
-import de.phbouillon.android.games.alite.screens.opengl.objects.DestructionCallback;
+import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Constrictor;
 
 public class ConstrictorMission extends Mission {
@@ -166,26 +166,22 @@ public class ConstrictorMission extends Mission {
 				@Override
 				public void doPerform() {
 					constrictorCreated = true;
-					setRemove(true);
+					remove();
 					SoundManager.play(Assets.com_conditionRed);
 					manager.getInGameManager().repeatMessage("Condition Red!", 3);
 					Vector3f spawnPosition = manager.getSpawnPosition();
 					Constrictor constrictor = new Constrictor(alite);
 					manager.spawnEnemyAndAttackPlayer(constrictor, 0, spawnPosition);
 					manager.lockConditionRedEvent();
-					constrictor.addDestructionCallback(new DestructionCallback() {
+					constrictor.addDestructionCallback(13, new IMethodHook() {
 						private static final long serialVersionUID = -7774734879444916116L;
 
 						@Override
-						public void onDestruction() {
+						public void execute(float deltaTime) {
 							state = 7;
 							manager.unlockConditionRedEvent();
 						}
 
-						@Override
-						public int getId() {
-							return 13;
-						}
 					});
 				}
 			};

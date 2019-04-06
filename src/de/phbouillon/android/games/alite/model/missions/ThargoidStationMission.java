@@ -34,7 +34,7 @@ import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ThargoidStationScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
-import de.phbouillon.android.games.alite.screens.opengl.objects.DestructionCallback;
+import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallbackHandler;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
@@ -191,20 +191,16 @@ public class ThargoidStationMission extends Mission {
 					manager.getInGameManager().getStation().setName("Alien Space Station");
 					((SpaceObject) manager.getInGameManager().getStation()).setHullStrength(1024);
 					((SpaceStation) manager.getInGameManager().getStation()).denyAccess();
-					manager.getInGameManager().getStation().addDestructionCallback(new DestructionCallback() {
+					manager.getInGameManager().getStation().addDestructionCallback(2, new IMethodHook() {
 						private static final long serialVersionUID = 6715650816893032921L;
 
 						@Override
-						public void onDestruction() {
+						public void execute(float deltaTime) {
 							state = 3;
 						}
 
-						@Override
-						public int getId() {
-							return 2;
-						}
 					});
-					setRemove(true);
+					remove();
 				}
 			};
 		}
@@ -232,8 +228,7 @@ public class ThargoidStationMission extends Mission {
 		if (state != 2) {
 			return null;
 		}
-		long delayToConditionRedEncounter = (long) ((2 << 9) / 16.7f * 1000000000L);
-		conditionRedEvent = new TimedEvent(delayToConditionRedEncounter) {
+		conditionRedEvent = new TimedEvent((long) ((2 << 9) / 16.7f * 1000000000L)) {
 			private static final long serialVersionUID = 7815560584428889246L;
 
 			@Override

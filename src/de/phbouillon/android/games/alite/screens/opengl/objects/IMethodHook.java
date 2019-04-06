@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.opengl.objects;
 
 import java.io.Serializable;
 
-public interface DestructionCallback extends Serializable {
-	void onDestruction();
-	int getId();
+public interface IMethodHook extends Serializable {
+	void execute(float deltaTime);
 }

@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -67,7 +66,7 @@ public class TutEquipment extends TutorialScreen {
 		final TutorialLine line =
 				addLine(3,  "Go to the Equipment screen now.").setY(700);
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
 			if (newScreen instanceof EquipmentScreen) {
 				status.dispose();
@@ -87,7 +86,7 @@ public class TutEquipment extends TutorialScreen {
 	private void initLine_02() {
 		final TutorialLine line = addLine(3, "No, I said \"Equipment\" screen.").setY(700);
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
 			if (newScreen instanceof EquipmentScreen) {
 				status.dispose();
@@ -113,7 +112,7 @@ public class TutEquipment extends TutorialScreen {
 				"hyperspace fuel as a training exercise, so go ahead. Buy " +
                 "some fuel.").setY(700).addHighlight(makeHighlight(150, 100, 225, 225));
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			equip.processAllTouches();
 			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.fuel) {
 				line.setFinished();
@@ -121,7 +120,7 @@ public class TutEquipment extends TutorialScreen {
 				line.setFinished();
 				currentLineIndex++;
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> equip.clearSelection());
+		}).setFinishHook(deltaTime -> equip.clearSelection());
 	}
 
 	private void initLine_04() {
@@ -130,7 +129,7 @@ public class TutEquipment extends TutorialScreen {
 				"twice. Is it really that hard for you?").setY(700).
 					addHighlight(makeHighlight(150, 100, 225, 225));
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			equip.processAllTouches();
 			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.fuel) {
 				line.setFinished();

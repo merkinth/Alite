@@ -25,7 +25,7 @@ import android.graphics.Rect;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -78,8 +78,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 	private int windowHeight;
 	private final List <AliteObject> allObjects = new ArrayList<>();
 	private final InGameManager inGame;
-	private long startTime;
-	private long screenStartTime;
+	private final Timer timer = new Timer().setAutoReset();
 	private int currentShipIndex = 0;
 
 	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
@@ -118,8 +117,6 @@ public class ControlledShipIntroScreen extends GlScreen {
 		cobra.setPosition(0.0f, 0.0f, START_Z);
 		inGame.getShip().setPosition(0.0f, 0.0f, 0.0f);
 		allObjects.add(cobra);
-		startTime = System.nanoTime();
-		screenStartTime = startTime;
 		displayMode = DisplayMode.ZOOM_IN;
 		AliteLog.d("Ship Intro Screen", "On Activation done. glError: " + GLES11.glGetError());
 	}
@@ -185,7 +182,6 @@ public class ControlledShipIntroScreen extends GlScreen {
 		if (newZ >= -((SpaceObject) allObjects.get(0)).getMaxExtent() * 2.2f) {
 			newZ = -((SpaceObject) allObjects.get(0)).getMaxExtent() * 2.2f;
 			displayMode = DisplayMode.CONTROL;
-			startTime = System.nanoTime();
 		}
 		allObjects.get(0).setPosition(0, 0, newZ);
 	}
@@ -205,7 +201,6 @@ public class ControlledShipIntroScreen extends GlScreen {
 				allObjects.get(0).setMatrix(matrix);
 			}
 			displayMode = DisplayMode.ZOOM_IN;
-			startTime = System.nanoTime();
 		}
 		allObjects.get(0).setPosition(0, 0, newZ);
 	}
@@ -233,7 +228,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 				return;
 			}
 		}
-		if (TimeUtil.hasPassed(screenStartTime, 1, TimeUtil.SECONDS)) {
+		if (!timer.hasPassedSeconds(1)) {
 			return;
 		}
 		for (TouchEvent event: touchEvents) {

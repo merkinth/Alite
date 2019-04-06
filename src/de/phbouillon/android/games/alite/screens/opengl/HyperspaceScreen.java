@@ -27,19 +27,19 @@ import android.graphics.Rect;
 import android.opengl.GLES11;
 import android.opengl.Matrix;
 import de.phbouillon.android.framework.GlScreen;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.screens.canvas.tutorial.IMethodHook;
+import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
 public class HyperspaceScreen extends GlScreen {
-	private long startTime;
+	private final Timer timer = new Timer().setAutoReset();
 	private static final float[] sScratch = new float[32];
 
 	private int windowWidth;
@@ -115,7 +115,6 @@ public class HyperspaceScreen extends GlScreen {
 		int[] size = game.getSize();
 		windowWidth = size[0];
 		windowHeight = size[1];
-		startTime = System.nanoTime();
 		game.getTextureManager().addTexture(textureFilename);
 		makeTorus(WHOLE_TORUS_SIDES, CROSS_SECTION_SIDES, TORUS_RADIUS, CROSS_SECTION_RADIUS);
 		Rect visibleArea = game.getGraphics().getVisibleArea();
@@ -138,7 +137,7 @@ public class HyperspaceScreen extends GlScreen {
 			SoundManager.play(Assets.hyperspace);
 			restartedSound = true;
 		}
-		if (TimeUtil.hasPassed(startTime, 8, TimeUtil.SECONDS)){
+		if (timer.hasPassedSeconds(8)){
 			if (finishHook != null) {
 				finishHook.execute(deltaTime);
 			} else {

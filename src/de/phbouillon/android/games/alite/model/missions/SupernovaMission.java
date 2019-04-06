@@ -23,7 +23,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.SoundManager;
@@ -49,7 +49,7 @@ public class SupernovaMission extends Mission {
 	private int supernovaSystemIndex;
 	private int state;
 	private final TimedEvent preStartEvent;
-	private long startTime = -1;
+	private Timer timer;
 
 	public SupernovaMission(final Alite alite) {
 		super(alite, ID);
@@ -60,7 +60,7 @@ public class SupernovaMission extends Mission {
 			public void doPerform() {
 				alite.getCobra().setFuel(alite.getCobra().getFuel() - 1);
 				if (alite.getCobra().getFuel() <= 0) {
-					setRemove(true);
+					remove();
 				}
 			}
 		};
@@ -200,7 +200,6 @@ public class SupernovaMission extends Mission {
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		boolean result = positionMatchesTarget(galaxySeed, supernovaSystemIndex);
 		if ((state == 1 || state == 2) && result) {
-			startTime = -1;
 			return new TimedEvent(100000000) {
 				private static final long serialVersionUID = 7855977766031440861L;
 
@@ -211,14 +210,14 @@ public class SupernovaMission extends Mission {
 					sun.setNewSize(sun.getRadius() * 1.01f);
 					SphericalSpaceObject sunGlow = (SphericalSpaceObject) inGame.getSunGlow();
 					sunGlow.setNewSize(sun.getRadius() + 400.0f);
-					if (startTime == -1) {
+					if (timer == null) {
 						inGame.setMessage("Danger: Supernova");
 						SoundManager.repeat(Assets.criticalCondition);
-						startTime = System.nanoTime();
+						timer = new Timer();
 					} else {
-						if (TimeUtil.hasPassed(startTime, 20, TimeUtil.SECONDS)) {
-							setRemove(true);
-							startTime = -1;
+						if (timer.hasPassedSeconds(20)) {
+							remove();
+							timer = null;
 							inGame.gameOver();
 						}
 					}

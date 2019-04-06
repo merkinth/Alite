@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Stack;
 
 import android.opengl.Matrix;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Quaternion;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -70,9 +70,9 @@ public final class SpaceObjectAI implements Serializable {
 	private float flightRoll = 0.0f;
 	private float flightPitch = 0.0f;
 	private boolean waitForSafeZoneExit = false;
-	private long lastShootCheck = -1;
+	private final Timer lastShootCheck = new Timer().setAutoResetWithImmediateAtFirstCall();
 	private Curve curve = null;
-	private long curveFollowStart;
+	private final Timer curveFollowStart = new Timer();
 	private final Vector3f lastRotation = new Vector3f(0, 0, 0);
 
 	SpaceObjectAI(final SpaceObject so) {
@@ -406,15 +406,14 @@ public final class SpaceObjectAI implements Serializable {
 				return;
 			}
 			int rating = Alite.get().getPlayer().getRating().ordinal();
-			if (rating >= 7 || lastShootCheck == -1 || TimeUtil.hasPassed(lastShootCheck,
-					BASE_DELAY_BETWEEN_SHOOT_CHECKS - (rating + 2) * SHOOT_DELAY_REDUCE_PER_RATING_LEVEL, TimeUtil.NANOS)) {
+			if (rating >= 7 || lastShootCheck.hasPassedNanos(
+					BASE_DELAY_BETWEEN_SHOOT_CHECKS - (rating + 2) * SHOOT_DELAY_REDUCE_PER_RATING_LEVEL)) {
 				int rand = (int) (Math.random() * 256);
 				if (so.getAggressionLevel() > rand) {
 					if (so.getGame().getLaserManager() != null) {
 						so.getGame().getLaserManager().fire(so, target);
 					}
 				}
-				lastShootCheck = System.nanoTime();
 			}
 		}
 	}
@@ -466,8 +465,7 @@ public final class SpaceObjectAI implements Serializable {
 	}
 
 	private void followCurve() {
-		float time = (System.nanoTime() - curveFollowStart) / 1000000000.0f;
-		curve.compute(time);
+		curve.compute(curveFollowStart.getPassedSeconds());
 
 		so.setPosition(curve.getCurvePosition());
 		so.setForwardVector(curve.getcForward());
@@ -622,7 +620,7 @@ public final class SpaceObjectAI implements Serializable {
 		waypoints.clear();
 		if (data != null && data.length > 0) {
 			curve = (Curve) data[0];
-			curveFollowStart = System.nanoTime();
+			curveFollowStart.reset();
 		}
 		currentDistance = -1;
 		so.adjustSpeed(-so.getMaxSpeed());

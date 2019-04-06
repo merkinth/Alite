@@ -21,7 +21,7 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites.buttons;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.Updater;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -43,18 +43,17 @@ class EscapeCapsuleUpdater implements Updater {
 	private transient Alite alite;
 	private final InGameManager inGame;
 	private final GraphicObject ship;
-	private final long startTime;
+	private final Timer timer = new Timer();
 	private EscapeCapsuleState state = EscapeCapsuleState.SPAWN;
 	private CobraMkIII cobra = null;
 	private EscapeCapsule esc = null;
 	private final Vector3f vec1 = new Vector3f(0, 0, 0);
 	private final Vector3f vec2 = new Vector3f(0, 0, 0);
 
-	EscapeCapsuleUpdater(Alite alite, InGameManager inGame, GraphicObject ship, long startTime) {
+	EscapeCapsuleUpdater(Alite alite, InGameManager inGame, GraphicObject ship) {
 		this.alite = alite;
 		this.inGame = inGame;
 		this.ship = ship;
-		this.startTime = startTime;
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
@@ -120,7 +119,7 @@ class EscapeCapsuleUpdater implements Updater {
 	}
 
 	private void moveShip() {
-		if (TimeUtil.hasPassed(startTime, 4, TimeUtil.SECONDS)) {
+		if (timer.hasPassedSeconds(4)) {
 			state = EscapeCapsuleState.QUIT;
 		}
 		// Nothing else to be done here; InGameRender advances the cobra...

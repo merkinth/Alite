@@ -68,7 +68,7 @@ public class TutNavigation extends TutorialScreen {
 				"Open it.");
 
 		status = new StatusScreen(alite);
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen screen = updateNavBar();
 			if (screen instanceof GalaxyScreen && !(screen instanceof LocalScreen)) {
 				line.setFinished();
@@ -90,7 +90,7 @@ public class TutNavigation extends TutorialScreen {
 				"fingers on the screen and move them apart. Do that until " +
 				"you can see the names of the systems appear.").setY(150);
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			galaxy.processAllTouches();
 			if (galaxy.namesVisible()) {
 				line.setFinished();
@@ -101,7 +101,7 @@ public class TutNavigation extends TutorialScreen {
 	private void initLine_02() {
 		final TutorialLine line = addLine(4, "Now, push the \"Home\" button.");
 
-		line.setSkippable(false).setHeight(100).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setHeight(100).setUpdateMethod(deltaTime -> {
 			for (TouchEvent event: game.getInput().getTouchEvents()) {
 				galaxy.processTouch(event);
 				if (event.type == TouchEvent.TOUCH_UP) {
@@ -124,7 +124,7 @@ public class TutNavigation extends TutorialScreen {
 				"planet screen to get more information on the selected " +
 				"planet. Do that now.").setY(150).setHeight(300);
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (galaxy != null) {
 				galaxy.updateMap();
 			}
@@ -149,7 +149,7 @@ public class TutNavigation extends TutorialScreen {
 				"No, I told you to switch to the planet screen, wet-nose. " +
 				"Try again.");
 
-		line.setHeight(100).setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setHeight(100).setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
 			if (newScreen instanceof PlanetScreen) {
 				galaxy.dispose();
@@ -183,7 +183,7 @@ public class TutNavigation extends TutorialScreen {
 				"Now that you have gathered information on the planet, " +
 				"switch to the local screen.").setY(150);
 
-		line.setHeight(150).setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setHeight(150).setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen screen = updateNavBar();
 			if (screen instanceof LocalScreen) {
 				planet.dispose();
@@ -205,7 +205,7 @@ public class TutNavigation extends TutorialScreen {
 				"No, I told you to switch to the local screen, wet-nose. " +
 				"Try again.").setY(150);
 
-		line.setHeight(150).setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setHeight(150).setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
 			if (newScreen instanceof LocalScreen) {
 				planet.dispose();
@@ -229,7 +229,7 @@ public class TutNavigation extends TutorialScreen {
 				"accessed. You can zoom out, though. Just hold two fingers " +
 				"on the screen and move them together. Do it now.").setY(150);
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			local.processAllTouches();
 			if (local.getZoomFactor() < 2.0f) {
 				line.setFinished();

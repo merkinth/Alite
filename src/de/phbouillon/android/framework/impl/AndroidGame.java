@@ -61,8 +61,8 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 	private int deviceHeight;
 	private int deviceWidth;
 	private GLGameState state = GLGameState.Initialized;
-	private long startTime = System.nanoTime();
-	private long lastTime = startTime;
+	private Timer ticker;
+	private Timer scheduler;
 	private int frames = 0;
 	private int timeFactor = 1;
 	public static float fps;
@@ -284,7 +284,8 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		screen.loadAssets();
 		screen.activate();
 		screen.resume();
-		startTime = System.nanoTime();
+		ticker = new Timer();
+		scheduler = new Timer().setAutoReset();
 	}
 
 	@Override
@@ -312,11 +313,10 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		}
 		try {
 			GLGameState state = this.state;
-			while (!TimeUtil.hasPassed(startTime, 33, TimeUtil.MILLIS));
-			long nanoTime = System.nanoTime();
+			while (!ticker.hasPassedMillis(33));
 			if (state == GLGameState.Running && getCurrentView() == glView) {
-				float deltaTime = (nanoTime - startTime) / 1000000000.0f;
-				startTime = nanoTime;
+				float deltaTime = ticker.getPassedSeconds();
+				ticker.reset();
 				screen.update(deltaTime);
 				if (!screen.isDisposed()) {
 					screen.present(deltaTime);
@@ -325,12 +325,9 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 				screen.renderNavigationBar();
 				screen.postNavigationRender(deltaTime);
 				frames++;
-				if (lastTime == 0) {
-					lastTime = nanoTime;
-				} else if (Settings.displayFrameRate && nanoTime - lastTime >= 1000000000L) {
+				if (Settings.displayFrameRate && scheduler.getPassedSeconds() >= 1) {
 					fps = frames;
 					frames = 0;
-					lastTime = nanoTime;
 				}
 			}
 			if (state == GLGameState.Paused) {

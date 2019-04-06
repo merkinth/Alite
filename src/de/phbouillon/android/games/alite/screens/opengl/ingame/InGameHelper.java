@@ -23,7 +23,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.List;
 
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -62,7 +62,7 @@ class InGameHelper implements Serializable {
 	private final InGameManager inGame;
 	private final Vector3f tempVector;
 	private float fuelScoopFuel = 0.0f;
-	private long lastMissileWarning = -1;
+	private final Timer lastMissileWarning = new Timer().setAutoResetWithImmediateAtFirstCall();
 	private final AttackTraverser attackTraverser;
 	private transient ScoopCallback scoopCallback = null;
 	private boolean cabinTemperatureAlarm;
@@ -79,7 +79,7 @@ class InGameHelper implements Serializable {
 			AliteLog.e("readObject", "InGameHelper.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "InGameHelper.readObject I");
-			this.alite = Alite.get();
+			alite = Alite.get();
 			AliteLog.e("readObject", "InGameHelper.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
@@ -383,49 +383,56 @@ class InGameHelper implements Serializable {
 	void handleMissileUpdate(Missile missile, float deltaTime) {
 		missile.moveForward(deltaTime);
 		// And track target object...
-		if (missile.getTarget() == inGame.getShip() &&
-				(lastMissileWarning == -1 || TimeUtil.hasPassed(lastMissileWarning, 2, TimeUtil.SECONDS))) {
-			lastMissileWarning = System.nanoTime();
+		if (missile.getTarget() == inGame.getShip() && lastMissileWarning.hasPassedSeconds(2)) {
 			SoundManager.play(Assets.com_incomingMissile);
 		}
-		if (missile.getHullStrength() > 0) {
-			if (missile.getTarget() == null || missile.getTarget().mustBeRemoved() || missile.getTarget().getHullStrength() <= 0) {
-				inGame.setMessage("Target lost");
-				missile.setHullStrength(0);
-				inGame.getLaserManager().explode(missile, WeaponType.PulseLaser);
-			} else {
-				missile.update(deltaTime);
-				if (missile.getWillBeDestroyedByECM() && missile.getPosition().distanceSq(missile.getTarget().getPosition()) < 40000 && !inGame.isECMJammer()) {
-					missile.setHullStrength(0);
-					inGame.getLaserManager().explode(missile, WeaponType.ECM);
-					SoundManager.play(Assets.ecm);
-					if (inGame.getHud() != null) {
-						inGame.getHud().showECM(6000);
-					}
-				} else {
-					float distance = LaserManager.computeIntersectionDistance(missile.getForwardVector(), missile.getPosition(), missile.getTarget().getPosition(), missile.getTarget().getBoundingSphereRadius(), tempVector);
-					if (distance > 0 && (distance < -missile.getSpeed() * deltaTime || distance < 4000)) {
-						missile.setHullStrength(0);
-						inGame.getLaserManager().explode(missile, WeaponType.SelfDestruct);
-						if (missile.getWillBeDestroyedByECM() && !inGame.isECMJammer()) {
-							SoundManager.play(Assets.ecm);
-							if (inGame.getHud() != null) {
-								inGame.getHud().showECM(6000);
-							}
-						} else {
-							if (missile.getTarget() == inGame.getShip()) {
-								inGame.getLaserManager().damageShip(40, missile.getDisplayMatrix()[14] < 0);
-							} else {
-								missile.getTarget().setHullStrength(0);
-								missile.getTarget().setRemove(true);
-								inGame.computeBounty(missile.getTarget());
-								inGame.getLaserManager().explode(missile.getTarget(), WeaponType.Missile);
-							}
-						}
-					}
-				}
-			}
+		if (missile.getHullStrength() <= 0) {
+			return;
 		}
+
+		if (missile.getTarget() == null || missile.getTarget().mustBeRemoved() || missile.getTarget().getHullStrength() <= 0) {
+			inGame.setMessage("Target lost");
+			missile.setHullStrength(0);
+			inGame.getLaserManager().explode(missile, WeaponType.PulseLaser);
+			return;
+		}
+
+		missile.update(deltaTime);
+		if (missile.getWillBeDestroyedByECM() && missile.getPosition().distanceSq(missile.getTarget().getPosition()) < 40000 && !inGame.isECMJammer()) {
+			missile.setHullStrength(0);
+			inGame.getLaserManager().explode(missile, WeaponType.ECM);
+			SoundManager.play(Assets.ecm);
+			if (inGame.getHud() != null) {
+				inGame.getHud().showECM(6000);
+			}
+			return;
+		}
+
+		float distance = LaserManager.computeIntersectionDistance(missile.getForwardVector(),
+			missile.getPosition(), missile.getTarget().getPosition(), missile.getTarget().getBoundingSphereRadius(), tempVector);
+		if (distance <= 0 || distance >= -missile.getSpeed() * deltaTime && distance >= 4000) {
+			return;
+		}
+
+		missile.setHullStrength(0);
+		inGame.getLaserManager().explode(missile, WeaponType.SelfDestruct);
+		if (missile.getWillBeDestroyedByECM() && !inGame.isECMJammer()) {
+			SoundManager.play(Assets.ecm);
+			if (inGame.getHud() != null) {
+				inGame.getHud().showECM(6000);
+			}
+			return;
+		}
+
+		if (missile.getTarget() == inGame.getShip()) {
+			inGame.getLaserManager().damageShip(40, missile.getDisplayMatrix()[14] < 0);
+			return;
+		}
+
+		missile.getTarget().setHullStrength(0);
+		missile.getTarget().setRemove(true);
+		inGame.computeBounty(missile.getTarget());
+		inGame.getLaserManager().explode(missile.getTarget(), WeaponType.Missile);
 	}
 
 	void checkAltitudeLowAlert() {

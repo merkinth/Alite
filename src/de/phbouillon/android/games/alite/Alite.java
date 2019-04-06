@@ -26,7 +26,7 @@ import android.opengl.GLES11;
 import android.os.Bundle;
 import android.view.Menu;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.io.FileUtils;
@@ -64,7 +64,7 @@ public class Alite extends AndroidGame {
 
 	private Player player;
 	private GalaxyGenerator generator;
-	private long startTime;
+	private Timer clock;
 	private long elapsedTime;
 	private NavigationBar navigationBar;
 	private final FileUtils fileUtils;
@@ -109,7 +109,7 @@ public class Alite extends AndroidGame {
 		});
 		AliteLog.d("Alite.onCreate", "initializing");
 		initialize();
-		startTime = System.nanoTime();
+		clock = new Timer();
 		registerMissions();
 		switch (Settings.lockScreen) {
 			case 0: setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE); break;
@@ -152,11 +152,11 @@ public class Alite extends AndroidGame {
 
 	public void setGameTime(long elapsedTime) {
 		this.elapsedTime = elapsedTime;
-		startTime = System.nanoTime();
+		clock.reset();
 	}
 
 	public long getGameTime() {
-		return elapsedTime + TimeUtil.getPassedTime(startTime, TimeUtil.NANOS);
+		return elapsedTime + clock.getPassedNanos();
 	}
 
 	public Player getPlayer() {

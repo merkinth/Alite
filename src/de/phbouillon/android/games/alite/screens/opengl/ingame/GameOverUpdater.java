@@ -21,7 +21,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.Updater;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -43,18 +43,17 @@ class GameOverUpdater implements Updater {
 	private transient Alite alite;
 	private final InGameManager inGame;
 	private final GraphicObject ship;
-	private final long startTime;
+	private final Timer startTime = new Timer();
 	private GameOverState state = GameOverState.SPAWN;
 	private CobraMkIII cobra = null;
 	private boolean needsDestruction = true;
 	private final Vector3f vec1 = new Vector3f(0, 0, 0);
 	private final Vector3f vec2 = new Vector3f(0, 0, 0);
 
-	GameOverUpdater(Alite alite, InGameManager inGame, GraphicObject ship, long startTime) {
+	GameOverUpdater(Alite alite, InGameManager inGame, GraphicObject ship) {
 		this.alite = alite;
 		this.inGame = inGame;
 		this.ship = ship;
-		this.startTime = startTime;
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
@@ -103,7 +102,7 @@ class GameOverUpdater implements Updater {
 	}
 
 	private void moveShip() {
-		if (TimeUtil.hasPassed(startTime, 2, TimeUtil.SECONDS)) {
+		if (startTime.hasPassedSeconds(2)) {
 			state = GameOverState.EXPLODE;
 		}
 		// Nothing else to be done here; InGameManager advances the cobra...
@@ -115,7 +114,7 @@ class GameOverUpdater implements Updater {
 			inGame.getLaserManager().explode(cobra, WeaponType.BeamLaser);
 			needsDestruction = false;
 		}
-		if (TimeUtil.hasPassed(startTime, 10, TimeUtil.SECONDS)) {
+		if (startTime.hasPassedSeconds(10)) {
 			state = GameOverState.QUIT;
 		}
 	}

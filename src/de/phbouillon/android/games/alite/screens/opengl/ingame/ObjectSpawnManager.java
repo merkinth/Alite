@@ -24,7 +24,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import android.opengl.Matrix;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.Updater;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -37,9 +37,8 @@ import de.phbouillon.android.games.alite.model.LegalStatus;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.generator.enums.Government;
 import de.phbouillon.android.games.alite.model.missions.Mission;
-import de.phbouillon.android.games.alite.screens.canvas.tutorial.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.BoxSpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.DestructionCallback;
+import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallback;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallbackHandler;
@@ -91,7 +90,7 @@ public class ObjectSpawnManager implements Serializable {
     private SpawnTimer viperTimer = new SpawnTimer();
     private transient BoxSpaceObject gateWatcher;
 
-    private long launchTime = -1;
+    private Timer launchTime;
 
 	private static final Vector3f vector = new Vector3f(0, 0, 0);
 	private static final Vector3f vector2 = new Vector3f(0, 0, 0);
@@ -102,8 +101,8 @@ public class ObjectSpawnManager implements Serializable {
 	private SystemData system;
 	private boolean timedEventsMustBeInitialized = true;
 	private int launchAreaViolations = 0;
-	private long lastWarningTime = -1;
-	private long lastLogTime = 0;
+	private final Timer lastWarningTime = new Timer().setAutoResetWithSkipFirstCall();
+	private final Timer lastLogTime = new Timer().setAutoReset();
 
 	private class SpawnTimer implements Serializable {
 		private static final long serialVersionUID = -4989102775350929292L;
@@ -111,7 +110,6 @@ public class ObjectSpawnManager implements Serializable {
 		private transient TimedEvent event;
 		private boolean paused = false;
 		private long pauseTime = -1;
-		private boolean locked = false;
 		private long lastExecutionTime = -1;
 
 		private void clearTimes() {
@@ -124,18 +122,11 @@ public class ObjectSpawnManager implements Serializable {
 				return;
 			}
 			pauseTime = event.pause();
-			lastExecutionTime = event.lastExecutionTime;
+			lastExecutionTime = event.getLastExecutionTime();
 		}
 
 		private void initialize(long delay, final IMethodHook method) {
-			event = new TimedEvent(delay, lastExecutionTime, pauseTime, locked) {
-				private static final long serialVersionUID = -92934290891367981L;
-
-				@Override
-				public void doPerform() {
-					method.execute(0);
-				}
-			};
+			event = new TimedEvent(delay, lastExecutionTime, pauseTime, method);
 			clearTimes();
 		}
 
@@ -214,19 +205,19 @@ public class ObjectSpawnManager implements Serializable {
 			return;
 		}
 		if (conditionRedTimer.event != null) {
-			conditionRedTimer.event.setRemove(true);
+			conditionRedTimer.event.remove();
 		}
 		if (traderTimer.event != null) {
-			traderTimer.event.setRemove(true);
+			traderTimer.event.remove();
 		}
 		if (asteroidTimer.event != null) {
-			asteroidTimer.event.setRemove(true);
+			asteroidTimer.event.remove();
 		}
 		if (shuttleOrTransportTimer.event != null) {
-			shuttleOrTransportTimer.event.setRemove(true);
+			shuttleOrTransportTimer.event.remove();
 		}
 		if (viperTimer.event != null) {
-			viperTimer.event.setRemove(true);
+			viperTimer.event.remove();
 		}
 		long delayToConditionRedEncounter = getDelayToConditionRedEncounter();
 		long delayToTraderEncounter = getDelayToTraderEncounter();
@@ -431,20 +422,16 @@ public class ObjectSpawnManager implements Serializable {
 
 	public void spawnEnemyAndAttackPlayer(final SpaceObject ship, int index, Vector3f spawnPosition) {
 		spawnEnemyAndAttackPlayerWithoutCallback(ship, index, spawnPosition);
-		ship.addDestructionCallback(new DestructionCallback() {
+		ship.addDestructionCallback(8, new IMethodHook() {
 			private static final long serialVersionUID = -3628212229724389819L;
 
 			@Override
-			public void onDestruction() {
+			public void execute(float deltaTime) {
 				if (inGame.getNumberOfObjects(ObjectType.EnemyShip) == 0 && conditionRedTimer.event != null) {
 					unlockConditionRedEvent();
 				}
 			}
 
-			@Override
-			public int getId() {
-				return 8;
-			}
 		});
 	}
 
@@ -456,10 +443,10 @@ public class ObjectSpawnManager implements Serializable {
 		Thargoid thargoid = new Thargoid(alite);
 		thargoid.setSpawnThargonDistanceSq(computeSpawnThargonDistanceSq());
 		spawnEnemyAndAttackPlayerWithoutCallback(thargoid, 0, spawnPosition);
-		thargoid.addDestructionCallback(new DestructionCallback(){
+		thargoid.addDestructionCallback(9, new IMethodHook(){
 			private static final long serialVersionUID = -5841075572165732277L;
 
-			public void onDestruction() {
+			public void execute(float deltaTime) {
 				if (inGame.getWitchSpace() != null) {
 					inGame.getWitchSpace().increaseWitchSpaceKillCounter();
 				}
@@ -470,15 +457,11 @@ public class ObjectSpawnManager implements Serializable {
 					@Override
 					public void doPerform() {
 						spawnThargoidInWitchSpace();
-						setRemove(true);
+						remove();
 					}
 				});
 			}
 
-			@Override
-			public int getId() {
-				return 9;
-			}
 		});
 	}
 
@@ -565,7 +548,7 @@ public class ObjectSpawnManager implements Serializable {
 		if (!inGame.isInSafeZone()) {
 			return false;
 		}
-		if (launchTime != -1 && !TimeUtil.hasPassed(launchTime, LAUNCH_BREAK_TIMER, TimeUtil.SECONDS)) {
+		if (launchTime != null && !launchTime.hasPassedSeconds(LAUNCH_BREAK_TIMER)) {
 			return false;
 		}
 		// Vipers fly out of the docking port, so it is forbidden for all other ships ;)
@@ -616,10 +599,9 @@ public class ObjectSpawnManager implements Serializable {
 	}
 
 	private void handleLaunchAreaViolations() {
-		if (lastWarningTime != -1 && !TimeUtil.hasPassed(lastWarningTime, 5, TimeUtil.SECONDS)) {
+		if (!lastWarningTime.hasPassedSeconds(5)) {
 			return;
 		}
-		lastWarningTime = System.nanoTime();
 		if (launchAreaViolations == 0) {
 			// TODO Play sample
 			inGame.setMessage("Hey rookie! Clear the launch area immediately.");
@@ -640,12 +622,11 @@ public class ObjectSpawnManager implements Serializable {
 			alite.getPlayer().setLegalValue(alite.getPlayer().getLegalValue() + 4);
 			inGame.getShip().setUpdater(new Updater() {
 				private static final long serialVersionUID = 4046742301009349763L;
-				private long lastExecution = -1;
+				private Timer lastExecution = new Timer().setAutoResetWithImmediateAtFirstCall();
 
 				@Override
 				public void onUpdate(float deltaTime) {
-					if (lastExecution == -1 || TimeUtil.hasPassed(lastExecution, 1, TimeUtil.SECONDS)) {
-						lastExecution = System.nanoTime();
+					if (lastExecution.hasPassedSeconds(1)) {
 						float distance = inGame.getShip().getPosition().distance(inGame.getSystemStationPosition());
 						AliteLog.d("Distance to Station", "Distance to Station: " + distance);
 						if (distance > 4000) {
@@ -746,7 +727,11 @@ public class ObjectSpawnManager implements Serializable {
 		});
 		so.registerAiStateCallbackHandler(AiStateCallback.EndOfWaypointsReached, callback);
 		inGame.addObject(so);
-		launchTime = System.nanoTime();
+		if (launchTime == null) {
+			launchTime = new Timer();
+		} else {
+			launchTime.reset();
+		}
 	}
 
 	private void spawnAsteroid() {
@@ -854,10 +839,9 @@ public class ObjectSpawnManager implements Serializable {
 	}
 
 	private void spawnViper() {
-		if (TimeUtil.hasPassed(lastLogTime, 1, TimeUtil.SECONDS)) {
+		if (lastLogTime.hasPassedSeconds(1)) {
 			AliteLog.d("Spawn Viper", "SafeZoneViolated: " + InGameManager.safeZoneViolated +
 				", VipersWillEngage: " + inGame.isVipersWillEngage());
-			lastLogTime = System.nanoTime();
 		}
 		if (inGame.getWitchSpace() != null) {
 			return;
@@ -964,26 +948,22 @@ public class ObjectSpawnManager implements Serializable {
 			spawnEnemyAndAttackPlayerWithoutCallback(thargon, i, vector2, thargonSpawnMatrix);
 			mother.addActiveThargon(thargon);
 			thargon.setMother(mother);
-			thargon.addDestructionCallback(new DestructionCallback() {
+			thargon.addDestructionCallback(10, new IMethodHook() {
 				private static final long serialVersionUID = -7756830551169201213L;
 
 				@Override
-				public void onDestruction() {
+				public void execute(float deltaTime) {
 					if (mother.getHullStrength() > 0) {
 						mother.removeActiveThargon(thargon);
 					}
 				}
 
-				@Override
-				public int getId() {
-					return 10;
-				}
 			});
-			mother.addDestructionCallback(new DestructionCallback() {
+			mother.addDestructionCallback(11, new IMethodHook() {
 				private static final long serialVersionUID = -2344244194022201965L;
 
 				@Override
-				public void onDestruction() {
+				public void execute(float deltaTime) {
 					for (Thargon thargon: mother.getActiveThargons()) {
 						if (thargon.getHullStrength() > 0) {
 							thargon.setAIState(AIState.FLY_STRAIGHT, -thargon.getSpeed());
@@ -991,10 +971,6 @@ public class ObjectSpawnManager implements Serializable {
 					}
 				}
 
-				@Override
-				public int getId() {
-					return 11;
-				}
 			});
 		}
 	}

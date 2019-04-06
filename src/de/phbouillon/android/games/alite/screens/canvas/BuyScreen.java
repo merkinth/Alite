@@ -25,7 +25,6 @@ import java.io.IOException;
 import android.graphics.Color;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
@@ -49,7 +48,7 @@ public class BuyScreen extends TradeScreen {
 		0xFFFFBD00, Color.YELLOW, 0xFFFFFF3B, 0xFFFFFF7D, 0xFFFFFFBF, Color.WHITE };
 	private int currentAvailabiltyColor;
 	private String boughtAmount = null;
-	private long startTime = System.nanoTime();
+	private float elapsedTime;
 	private String pendingSelection = null;
 	private TradeGood goodToBuy;
 
@@ -159,8 +158,8 @@ public class BuyScreen extends TradeScreen {
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle("Buy Cargo");
 
-		long timeDiff = TimeUtil.getPassedTime(startTime, TimeUtil.SECONDS);
-		currentAvailabiltyColor = (int) (timeDiff % availColors.length);
+		elapsedTime+= deltaTime;
+		currentAvailabiltyColor = (int) (elapsedTime % availColors.length);
 		presentTradeGoods(deltaTime);
 		presentTradeStatus();
 	}

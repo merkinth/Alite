@@ -177,8 +177,7 @@ public class ThargoidDocumentsMission extends Mission {
 
 	@Override
 	public TimedEvent getConditionRedSpawnReplacementEvent(final ObjectSpawnManager manager) {
-		long delayToConditionRedEncounter = (long) ((((float) (2 << 9)) / 16.7f) * 1000000000l);
-		conditionRedEvent = new TimedEvent(delayToConditionRedEncounter) {
+		conditionRedEvent = new TimedEvent((long) ((2 << 9) / 16.7f * 1000000000L)) {
 			private static final long serialVersionUID = 4448575917547734318L;
 
 			@Override

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,99 +18,101 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.framework.Timer;
+import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
+
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-public abstract class TimedEvent implements Serializable {
+public class TimedEvent implements Serializable {
 	private static final long serialVersionUID = -7887711369377615831L;
 
-	protected long delay;
-	protected long lastExecutionTime;
-	protected long pauseTime = -1;
+	private final Timer timer = new Timer().setAutoReset();
+	long delay;
+	private IMethodHook method;
+	private long pauseTime;
 	private boolean remove;
 	protected boolean locked;
-	
-	private void writeObject(ObjectOutputStream out)
-            throws IOException {
+
+	private void writeObject(ObjectOutputStream out) throws IOException {
 		if (!remove) {
 			out.defaultWriteObject();
 		}
 	}
-	
-	public TimedEvent(long delayInNanoSeconds) {
-		this.delay = delayInNanoSeconds;
-		lastExecutionTime = System.nanoTime();
-		pauseTime = -1;
-		locked = false;
-	}
-		
-	public TimedEvent(long delayInNanoSeconds, long lastExecutionTime, long pauseTime, boolean locked) {
-		this.delay = delayInNanoSeconds;
-		this.lastExecutionTime = lastExecutionTime == -1 ? System.nanoTime() : lastExecutionTime;
-		this.pauseTime = pauseTime;
-		this.locked = locked;
+
+	public TimedEvent(long delayInNanos) {
+		this(delayInNanos, -1, -1, null);
 	}
 
-	protected void setRemove(boolean r) {
-		remove = r;
+	public TimedEvent(long delayInNanos, long lastExecutionTime, long pauseTime, IMethodHook method) {
+		delay = delayInNanos;
+		if (lastExecutionTime != -1) {
+			timer.setTimer(lastExecutionTime);
+		}
+		this.pauseTime = pauseTime;
+		this.method = method;
 	}
-	
-	public boolean mustBeRemoved() {
+
+	protected void remove() {
+		remove = true;
+	}
+
+	boolean mustBeRemoved() {
 		return remove;
 	}
-	
-	public void updateDelay(long newDelay) {
-		this.delay = newDelay;
-		lastExecutionTime = System.nanoTime();
+
+	void updateDelay(long newDelay) {
+		delay = newDelay;
+		timer.reset();
 		pauseTime = -1;
 	}
-	
-	public long timeToNextTrigger() {
-		return delay - (System.nanoTime() - lastExecutionTime);
+
+	long timeToNextTrigger() {
+		return delay - timer.getPassedNanos();
 	}
-	
-	public void perform(long time) {
-		if (pauseTime != -1 || locked) {
-			return;
-		}
-		if ((time - lastExecutionTime) >= delay) {
-			lastExecutionTime = time;
-			doPerform();
+	long getLastExecutionTime() {
+		return timer.getTimer();
+	}
+
+	void perform() {
+		if (pauseTime == -1 && !locked) {
+			if (timer.hasPassedNanos(delay)) {
+				if (method != null) method.execute(0);
+				else doPerform();
+			}
 		}
 	}
 
 	public void lock() {
 		locked = true;
 	}
-	
-	public void unlock() {
-		if (!locked) {
-			return;
+
+	void unlock() {
+		if (locked) {
+			timer.reset();
+			locked = false;
 		}
-		lastExecutionTime = System.nanoTime();
-		locked = false;
 	}
-	
+
 	public long pause() {
-		if (pauseTime != -1) {
-			return pauseTime;
+		if (pauseTime == -1) {
+			pauseTime = timer.getPassedNanos();
 		}
-		pauseTime = System.nanoTime() - lastExecutionTime;
 		return pauseTime;
-	}	
-	
+	}
+
 	public boolean isPaused() {
 		return pauseTime != -1;
 	}
-	
+
 	public void resume() {
-		if (pauseTime == -1) {
-			return;
+		if (pauseTime != -1) {
+			timer.setTimer(pauseTime);
+			pauseTime = -1;
 		}
-		lastExecutionTime = System.nanoTime() - pauseTime;
-		pauseTime = -1;
 	}
-	
-	public abstract void doPerform();	
+
+	public void doPerform() {
+	}
 }

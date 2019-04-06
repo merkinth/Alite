@@ -25,7 +25,7 @@ import java.io.Serializable;
 import android.graphics.Color;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.Alite;
@@ -98,7 +98,7 @@ public class AliteButtons implements Serializable {
 	private boolean sweepRightDown = false;
 	private boolean yesTouched = false;
 	private boolean noTouched = false;
-	private long downTime = -1;
+	private Timer downTime;
 	private transient int [] sweepLeftPos = new int[2];
 	private transient int [] sweepRightPos = new int[2];
 
@@ -270,9 +270,9 @@ public class AliteButtons implements Serializable {
 		if (buttons[MISSILE] == null) {
 			return;
 		}
-		if (downTime != -1 && TimeUtil.hasPassed(downTime, 1500, TimeUtil.MILLIS) && buttons[MISSILE].red) {
+		if (downTime != null && downTime.hasPassedSeconds(1.5f) && buttons[MISSILE].red) {
 			inGame.handleMissileIcons();
-			downTime = -1;
+			downTime = null;
 			buttons[MISSILE].red = false;
 			SoundManager.play(Assets.click);
 			source = null;
@@ -281,7 +281,7 @@ public class AliteButtons implements Serializable {
 		SpaceObject missileLock = inGame.getMissileLock();
 		if (missileLock != null && (missileLock.getHullStrength() < 0 || missileLock.mustBeRemoved())) {
 			inGame.handleMissileIcons();
-			downTime = -1;
+			downTime = null;
 			buttons[MISSILE].red = false;
 			buttons[MISSILE].selected = false;
 			inGame.setMessage("Target lost");
@@ -558,7 +558,7 @@ public class AliteButtons implements Serializable {
 					actionPerformed = false;
 					source = bd;
 					if (source == buttons[MISSILE] && buttons[MISSILE].red) {
-						downTime = System.nanoTime();
+						downTime = new Timer();
 					}
 					if (source == buttons[FIRE] && !Settings.laserButtonAutoFire) {
 						fireButtonPressed = e.pointer;
@@ -603,7 +603,7 @@ public class AliteButtons implements Serializable {
 			}
 		}
 		if (e.type == TouchEvent.TOUCH_UP) {
-			downTime = -1;
+			downTime = null;
 			if (source != null) {
 				source.selected = false;
 				source = null;
@@ -696,7 +696,7 @@ public class AliteButtons implements Serializable {
 		}
 		inGame.forceForwardView();
 		inGame.killHud();
-		ship.setUpdater(new EscapeCapsuleUpdater(alite, inGame, ship, System.nanoTime()));
+		ship.setUpdater(new EscapeCapsuleUpdater(alite, inGame, ship));
 		alite.getPlayer().setCondition(Condition.DOCKED);
 		// The police track record is identified by the ship's id,
 		// so leaving it with an escape capsule can be abused to get a

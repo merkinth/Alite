@@ -31,7 +31,7 @@ import android.opengl.GLES11;
 import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -90,7 +90,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 	private boolean fromStation;
 	private boolean witchSpace = false;
 	private boolean paused = false;
-	private long lastPauseCall = -1;
+	private final Timer timer = new Timer().setAutoResetWithImmediateAtFirstCall();
 	private boolean handleUi = true;
 	private boolean needsActivation = true;
 	private transient boolean isSaving = false;
@@ -167,10 +167,9 @@ public class FlightScreen extends GlScreen implements Serializable {
 
 	public void togglePause() {
 		if (inGame != null) {
-			if (lastPauseCall == -1 || TimeUtil.hasPassed(lastPauseCall, 1, TimeUtil.SECONDS)) {
+			if (timer.hasPassedSeconds(1)) {
 				paused = !paused;
 				inGame.setPaused(paused);
-				lastPauseCall = System.nanoTime();
 			}
 		}
 	}
@@ -181,7 +180,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 			inGame.setPaused(b);
 		}
 		if (b) {
-			lastPauseCall = System.nanoTime();
+			timer.reset();
 		}
 	}
 

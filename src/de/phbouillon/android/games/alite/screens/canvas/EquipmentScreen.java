@@ -363,7 +363,7 @@ public class EquipmentScreen extends TradeScreen {
 				selectionIndex = y * COLUMNS + x;
 				selection = tradeButton[x][y];
 				loadSelectedEquipmentAnimation();
-				startSelectionTime = System.nanoTime();
+				selectionTimer.reset();
 				currentFrame = 0;
 				cashLeft = null;
 				SoundManager.play(Assets.click);

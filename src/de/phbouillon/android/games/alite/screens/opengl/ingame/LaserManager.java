@@ -29,7 +29,7 @@ import android.content.Context;
 import android.opengl.GLES11;
 import android.opengl.Matrix;
 import android.os.Vibrator;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.Pool;
 import de.phbouillon.android.framework.impl.Pool.PoolObjectFactory;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
@@ -75,9 +75,9 @@ public class LaserManager implements Serializable {
 	private final Vector3f shotDirection;
 	private final Vector3f laserRight;
 	private final Vector3f laserForward;
-	private long lastLaserFireUp = 0;
-	private long lastFrontWarning = -1;
-	private long lastRearWarning = -1;
+	private final Timer lastLaserFireUp = new Timer().setAutoResetWithSkipFirstCall();
+	private final Timer lastFrontWarning = new Timer().setAutoResetWithImmediateAtFirstCall();
+	private final Timer lastRearWarning = new Timer().setAutoResetWithImmediateAtFirstCall();
 	private boolean autoFire = false;
 	private final Vector3f tempVector = new Vector3f(0, 0, 0);
 	private final float [] tempVecArray = new float [] {0.0f, 0.0f, 0.0f, 0.0f};
@@ -86,7 +86,7 @@ public class LaserManager implements Serializable {
 	private final List <Explosion> activeExplosions = new ArrayList<>();
 	private InGameManager inGame;
 
-	private long lockTime = -1;
+	private final Timer lockTime = new Timer().setAutoResetWithImmediateAtFirstCall();
 
 	class LaserCylinderFactory implements PoolObjectFactory <LaserCylinder> {
 		private static final long serialVersionUID = -4204164060599078689L;
@@ -272,17 +272,15 @@ public class LaserManager implements Serializable {
 				shield = 0;
 			}
 			if (front) {
-				if (shield <= 0 && (lastFrontWarning == -1 || !TimeUtil.hasPassed(lastFrontWarning, 4, TimeUtil.SECONDS))) {
+				if (shield <= 0 && !lastFrontWarning.hasPassedSeconds(4)) {
 					SoundManager.play(Assets.com_frontShieldHasFailed);
 					inGame.setMessage("Front shield has failed");
-					lastFrontWarning = System.nanoTime();
 				}
 				alite.getCobra().setFrontShield(shield);
 			} else {
-				if (shield <= 0 && (lastRearWarning == -1 || !TimeUtil.hasPassed(lastRearWarning, 4, TimeUtil.SECONDS))) {
+				if (shield <= 0 && !lastRearWarning.hasPassedSeconds(4)) {
 					SoundManager.play(Assets.com_aftShieldHasFailed);
 					inGame.setMessage("Aft shield has failed");
-					lastRearWarning = System.nanoTime();
 				}
 				alite.getCobra().setRearShield(shield);
 			}
@@ -498,12 +496,9 @@ public class LaserManager implements Serializable {
 		if (!Settings.laserDoesNotOverheat) {
 			alite.getCobra().setLaserTemperature(alite.getCobra().getLaserTemperature() + 1);
 		}
-		if (alite.getCobra().getLaserTemperature() == 40 &&
-				(lockTime == -1 || TimeUtil.hasPassed(lockTime, 5, TimeUtil.SECONDS))) {
+		if (alite.getCobra().getLaserTemperature() == 40 && lockTime.hasPassedSeconds(5)) {
 			SoundManager.play(Assets.com_laserTemperatureCritical);
 			inGame.setMessage("Laser temperature critical!");
-
-			lockTime = System.nanoTime();
 		}
 	}
 
@@ -642,10 +637,9 @@ public class LaserManager implements Serializable {
 	}
 
 	void handleTouchUp(final int viewDirection, final GraphicObject ship) {
-		if (lastLaserFireUp != 0 && !TimeUtil.hasPassed(lastLaserFireUp, 500, TimeUtil.MILLIS)) {
+		if (!lastLaserFireUp.hasPassedSeconds(0.5f)) {
 			autoFire = !autoFire;
 		}
-		lastLaserFireUp = System.nanoTime();
 		if (!autoFire) {
 			fire(viewDirection, ship);
 		}

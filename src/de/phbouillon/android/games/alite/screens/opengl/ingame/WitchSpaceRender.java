@@ -57,22 +57,22 @@ public class WitchSpaceRender implements Serializable {
 
 	void increaseWitchSpaceKillCounter() {
 		witchSpaceKillCounter++;
-		if (driveRepairedMessage == null) {
-			if (hyperdriveMalfunction && witchSpaceKillCounter >= Math.min(8, alite.getPlayer().getRating().ordinal() + 1)) {
-				driveRepairedMessage = new TimedEvent((long) ((Math.random() * 5 + 3) * 1000000000L)) {
-					private static final long serialVersionUID = -5599485138177057364L;
-
-					@Override
-					public void doPerform() {
-						hyperdriveMalfunction = false;
-						inGame.getMessage().repeatText("Hyperdrive repaired!", 1, 4);
-						SoundManager.play(Assets.com_hyperdriveRepaired);
-						setRemove(true);
-					}
-				};
-				inGame.addTimedEvent(driveRepairedMessage);
-			}
+		if (driveRepairedMessage != null || !hyperdriveMalfunction ||
+				witchSpaceKillCounter < Math.min(8, alite.getPlayer().getRating().ordinal() + 1)) {
+			return;
 		}
+		driveRepairedMessage = new TimedEvent((long) ((Math.random() * 5 + 3) * 1000000000L)) {
+			private static final long serialVersionUID = -5599485138177057364L;
+
+			@Override
+			public void doPerform() {
+				hyperdriveMalfunction = false;
+				inGame.getMessage().repeatText("Hyperdrive repaired!", 1, 4, 1);
+				SoundManager.play(Assets.com_hyperdriveRepaired);
+				remove();
+			}
+		};
+		inGame.addTimedEvent(driveRepairedMessage);
 	}
 
 	boolean isHyperdriveMalfunction() {
@@ -91,7 +91,7 @@ public class WitchSpaceRender implements Serializable {
 		if (inGame.getHud() != null) {
 			inGame.getHud().setWitchSpace(true);
 		}
-		inGame.getMessage().repeatText("Hyperdrive malfunction!", 1, 4);
+		inGame.getMessage().repeatText("Hyperdrive malfunction!", 1, 4, 1);
 		SoundManager.play(Assets.com_hyperdriveMalfunction);
 		int maxAttackersNumber = alite.getPlayer().getRating().ordinal() - Rating.AVERAGE.ordinal();
 		if (maxAttackersNumber < 1) {

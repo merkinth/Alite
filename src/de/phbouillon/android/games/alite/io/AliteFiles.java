@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.io;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -21,7 +21,7 @@ package de.phbouillon.android.games.alite.io;
 import android.content.Context;
 import android.os.storage.OnObbStateChangeListener;
 import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.screens.canvas.tutorial.IMethodHook;
+import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 
 public class AliteFiles {
 	public static void performMount(final Context context, final IMethodHook methodHook, final IMethodHook errorHook) {
@@ -34,14 +34,14 @@ public class AliteFiles {
 					errorHook.execute(0);
 				}
 			}
-			
+
 			@Override
 			public void onMountSuccess() {
 				String mountedPath = ObbExpansionsManager.getInstance().getMainRoot();
 				AliteLog.d("OBB Path set", "OBB Path = " + mountedPath);
 				methodHook.execute(0);
 			}
-			
+
 			@Override
 			public void onFilesNotFound() {
 				AliteLog.e("OBB Mounting error", "An error occurred when trying to mount the OBB");
@@ -49,7 +49,7 @@ public class AliteFiles {
 			}
 		});
 	}
-	
+
 	public static void performUnmount() {
 	  if (ObbExpansionsManager.getInstance() == null) {
 	    return;
@@ -66,7 +66,7 @@ public class AliteFiles {
           case ERROR_COULD_NOT_UNMOUNT: AliteLog.e("Obb UNmount callback", "Could not unmount"); break;
           case ERROR_NOT_MOUNTED: AliteLog.e("Obb UNmount callback", "OBB was not mounted"); break;
           case ERROR_ALREADY_MOUNTED: AliteLog.e("Obb UNmount callback", "OBB already mounted"); break;
-          case ERROR_PERMISSION_DENIED: AliteLog.e("Obb UNmount callback", "Permission denied"); break;        
+          case ERROR_PERMISSION_DENIED: AliteLog.e("Obb UNmount callback", "Permission denied"); break;
         }
 	    }
     });

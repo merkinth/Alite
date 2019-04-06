@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -33,16 +33,16 @@ public abstract class AliteObject extends GraphicObject implements Serializable 
 	public enum ZPositioning {
 		Front,
 		Normal,
-		Back;
+		Back
 	}
-	
+
 	protected boolean visible = true;
 	protected boolean remove = false;
 	protected ZPositioning positionMode = ZPositioning.Normal;
 	protected float boundingSphereRadius;
-	protected final Map <Integer, DestructionCallback> destructionCallbacks = new LinkedHashMap<Integer, DestructionCallback>();
+	protected final Map <Integer, IMethodHook> destructionCallbacks = new LinkedHashMap<>();
 	private transient boolean saving = false;
-	
+
 	protected final Vector3f v0    = new Vector3f(0, 0, 0);
 	protected final Vector3f v1    = new Vector3f(0, 0, 0);
 	protected final Vector3f v2    = new Vector3f(0, 0, 0);
@@ -55,80 +55,80 @@ public abstract class AliteObject extends GraphicObject implements Serializable 
 	public AliteObject(String name) {
 		super(name);
 	}
-	
+
 	public void setSaving(boolean b) {
 		saving = b;
 		if (saving) {
 			destructionCallbacks.clear();
 		}
 	}
-	
-	public void addDestructionCallback(final DestructionCallback callback) {
+
+	public void addDestructionCallback(int id, final IMethodHook callback) {
 		if (saving) {
 			return;
 		}
-		destructionCallbacks.put(callback.getId(), callback);
+		destructionCallbacks.put(id, callback);
 	}
-	
+
 	public boolean hasDestructionCallback(int id) {
 		return destructionCallbacks.containsKey(id);
 	}
-	
-	public Collection <DestructionCallback> getDestructionCallbacks() {
+
+	public Collection <IMethodHook> getDestructionCallbacks() {
 		if (saving) {
 			return Collections.emptyList();
 		}
 		return destructionCallbacks.values();
 	}
-	
+
 	public boolean needsDepthTest() {
 		return true;
 	}
-	
+
 	public void setVisible(boolean visible) {
 		this.visible = visible;
 	}
-	
+
 	public boolean isVisible() {
 		return visible;
 	}
-	
-	public void setRemove(boolean remove) {		
+
+	public void setRemove(boolean remove) {
 		this.remove = remove;
 	}
-	
+
 	public boolean mustBeRemoved() {
 		return remove;
 	}
-	
+
 	public ZPositioning getZPositioningMode() {
 		return positionMode;
 	}
-	
+
 	public void setZPositioningMode(ZPositioning posMode) {
 		positionMode = posMode;
 	}
-	
+
 	public float getBoundingSphereRadius() {
 		return boundingSphereRadius;
 	}
-	
+
 	public void executeDestructionCallbacks() {
-		for (DestructionCallback dc: destructionCallbacks.values()) {
-			dc.onDestruction();
+		for (IMethodHook dc: destructionCallbacks.values()) {
+			dc.execute(0);
 		}
 	}
-	
+
 	protected boolean intersectInternal(int numberOfVertices, Vector3f origin, Vector3f direction, float [] verts) {
 		for (int i = 0; i < numberOfVertices * 3; i += 9) {
 			v0.x = verts[i + 0];
 			v0.y = verts[i + 1];
 			v0.z = verts[i + 2];
-			
+
 			v1.x = verts[i + 3];
 			v1.y = verts[i + 4];
 			v1.z = verts[i + 5];
-			
+
 			v2.x = verts[i + 6];
 			v2.y = verts[i + 7];
 			v2.z = verts[i + 8];
@@ -156,7 +156,7 @@ public abstract class AliteObject extends GraphicObject implements Serializable 
 		return false;
 	}
 
-	
+
 	public abstract boolean isVisibleOnHud();
 	public abstract Vector3f getHudColor();
 }

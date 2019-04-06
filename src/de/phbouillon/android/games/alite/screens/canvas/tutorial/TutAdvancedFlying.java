@@ -26,7 +26,7 @@ import java.util.List;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -47,7 +47,6 @@ import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ScoopCallback;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
-import de.phbouillon.android.games.alite.screens.opengl.objects.DestructionCallback;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Adder;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteButtons;
@@ -73,12 +72,13 @@ public class TutAdvancedFlying extends TutorialScreen {
 	private int savedScore;
 	private int savedLegalValue;
 	private TutAdvancedFlying switchScreen = null;
-	private long time = -1;
+	private final Timer timer = new Timer().setAutoResetWithSkipFirstCall();
 	private int savedMarketFluct;
 	private Adder adder = null;
 	private InventoryItem[] savedInventory;
 	private LegalStatus savedLegalStatus;
 	private int[] savedButtonConfiguration = new int[Settings.buttonPosition.length];
+	private boolean scooped;
 
 	TutAdvancedFlying(final Alite alite, int lineIndex) {
 		this(alite, lineIndex, null);
@@ -166,7 +166,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 
 	private void initLine_00() {
 		addTopLine("Welcome back, Commander! A fair landing you produced " +
-				"there. I'm proud of you!").setUpdateMethod((IMethodHook) deltaTime -> {
+				"there. I'm proud of you!").setUpdateMethod(deltaTime -> {
 					flight.getInGameManager().getShip().setSpeed(0);
 					flight.getInGameManager().setPlayerControl(false);
 				});
@@ -182,11 +182,10 @@ public class TutAdvancedFlying extends TutorialScreen {
 			addTopLine("Therefore, when you activate the hyperspace, you will " +
 				"reach a simulated space region a little off of Lave. Go " +
 				"there, now. Activate the hyperspace drive.").
-				setMustRetainEvents().addHighlight(
-						makeHighlight(1710, 300, 200, 200)).
-						setSkippable(false);
+			setMustRetainEvents().addHighlight(makeHighlight(1710, 300, 200, 200)).
+			setUnskippable();
 
-		line.setHeight(180).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setHeight(180).setUpdateMethod(deltaTime -> {
 			AliteButtons.OVERRIDE_HYPERSPACE = false;
 			AliteButtons.OVERRIDE_INFORMATION = true;
 			AliteButtons.OVERRIDE_MISSILE = true;
@@ -194,7 +193,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 			setPlayerControlOn();
 
 			if (flight != null && flight.getInGameManager().getHyperspaceHook() == null) {
-				flight.getInGameManager().setHyperspaceHook((IMethodHook) deltaTime1 -> {
+				flight.getInGameManager().setHyperspaceHook(deltaTime1 -> {
 					hyperspace = new HyperspaceScreen(alite, false);
 					hyperspace.setNeedsSoundRestart();
 					hideCloseButton = true;
@@ -212,7 +211,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 				line.setText("");
 				line.setWidth(0);
 				line.setHeight(0);
-				hyperspace.setFinishHook((IMethodHook) deltaTime12 -> {
+				hyperspace.setFinishHook(deltaTime1 -> {
 					hyperspace.dispose();
 					hyperspace = null;
 					hideCloseButton = false;
@@ -253,20 +252,20 @@ public class TutAdvancedFlying extends TutorialScreen {
 
 	private void initLine_04() {
 		final TutorialLine line =
-		   addTopLine("Now, in order to reach Lave station, you have to fly " +
+			addTopLine("Now, in order to reach Lave station, you have to fly " +
 				"towards the planet. So bring the circle in the small radar " +
 				"to your front. Remember: The circle is red once the planet " +
 				"is in front of you.").setHeight(180).
-				setSkippable(false).setMustRetainEvents();
+			setUnskippable().setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUpdateMethod(deltaTime -> {
 			enableControlButtons(true);
 			setPlayerControlOn();
 			if (flight.getInGameManager().isTargetInCenter()) {
 				SoundManager.play(Assets.identify);
 				line.setFinished();
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> setPlayerControlOff());
+		}).setFinishHook(deltaTime -> setPlayerControlOff());
 	}
 
 	private void setPlayerControlOff() {
@@ -295,14 +294,14 @@ public class TutAdvancedFlying extends TutorialScreen {
 	private void initLine_05() {
 		final TutorialLine line =
 				addTopLine("Good. Now accelerate to maximum speed by " +
-						"sliding your finger up.").setSkippable(false);
-		line.setMustRetainEvents().setUpdateMethod((IMethodHook) deltaTime -> {
+				"sliding your finger up.").setUnskippable();
+		line.setMustRetainEvents().setUpdateMethod(deltaTime -> {
 			enableControlButtons(true);
 			setPlayerControlOn();
 			if (alite.getCobra().getSpeed() <= -PlayerCobra.MAX_SPEED) {
 				line.setFinished();
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
+		}).setFinishHook(deltaTime -> {
 			flight.getInGameManager().setPlayerControl(false);
 			flight.setHandleUI(false);
 			enableControlButtons(false);
@@ -326,24 +325,21 @@ public class TutAdvancedFlying extends TutorialScreen {
 			addTopLine("It only works, however, if you are already flying " +
 					"with maximum speed and no other ships are in the " +
 					"vicinity. Try it. Activate the torus drive.").
-					setMustRetainEvents().setSkippable(false).
-					addHighlight(makeHighlight(1560, 150, 200, 200));
+			setMustRetainEvents().
+			setUnskippable().
+			addHighlight(makeHighlight(1560, 150, 200, 200));
 
-		line.setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUpdateMethod(deltaTime -> {
 			enableControlButtons(true);
 			AliteButtons.OVERRIDE_TORUS = false;
 			setPlayerControlOn();
 			if (alite.getCobra().getSpeed() < -PlayerCobra.TORUS_TEST_SPEED) {
-				if (time == -1) {
-					time = System.nanoTime();
-				} else {
-					if (TimeUtil.hasPassed(time , 5, TimeUtil.SECONDS)) {
-						flight.getInGameManager().getSpawnManager().leaveTorus();
-						line.setFinished();
-					}
+				if (timer.hasPassedSeconds(5)) {
+					flight.getInGameManager().getSpawnManager().leaveTorus();
+					line.setFinished();
 				}
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
+		}).setFinishHook(deltaTime -> {
 			setPlayerControlOff();
 			AliteButtons.OVERRIDE_TORUS = false;
 		});
@@ -385,9 +381,9 @@ public class TutAdvancedFlying extends TutorialScreen {
 
 	private void initLine_16() {
 		final TutorialLine line = addEmptyLine().setMustRetainEvents().
-				setSkippable(false);
+			setUnskippable();
 
-		line.setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUpdateMethod(deltaTime -> {
 			AliteButtons.OVERRIDE_HYPERSPACE = true;
 			AliteButtons.OVERRIDE_INFORMATION = true;
 			AliteButtons.OVERRIDE_MISSILE = false;
@@ -405,34 +401,15 @@ public class TutAdvancedFlying extends TutorialScreen {
 					adder.setMissileCount(0);
 					adder.setCargoCanisterCount(2);
 					flight.getInGameManager().getSpawnManager().spawnEnemyAndAttackPlayer(adder, 0, spawnPosition);
-					adder.addDestructionCallback(new DestructionCallback() {
-						@Override
-						public void onDestruction() {
-							line.setFinished();
-						}
-
-						@Override
-						public int getId() {
-							return 3;
-						}
-					});
+					adder.addDestructionCallback(3, deltaTime1 -> line.setFinished());
 				}
 			}
 			if (adder.getDestructionCallbacks().isEmpty()) {
 				AliteLog.e("Adder DC is empty", "Adder DC is empty");
-				adder.addDestructionCallback(new DestructionCallback() {
-					@Override
-					public void onDestruction() {
-						line.setFinished();
-					}
-
-					@Override
-					public int getId() {
-						return 4;
-					}
-				});
+				adder.addDestructionCallback(4, deltaTime1 -> line.setFinished());
 			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
+			setScoopNotifier(line);
+		}).setFinishHook(deltaTime -> {
 			flight.getInGameManager().getLaserManager().setAutoFire(false);
 			setPlayerControlOff();
 			AliteButtons.OVERRIDE_TORUS = false;
@@ -441,8 +418,11 @@ public class TutAdvancedFlying extends TutorialScreen {
 
 	private void initLine_17() {
 		addTopLine("Hey not bad... You destroyed the Adder. And it released " +
-				"a couple of Cargo Canisters. You can see them on the radar " +
-				"as purple bars.");
+			"a couple of Cargo Canisters. You can see them on the radar as purple bars.")
+		.setFinishHook(deltaTime -> {
+			if (scooped) currentLineIndex = 23;
+			flight.getInGameManager().setScoopCallback(null);
+		});
 	}
 
 	private void initLine_18() {
@@ -464,47 +444,48 @@ public class TutAdvancedFlying extends TutorialScreen {
 
 	private void initLine_21() {
 		final TutorialLine line =
-				addEmptyLine().setSkippable(false).setMustRetainEvents();
+			addEmptyLine().setUnskippable().setMustRetainEvents();
 
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		line.setUpdateMethod(deltaTime -> {
 			enableControlButtons(true);
 			AliteButtons.OVERRIDE_TORUS = true;
 			setPlayerControlOn();
-			if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop)) {
-				alite.getCobra().addEquipment(EquipmentStore.fuelScoop);
-			}
-			if (flight.getInGameManager().getScoopCallback() == null) {
-				flight.getInGameManager().addScoopCallback(new ScoopCallback() {
-					@Override
-					public void scooped(SpaceObject scoopedObject) {
-						line.setFinished();
-						currentLineIndex++;
-					}
-
-					@Override
-					public void rammed(SpaceObject rammedObject) {
-						line.setFinished();
-					}
-				});
-			}
-		}).setFinishHook((IMethodHook) deltaTime -> {
+			setScoopNotifier(line);
+		}).setFinishHook(deltaTime -> {
 			flight.getInGameManager().getLaserManager().setAutoFire(false);
 			setPlayerControlOff();
 			AliteButtons.OVERRIDE_TORUS = false;
+			if (scooped) currentLineIndex++;
 		});
+	}
 
+	private void setScoopNotifier(TutorialLine line) {
+		if (flight.getInGameManager().getScoopCallback() != null) {
+			return;
+		}
+		flight.getInGameManager().setScoopCallback(new ScoopCallback() {
+			@Override
+			public void scooped(SpaceObject scoopedObject) {
+				scooped = true;
+				line.setFinished();
+			}
+
+			@Override
+			public void rammed(SpaceObject rammedObject) {
+				line.setFinished();
+			}
+		});
 	}
 
 	private void initLine_22() {
 		final TutorialLine line =
 			addTopLine("Oh no. You have destroyed the Cargo Canister. " +
-					"Remember: You must touch it with the lower part of " +
-					"your Cobra.").setSkippable(false);
-
-		line.setUpdateMethod((IMethodHook) deltaTime -> {
+			"Remember: You must touch it with the lower part of your Cobra.").setUnskippable();
+		line.setUpdateMethod(deltaTime -> {
 			if (line.getCurrentSpeechIndex() > 0) {
 				line.setFinished();
-				currentLineIndex++;
+				if (flight.findObjectByName("Cargo Canister") != null) currentLineIndex = 19;
+				else currentLineIndex++;
 			}
 		});
 	}
@@ -520,15 +501,13 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	private void initLine_25() {
-		final TutorialLine line = addEmptyLine().setSkippable(false).
-				setMustRetainEvents();
-
-		line.setSkippable(false).setUpdateMethod((IMethodHook) deltaTime -> {
+		addEmptyLine().setUnskippable().setMustRetainEvents()
+		.setUpdateMethod(deltaTime -> {
 			enableControlButtons(true);
 			AliteButtons.OVERRIDE_TORUS = false;
 			setPlayerControlOn();
 			if (flight.getInGameManager().getPostDockingHook() == null) {
-				flight.getInGameManager().setPostDockingHook((IMethodHook) deltaTime1 -> {
+				flight.getInGameManager().setPostDockingHook(deltaTime1 -> {
 					enableControlButtons(false);
 					AliteButtons.OVERRIDE_TORUS = false;
 					dispose();
@@ -547,6 +526,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 		for (Equipment e: savedInstalledEquipment) {
 			alite.getCobra().removeEquipment(e);
 		}
+		alite.getCobra().addEquipment(EquipmentStore.fuelScoop);
 		alite.getCobra().setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.pulseLaser);
 		alite.getCobra().setLaser(PlayerCobra.DIR_RIGHT, null);
 		alite.getCobra().setLaser(PlayerCobra.DIR_REAR, null);
@@ -633,7 +613,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 				ta.savedInventory[i].set(Weight.grams(dis.readLong()), dis.readLong());
 				ta.savedInventory[i].addUnpunished(Weight.grams(dis.readLong()));
 			}
-			ta.time = dis.readLong();
+			ta.timer.setTimer(dis.readLong());
 			ta.savedMarketFluct = dis.readInt();
 			ta.adder = (Adder) ta.flight.findObjectByName("Adder");
 			if (ta.adder != null) {
@@ -694,7 +674,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 			dos.writeLong(w.getPrice());
 			dos.writeLong(w.getUnpunished().getWeightInGrams());
 		}
-		dos.writeLong(time);
+		dos.writeLong(timer.getTimer());
 		dos.writeInt(savedMarketFluct);
 	}
 

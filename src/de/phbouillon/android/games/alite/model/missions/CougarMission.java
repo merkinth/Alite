@@ -23,7 +23,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.Updater;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -37,7 +37,7 @@ import de.phbouillon.android.games.alite.screens.canvas.missions.CougarScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
-import de.phbouillon.android.games.alite.screens.opengl.objects.DestructionCallback;
+import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.AspMkII;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cougar;
@@ -62,7 +62,7 @@ public class CougarMission extends Mission {
 	class CougarCloakingUpdater implements Updater {
 		private static final long serialVersionUID = 6077773193969694018L;
 		private long nextUpdateEvent;
-		private long lastCheck;
+		private final Timer timer = new Timer().setAutoReset();
 		private final Cougar cougar;
 		private boolean cloaked = false;
 
@@ -72,14 +72,13 @@ public class CougarMission extends Mission {
 		}
 
 		private void computeNextUpdateTime() {
-			lastCheck = System.nanoTime();
 			// 6 - 12 seconds later.
 			nextUpdateEvent = (long) (6 * Math.random() + 6);
 		}
 
 		@Override
 		public void onUpdate(float deltaTime) {
-			if (TimeUtil.hasPassed(lastCheck, nextUpdateEvent, TimeUtil.SECONDS)) {
+			if (timer.hasPassedSeconds(nextUpdateEvent)) {
 				computeNextUpdateTime();
 				cloaked = !cloaked;
 				cougar.setCloaked(cloaked);
@@ -220,7 +219,7 @@ public class CougarMission extends Mission {
 					}
 					cougarCreated = true;
 					manager.lockConditionRedEvent();
-					setRemove(true);
+					remove();
 					SoundManager.play(Assets.com_conditionRed);
 					manager.getInGameManager().repeatMessage("Condition Red!", 3);
 					Vector3f spawnPosition = manager.getSpawnPosition();
@@ -232,19 +231,15 @@ public class CougarMission extends Mission {
 					manager.spawnEnemyAndAttackPlayer(asp2, 2, spawnPosition);
 					alite.getPlayer().removeActiveMission(CougarMission.this);
 					cougar.setUpdater(new CougarCloakingUpdater(cougar));
-					cougar.addDestructionCallback(new DestructionCallback() {
+					cougar.addDestructionCallback(1, new IMethodHook() {
 						private static final long serialVersionUID = -4949764387008051526L;
 
 						@Override
-						public void onDestruction() {
+						public void execute(float deltaTime) {
 							spawnCargoCanister(manager.getInGameManager(), cougar);
 							manager.unlockConditionRedEvent();
 						}
 
-						@Override
-						public int getId() {
-							return 1;
-						}
 					});
 				}
 			};

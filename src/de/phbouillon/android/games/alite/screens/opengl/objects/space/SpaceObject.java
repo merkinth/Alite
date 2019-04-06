@@ -29,7 +29,7 @@ import java.util.List;
 
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Geometry;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -117,7 +117,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
     protected boolean cloaked = false;
     private int cargoCanisterCount = 0;
 	private boolean ignoreSafeZone = false;
-	private long lastMissileTime = -1;
+	private final Timer lastMissileTime = new Timer().setAutoResetWithImmediateAtFirstCall();
 	protected long laserColor = 0x7FFFAA00L;
 	protected String laserTexture = "textures/laser_orange.png";
 	protected transient List <EngineExhaust> exhaust = new ArrayList<>();
@@ -215,14 +215,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	}
 
 	boolean canFireMissile() {
-		if (missileCount <= 0) {
-			return false;
-		}
-		if (lastMissileTime == -1 || TimeUtil.hasPassed(lastMissileTime, 4, TimeUtil.SECONDS)) {
-			lastMissileTime = System.nanoTime();
-			return true;
-		}
-		return false;
+		return missileCount > 0 && lastMissileTime.hasPassedSeconds(4);
 	}
 
 	void setEjected() {

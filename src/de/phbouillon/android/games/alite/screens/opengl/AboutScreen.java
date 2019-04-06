@@ -26,11 +26,8 @@ import java.util.List;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.GlScreen;
+import de.phbouillon.android.framework.*;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.Music;
-import de.phbouillon.android.framework.Sound;
-import de.phbouillon.android.framework.TimeUtil;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.*;
@@ -59,19 +56,19 @@ import de.phbouillon.android.games.alite.R;
 // This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
 public class AboutScreen extends GlScreen {
+	private static final int WAIT_CYCLE_IN_50_MICROS = 60; // 3s
+
 	private final Rect visibleArea;
 	private final int windowWidth;
 	private final int windowHeight;
 	private Sprite background;
 	private Sprite aliteLogo;
-	private long startTime;
-	private long lastTime;
+	private final Timer timer = new Timer().setAutoReset();
 	private Music endCreditsMusic;
 	private float alpha = 0.0001f;
 	private float globalAlpha = 1.0f;
-	private int mode = 0;
+	private int mode;
 	private int y = 1200;
-	private boolean end = false;
 	private boolean returnToOptions = false;
 	private float musicVolume = Settings.volumes[Sound.SoundType.MUSIC.getValue()];
 	private Alite game;
@@ -120,8 +117,6 @@ public class AboutScreen extends GlScreen {
 		aliteLogo.scale(0.96f, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom);
 		windowWidth = visibleArea.width();
 		windowHeight = visibleArea.height();
-		startTime = System.nanoTime();
-		lastTime = startTime;
 		endCreditsMusic = game.getAudio().newMusic(LoadingScreen.DIRECTORY_MUSIC + "end_credits.mp3");
 		texts = new ArrayList<>();
 		for (String s: L.string(R.string.about, AliteConfig.GAME_NAME).split("\n")) {
@@ -201,64 +196,41 @@ public class AboutScreen extends GlScreen {
 	}
 
 	private void performFadeIn() {
-		if (TimeUtil.hasPassed(lastTime, 1, TimeUtil.MILLIS)) {
-			alpha *= 1.1f;
-			lastTime = System.nanoTime();
-			if (alpha >= 1.0f) {
-				alpha = 1.0f;
-				startTime = System.nanoTime();
-				mode = 1;
-			}
-		}
-	}
-
-	private void performWait(long sec) {
-		if (TimeUtil.hasPassed(startTime, sec, TimeUtil.SECONDS)) {
-			lastTime = System.nanoTime();
+		alpha *= 1.1f;
+		if (alpha >= 1.0f) {
+			alpha = 1.0f;
 			mode++;
 		}
 	}
 
 	private void performFadeOut() {
-		if (TimeUtil.hasPassed(lastTime, 1, TimeUtil.MILLIS)) {
-			alpha *= 0.99f;
-			lastTime = System.nanoTime();
-			if (alpha <= 0.3f) {
-				alpha = 0.3f;
-				startTime = System.nanoTime();
-				mode = 3;
-			}
+		alpha *= 0.99f;
+		if (alpha <= 0.3f) {
+			alpha = 0.3f;
+			mode++;
 		}
 	}
 
-	private void performUpdateLines() {
-		if (TimeUtil.hasPassed(lastTime, 50, TimeUtil.MICROS)) {
-			if (mode == 4) {
-				int n = texts.size();
-				// Leave the Thanks to Klaudia part on the screen,
-				// but scroll everything else...
-				for (int i = 1; i < 5; i++) {
-					texts.get(n - i).y += 2;
-				}
-			}
-			if (end) {
-				mode = 4;
-			}
+	private void doNotScrollLastParagraph() {
+		int n = texts.size();
+		// Leave the Thanks to Klaudia part on the screen, but scroll everything else...
+		for (int i = 1; i < 5; i++) {
+			texts.get(n - i).y += 2;
 		}
 	}
 
 	@Override
 	public void performUpdate(float deltaTime) {
-		if (TimeUtil.hasPassed(lastTime, 50, TimeUtil.MICROS)) {
+		if (timer.hasPassedMicros(50)) {
 			y -= 2;
 			if (mode == 0) {
 				performFadeIn();
-			} else if (mode == 1) {
-				performWait(3);
-			} else if (mode == 2) {
+			} else if (mode <= WAIT_CYCLE_IN_50_MICROS) {
+				mode++;
+			} else if (mode == WAIT_CYCLE_IN_50_MICROS + 1) {
 				performFadeOut();
-			} else if (mode == 3 || mode == 4) {
-				performUpdateLines();
+			} else if (mode == WAIT_CYCLE_IN_50_MICROS + 3) {
+				doNotScrollLastParagraph();
 			}
 		}
 		if (returnToOptions) {
@@ -315,7 +287,7 @@ public class AboutScreen extends GlScreen {
 					game.getGraphics().drawCenteredText(text.text, text.x, y + text.y,
 						AliteColor.colorAlpha(text.color, globalAlpha), Assets.boldFont, text.scale);
 					if (y + text.y < 525 && i == texts.size() - 1) {
-						end = true;
+						mode = WAIT_CYCLE_IN_50_MICROS + 3;
 					}
 				}
 			}

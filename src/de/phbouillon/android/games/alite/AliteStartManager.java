@@ -37,7 +37,7 @@ import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.io.AliteDownloaderService;
 import de.phbouillon.android.games.alite.io.AliteFiles;
-import de.phbouillon.android.games.alite.screens.canvas.tutorial.IMethodHook;
+import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 
 public class AliteStartManager extends Activity implements IDownloaderClient {
 	public static final int ALITE_RESULT_CLOSE_ALL = 78615265;
@@ -109,8 +109,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 			}
 		}
 
-		AliteFiles.performMount(this,
-				new IMethodHook() {
+		AliteFiles.performMount(this, new IMethodHook() {
 			private static final long serialVersionUID = -6200281383445218241L;
 
 			@Override

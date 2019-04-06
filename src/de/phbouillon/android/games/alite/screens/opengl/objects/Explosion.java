@@ -21,7 +21,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects;
 import java.io.Serializable;
 
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.TimeUtil;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
@@ -34,7 +34,7 @@ public class Explosion implements Serializable {
 	private final Vector3f zOffset = new Vector3f(0, 0, 0);
 	private InGameManager inGame;
 	private ExplosionBillboard [] explosions = new ExplosionBillboard[3];
-	private long lastCall = -1;
+	private final Timer timer = new Timer().setAutoResetWithImmediateAtFirstCall();
 	private boolean finished;
 	private boolean rendered;
 	private SpaceObject ref;
@@ -61,8 +61,7 @@ public class Explosion implements Serializable {
 		if (finished) {
 			return;
 		}
-		if (lastCall == -1 || TimeUtil.hasPassed(lastCall, FRAME_TIME, TimeUtil.MILLIS)) {
-			lastCall = System.nanoTime();
+		if (timer.hasPassedMillis(FRAME_TIME)) {
 			for (int i = 0; i < 3; i++) {
 				if (explosions[i] == null) {
 					continue;
