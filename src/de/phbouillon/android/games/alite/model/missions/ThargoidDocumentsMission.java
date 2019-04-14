@@ -23,6 +23,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
@@ -177,15 +178,15 @@ public class ThargoidDocumentsMission extends Mission {
 
 	@Override
 	public TimedEvent getConditionRedSpawnReplacementEvent(final ObjectSpawnManager manager) {
-		conditionRedEvent = new TimedEvent((long) ((2 << 9) / 16.7f * 1000000000L)) {
+		conditionRedEvent = new TimedEvent((long) ((2 << 9) / 16.7f * 1000000000L));
+		return conditionRedEvent.addAlarmEvent(new IMethodHook() {
 			private static final long serialVersionUID = 4448575917547734318L;
 
 			@Override
-			public void doPerform() {
+			public void execute(float deltaTime) {
 				spawnThargoids(manager);
 			}
-		};
-		return conditionRedEvent;
+		});
 	}
 
 	@Override

@@ -2,7 +2,7 @@ package de.phbouillon.android.framework;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -20,6 +20,6 @@ package de.phbouillon.android.framework;
 
 import java.io.Serializable;
 
-public interface Updater extends Serializable {
-	void onUpdate(final float deltaTime);
+public interface IMethodHook extends Serializable {
+	void execute(final float deltaTime);
 }

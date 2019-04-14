@@ -23,6 +23,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
@@ -53,17 +54,18 @@ public class SupernovaMission extends Mission {
 
 	public SupernovaMission(final Alite alite) {
 		super(alite, ID);
-		preStartEvent = new TimedEvent(100000000) {
+		preStartEvent = new TimedEvent(100000000);
+		preStartEvent.addAlarmEvent(new IMethodHook() {
 			private static final long serialVersionUID = -6824297537488646688L;
 
 			@Override
-			public void doPerform() {
+			public void execute(float deltaTime) {
 				alite.getCobra().setFuel(alite.getCobra().getFuel() - 1);
 				if (alite.getCobra().getFuel() <= 0) {
-					remove();
+					preStartEvent.remove();
 				}
 			}
-		};
+		});
 	}
 
 	public int getState() {
@@ -199,32 +201,33 @@ public class SupernovaMission extends Mission {
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		boolean result = positionMatchesTarget(galaxySeed, supernovaSystemIndex);
-		if ((state == 1 || state == 2) && result) {
-			return new TimedEvent(100000000) {
-				private static final long serialVersionUID = 7855977766031440861L;
+		if (state != 1 && state != 2 || !result) {
+			return null;
+		}
+		TimedEvent event = new TimedEvent(100000000);
+		return event.addAlarmEvent(new IMethodHook() {
+			private static final long serialVersionUID = 7855977766031440861L;
 
-				@Override
-				public void doPerform() {
-					InGameManager inGame = manager.getInGameManager();
-					SphericalSpaceObject sun = (SphericalSpaceObject) inGame.getSun();
-					sun.setNewSize(sun.getRadius() * 1.01f);
-					SphericalSpaceObject sunGlow = (SphericalSpaceObject) inGame.getSunGlow();
-					sunGlow.setNewSize(sun.getRadius() + 400.0f);
-					if (timer == null) {
-						inGame.setMessage("Danger: Supernova");
-						SoundManager.repeat(Assets.criticalCondition);
-						timer = new Timer();
-					} else {
-						if (timer.hasPassedSeconds(20)) {
-							remove();
-							timer = null;
-							inGame.gameOver();
-						}
+			@Override
+			public void execute(float deltaTime) {
+				InGameManager inGame = manager.getInGameManager();
+				SphericalSpaceObject sun = (SphericalSpaceObject) inGame.getSun();
+				sun.setNewSize(sun.getRadius() * 1.01f);
+				SphericalSpaceObject sunGlow = (SphericalSpaceObject) inGame.getSunGlow();
+				sunGlow.setNewSize(sun.getRadius() + 400.0f);
+				if (timer == null) {
+					inGame.setMessage("Danger: Supernova");
+					SoundManager.repeat(Assets.criticalCondition);
+					timer = new Timer();
+				} else {
+					if (timer.hasPassedSeconds(20)) {
+						event.remove();
+						timer = null;
+						inGame.gameOver();
 					}
 				}
-			};
-		}
-		return null;
+			}
+		});
 	}
 
 	@Override

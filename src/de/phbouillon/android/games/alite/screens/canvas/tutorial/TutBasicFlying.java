@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.graphics.Rect;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -45,7 +46,6 @@ import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Buoy;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteButtons;
@@ -646,12 +646,11 @@ public class TutBasicFlying extends TutorialScreen {
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			startFlightWithButtons();
-			if (flight.getInGameManager().getPostDockingHook() == null) {
-				flight.getInGameManager().setPostDockingHook(deltaTime1 -> dispose());
+			if (flight.getPostDockingHook() == null) {
+				flight.setPostDockingHook(deltaTime1 -> dispose());
 			}
 			if (flight.getInGameManager().getActualPostDockingScreen() == null) {
-				flight.getInGameManager().setPostDockingScreen(
-					new TutorialSelectionScreen(alite));
+				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen(alite));
 			}
 		}).setFinishHook(deltaTime -> finishFlight());
 	}

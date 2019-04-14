@@ -23,7 +23,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 
 import android.opengl.Matrix;
-import de.phbouillon.android.framework.Updater;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -43,8 +43,9 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cobr
 
 final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 	private static final long serialVersionUID = 7044055833923332317L;
-	private static final int   DOCKING_DISTANCE         =  6000;
-	private static final int   DOCKING_SPEED            =   280;
+
+	private static final int DOCKING_DISTANCE         =  6000;
+	private static final int DOCKING_SPEED            =   280;
 
 	private boolean active = false;
 	private InGameManager inGame;
@@ -83,8 +84,9 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		}
 	}
 
-	class DockingComputerAlignmentUpdater implements Updater {
+	class DockingComputerAlignmentUpdater implements IMethodHook {
 		private static final long serialVersionUID = -6558465914868554472L;
+
 		private final InGameManager inGame;
 		private final float[] matrixCopy = new float[16];
 		private boolean orientationFound;
@@ -95,7 +97,7 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		}
 
 		@Override
-		public void onUpdate(float deltaTime) {
+		public void execute(float deltaTime) {
 			// Step 3: Now that the point between station and planet has been reached,
 			//         orient ship towards docking bay.
 			Matrix.rotateM(matrixCopy, 0, inGame.getStation().getMatrix(), 0, (float) Math.toDegrees(FlightScreen.SPACE_STATION_ROTATION_SPEED), 0, 0, 1);

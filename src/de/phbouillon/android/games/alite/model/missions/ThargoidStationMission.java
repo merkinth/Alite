@@ -23,6 +23,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
@@ -34,7 +35,6 @@ import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ThargoidStationScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallbackHandler;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
@@ -52,31 +52,25 @@ public class ThargoidStationMission extends Mission {
 
 	class LaunchThargoidFromStationEvent extends TimedEvent {
 		private static final long serialVersionUID = 8124490360245596874L;
-		private final ObjectSpawnManager spawnManager;
-		private final int numberOfThargoidsToSpawn;
 
 		LaunchThargoidFromStationEvent(final ObjectSpawnManager spawnManager, long delayInNanoSeconds, int numberOfThargoidsToSpawn) {
 			super(delayInNanoSeconds);
-			this.spawnManager = spawnManager;
-			this.numberOfThargoidsToSpawn = numberOfThargoidsToSpawn;
-		}
-
-		@Override
-		public void doPerform() {
-			if (numberOfThargoidsToSpawn == 0 || state != 2) {
-				return;
-			}
-			final Thargoid thargoid = new Thargoid(alite);
-			spawnManager.launchFromBay(thargoid, new AiStateCallbackHandler() {
-				private static final long serialVersionUID = 3546094888645182119L;
-
-				@Override
-				public void execute(SpaceObject so) {
-					thargoid.setUpdater(null);
-					thargoid.setInBay(false);
-					thargoid.setIgnoreSafeZone();
-					thargoid.setAIState(AIState.ATTACK, spawnManager.getInGameManager().getShip());
+			addAlarmEvent(deltaTime -> {
+				if (numberOfThargoidsToSpawn == 0 || state != 2) {
+					return;
 				}
+				final Thargoid thargoid = new Thargoid(alite);
+				spawnManager.launchFromBay(thargoid, new AiStateCallbackHandler() {
+					private static final long serialVersionUID = 3546094888645182119L;
+
+					@Override
+					public void execute(SpaceObject so) {
+						thargoid.setUpdater(null);
+						thargoid.setInBay(false);
+						thargoid.setIgnoreSafeZone();
+						thargoid.setAIState(AIState.ATTACK, spawnManager.getInGameManager().getShip());
+					}
+				});
 			});
 		}
 	}
@@ -178,33 +172,34 @@ public class ThargoidStationMission extends Mission {
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		boolean result = positionMatchesTarget(galaxySeed, targetIndex);
-		if (state == 1 && !result || state == 2 && result) {
-			// !result => Any system but the one where the player received the mission
-			// result => The precise system where the Alien Space Station
-			// was when the player first saw it. He escaped and now tries again...
-			state = 2;
-			return new TimedEvent(10000000000L) {
-				private static final long serialVersionUID = 5516217861394636289L;
-
-				@Override
-				public void doPerform() {
-					manager.getInGameManager().getStation().setName("Alien Space Station");
-					((SpaceObject) manager.getInGameManager().getStation()).setHullStrength(1024);
-					((SpaceStation) manager.getInGameManager().getStation()).denyAccess();
-					manager.getInGameManager().getStation().addDestructionCallback(2, new IMethodHook() {
-						private static final long serialVersionUID = 6715650816893032921L;
-
-						@Override
-						public void execute(float deltaTime) {
-							state = 3;
-						}
-
-					});
-					remove();
-				}
-			};
+		if ((state != 1 || result) && (state != 2 || !result)) {
+			return null;
 		}
-		return null;
+		// !result => Any system but the one where the player received the mission
+		// result => The precise system where the Alien Space Station
+		// was when the player first saw it. He escaped and now tries again...
+		state = 2;
+		TimedEvent event = new TimedEvent(10000000000L);
+		return event.addAlarmEvent(new IMethodHook() {
+			private static final long serialVersionUID = 5516217861394636289L;
+
+			@Override
+			public void execute(float deltaTime) {
+				manager.getInGameManager().getStation().setName("Alien Space Station");
+				((SpaceObject) manager.getInGameManager().getStation()).setHullStrength(1024);
+				((SpaceStation) manager.getInGameManager().getStation()).denyAccess();
+				manager.getInGameManager().getStation().addDestructionCallback(2, new IMethodHook() {
+					private static final long serialVersionUID = 6715650816893032921L;
+
+					@Override
+					public void execute(float deltaTime) {
+						state = 3;
+					}
+
+				});
+				event.remove();
+			}
+		});
 	}
 
 	private void spawnThargoids(final ObjectSpawnManager manager) {
@@ -228,15 +223,15 @@ public class ThargoidStationMission extends Mission {
 		if (state != 2) {
 			return null;
 		}
-		conditionRedEvent = new TimedEvent((long) ((2 << 9) / 16.7f * 1000000000L)) {
+		conditionRedEvent = new TimedEvent((long) ((2 << 9) / 16.7f * 1000000000L));
+		return conditionRedEvent.addAlarmEvent(new IMethodHook() {
 			private static final long serialVersionUID = 7815560584428889246L;
 
 			@Override
-			public void doPerform() {
+			public void execute(float deltaTime) {
 				spawnThargoids(manager);
 			}
-		};
-		return conditionRedEvent;
+		});
 	}
 
 	@Override

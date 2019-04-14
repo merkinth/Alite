@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
 

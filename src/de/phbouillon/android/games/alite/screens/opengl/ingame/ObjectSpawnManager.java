@@ -25,7 +25,7 @@ import java.io.Serializable;
 
 import android.opengl.Matrix;
 import de.phbouillon.android.framework.Timer;
-import de.phbouillon.android.framework.Updater;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -38,7 +38,6 @@ import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.generator.enums.Government;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.screens.opengl.objects.BoxSpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallback;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallbackHandler;
@@ -126,7 +125,8 @@ public class ObjectSpawnManager implements Serializable {
 		}
 
 		private void initialize(long delay, final IMethodHook method) {
-			event = new TimedEvent(delay, lastExecutionTime, pauseTime, method);
+			event = new TimedEvent(delay, lastExecutionTime, pauseTime);
+			event.addAlarmEvent(method);
 			clearTimes();
 		}
 
@@ -451,15 +451,16 @@ public class ObjectSpawnManager implements Serializable {
 					inGame.getWitchSpace().increaseWitchSpaceKillCounter();
 				}
 				long secondsToSpawn = (long) ((Math.random() * 6 + 6) * 1000000000L);
-				inGame.addTimedEvent(new TimedEvent(secondsToSpawn) {
+				TimedEvent event = new TimedEvent(secondsToSpawn);
+				inGame.addTimedEvent(event.addAlarmEvent(new IMethodHook() {
 					private static final long serialVersionUID = -8236066205369429808L;
 
 					@Override
-					public void doPerform() {
+					public void execute(float deltaTime) {
 						spawnThargoidInWitchSpace();
-						remove();
+						event.remove();
 					}
-				});
+				}));
 			}
 
 		});
@@ -620,12 +621,12 @@ public class ObjectSpawnManager implements Serializable {
 			inGame.setMessage("Space Station defensive measures activated.");
 			((SpaceStation) inGame.getStation()).denyAccess();
 			alite.getPlayer().setLegalValue(alite.getPlayer().getLegalValue() + 4);
-			inGame.getShip().setUpdater(new Updater() {
+			inGame.getShip().setUpdater(new IMethodHook() {
 				private static final long serialVersionUID = 4046742301009349763L;
 				private Timer lastExecution = new Timer().setAutoResetWithImmediateAtFirstCall();
 
 				@Override
-				public void onUpdate(float deltaTime) {
+				public void execute(float deltaTime) {
 					if (lastExecution.hasPassedSeconds(1)) {
 						float distance = inGame.getShip().getPosition().distance(inGame.getSystemStationPosition());
 						AliteLog.d("Distance to Station", "Distance to Station: " + distance);
@@ -659,11 +660,11 @@ public class ObjectSpawnManager implements Serializable {
 				@Override
 				public void execute(SpaceObject so) {
 					so.setInBay(false);
-					so.setUpdater(new Updater() {
+					so.setUpdater(new IMethodHook() {
 						private static final long serialVersionUID = 118694905617185715L;
 
 						@Override
-						public void onUpdate(float deltaTime) {
+						public void execute(float deltaTime) {
 							float zDistanceSqToShip = (ship.getPosition().z - inGame.getShip().getPosition().z) *
 								    				  (ship.getPosition().z - inGame.getShip().getPosition().z);
 							if (zDistanceSqToShip >= 603979776) { // (16384 + 8192) ^ 2...
@@ -682,11 +683,11 @@ public class ObjectSpawnManager implements Serializable {
 		ship.setRandomOrientation(vector, inGame.getShip().getUpVector());
 		ship.setAIState(AIState.IDLE, 0);
 		ship.setAIState(AIState.FLY_STRAIGHT, ship.getMaxSpeed());
-		ship.setUpdater(new Updater() {
+		ship.setUpdater(new IMethodHook() {
 			private static final long serialVersionUID = -2146899348570326187L;
 
 			@Override
-			public void onUpdate(float deltaTime) {
+			public void execute(float deltaTime) {
 				float zDistanceSqToShip = (ship.getPosition().z - inGame.getShip().getPosition().z) *
 					    				  (ship.getPosition().z - inGame.getShip().getPosition().z);
 				if (zDistanceSqToShip >= 603979776) { // (16384 + 8192) ^ 2...
@@ -711,11 +712,11 @@ public class ObjectSpawnManager implements Serializable {
 		vector.add(inGame.getStation().getPosition());
 		WayPoint[] wps = new WayPoint[] {WayPoint.newWayPoint(vector, so.getUpVector())};
 		so.setAIState(AIState.FLY_PATH, (Object[]) wps);
-		so.setUpdater(new Updater() {
+		so.setUpdater(new IMethodHook() {
 			private static final long serialVersionUID = 9195512054255867095L;
 
 			@Override
-			public void onUpdate(float deltaTime) {
+			public void execute(float deltaTime) {
 				Matrix.rotateM(matrixCopy, 0, inGame.getStation().getMatrix(), 0, (float) Math.toDegrees(FlightScreen.SPACE_STATION_ROTATION_SPEED), 0, 0, 1);
 				vector.x = -matrixCopy[0];
 				vector.y = -matrixCopy[1];
@@ -771,11 +772,11 @@ public class ObjectSpawnManager implements Serializable {
 		final float iy = vector2.y;
 		final float iz = vector2.z;
 
-		createdObject.setUpdater(new Updater() {
+		createdObject.setUpdater(new IMethodHook() {
 			private static final long serialVersionUID = 5578311067399465378L;
 
 			@Override
-			public void onUpdate(float deltaTime) {
+			public void execute(float deltaTime) {
 				createdObject.setPosition(createdObject.getPosition().x + ix * speed * deltaTime,
 					createdObject.getPosition().y + iy * speed * deltaTime,
 					createdObject.getPosition().z + iz * speed * deltaTime);
@@ -824,11 +825,11 @@ public class ObjectSpawnManager implements Serializable {
 				shuttleOrTransport.setInBay(false);
 				WayPoint[] wps = new WayPoint[] {WayPoint.newWayPoint(FlightScreen.PLANET_POSITION, shuttleOrTransport.getUpVector())};
 				shuttleOrTransport.setAIState(AIState.FLY_PATH, (Object[]) wps);
-				shuttleOrTransport.setUpdater(new Updater() {
+				shuttleOrTransport.setUpdater(new IMethodHook() {
 					private static final long serialVersionUID = 2702506138360802890L;
 
 					@Override
-					public void onUpdate(float deltaTime) {
+					public void execute(float deltaTime) {
 						if (shuttleOrTransport.getPosition().distanceSq(FlightScreen.PLANET_POSITION) < TRANSPORT_PLANET_DISTANCE_SQ) {
 							shuttleOrTransport.setRemove(true);
 						}

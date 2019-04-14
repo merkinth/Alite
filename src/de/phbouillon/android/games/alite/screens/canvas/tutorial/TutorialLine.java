@@ -26,9 +26,9 @@ import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Handler;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.PulsingHighlighter;
 import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 
 class TutorialLine implements OnCompletionListener {
 	private String text;

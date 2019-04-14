@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 import de.phbouillon.android.framework.Timer;
-import de.phbouillon.android.framework.Updater;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -31,7 +31,7 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.EscapeCapsule;
 
-class EscapeCapsuleUpdater implements Updater {
+class EscapeCapsuleUpdater implements IMethodHook {
 	private static final long serialVersionUID = -296076467539527770L;
 
 	private enum EscapeCapsuleState {
@@ -69,7 +69,7 @@ class EscapeCapsuleUpdater implements Updater {
 	}
 
 	@Override
-	public void onUpdate(float deltaTime) {
+	public void execute(float deltaTime) {
 		switch (state) {
 			case SPAWN: spawnShip();
 						spawnEscapeCapsule();

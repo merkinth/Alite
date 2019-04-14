@@ -86,7 +86,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		uiButton[Settings.ESCAPE_CAPSULE] = createButton(Settings.buttonPosition[Settings.ESCAPE_CAPSULE], escapeCapsulePixmap, Settings.ESCAPE_CAPSULE, "Escape Capsule");
 		uiButton[Settings.ENERGY_BOMB] = createButton(Settings.buttonPosition[Settings.ENERGY_BOMB], energyBombPixmap, Settings.ENERGY_BOMB, "Energy Bomb");
 		uiButton[Settings.STATUS] = createButton(Settings.buttonPosition[Settings.STATUS], statusPixmap, Settings.STATUS, "Status");
-		uiButton[Settings.TORUS] = createButton(Settings.buttonPosition[Settings.TORUS], torusDriveDockingComputerPixmap, Settings.TORUS, "Torus Drive/Docking Computer");
+		uiButton[Settings.TORUS] = createButton(Settings.buttonPosition[Settings.TORUS], torusDriveDockingComputerPixmap, Settings.TORUS, "Torus/Time Drive;Docking Computer");
 		uiButton[Settings.HYPERSPACE] = createButton(Settings.buttonPosition[Settings.HYPERSPACE], hyperspacePixmap, Settings.HYPERSPACE, "Hyperspace");
 		uiButton[Settings.GALACTIC_HYPERSPACE] = createButton(Settings.buttonPosition[Settings.GALACTIC_HYPERSPACE], galacticHyperspacePixmap, Settings.GALACTIC_HYPERSPACE, "Galactic Hyperspace");
 	    uiButton[Settings.CLOAKING_DEVICE] = createButton(Settings.buttonPosition[Settings.CLOAKING_DEVICE], cloakingDevicePixmap, Settings.CLOAKING_DEVICE, "Cloaking Device");
@@ -159,11 +159,11 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 			b.button.render(g);
 			if (b.button.isSelected()) {
 				g.drawPixmap(overlayPixmap, b.button.getX(), b.button.getY());
-				if (!b.name.contains("/")) {
+				if (!b.name.contains(";")) {
 					centerText(b.name, b.button.getY() + 100, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 				} else {
-					centerText(b.name.substring(0, b.name.indexOf("/")), b.button.getY() + 80, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
-					centerText(b.name.substring(b.name.indexOf("/") + 1), b.button.getY() + 120, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+					centerText(b.name.substring(0, b.name.indexOf(";")), b.button.getY() + 80, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+					centerText(b.name.substring(b.name.indexOf(";") + 1), b.button.getY() + 120, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 				}
 
 			}

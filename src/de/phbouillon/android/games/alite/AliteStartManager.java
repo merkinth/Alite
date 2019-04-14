@@ -37,7 +37,6 @@ import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.io.AliteDownloaderService;
 import de.phbouillon.android.games.alite.io.AliteFiles;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 
 public class AliteStartManager extends Activity implements IDownloaderClient {
 	public static final int ALITE_RESULT_CLOSE_ALL = 78615265;

@@ -27,6 +27,7 @@ import android.graphics.Rect;
 import android.opengl.GLES11;
 import android.opengl.Matrix;
 import de.phbouillon.android.framework.GlScreen;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
@@ -34,7 +35,6 @@ import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")

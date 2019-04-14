@@ -29,6 +29,7 @@ import android.content.Context;
 import android.opengl.GLES11;
 import android.opengl.Matrix;
 import android.os.Vibrator;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.Pool;
 import de.phbouillon.android.framework.impl.Pool.PoolObjectFactory;
@@ -574,21 +575,24 @@ public class LaserManager implements Serializable {
 
 	final List <TimedEvent> registerTimedEvents() {
 		List <TimedEvent> timedEvents = new ArrayList<>();
-		timedEvents.add(new TimedEvent(NORMAL_REFRESH_RATE) { // Cool down laser and replenish energy banks...
+		TimedEvent event = new TimedEvent(NORMAL_REFRESH_RATE);
+		timedEvents.add(event.addAlarmEvent(new IMethodHook() {
+			// Cool down laser and replenish energy banks...
 			private static final long serialVersionUID = -7421881699858933872L;
 
 			@Override
-			public void doPerform() {
-				long nd = (alite.getCobra().isEquipmentInstalled(EquipmentStore.navalEnergyUnit) ? NAVAL_REFRESH_RATE:NORMAL_REFRESH_RATE) / alite.getTimeFactor();
-				if (delay != nd) {
-					updateDelay(nd);
+			public void execute(float deltaTime) {
+				long nd = (alite.getCobra().isEquipmentInstalled(EquipmentStore.navalEnergyUnit) ?
+					NAVAL_REFRESH_RATE : NORMAL_REFRESH_RATE) / alite.getTimeFactor();
+				if (event.delay != nd) {
+					event.updateDelay(nd);
 				}
 				alite.getCobra().setLaserTemperature(alite.getCobra().getLaserTemperature() - 1);
 
 				int energy = alite.getCobra().getEnergy();
 				boolean updateFrontRearShields = energy == PlayerCobra.MAX_ENERGY ||
-					    alite.getCobra().isEquipmentInstalled(EquipmentStore.extraEnergyUnit) ||
-					    alite.getCobra().isEquipmentInstalled(EquipmentStore.navalEnergyUnit);
+					alite.getCobra().isEquipmentInstalled(EquipmentStore.extraEnergyUnit) ||
+					alite.getCobra().isEquipmentInstalled(EquipmentStore.navalEnergyUnit);
 				if (energy < PlayerCobra.MAX_ENERGY) {
 					alite.getCobra().setEnergy(energy + 1);
 				}
@@ -598,7 +602,7 @@ public class LaserManager implements Serializable {
 				}
 				checkEnergyLow();
 			}
-		});
+		}));
 		return timedEvents;
 	}
 

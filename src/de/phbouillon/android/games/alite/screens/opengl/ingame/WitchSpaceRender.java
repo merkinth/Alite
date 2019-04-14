@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
@@ -61,18 +62,18 @@ public class WitchSpaceRender implements Serializable {
 				witchSpaceKillCounter < Math.min(8, alite.getPlayer().getRating().ordinal() + 1)) {
 			return;
 		}
-		driveRepairedMessage = new TimedEvent((long) ((Math.random() * 5 + 3) * 1000000000L)) {
+		driveRepairedMessage = new TimedEvent((long) ((Math.random() * 5 + 3) * 1000000000L));
+		inGame.addTimedEvent(driveRepairedMessage.addAlarmEvent(new IMethodHook() {
 			private static final long serialVersionUID = -5599485138177057364L;
 
 			@Override
-			public void doPerform() {
+			public void execute(float deltaTime) {
 				hyperdriveMalfunction = false;
 				inGame.getMessage().repeatText("Hyperdrive repaired!", 1, 4, 1);
 				SoundManager.play(Assets.com_hyperdriveRepaired);
-				remove();
+				driveRepairedMessage.remove();
 			}
-		};
-		inGame.addTimedEvent(driveRepairedMessage);
+		}));
 	}
 
 	boolean isHyperdriveMalfunction() {

@@ -25,6 +25,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects.space.ships;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -34,7 +35,6 @@ import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.statistics.ShipType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.EngineExhaust;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 
 public class Constrictor extends SpaceObject {

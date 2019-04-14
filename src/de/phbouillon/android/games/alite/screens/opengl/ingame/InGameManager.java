@@ -30,6 +30,7 @@ import android.graphics.Rect;
 import android.opengl.GLES11;
 import android.opengl.Matrix;
 import de.phbouillon.android.framework.Geometry;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.AccelerometerHandler;
@@ -53,7 +54,6 @@ import de.phbouillon.android.games.alite.screens.canvas.TradeScreen;
 import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.Billboard;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.ExplosionBillboard;
 import de.phbouillon.android.games.alite.screens.opengl.objects.LaserCylinder;
 import de.phbouillon.android.games.alite.screens.opengl.objects.SkySphereSpaceObject;
@@ -85,8 +85,6 @@ public class InGameManager implements Serializable {
 	public static boolean     safeZoneViolated = false;
 
 	private transient AliteScreen       postDockingScreen = null;
-	private transient IMethodHook postDockingHook   = null;
-	private transient IMethodHook hyperspaceHook    = null;
 	private transient String            feeText           = null;
 	private transient Alite             alite;
 
@@ -131,7 +129,7 @@ public class InGameManager implements Serializable {
 	private AliteObject                 sunGlow;
 	private AliteObject                 station;
 
-	private TimedEvent                  hyperspaceTimer = null;
+	public HyperspaceTimer              hyperspaceTimer = null;
 	private TimedEvent                  cloakingEvent = null;
 	private TimedEvent                  jammingEvent = null;
 
@@ -277,14 +275,6 @@ public class InGameManager implements Serializable {
 		return postDockingScreen;
 	}
 
-	public void setPostDockingHook(IMethodHook hook) {
-		postDockingHook = hook;
-	}
-
-	public IMethodHook getPostDockingHook() {
-		return postDockingHook;
-	}
-
 	public void setPostDockingScreen(AliteScreen screen) {
 		postDockingScreen = screen;
 	}
@@ -424,7 +414,7 @@ public class InGameManager implements Serializable {
 	}
 
 	void yankOutOfTorus() {
-		getShip().setSpeed(-PlayerCobra.MAX_SPEED);
+		ship.setSpeed(-PlayerCobra.MAX_SPEED);
 		setPlayerControl(true);
 	}
 
@@ -560,7 +550,7 @@ public class InGameManager implements Serializable {
 	}
 
 	private synchronized void spawnMissile(SpaceObject so) {
-		Missile missile = helper.spawnMissile(so, getShip());
+		Missile missile = helper.spawnMissile(so, ship);
         message.repeatText("Incoming Missile", 2);
         missile.addDestructionCallback(7, new IMethodHook() {
 			private static final long serialVersionUID = -4168441227358105959L;
@@ -653,7 +643,7 @@ public class InGameManager implements Serializable {
 			}
 			if (ao.getName().equals("Missile")) {
 				helper.handleMissileUpdate((Missile) ao, deltaTime);
-				ao.getPosition().sub(getShip().getPosition(), tempVector);
+				ao.getPosition().sub(ship.getPosition(), tempVector);
 				if (tempVector.lengthSq() > AliteHud.MAX_DISTANCE * AliteHud.MAX_DISTANCE) {
 					objectIterator.remove();
 				}
@@ -805,7 +795,7 @@ public class InGameManager implements Serializable {
 				alite.getCobra().setMissileLocked(false);
 				alite.getCobra().setMissiles(alite.getCobra().getMissiles() - 1);
 				SoundManager.play(Assets.fireMissile);
-				helper.spawnMissile(getShip(), missileLock);
+				helper.spawnMissile(ship, missileLock);
 				missileLock = null;
 			}
 		}
@@ -1485,19 +1475,18 @@ public class InGameManager implements Serializable {
 		}
 	}
 
-	private void killHyperspaceJump() {
+	private boolean killHyperspaceJump() {
 		if (hyperspaceTimer != null) {
 			hyperspaceTimer.pause();
 			hyperspaceTimer.remove();
 			hyperspaceTimer = null;
+			return true;
 		}
+		return false;
 	}
 
 	public boolean toggleHyperspaceCountdown(boolean isIntergalactic) {
-		if (hyperspaceTimer != null) {
-			hyperspaceTimer.pause();
-			hyperspaceTimer.remove();
-			hyperspaceTimer = null;
+		if (killHyperspaceJump()) {
 			message.setText("Hyperspace jump aborted.");
 			return false;
 		}
@@ -1507,8 +1496,9 @@ public class InGameManager implements Serializable {
 		return true;
 	}
 
-	public void setCloak(boolean cloaked) {
-		if (cloaked) {
+	public void toggleClocked() {
+		ship.setCloaked(!ship.isCloaked());
+		if (ship.isCloaked()) {
 			cloakingEvent = new CloakingEvent(this);
 			timedEvents.add(cloakingEvent);
 		} else {
@@ -1520,14 +1510,11 @@ public class InGameManager implements Serializable {
 	}
 
 	final void performHyperspaceJump(boolean isIntergalactic) {
-		if (hyperspaceTimer != null) {
-			hyperspaceTimer.pause();
-			hyperspaceTimer.remove();
-			hyperspaceTimer = null;
-		}
+		killHyperspaceJump();
 		newScreen = new HyperspaceScreen(alite, isIntergalactic);
 		escapeWitchSpace();
 		playerInSafeZone = false;
+		alite.setTimeFactor(1);
 		alite.getPlayer().setHyperspaceSystem(initialHyperspaceSystem);
 	}
 
@@ -1616,14 +1603,6 @@ public class InGameManager implements Serializable {
 		killHud();
 		ship.setUpdater(new GameOverUpdater(alite, this, ship));
 		alite.getPlayer().setCondition(Condition.DOCKED);
-	}
-
-	public IMethodHook getHyperspaceHook() {
-		return hyperspaceHook;
-	}
-
-	public void setHyperspaceHook(IMethodHook hyperspaceHook) {
-		this.hyperspaceHook = hyperspaceHook;
 	}
 
 	public void toggleECMJammer() {

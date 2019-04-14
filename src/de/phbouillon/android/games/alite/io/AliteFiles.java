@@ -20,8 +20,8 @@ package de.phbouillon.android.games.alite.io;
 
 import android.content.Context;
 import android.os.storage.OnObbStateChangeListener;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 
 public class AliteFiles {
 	public static void performMount(final Context context, final IMethodHook methodHook, final IMethodHook errorHook) {

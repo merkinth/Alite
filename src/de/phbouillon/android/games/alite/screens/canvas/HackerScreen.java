@@ -345,11 +345,11 @@ public class HackerScreen extends AliteScreen {
 		}
 
 		boolean isCloakingDevice() {
-			return getBitFromState(52, 0);
+			return getBitFromState(52, 2);
 		}
 
 		void setCloakingDevice(boolean cloak) {
-			setBitToState(cloak, 52, 0);
+			setBitToState(cloak, 52, 2);
 		}
 
 		boolean isECMJammer() {

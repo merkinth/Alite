@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 import de.phbouillon.android.framework.Timer;
-import de.phbouillon.android.framework.Updater;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -30,7 +30,7 @@ import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.model.statistics.WeaponType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
 
-class GameOverUpdater implements Updater {
+class GameOverUpdater implements IMethodHook {
 	private static final long serialVersionUID = 5497403578670138689L;
 
 	private enum GameOverState {
@@ -69,7 +69,7 @@ class GameOverUpdater implements Updater {
 	}
 
 	@Override
-	public void onUpdate(float deltaTime) {
+	public void execute(float deltaTime) {
 		switch (state) {
 			case SPAWN: spawnShip(); break;
 			case MOVE: moveShip(); break;

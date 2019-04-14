@@ -530,8 +530,8 @@ public class TutHud extends TutorialScreen {
 			if (flight.getInGameManager().getActualPostDockingScreen() == null) {
 				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen(alite));
 			}
-			if (flight.getInGameManager().getPostDockingHook() == null) {
-				flight.getInGameManager().setPostDockingHook(deltaTime1 -> dispose());
+			if (flight.getPostDockingHook() == null) {
+				flight.setPostDockingHook(deltaTime1 -> dispose());
 			}
 		});
 	}

@@ -24,7 +24,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import de.phbouillon.android.framework.Timer;
-import de.phbouillon.android.framework.Updater;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
@@ -37,7 +37,6 @@ import de.phbouillon.android.games.alite.screens.canvas.missions.CougarScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.AspMkII;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cougar;
@@ -59,7 +58,7 @@ public class CougarMission extends Mission {
 		return state;
 	}
 
-	class CougarCloakingUpdater implements Updater {
+	class CougarCloakingUpdater implements IMethodHook {
 		private static final long serialVersionUID = 6077773193969694018L;
 		private long nextUpdateEvent;
 		private final Timer timer = new Timer().setAutoReset();
@@ -77,7 +76,7 @@ public class CougarMission extends Mission {
 		}
 
 		@Override
-		public void onUpdate(float deltaTime) {
+		public void execute(float deltaTime) {
 			if (timer.hasPassedSeconds(nextUpdateEvent)) {
 				computeNextUpdateTime();
 				cloaked = !cloaked;
@@ -99,9 +98,7 @@ public class CougarMission extends Mission {
 
 	public void setTarget(char[] galaxySeed, int target, int state) {
 		this.galaxySeed = new char[3];
-		for (int i = 0; i < 3; i++) {
-			this.galaxySeed[i] = galaxySeed[i];
-		}
+		System.arraycopy(galaxySeed, 0, this.galaxySeed, 0, 3);
 		this.targetIndex = target;
 		this.state = state;
 	}
@@ -184,13 +181,13 @@ public class CougarMission extends Mission {
 		final CargoCanister cargo = new CargoCanister(alite);
 		cargo.setContent(EquipmentStore.cloakingDevice);
 		cargo.setSpeed(0.0f);
-		final float speed = 0.2f + ((cargo.getMaxSpeed() - 0.2f) * (float) Math.random());
+		final float speed = 0.2f + (cargo.getMaxSpeed() - 0.2f) * (float) Math.random();
 		cargo.setPosition(cougar.getPosition().x, cougar.getPosition().y, cougar.getPosition().z);
-		cargo.setUpdater(new Updater() {
+		cargo.setUpdater(new IMethodHook() {
 			private static final long serialVersionUID = 4203394658109589557L;
 
 			@Override
-			public void onUpdate(float deltaTime) {
+			public void execute(float deltaTime) {
 				cargo.getPosition().copy(tempVector);
 				float x = tempVector.x + ix * speed * deltaTime;
 				float y = tempVector.y + iy * speed * deltaTime;
@@ -205,46 +202,47 @@ public class CougarMission extends Mission {
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		boolean result = !positionMatchesTarget(galaxySeed, targetIndex);
-		if (state == 1 && result && !cougarCreated) {
-			alite.getPlayer().addCompletedMission(this);
-			alite.getPlayer().resetIntergalacticJumpCounter();
-			alite.getPlayer().resetJumpCounter();
-			return new TimedEvent(4000000000l) {
-				private static final long serialVersionUID = -8640036894816728823L;
-
-				@Override
-				public void doPerform() {
-					if (cougarCreated) {
-						return;
-					}
-					cougarCreated = true;
-					manager.lockConditionRedEvent();
-					remove();
-					SoundManager.play(Assets.com_conditionRed);
-					manager.getInGameManager().repeatMessage("Condition Red!", 3);
-					Vector3f spawnPosition = manager.getSpawnPosition();
-					final Cougar cougar = new Cougar(alite);
-					AspMkII asp1 = new AspMkII(alite);
-					AspMkII asp2 = new AspMkII(alite);
-					manager.spawnEnemyAndAttackPlayer(asp1, 0, spawnPosition );
-					manager.spawnEnemyAndAttackPlayer(cougar, 1, spawnPosition);
-					manager.spawnEnemyAndAttackPlayer(asp2, 2, spawnPosition);
-					alite.getPlayer().removeActiveMission(CougarMission.this);
-					cougar.setUpdater(new CougarCloakingUpdater(cougar));
-					cougar.addDestructionCallback(1, new IMethodHook() {
-						private static final long serialVersionUID = -4949764387008051526L;
-
-						@Override
-						public void execute(float deltaTime) {
-							spawnCargoCanister(manager.getInGameManager(), cougar);
-							manager.unlockConditionRedEvent();
-						}
-
-					});
-				}
-			};
+		if (state != 1 || !result || cougarCreated) {
+			return null;
 		}
-		return null;
+		alite.getPlayer().addCompletedMission(this);
+		alite.getPlayer().resetIntergalacticJumpCounter();
+		alite.getPlayer().resetJumpCounter();
+		TimedEvent event = new TimedEvent(4000000000L);
+		return event.addAlarmEvent(new IMethodHook() {
+			private static final long serialVersionUID = -8640036894816728823L;
+
+			@Override
+			public void execute(float deltaTime) {
+				if (cougarCreated) {
+					return;
+				}
+				cougarCreated = true;
+				manager.lockConditionRedEvent();
+				event.remove();
+				SoundManager.play(Assets.com_conditionRed);
+				manager.getInGameManager().repeatMessage("Condition Red!", 3);
+				Vector3f spawnPosition = manager.getSpawnPosition();
+				final Cougar cougar = new Cougar(alite);
+				AspMkII asp1 = new AspMkII(alite);
+				AspMkII asp2 = new AspMkII(alite);
+				manager.spawnEnemyAndAttackPlayer(asp1, 0, spawnPosition );
+				manager.spawnEnemyAndAttackPlayer(cougar, 1, spawnPosition);
+				manager.spawnEnemyAndAttackPlayer(asp2, 2, spawnPosition);
+				alite.getPlayer().removeActiveMission(CougarMission.this);
+				cougar.setUpdater(new CougarCloakingUpdater(cougar));
+				cougar.addDestructionCallback(1, new IMethodHook() {
+					private static final long serialVersionUID = -4949764387008051526L;
+
+					@Override
+					public void execute(float deltaTime) {
+						spawnCargoCanister(manager.getInGameManager(), cougar);
+						manager.unlockConditionRedEvent();
+					}
+
+				});
+			}
+		});
 	}
 
 	@Override

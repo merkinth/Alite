@@ -300,6 +300,10 @@ public class AliteButtons implements Serializable {
 			buttons[DOCKING_COMPUTER].yellow = inGame.isDockingComputerActive();
 		} else {
 			buttons[DOCKING_COMPUTER].active = false;
+			if (inGame.isDockingComputerActive()) {
+				toggleDockingComputer();
+				buttons[DOCKING_COMPUTER].yellow = false;
+			}
 		}
 	}
 
@@ -313,22 +317,34 @@ public class AliteButtons implements Serializable {
 				alite.getCobra().getCabinTemperature() == 0 &&
 				!inGame.traverseObjects(torusTraverser)) {
 			buttons[TORUS_DRIVE].active = true;
-			if (alite.getCobra().getSpeed() < -PlayerCobra.TORUS_TEST_SPEED) {
+			if (isTorusDriveEngaged()) {
 				buttons[TORUS_DRIVE].yellow = true;
-			} else if (alite.getTimeFactor() > 1) {
+			} else if (isTimeDriveEngaged()) {
 				// time drive currently engaged, auto change to torus drive
 				alite.setTimeFactor(1);
-				engageTorusDrive();
+				toggleTorusDrive();
 				buttons[TORUS_DRIVE].yellow = true;
 			} else {
 				buttons[TORUS_DRIVE].yellow = false;
 			}
 		} else {
 			buttons[TORUS_DRIVE].active = false;
-			if (alite.getCobra().getSpeed() < -PlayerCobra.TORUS_TEST_SPEED) {
-				engageTorusDrive();
+			if (isTorusDriveEngaged()) {
+				toggleTorusDrive();
 			}
 		}
+	}
+
+	private boolean isTorusDriveEngaged() {
+		return isTorusDriveEngaged(alite.getCobra().getSpeed());
+	}
+
+	private boolean isTorusDriveEngaged(float speed) {
+		return speed < -PlayerCobra.TORUS_TEST_SPEED;
+	}
+
+	private boolean isTimeDriveEngaged() {
+		return alite.getTimeFactor() > 1;
 	}
 
 	private void updateTimeDriveButton() {
@@ -341,13 +357,13 @@ public class AliteButtons implements Serializable {
 				inGame.getHud() != null && !inGame.isInSafeZone()) {
 			// Check for Hud to compensate for brief flickering if come back from Information screen
 			buttons[TIME_DRIVE].active = true;
-			buttons[TIME_DRIVE].yellow = alite.getTimeFactor() > 1;
+			buttons[TIME_DRIVE].yellow = isTimeDriveEngaged();
 		} else {
 			if (inGame.isDockingComputerActive()) {
 				return;
 			}
 			buttons[TIME_DRIVE].active = false;
-			if (alite.getTimeFactor() > 1) {
+			if (isTimeDriveEngaged()) {
 				alite.setTimeFactor(1);
 			}
 		}
@@ -550,49 +566,47 @@ public class AliteButtons implements Serializable {
 		}
 		for (int i = 0; i < buttons.length; i++) {
 			ButtonData bd = buttons[i];
-			if (bd == null || !bd.active || !bd.parent.active) {
+			if (bd == null || !bd.active || !bd.parent.active || !bd.isTouched(e.x, e.y, e.type)) {
 				continue;
 			}
-			if (bd.isTouched(e.x, e.y, e.type)) {
-				if (e.type == TouchEvent.TOUCH_DOWN) {
-					actionPerformed = false;
-					source = bd;
-					if (source == buttons[MISSILE] && buttons[MISSILE].red) {
-						downTime = new Timer();
-					}
-					if (source == buttons[FIRE] && !Settings.laserButtonAutoFire) {
-						fireButtonPressed = e.pointer;
-						alite.getLaserManager().setAutoFire(true);
-					}
-				} else if (e.type == TouchEvent.TOUCH_UP) {
-					if (source != null) {
-						source.selected = false;
-					}
-					if (source != bd) {
-						source = null;
-						return true;
-					}
-					source = null;
-					SoundManager.play(Assets.click);
-					switch (i) {
-						case TORUS_DRIVE:      engageTorusDrive();         break;
-						case TIME_DRIVE:       engageTimeDrive();          break;
-						case HYPERSPACE:       engageHyperspace();         break;
-						case GAL_HYPERSPACE:   engageGalacticHyperspace(); break;
-						case ECM:              engageECM();                break;
-						case ESCAPE_CAPSULE:   engageEscapeCapsule();      break;
-						case ECM_JAMMER:       toggleECMJammer();          break;
-						case DOCKING_COMPUTER: engageDockingComputer();    break;
-						case ENERGY_BOMB:      engageEnergyBomb();         break;
-						case RETRO_ROCKETS:    engageRetroRockets();       break;
-						case STATUS:           goToStatusView();           break;
-						case FIRE:             toggleAutoFire();           break;
-						case MISSILE:          updateMissileState();       break;
-						case CLOAKING_DEVICE:  toggleCloakingDevice();     break;
-					}
+			if (e.type == TouchEvent.TOUCH_DOWN) {
+				actionPerformed = false;
+				source = bd;
+				if (source == buttons[MISSILE] && buttons[MISSILE].red) {
+					downTime = new Timer();
 				}
-				result = true;
+				if (source == buttons[FIRE] && !Settings.laserButtonAutoFire) {
+					fireButtonPressed = e.pointer;
+					alite.getLaserManager().setAutoFire(true);
+				}
+			} else if (e.type == TouchEvent.TOUCH_UP) {
+				if (source != null) {
+					source.selected = false;
+				}
+				if (source != bd) {
+					source = null;
+					return true;
+				}
+				source = null;
+				SoundManager.play(Assets.click);
+				switch (i) {
+					case TORUS_DRIVE:      toggleTorusDrive();         break;
+					case TIME_DRIVE:       toggleTimeDrive();          break;
+					case HYPERSPACE:       engageHyperspace();         break;
+					case GAL_HYPERSPACE:   engageGalacticHyperspace(); break;
+					case ECM:              engageECM();                break;
+					case ESCAPE_CAPSULE:   engageEscapeCapsule();      break;
+					case ECM_JAMMER:       toggleECMJammer();          break;
+					case DOCKING_COMPUTER: toggleDockingComputer();    break;
+					case ENERGY_BOMB:      engageEnergyBomb();         break;
+					case RETRO_ROCKETS:    engageRetroRockets();       break;
+					case STATUS:           goToStatusView();           break;
+					case FIRE:             toggleAutoFire();           break;
+					case MISSILE:          updateMissileState();       break;
+					case CLOAKING_DEVICE:  toggleCloakingDevice();     break;
+				}
 			}
+			result = true;
 		}
 		if (e.type == TouchEvent.TOUCH_DOWN) {
 			if (sweepLeftPossible && e.x >= sweepLeftPos[0] && e.x <= sweepLeftPos[0] + 100 && e.y >= sweepLeftPos[1] && e.y <= sweepLeftPos[1] + 100) {
@@ -638,45 +652,55 @@ public class AliteButtons implements Serializable {
 		if (OVERRIDE_LASER || !Settings.laserButtonAutoFire) {
 			return;
 		}
+		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+			return;
+		}
 		if (alite.getLaserManager() != null) {
 			alite.getLaserManager().setAutoFire(!alite.getLaserManager().isAutoFire());
 		}
 	}
 
 	private void toggleCloakingDevice() {
-		ButtonData cloak = buttons[CLOAKING_DEVICE];
-		inGame.getShip().setCloaked(!inGame.getShip().isCloaked());
-		cloak.yellow = inGame.getShip().isCloaked();
-		inGame.setCloak(inGame.getShip().isCloaked());
+		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+			return;
+		}
+		inGame.toggleClocked();
+		buttons[CLOAKING_DEVICE].yellow = inGame.getShip().isCloaked();
 	}
 
 	private void updateMissileState() {
 		if (OVERRIDE_MISSILE) {
 			return;
 		}
+		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+			return;
+		}
 		ButtonData missile = buttons[MISSILE];
 		if (missile == null) {
 			return;
 		}
-		if (!missile.yellow && !missile.red) {
-			missile.yellow = true;
-			inGame.handleMissileIcons();
-		} else if (missile.yellow) {
-			missile.yellow = false;
-			inGame.handleMissileIcons();
-		} else {
+
+		if (missile.red) {
 			missile.red = false;
 			inGame.fireMissile();
+			return;
 		}
+		missile.yellow = !missile.yellow;
+		inGame.handleMissileIcons();
 	}
 
 	private void toggleECMJammer() {
-		ButtonData ecmJammer = buttons[ECM_JAMMER];
+		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+			return;
+		}
 		inGame.toggleECMJammer();
-		ecmJammer.yellow = inGame.isECMJammer();
+		buttons[ECM_JAMMER].yellow = inGame.isECMJammer();
 	}
 
 	private void engageEscapeCapsule() {
+		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+			return;
+		}
 		if (inGame.isWitchSpace()) {
 			SoundManager.play(Assets.com_escapeMalfunction);
 			inGame.setMessage("Escape Capsule Malfunction");
@@ -739,30 +763,51 @@ public class AliteButtons implements Serializable {
 		buttons[HYPERSPACE].yellow = inGame.toggleHyperspaceCountdown(false);
 	}
 
-	private void engageTorusDrive() {
+	private void toggleTorusDrive() {
 		if (OVERRIDE_TORUS) {
 			return;
 		}
-		if (ship.getSpeed() < -PlayerCobra.TORUS_TEST_SPEED) {
+
+		if (isTorusDriveEngaged(ship.getSpeed())) {
 			inGame.getSpawnManager().leaveTorus();
 		} else {
+			unarm();
 			inGame.getSpawnManager().enterTorus();
 			ship.setSpeed(-PlayerCobra.TORUS_SPEED);
 			inGame.setPlayerControl(false);
 		}
 	}
-	private void engageTimeDrive() {
+
+	private void unarm() {
+		deactivateFire();
+		unlockMissile();
+		if (inGame.getShip().isCloaked()) toggleCloakingDevice();
+		if (inGame.isECMJammer()) toggleECMJammer();
+	}
+
+	private void unlockMissile() {
+		if (buttons[MISSILE] == null || !buttons[MISSILE].red && !buttons[MISSILE].yellow) {
+			return;
+		}
+		inGame.handleMissileIcons();
+	}
+
+	private void toggleTimeDrive() {
 		if (OVERRIDE_TORUS || alite.getCurrentScreen() instanceof TutorialScreen) {
 			return;
 		}
-		if (alite.getTimeFactor() > 1 || ship.getSpeed() < -PlayerCobra.TORUS_TEST_SPEED) {
+		if (isTimeDriveEngaged() || isTorusDriveEngaged(ship.getSpeed())) {
 			alite.setTimeFactor(1);
 		} else {
+			unarm();
 			alite.setTimeFactor(PlayerCobra.SPEED_UP_FACTOR);
 		}
 	}
 
-	private void engageDockingComputer() {
+	private void toggleDockingComputer() {
+		if (!inGame.isDockingComputerActive()) {
+			unarm();
+		}
 		if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.dockingComputer)) {
 			inGame.toggleStationHandsDocking();
 		} else {
@@ -771,11 +816,17 @@ public class AliteButtons implements Serializable {
 	}
 
 	private void engageEnergyBomb() {
+		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+			return;
+		}
 		alite.getCobra().removeEquipment(EquipmentStore.energyBomb);
 		inGame.traverseObjects(energyBombTraverser);
 	}
 
 	private void engageRetroRockets() {
+		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+			return;
+		}
 		alite.getCobra().setRetroRocketsUseCount(alite.getCobra().getRetroRocketsUseCount() - 1);
 		SoundManager.play(Assets.retroRocketsOrEscapeCapsuleFired);
 		ship.setSpeed(RETRO_ROCKET_SPEED);

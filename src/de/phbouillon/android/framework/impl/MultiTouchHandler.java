@@ -47,8 +47,6 @@ public class MultiTouchHandler implements TouchHandler {
 	private final ScaleGestureDetector scaleDetector;
 	private final GestureDetector sweepDetector;
 	private View currentView;
-	private long freeze = -1;
-	private long delay = -1;
 
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 		@Override
@@ -72,11 +70,11 @@ public class MultiTouchHandler implements TouchHandler {
 	private class SweepListener extends SimpleOnGestureListener {
 		@Override
 		public boolean onFling(MotionEvent start, MotionEvent finish, float xVelocity, float yVelocity) {
-			TouchEvent touchEvent = touchEventPool.newObject();
-			touchEvent.type = TouchEvent.TOUCH_SWEEP;
 			if (start == null) {
 				return true;
 			}
+			TouchEvent touchEvent = touchEventPool.newObject();
+			touchEvent.type = TouchEvent.TOUCH_SWEEP;
 			touchEvent.x = (int) ((start.getRawX() - offsetX) * scaleX);
 			touchEvent.y = (int) ((start.getRawY() - offsetY) * scaleY);
 			touchEvent.x2 = (int) (xVelocity / (100.0f / scaleX));
@@ -111,10 +109,6 @@ public class MultiTouchHandler implements TouchHandler {
 
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
-		if (freeze != -1 && System.currentTimeMillis() - freeze < delay) {
-			return true;
-		}
-		freeze = -1;
 		synchronized (this) {
 			if (currentView != v) {
 				return false;

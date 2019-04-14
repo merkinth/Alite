@@ -18,8 +18,8 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Timer;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -42,19 +42,23 @@ public class TimedEvent implements Serializable {
 	}
 
 	public TimedEvent(long delayInNanos) {
-		this(delayInNanos, -1, -1, null);
+		this(delayInNanos, -1, -1);
 	}
 
-	public TimedEvent(long delayInNanos, long lastExecutionTime, long pauseTime, IMethodHook method) {
+	public TimedEvent(long delayInNanos, long lastExecutionTime, long pauseTime) {
 		delay = delayInNanos;
 		if (lastExecutionTime != -1) {
 			timer.setTimer(lastExecutionTime);
 		}
 		this.pauseTime = pauseTime;
-		this.method = method;
 	}
 
-	protected void remove() {
+	public TimedEvent addAlarmEvent(IMethodHook method) {
+		this.method = method;
+		return this;
+	}
+
+	public void remove() {
 		remove = true;
 	}
 
@@ -79,7 +83,6 @@ public class TimedEvent implements Serializable {
 		if (pauseTime == -1 && !locked) {
 			if (timer.hasPassedNanos(delay)) {
 				if (method != null) method.execute(0);
-				else doPerform();
 			}
 		}
 	}
@@ -113,6 +116,4 @@ public class TimedEvent implements Serializable {
 		}
 	}
 
-	public void doPerform() {
-	}
 }

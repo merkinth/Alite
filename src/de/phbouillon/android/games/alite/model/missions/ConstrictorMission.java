@@ -23,6 +23,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
@@ -33,7 +34,6 @@ import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ConstrictorScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
-import de.phbouillon.android.games.alite.screens.opengl.objects.IMethodHook;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Constrictor;
 
 public class ConstrictorMission extends Mission {
@@ -65,9 +65,7 @@ public class ConstrictorMission extends Mission {
 
 	public void setTarget(char[] galaxySeed, int target, int state) {
 		this.galaxySeed = new char[3];
-		for (int i = 0; i < 3; i++) {
-			this.galaxySeed[i] = galaxySeed[i];
-		}
+		System.arraycopy(galaxySeed, 0, this.galaxySeed, 0, 3);
 		this.targetIndex = target;
 		this.state = state;
 		resetTargetName();
@@ -143,14 +141,17 @@ public class ConstrictorMission extends Mission {
 		}
 		if (state == 1 && positionMatchesTarget(galaxySeed, targetIndex)) {
 			return new ConstrictorScreen(alite, 2);
-		} else if (state >= 2 && state <= 5 && positionMatchesTarget(galaxySeed, targetIndex)) {
+		}
+		if (state >= 2 && state <= 5 && positionMatchesTarget(galaxySeed, targetIndex)) {
 			return new ConstrictorScreen(alite, 3);
-		} else if (state == 6 && positionMatchesTarget(galaxySeed, targetIndex)) {
+		}
+		if (state == 6 && positionMatchesTarget(galaxySeed, targetIndex)) {
 			// Player arrived at target, but _did not destroy_ the Constrictor...
 			// Try again...
 			state--;
 			return new ConstrictorScreen(alite, 3);
-		} else if (state == 7 && positionMatchesTarget(galaxySeed, targetIndex)) {
+		}
+		if (state == 7 && positionMatchesTarget(galaxySeed, targetIndex)) {
 			return new ConstrictorScreen(alite, 4);
 		}
 		return null;
@@ -159,34 +160,35 @@ public class ConstrictorMission extends Mission {
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		boolean result = positionMatchesTarget(galaxySeed, targetIndex);
-		if (state == 6 && result && !constrictorCreated) {
-			return new TimedEvent(0) {
-				private static final long serialVersionUID = 1657605081590177007L;
-
-				@Override
-				public void doPerform() {
-					constrictorCreated = true;
-					remove();
-					SoundManager.play(Assets.com_conditionRed);
-					manager.getInGameManager().repeatMessage("Condition Red!", 3);
-					Vector3f spawnPosition = manager.getSpawnPosition();
-					Constrictor constrictor = new Constrictor(alite);
-					manager.spawnEnemyAndAttackPlayer(constrictor, 0, spawnPosition);
-					manager.lockConditionRedEvent();
-					constrictor.addDestructionCallback(13, new IMethodHook() {
-						private static final long serialVersionUID = -7774734879444916116L;
-
-						@Override
-						public void execute(float deltaTime) {
-							state = 7;
-							manager.unlockConditionRedEvent();
-						}
-
-					});
-				}
-			};
+		if (state != 6 || !result || constrictorCreated) {
+			return null;
 		}
-		return null;
+		TimedEvent event = new TimedEvent(0);
+		return event.addAlarmEvent(new IMethodHook() {
+			private static final long serialVersionUID = 1657605081590177007L;
+
+			@Override
+			public void execute(float deltaTime) {
+				constrictorCreated = true;
+				event.remove();
+				SoundManager.play(Assets.com_conditionRed);
+				manager.getInGameManager().repeatMessage("Condition Red!", 3);
+				Vector3f spawnPosition = manager.getSpawnPosition();
+				Constrictor constrictor = new Constrictor(alite);
+				manager.spawnEnemyAndAttackPlayer(constrictor, 0, spawnPosition);
+				manager.lockConditionRedEvent();
+				constrictor.addDestructionCallback(13, new IMethodHook() {
+					private static final long serialVersionUID = -7774734879444916116L;
+
+					@Override
+					public void execute(float deltaTime) {
+						state = 7;
+						manager.unlockConditionRedEvent();
+					}
+
+				});
+			}
+		});
 	}
 
 	@Override
@@ -204,6 +206,6 @@ public class ConstrictorMission extends Mission {
 	}
 
 	public void setState(int s) {
-		this.state = s;
+		state = s;
 	}
 }

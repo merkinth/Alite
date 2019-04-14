@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import android.graphics.Rect;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.GlScreen;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.Timer;
@@ -96,6 +97,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 	private transient boolean isSaving = false;
 	private transient Timer timeToExitTimer;
 	private transient Alite game;
+	private transient IMethodHook postDockingHook;
 
 	private Vector3f v0 = new Vector3f(0, 0, 0);
 	private Vector3f v1 = new Vector3f(0, 0, 0);
@@ -559,11 +561,19 @@ public class FlightScreen extends GlScreen implements Serializable {
 		}
 	}
 
+	public void setPostDockingHook(IMethodHook hook) {
+		postDockingHook = hook;
+	}
+
+	public IMethodHook getPostDockingHook() {
+		return postDockingHook;
+	}
+
 	@Override
 	public void dispose() {
 		super.dispose();
-		if (inGame != null && inGame.getPostDockingHook() != null) {
-			inGame.getPostDockingHook().execute(0);
+		if (postDockingHook != null) {
+			postDockingHook.execute(0);
 		}
 		if (inGame != null) {
 			inGame.destroy();
