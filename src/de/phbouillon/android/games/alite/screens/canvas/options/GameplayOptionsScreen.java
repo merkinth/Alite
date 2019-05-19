@@ -22,6 +22,7 @@ import java.io.DataInputStream;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
+import de.phbouillon.android.framework.PluginManager;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Button;
@@ -36,6 +37,7 @@ public class GameplayOptionsScreen extends OptionsScreen {
 	private Button autoId;
 	private Button dockingSpeed;
 	private Button laserAutoFire;
+	private Button extensionUpdateMode;
 	private Button back;
 
 	GameplayOptionsScreen(Alite game) {
@@ -48,7 +50,7 @@ public class GameplayOptionsScreen extends OptionsScreen {
 		autoId            = createButton(2, getAutoIdButtonText());
 		dockingSpeed      = createButton(3, getDockingComputerButtonText());
 		laserAutoFire     = createButton(4, getLaserButtonText());
-
+		extensionUpdateMode = createButton(5, getExtensionUpdateModeButtonText());
 		back              = createButton(6, "Back");
 	}
 
@@ -57,12 +59,25 @@ public class GameplayOptionsScreen extends OptionsScreen {
 	}
 
 	private String getDockingComputerButtonText() {
-		return "Docking Computer: " + (Settings.dockingComputerSpeed == 0 ? "Slow" :
-			Settings.dockingComputerSpeed == 1 ? "Medium" : "Fast");
+		return "Docking Computer: " + (Settings.dockingComputerSpeed == 0 ? "Normal Speed" :
+			Settings.dockingComputerSpeed == 1 ? "Time Drive Speed" : "Dock immediate");
 	}
 
 	private String getAutoIdButtonText() {
 		return "Auto Id: " + (Settings.autoId ? "On" : "Off");
+	}
+
+	private String getExtensionUpdateModeButtonText() {
+		return "Extension update mode: " + getExtensionUpdateModeString();
+	}
+
+	private String getExtensionUpdateModeString() {
+		switch (Settings.extensionUpdateMode) {
+			case PluginManager.UPDATE_MODE_NO_UPDATE: return "No update";
+			case PluginManager.UPDATE_MODE_CHECK_FOR_UPDATES_ONLY: return "Check for updates only";
+			case PluginManager.UPDATE_MODE_AUTO_UPDATE_AT_ANY_TIME: return "Auto-update at any time";
+		}
+		return "Auto-update over Wi-Fi only";
 	}
 
 	private String getDifficultyButtonText() {
@@ -105,6 +120,7 @@ public class GameplayOptionsScreen extends OptionsScreen {
 		autoId.render(g);
 		dockingSpeed.render(g);
 		laserAutoFire.render(g);
+		extensionUpdateMode.render(g);
 
 		back.render(g);
 	}
@@ -116,10 +132,7 @@ public class GameplayOptionsScreen extends OptionsScreen {
 		}
 		if (difficultyLevel.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			Settings.difficultyLevel++;
-			if (Settings.difficultyLevel > 5) {
-				Settings.difficultyLevel = 0;
-			}
+			Settings.difficultyLevel = cycleFromZeroTo(Settings.difficultyLevel, 5);
 			difficultyLevel.setText(getDifficultyButtonText());
 			Settings.save(game.getFileIO());
 			return;
@@ -133,10 +146,7 @@ public class GameplayOptionsScreen extends OptionsScreen {
 		}
 		if (dockingSpeed.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			Settings.dockingComputerSpeed++;
-			if (Settings.dockingComputerSpeed > 2) {
-				Settings.dockingComputerSpeed = 0;
-			}
+			Settings.dockingComputerSpeed = cycleFromZeroTo(Settings.dockingComputerSpeed, 2);
 			dockingSpeed.setText(getDockingComputerButtonText());
 			Settings.save(game.getFileIO());
 			return;
@@ -145,6 +155,13 @@ public class GameplayOptionsScreen extends OptionsScreen {
 			SoundManager.play(Assets.click);
 			Settings.laserButtonAutoFire = !Settings.laserButtonAutoFire;
 			laserAutoFire.setText(getLaserButtonText());
+			Settings.save(game.getFileIO());
+			return;
+		}
+		if (extensionUpdateMode.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			Settings.extensionUpdateMode = cycleFromZeroTo(Settings.extensionUpdateMode, PluginManager.UPDATE_MODE_AUTO_UPDATE_OVER_WIFI_ONLY);
+			extensionUpdateMode.setText(getExtensionUpdateModeButtonText());
 			Settings.save(game.getFileIO());
 			return;
 		}

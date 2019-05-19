@@ -1,0 +1,198 @@
+Guide to localization
+=====================
+
+1. How to translate
+-------------------
+  Preserve the original meaning as far as possible but the meaning of
+  the translation in that language is more important than the literal
+  translation.
+
+  Avoid rough, violent, offensive sentences and profanity.
+
+  Avoid terms referring to gender, religion, politics or disability.
+
+  Do not mix the styles, e.g. if the language has formal / informal
+  addressing form, as well, choose one of them but not the both.
+
+
+2. What to translate
+--------------------
+  Basically, you have to translate the values ​​of the strings and
+  string arrays in file "res/values​/strings.xml".
+  Note that you have to keep the original tag names.
+
+  Tag name refers to the place of appearance of the expression but in some cases
+  further explanation should be needed. Do not hesitate finding the reference of
+  the text in the source code or contacting to the developers.
+
+
+3. Structure of language packs
+------------------------------
+  Form of language pack file name has to be
+
+        <language>_<country>_<any name you choose>.zip
+
+  where language is an ISO 639 alpha-2 or alpha-3 language code,
+  country is an ISO 3166 alpha-2 country code.
+
+  Ideally it contains an 'assets' folder with all files of it
+  but one or more file may be missed, see also next chapter.
+
+  See text of audios in file 'values\strings.xml' where tag names
+  start with the following prefixes for each audio group in 'sound' folder:
+
+  - computer      com_
+  - mission       mis_01 and mis_<sub-folder (1-5)>_<file name without mp3 extension>
+  - tutorial      tut_<sub-folder (1-7)>_<file name without mp3 extension>
+
+  intro/alite_intro.vtt file is the intro subtitle file.
+
+  Beside 'assets' and 'intro' folders it has to contain the translation of texts
+  in file 'values\strings.xml'.
+
+  Format of strings.xml is identical to 'res/values/strings.xml' file
+  except the followings:
+
+  - first line of file has to be <?xml version="1.0" encoding="utf-8"?>
+  - you have to define the appropriate locale-dependent character
+    code sets in "char_sets" string array in a slightly different form.
+
+    It has the same "start_char_code..end_char_code" format but to define
+    a character you have to use the form '&#xXXXX;' rather than '\\uXXXX'
+    since the language packs are not resource files but plain xml files.
+    See the following example to defining char sets in
+
+    strings.xml resource                strings.xml of language packs
+    ....................                .............................
+    <string-array name="char_sets">    <string-array name="char_sets">
+        <item>\u0020..\u007e</item>        <item>&#x0020;..&#x007e;</item>
+        <item>\u00a0..\u00ff</item>        <item>&#x00a0;..&#x00ff;</item>
+        <item>\u0100..\u017f</item>        <item>&#x0100;..&#x017f;</item>
+    </string-array>                    </string-array>
+
+    A degree sign (°) will be displayed in place of an undefined char.
+
+
+4. Planet names
+---------------
+  Planet names are generated from syllables with a generation algorithm.
+  32 syllables are listed in "planet_name_syllable" string array in strings.xml
+  "." represents a non-printable character.
+  You can omit it from strings.xml of language pack if no changes are needed.
+
+
+5. Planet descriptions
+----------------------
+  Planet descriptions are generated according to the words and sentence parts
+  listed in "planet_description" string array.
+  Descriptions are generated randomly for each planet but a planet always has
+  the same description.
+
+  Each item has to be started with a unique identifier followed by a semicolon.
+  All texts after that even the spaces become the part of the description.
+  In an item you can define optional sentence elements separated by pipe (|)
+  one of them will be chosen randomly as a part.
+  You can refer to an item with its identifier with one of the following forms:
+  %id%, !id%, ?id%, -id%, +id%.
+  A referred item can refer to another that can refer to another and so on
+  with no limit. Note that there is no circular reference checking.
+
+  Meanings of starting sign of references:
+  * % simply returns replaced form as is
+  * ! returns replaced form in which all words are capitalized
+  * ? definable condition where either the true or the false part will be returned
+      only, see later its format.
+  * - reference will be evaluated but not appended to the result. It is a
+      placeholder to preserve the original text order in the interest of the
+      localized text remain the translation of the original english one.
+      In this way the generated random numbers will refer to the same items.
+      E.g. order of word according to english grammar is %verb% %object%
+      but in your language should be %object% %verb%, you have to refer in form
+      -verb% %object% +verb%.
+  * + append to the result the previously deferred reference started by '-'.
+
+  There are some special references:
+  * PLANET_NAME               Returns the name of the current planet to which
+                              the description is being generated.
+
+  * RANDOM_NAME               Returns a random name based on the same algorithm
+                              as the system name generation.
+
+  * reference starting        Returns result of evaluation with changing
+    with a number             the random seed
+
+  * reference does not        Returns result of evaluation without changing
+    starting with a number    the random seed
+
+  You can also refer to the a sub-part of all references listed above in forms
+  %id(n)% or %id(b,e)%. I started with '%' in both cases just for simplicity
+  but it always can be any of listed above.
+  Where n is the n'th character relative to the beginning if it is larger than 0
+  or relative to the end if smaller than 1.
+  The same are true for b and e but that forms returns an [b,e] sub-string.
+
+  For example the resulted string of reference %id% is 'Apple' then
+  the following strings will be returned:
+
+  %id(1)%:A       %id(2)%:p       %id(0)%:e        %id(-1)%:l         %id(-2)%:p
+  %id(1,2)%:Ap    %id(2,3)%:pp    %id(-1,0)%:le    %id(1,-1)%:Appl    %id(1,0)%:Apple
+
+  In case of invalid value of b it will be 1, e will be 0.
+  If n, b or e is out of bounds or e is larger than b the whole string will
+  be returned.
+
+  You can define conditions for composing expressions with correct
+  language-specific grammar. Its format is
+
+    ?id%<comma-separated values>:<true branch>:<false branch>:
+
+  Notice the starting question mark (?), and colon separator after the values
+  and both branches.
+
+  E.g: planetian: ?PLANET_NAME(0)%a,e,i,o,u:%PLANET_NAME(1,-1)%:%PLANET_NAME%:ian
+  Where unique id of the item is the 'planetian'
+  and returns a space (which is before the '?')
+  then the current planet name extended with 'ian' prefix,
+  if the last char of the planet name is none of the listed vowels (aeiou)
+  (that is the false branch)
+  or the current planet name without its last char and 'ian' prefix
+  (that is the true branch).
+  E.g: Lave -> Lavian, Usanat -> Usanatian
+
+  You can use test program to check the generated result from command line
+    %JAVA_HOME%bin\java -jar SystemDataTest.jar <path of strings.xml file> <name of output file>
+
+  Output file contains header and all planet data separated by TAB.
+  planet_name_syllable string array is required in tested strings.xml
+  even if only temporarily.
+
+
+6. Control, correction, clarification, completeness
+---------------------------------------------------
+  Even the best is to translate all texts and text audios better to dispatch
+  a not fully translated language pack file sooner than a perfect one later.
+  If any text or audio item is missing the default one will be used,
+  so it does not occur any error and an imperfect language pack is still
+  better than nothing. You can improve it continuously any time.
+
+
+7. Contact
+----------
+  Always provide your name and email address to receive the comments or new
+  items to translate. It would be the best if you drop an email to the Alite
+  mail address (currently alite.crash.report@gmail.com) we can contact if
+  additional translation is needed due to the program development.
+
+  In case of typos, required correction, etc. the players can easily contact
+  with you if you put your name and mail address to the about screen after
+  the game testers section in form of
+[3]<... language translation or translator(s)>
+[5]<Put your name here>
+[7]<Put your email address here>
+
+
+8. How to make language packs downloadable
+------------------------------------------
+  To share language pack you have to upload your file to the folder 'locales'
+  of Alite's Google Drive on URL https://drive.google.com/drive/folders/1Zrb9svph7iANvhjhgaQuOpjPRBJjeRvm
+  with using script https://script.google.com/macros/s/AKfycbwlUAPdycOwh8WZMFu3Q6GLaAy90z3hMoDEUIec/exec

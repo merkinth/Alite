@@ -64,6 +64,10 @@ public class Timer implements Serializable {
 		return (long)getPassedTime(NANOS);
 	}
 
+	public long getPassedMillis() {
+		return (long)getPassedTime(MILLIS);
+	}
+
 	public float getPassedSeconds() {
 		return getPassedTime(SECONDS);
 	}

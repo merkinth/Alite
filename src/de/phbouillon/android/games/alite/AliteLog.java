@@ -33,9 +33,9 @@ import android.util.Log;
 import de.phbouillon.android.framework.FileIO;
 
 public class AliteLog {
-	static final float KB = 1024;
-	public static final float MB = 1024 * KB;
-	private static final float GB = 1024 * MB;
+	public static final int KB = 1024;
+	public static final int MB = 1024 * KB;
+	private static final int GB = 1024 * MB;
 
 	private static FileIO fileIO;
 	private static String logFilename;
@@ -104,15 +104,15 @@ public class AliteLog {
 
 	private static String toReadableMemString(long memory) {
 		if (memory > GB) {
-			return String.format(Locale.getDefault(), "%3.2f GB", memory / GB);
+			return String.format(L.currentLocale, "%3.2f GB", (float)memory / GB);
 		}
 		if (memory > MB) {
-			return String.format(Locale.getDefault(), "%5.2f MB", memory / MB);
+			return String.format(L.currentLocale, "%5.2f MB", (float)memory / MB);
 		}
 		if (memory > KB) {
-			return String.format(Locale.getDefault(), "%5.2f KB", memory / KB);
+			return String.format(L.currentLocale, "%5.2f KB", (float)memory / KB);
 		}
-		return String.format(Locale.getDefault(), "%d Bytes", memory);
+		return String.format(L.currentLocale, "%d Bytes", memory);
 	}
 
 	private static String dumpTrace() {
@@ -168,9 +168,7 @@ public class AliteLog {
 			return;
 		}
 		try {
-			if (!fileIO.exists("logs")) {
-				fileIO.mkDir("logs");
-			}
+			fileIO.mkDir("logs");
 			OutputStream logFile = fileIO.appendFile(logFilename);
 			String errorText = null;
 			if (cause != null) {
@@ -188,7 +186,11 @@ public class AliteLog {
 					SimpleDateFormat.getDateTimeInstance().format(new Date()) + "\n").getBytes());
 				outputDeviceInfo(logFile);
 			}
-			String result = "[" + (System.currentTimeMillis() - started) + "ms] - " + tag + " - " + title + " - " + message + (errorText == null ? "" : " - " + errorText) + "\n";
+			long current = System.currentTimeMillis();
+
+			String result = "[" + SimpleDateFormat.getTimeInstance().format(new Date(current)) + ", " +
+				(current - started) + "ms] - " + tag + " - " + title + " - " + message +
+				(errorText == null ? "" : " - " + errorText) + "\n";
 //			result += getMemoryData();
 			logFile.write(result.getBytes());
 			logFile.close();
@@ -214,7 +216,7 @@ public class AliteLog {
 	}
 
 	public static void initialize(FileIO fileIO) {
-		logFilename = "logs/AliteLog-" + new SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.getDefault()).format(new Date()) + ".txt";
+		logFilename = "logs/AliteLog-" + new SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).format(new Date()) + ".txt";
 		AliteLog.fileIO = fileIO;
 	}
 

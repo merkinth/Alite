@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -39,9 +39,9 @@ public class ScreenCodes {
 	public static final byte ABOUT_SCREEN                     = 18;
 	public static final byte DEBUG_SCREEN                     = 19;
 	public static final byte LIBRARY_SCREEN                   = 20;
-	public static final byte LIBRARY_PAGE_SCREEN              = 21;	
+	public static final byte LIBRARY_PAGE_SCREEN              = 21;
 	public static final byte HACKER_SCREEN                    = 22;
-	public static final byte FLIGHT_SCREEN                    = 23;	
+	public static final byte FLIGHT_SCREEN                    = 23;
 	public static final byte CONSTRICTOR_SCREEN               = 24;
 	public static final byte COUGAR_SCREEN                    = 25;
 	public static final byte SUPERNOVA_SCREEN                 = 26;
@@ -57,7 +57,7 @@ public class ScreenCodes {
 	public static final byte TUT_NAVIGATION_SCREEN            = 36;
 	public static final byte TUTORIAL_SELECTION_SCREEN        = 37;
 	public static final byte TUT_TRADING_SCREEN               = 38;
-	public static final byte AUTOMATIC_LAUNCH_SCREEN          = 39;
+	public static final byte PLUGINS_SCREEN                   = 39;
 	public static final byte HYPERSPACE_SCREEN                = 40;
 	public static final byte QUANTITY_PAD_SCREEN              = 41;
 	public static final byte HEX_NUMBER_PAD_SCREEN            = 42;

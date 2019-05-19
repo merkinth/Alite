@@ -23,23 +23,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.games.alite.screens.canvas.BuyScreen;
-import de.phbouillon.android.games.alite.screens.canvas.CatalogScreen;
-import de.phbouillon.android.games.alite.screens.canvas.DiskScreen;
-import de.phbouillon.android.games.alite.screens.canvas.EquipmentScreen;
-import de.phbouillon.android.games.alite.screens.canvas.GalaxyScreen;
-import de.phbouillon.android.games.alite.screens.canvas.HackerScreen;
-import de.phbouillon.android.games.alite.screens.canvas.HexNumberPadScreen;
-import de.phbouillon.android.games.alite.screens.canvas.InventoryScreen;
-import de.phbouillon.android.games.alite.screens.canvas.LibraryPageScreen;
-import de.phbouillon.android.games.alite.screens.canvas.LibraryScreen;
-import de.phbouillon.android.games.alite.screens.canvas.LoadScreen;
-import de.phbouillon.android.games.alite.screens.canvas.LocalScreen;
-import de.phbouillon.android.games.alite.screens.canvas.PlanetScreen;
-import de.phbouillon.android.games.alite.screens.canvas.QuantityPadScreen;
-import de.phbouillon.android.games.alite.screens.canvas.SaveScreen;
-import de.phbouillon.android.games.alite.screens.canvas.ShipIntroScreen;
-import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
+import de.phbouillon.android.games.alite.screens.canvas.*;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ConstrictorScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.CougarScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.SupernovaScreen;
@@ -66,7 +50,7 @@ import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 public class ScreenBuilder {
-	public static boolean createScreen(Alite alite, byte[] state) {
+	static boolean createScreen(Alite alite, byte[] state) {
 		int screen = state[0];
 		if (screen != ScreenCodes.FLIGHT_SCREEN) {
 			try {
@@ -76,8 +60,7 @@ public class ScreenBuilder {
 				AliteLog.e("[ALITE]", "Loading autosave commander failed.", e);
 			}
 		}
-		DataInputStream dis = state.length > 0 ? new DataInputStream(new ByteArrayInputStream(state, 1, state.length - 1)) : null;
-		try {
+		try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(state, 1, state.length - 1))) {
 			switch (screen) {
 				case ScreenCodes.INTRO_SCREEN: AliteLog.e("ScreenBuilder", "ScreenBuilderError: Cannot create Intro Screen here -- wrong Activity."); break;
 				case ScreenCodes.BUY_SCREEN: return BuyScreen.initialize(alite, dis);
@@ -122,13 +105,8 @@ public class ScreenBuilder {
 				case ScreenCodes.HYPERSPACE_SCREEN: return HyperspaceScreen.initialize(alite, dis);
 				case ScreenCodes.FLIGHT_SCREEN: return FlightScreen.initialize(alite, dis);
 			}
+		} catch (IOException ignored) {
 		} finally {
-			if (dis != null) {
-				try {
-					dis.close();
-				} catch (IOException e) {
-				}
-			}
 			moveToScreen(alite);
 		}
 		return false;
@@ -154,14 +132,15 @@ public class ScreenBuilder {
 			case ScreenCodes.DISK_SCREEN:
 			case ScreenCodes.CATALOG_SCREEN:
 			case ScreenCodes.LOAD_SCREEN:
-			case ScreenCodes.SAVE_SCREEN:
+			case ScreenCodes.SAVE_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK); break;
+
 			case ScreenCodes.DISPLAY_OPTIONS_SCREEN:
 			case ScreenCodes.GAMEPLAY_OPTIONS_SCREEN:
 			case ScreenCodes.AUDIO_OPTIONS_SCREEN:
 			case ScreenCodes.CONTROL_OPTIONS_SCREEN:
 			case ScreenCodes.DEBUG_SCREEN:
-			case ScreenCodes.MORE_DEBUG_OPTIONS_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK); break;
-
+			case ScreenCodes.MORE_DEBUG_OPTIONS_SCREEN:
+			case ScreenCodes.PLUGINS_SCREEN:
 			case ScreenCodes.OPTIONS_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_OPTIONS); break;
 
 			case ScreenCodes.LIBRARY_SCREEN:

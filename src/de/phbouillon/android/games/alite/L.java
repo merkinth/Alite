@@ -26,6 +26,8 @@ import android.support.annotation.ArrayRes;
 import android.support.annotation.StringRes;
 import android.util.SparseArray;
 import com.android.vending.expansion.zipfile.ZipResourceFile;
+import de.phbouillon.android.framework.FileIO;
+import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -47,6 +49,32 @@ public class L {
 	private static SparseArray<String> currentResourceBundle;
 	private static SparseArray<String[]> currentResourceArrayBundle;
 	public static Locale currentLocale;
+	private static List<String> locales = new ArrayList<>();
+	private static int nextLocaleIndex;
+
+	public static void loadLocaleList(FileIO f, String localeName) {
+		nextLocaleIndex = 0;
+		File[] localeFiles = f.getFiles(DIRECTORY_LOCALES, "(.*)\\.zip");
+		locales.clear();
+		locales.add(Settings.DEFAULT_LOCALE_FILE);
+		// if locale directory does not exist
+		if (localeFiles == null) {
+			return;
+		}
+		AliteLog.d("loadLocaleList", "Number of locale files in directory '" +
+			DIRECTORY_LOCALES + "' found: " + localeFiles.length);
+		for (int i = 0; i < localeFiles.length; i++) {
+			locales.add(localeFiles[i].getName());
+			if (localeFiles[i].getName().equals(localeName)) {
+				nextLocaleIndex = i+1;
+			}
+		}
+	}
+
+	public static String getNextLocale() {
+		nextLocaleIndex = OptionsScreen.cycleFromZeroTo(nextLocaleIndex, locales.size()-1);
+		return locales.get(nextLocaleIndex);
+	}
 
 	public static void setLocale(Context context, String languagePackFileName) {
 		res = context.getResources();
@@ -164,7 +192,8 @@ public class L {
 	}
 
 	public static InputStream raw(String path, String fileName) throws IOException {
-		return currentLanguagePack.getInputStream(path + fileName);
+		InputStream inputStream = currentLanguagePack.getInputStream(path + fileName);
+		return inputStream != null ? inputStream : res.getAssets().open(fileName);
 	}
 
 	public static AssetFileDescriptor rawDescriptor(String fileName) throws IOException {
@@ -175,7 +204,8 @@ public class L {
 		// if compressed file
 		if (fd == null) {
 			AliteLog.d("Save temp file", "Saving '" + DIRECTORY_ASSETS + fileName + "' to temp.");
-			return saveFile(currentLanguagePack.getInputStream(DIRECTORY_ASSETS + fileName));
+			InputStream inputStream = currentLanguagePack.getInputStream(DIRECTORY_ASSETS + fileName);
+			return inputStream != null ? saveFile(inputStream) : res.getAssets().openFd(fileName);
 		}
 		return fd;
 	}

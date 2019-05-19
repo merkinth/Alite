@@ -30,7 +30,7 @@ public class CommanderData {
 	private final boolean autoSaved;
 
 	public static final String AUTO_SAVED_COMMANDER_FILENAME = "__autosave";
-	public static final String DIRECTORY_COMMANDER = "commanders";
+	public static final String DIRECTORY_COMMANDER = "commanders" + File.separator;
 
 	public CommanderData(String name, String dockedSystem, long gameTime, int points, Rating rating, String fileName) {
 		this.name = name;
@@ -39,7 +39,7 @@ public class CommanderData {
 		this.points = points;
 		this.rating = rating;
 		this.fileName = fileName;
-		autoSaved = fileName.contains(DIRECTORY_COMMANDER + File.separator + AUTO_SAVED_COMMANDER_FILENAME);
+		autoSaved = fileName.contains(DIRECTORY_COMMANDER + AUTO_SAVED_COMMANDER_FILENAME);
 	}
 
 	public String getName() {

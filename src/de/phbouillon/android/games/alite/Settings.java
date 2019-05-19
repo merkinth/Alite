@@ -21,6 +21,7 @@ package de.phbouillon.android.games.alite;
 import java.io.*;
 
 import de.phbouillon.android.framework.FileIO;
+import de.phbouillon.android.framework.PluginManager;
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
@@ -87,6 +88,7 @@ public class Settings {
 	private static int restoredCommanderCount = 0;
     public static boolean navButtonsVisible = true;
 	public static String localeFileName = DEFAULT_LOCALE_FILE;
+	public static int extensionUpdateMode = PluginManager.UPDATE_MODE_AUTO_UPDATE_OVER_WIFI_ONLY;
 
 	public static void load(FileIO files) {
 		resetButtonPosition();
@@ -140,7 +142,8 @@ public class Settings {
 			difficultyLevel = Integer.parseInt(in.readLine());
 			restoredCommanderCount = Integer.parseInt(in.readLine());
 			navButtonsVisible = Boolean.parseBoolean(in.readLine());
-		} catch (Throwable ignored) {
+			extensionUpdateMode = Integer.parseInt(in.readLine());
+		} catch (IOException | NumberFormatException ignored) {
 			dockingComputerSpeed = fastDC ? 2 : 0;
 		}
 		ColorScheme.setColorScheme(files, null, colorScheme);
@@ -198,6 +201,7 @@ public class Settings {
 			out.write(difficultyLevel + "\n");
 			out.write(restoredCommanderCount + "\n");
 			out.write(navButtonsVisible + "\n");
+			out.write(extensionUpdateMode + "\n");
 		} catch (IOException ignored) { }
 	}
 }

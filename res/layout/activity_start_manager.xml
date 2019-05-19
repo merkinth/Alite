@@ -7,38 +7,39 @@
     tools:context=".AliteStartManager" >
 
     <TextView
-        android:id="@+id/downloadHeader"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="top"
-        android:lines="1"
-        android:padding="10dp"
-        android:text="@string/notification_download_assets"
-        tools:ignore="HardcodedText" />
+            android:id="@+id/downloadHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="top"
+            android:lines="1"
+            android:padding="10dp"
+            android:text="@string/notification_download_assets"
+            tools:ignore="HardcodedText"/>
 
     <TextView
-        android:id="@+id/downloadTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center|left"
-        android:lines="5"
-        android:padding="10dp"
-        android:text="@string/notification_download_start"
-        tools:ignore="HardcodedText" />
+            android:id="@+id/downloadTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center|left"
+            android:lines="5"
+            android:padding="10dp"
+            android:text="@string/notification_download_start"
+            tools:ignore="HardcodedText"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
         <ProgressBar
-            android:id="@+id/downloadProgressBar"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.8"
-            android:maxWidth="24dp"
-            android:minWidth="30dp"
-            android:padding="10dp" />
+                android:id="@+id/downloadProgressBar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:maxWidth="24dp"
+                android:minWidth="30dp"
+                android:padding="10dp"
+                android:max="100"/>
 
         <TextView
             android:id="@+id/downloadProgressPercentTextView"

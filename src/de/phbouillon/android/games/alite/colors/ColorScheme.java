@@ -255,23 +255,22 @@ public class ColorScheme {
 		{0x99F0F000, 0x99F0F000} // COLOR_HUD_MESSAGE - MedAlphaDarkYellow
 	};
 
-	private static final String DIRECTORY_COLOR_SCHEMES = "color_schemes";
+	private static final String DIRECTORY_COLOR_SCHEMES = "color_schemes" + File.separator;
 	static final String ALITE_COLOR_SCHEME_EXTENSION = ".acs";
 
 	private static int[][] colors = classicColorSchemeColors;
 	private static List<String> colorSchemes = new ArrayList<>();
-	private static int nextColorSchemeIndex = 0;
+	private static int nextColorSchemeIndex;
 
 	public static String setColorScheme(FileIO f, String schemeContent, String schemeName) {
 		switch (schemeName) {
 			case COLOR_SCHEME_CLASSIC: colors = classicColorSchemeColors; break;
 			case COLOR_SCHEME_MODERN: colors = modernColorSchemeColors; break;
 			default:
-				AliteLog.d("Load color scheme file", "file name: " +
-					DIRECTORY_COLOR_SCHEMES + File.separator + schemeName);
+				AliteLog.d("Load color scheme file", "file name: " + DIRECTORY_COLOR_SCHEMES + schemeName);
 				try {
 					return loadColorSchemeValues(schemeContent == null ?
-						new String(f.readFileContents(DIRECTORY_COLOR_SCHEMES + File.separator + schemeName)) : schemeContent);
+						new String(f.readFileContents(DIRECTORY_COLOR_SCHEMES + schemeName)) : schemeContent);
 				} catch (IOException e) {
 					return e.getMessage();
 				}

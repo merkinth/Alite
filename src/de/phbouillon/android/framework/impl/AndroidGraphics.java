@@ -282,10 +282,10 @@ public class AndroidGraphics implements Graphics {
 
 	@Override
 	public void fillCircle(int cx, int cy, int r, int color, int segments) {
-		drawCircleWithMode(cx, cy, r, color, segments, GLES11.GL_TRIANGLE_FAN);
+		drawCircleWithMode(cx, cy, r, color, segments, GLES11.GL_TRIANGLE_FAN, 360);
 	}
 
-	private void drawCircleWithMode(int cx, int cy, int r, int color, int segments, int mode) {
+	private void drawCircleWithMode(int cx, int cy, int r, int color, int segments, int mode, float angle) {
 		if (segments > 64) {
 			segments = 64;
 		}
@@ -294,26 +294,32 @@ public class AndroidGraphics implements Graphics {
 		r = (int) (r * scaleFactor);
 
 		circleBuffer.clear();
-		float step = 360.0f / segments;
-		for (float i = 0; i < 360.0f; i += step) {
-			float ang = (float) Math.toRadians(i);
+		float step = angle / (segments - 1);
+		for (int i = 0; i < segments; i++) {
+			float ang = (float) (Math.toRadians(i * step) - Math.PI / 2);
 			circleBuffer.put((float) (cx + Math.cos(ang) * r));
 			circleBuffer.put((float) (cy + Math.sin(ang) * r));
 		}
 		circleBuffer.position(0);
 		setColor(color);
+		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
 		GLES11.glVertexPointer(2, GLES11.GL_FLOAT, 0, circleBuffer);
 		GLES11.glDrawArrays(mode, 0, segments);
 	}
 
 	@Override
+	public void drawArc(int cx, int cy, int r, int color, int angle) {
+		drawCircleWithMode(cx, cy, r, color,  64, GLES11.GL_LINE_STRIP, angle);
+	}
+
+	@Override
 	public void drawCircle(int cx, int cy, int r, int color, int segments) {
-		drawCircleWithMode(cx, cy, r, color, segments, GLES11.GL_LINE_LOOP);
+		drawCircleWithMode(cx, cy, r, color, segments, GLES11.GL_LINE_LOOP, 360);
 	}
 
 	@Override
 	public void drawDashedCircle(int cx, int cy, int r, int color, int segments) {
-		drawCircleWithMode(cx, cy, r, color, segments, GLES11.GL_LINES);
+		drawCircleWithMode(cx, cy, r, color, segments, GLES11.GL_LINES, 360);
 	}
 
 	@Override
@@ -385,7 +391,7 @@ public class AndroidGraphics implements Graphics {
 
 	@Override
 	public void drawCenteredText(String text, int x, int y, int color, GLText font, float scale) {
-		drawText(text, (int) (x - font.getWidth(text, scale) / 2), y, color, font, scale);
+		drawText(text, x - ((int) font.getWidth(text, scale) >> 1), y, color, font, scale);
 	}
 
 	@Override

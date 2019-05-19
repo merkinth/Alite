@@ -66,6 +66,13 @@ public class ButtonRegistry {
 		buttons.remove(definingScreen);
 	}
 
+	public void removeButton(Screen definingScreen, Button button) {
+		Set <Button> definedButtons = buttons.get(definingScreen);
+		if (definedButtons != null) {
+			definedButtons.remove(button);
+		}
+	}
+
 	public int processTouch(TouchEvent touch) {
 		int result = Integer.MAX_VALUE;
 		Set<Button> set = messageButtons.isEmpty() ? buttons.get(Alite.get().getCurrentScreen()) : messageButtons;

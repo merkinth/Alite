@@ -30,6 +30,7 @@ import com.google.android.vending.expansion.downloader.DownloaderClientMarshalle
 import com.google.android.vending.expansion.downloader.Helpers;
 import com.google.android.vending.expansion.downloader.IDownloaderClient;
 
+import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
 
 /**
@@ -142,7 +143,7 @@ public class DownloadNotification implements IDownloaderClient {
 				return;
 			}
 
-			String mCurrentText = mContext.getString(stringDownloadID);
+			String mCurrentText = L.string(stringDownloadID);
 			mNotificationManager.notify(NOTIFICATION_ID, new NotificationCompat.Builder(mContext, "")
 				.setAutoCancel(!ongoingEvent)
 				.setTicker(mLabel + ": " + mCurrentText)

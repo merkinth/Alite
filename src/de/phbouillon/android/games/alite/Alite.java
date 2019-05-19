@@ -392,8 +392,8 @@ public class Alite extends AndroidGame {
 		AliteLog.d("loadFonts", "Fonts are loaded");
 	}
 
-	private static GLText getFont(int fontId, int size) {
-		return GLText.load(alite.getApplicationContext(), Settings.colorDepth, fontId,
+	private GLText getFont(int fontId, int size) {
+		return GLText.load(this, Settings.colorDepth, fontId,
 			(int) (size * scaleFactor), size, 2, 2);
 	}
 
@@ -479,7 +479,7 @@ public class Alite extends AndroidGame {
 	}
 
 	public CommanderData getQuickCommanderInfo(String fileName) {
-		return fileUtils.getQuickCommanderInfo(CommanderData.DIRECTORY_COMMANDER + File.separator + fileName);
+		return fileUtils.getQuickCommanderInfo(CommanderData.DIRECTORY_COMMANDER + fileName);
 	}
 
 	public File[] getCommanderFiles() {

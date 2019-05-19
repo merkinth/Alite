@@ -226,7 +226,7 @@ public class GalaxyScreen extends AliteScreen {
 				}
 				if (findButton.isTouched(touch.x, touch.y)) {
 					SoundManager.play(Assets.click);
-					popupTextInput("Find Planet", "Enter planet name:", "", 8);
+					popupTextInput("Enter planet name to find:", "", 8);
 					return;
 				}
 				MappedSystemData closestSystem = findClosestSystem(touch.x, touch.y);

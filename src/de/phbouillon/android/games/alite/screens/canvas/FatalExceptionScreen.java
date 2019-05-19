@@ -38,7 +38,6 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class FatalExceptionScreen extends AliteScreen {
 	private static final String SEND_ERROR_IN_MAIL = "Send Error in Mail";
 
@@ -179,10 +178,8 @@ public class FatalExceptionScreen extends AliteScreen {
 
 	private void saveErrorCause() {
 		try {
-			savedFilename = "crash_reports/report-" + new SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.getDefault()).format(new Date()) + ".txt";
-			if (!game.getFileIO().exists("crash_reports")) {
-				game.getFileIO().mkDir("crash_reports");
-			}
+			savedFilename = "crash_reports/report-" + new SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).format(new Date()) + ".txt";
+			game.getFileIO().mkDir("crash_reports");
 			OutputStream file = game.getFileIO().writeFile(savedFilename);
 			String message = getErrorReportText();
 			file.write(message.getBytes());
@@ -199,7 +196,7 @@ public class FatalExceptionScreen extends AliteScreen {
 		try {
 			final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
 			emailIntent.setType("plain/text");
-			emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{"alite.crash.report@gmail.com"});
+			emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[] { AliteConfig.ALITE_MAIL });
 			String subject = StringUtil.computeSHAString(plainCauseText);
 			emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, subject.isEmpty() ?
 				AliteConfig.GAME_NAME + " Crash Report." : subject);
@@ -216,7 +213,7 @@ public class FatalExceptionScreen extends AliteScreen {
 			"\n\nDevice details:\n" + AliteLog.getDeviceInfo() +
 			"\n\nGL Details:\n" + getGlDetails() +
 			"\n\nMemory data:\n" + AliteLog.getMemoryData() +
-			"\n\nCurrent date/time: " + new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss", Locale.getDefault()).format(new Date());
+			"\n\nCurrent date/time: " + new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss", Locale.US).format(new Date());
 	}
 
 	private static String getGlDetails() {

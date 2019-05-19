@@ -45,14 +45,13 @@ import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public abstract class AliteScreen extends Screen {
 	protected int startX = -1;
 	protected int startY = -1;
 	protected int lastX = -1;
 	protected int lastY = -1;
 
-	private String popupTitle;
+	private boolean popupWindow;
 	private String message;
 	private int maxLength;
 	private int dialogState;
@@ -79,7 +78,7 @@ public abstract class AliteScreen extends Screen {
 
 	protected static final int RESULT_NONE = 0;
 	protected static final int RESULT_YES = 1;
-	private static final int RESULT_NO = -1;
+	protected static final int RESULT_NO = -1;
 
 	public AliteScreen(Alite game) {
 		this.game = game;
@@ -88,36 +87,36 @@ public abstract class AliteScreen extends Screen {
 	}
 
 	public void showMessageDialog(String message) {
-		setMessageDialog(message, DIALOG_OK, null);
+		setMessageDialog(message, DIALOG_OK);
 	}
 
 	protected void showQuestionDialog(String message) {
-		setMessageDialog(message, DIALOG_YES_NO | DIALOG_NORMAL, null);
+		setMessageDialog(message, DIALOG_YES_NO | DIALOG_NORMAL);
 	}
 
-	private void setMessageDialog(String message, int dialogState, String title) {
+	private void setMessageDialog(String message, int dialogState) {
 		this.message = message;
 		this.dialogState = dialogState;
-		popupTitle = title;
+		popupWindow = false;
 	}
 
 	void showModalQuestionDialog(String message) {
-		setMessageDialog(message, DIALOG_YES_NO | DIALOG_NORMAL | DIALOG_MODAL, null);
+		setMessageDialog(message, DIALOG_YES_NO | DIALOG_NORMAL | DIALOG_MODAL);
 	}
 
 	void showLargeModalQuestionDialog(String message) {
-		setMessageDialog(message, DIALOG_YES_NO | DIALOG_LARGE | DIALOG_MODAL, null);
+		setMessageDialog(message, DIALOG_YES_NO | DIALOG_LARGE | DIALOG_MODAL);
 	}
 
 	boolean isMessageDialogActive() {
 		return message != null;
 	}
 
-	void popupTextInput(String title, String message, String inputText, int maxLength) {
-		setMessageDialog(message, DIALOG_YES_NO | DIALOG_INPUT_POPUP | DIALOG_MODAL, title);
+	void popupTextInput(String message, String inputText, int maxLength) {
+		setMessageDialog(message, DIALOG_YES_NO | DIALOG_INPUT_POPUP | DIALOG_MODAL);
 		this.inputText = inputText;
 		this.maxLength = maxLength;
-
+		popupWindow = true;
 	}
 
 	protected void centerText(String text, int y, GLText f, int color) {
@@ -204,7 +203,7 @@ public abstract class AliteScreen extends Screen {
 		int width = (dialogState & DIALOG_TYPE_MASK) == DIALOG_NORMAL ? 750 :
 			(dialogState & DIALOG_TYPE_MASK) == DIALOG_LARGE ? 1000 : 1700;
 		int height = (dialogState & DIALOG_TYPE_MASK) == DIALOG_NORMAL ? 400 :
-			(dialogState & DIALOG_TYPE_MASK) == DIALOG_LARGE ? 600 : 220;
+			(dialogState & DIALOG_TYPE_MASK) == DIALOG_LARGE ? 600 : 140;
 		int x = AliteConfig.DESKTOP_WIDTH - width >> 1;
 		int y = (dialogState & DIALOG_TYPE_MASK) == DIALOG_INPUT_POPUP ? 100 : AliteConfig.SCREEN_HEIGHT - height >> 1;
 		return new Rect(x, y, x + width - 1, y + height - 1);
@@ -227,14 +226,8 @@ public abstract class AliteScreen extends Screen {
 			AliteColor.lighten(ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), 0.1),
 			AliteColor.lighten(ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK), -0.1));
 
-		int messageY = r.top + 70;
-		if (popupTitle != null) {
-			centerText(popupTitle, r.top + 60, Assets.titleFont, ColorScheme.get(ColorScheme.COLOR_MESSAGE));
-			messageY += 100;
-		}
-
-		displayText(g, computeTextDisplay(game.getGraphics(), message, r.left + 20, messageY,
-			width - 40, 60, ColorScheme.get(ColorScheme.COLOR_MESSAGE),
+		displayText(g, computeTextDisplay(game.getGraphics(), message, r.left + 20, r.top + 70 + (popupWindow ? 20 : 0),
+			new int[] { width - 40 }, 60, ColorScheme.get(ColorScheme.COLOR_MESSAGE),
 			(dialogState & DIALOG_TYPE_MASK) == DIALOG_INPUT_POPUP || (dialogState & DIALOG_MODAL) == 0 ?
 				Assets.titleFont : Assets.regularFont, false));
 		if ((dialogState & DIALOG_BUTTON_MASK) == DIALOG_OK) {
@@ -271,9 +264,9 @@ public abstract class AliteScreen extends Screen {
 		// event dialogEventsProcessed which sets messages and buttons (ok, no, yes) tag variables to null
 		// during the presenting process. To avoid null pointer exception calling addInputLayout is placed
 		// to the end of this method.
-		if (popupTitle != null && (dialogState & DIALOG_VISIBLE) == 0) {
+		if (popupWindow && (dialogState & DIALOG_VISIBLE) == 0) {
 			addInputLayout(r.left + 40 + g.getTextWidth(message, Assets.titleFont),
-				r.top + 100, width - 2 * buttonSize - buttonGap - BORDER_GAP);
+				r.top + 20, width - 2 * buttonSize - buttonGap - BORDER_GAP);
 		}
 
 		dialogState|= DIALOG_VISIBLE;
@@ -413,35 +406,44 @@ public abstract class AliteScreen extends Screen {
 	}
 
 	final TextData[] computeCenteredTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int color) {
-		return computeTextDisplay(g, text, x, y, fieldWidth, 40, color, Assets.regularFont, true);
+		return computeTextDisplay(g, text, x, y, new int[] { fieldWidth }, 40, color, Assets.regularFont, true);
 	}
 
 	protected final TextData[] computeTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int deltaY, int color) {
-		return computeTextDisplay(g, text, x, y, fieldWidth, deltaY, color, Assets.regularFont, false);
+		return computeTextDisplay(g, text, x, y, new int[] { fieldWidth }, deltaY, color, Assets.regularFont, false);
 	}
 
-	private TextData[] computeTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int deltaY, int color, GLText font, boolean centered) {
+	protected final TextData[] computeTextDisplayWidths(Graphics g, String text, int x, int y, int[] fieldWidths, int deltaY, int color) {
+		return computeTextDisplay(g, text, x, y, fieldWidths, deltaY, color, Assets.regularFont, false);
+	}
+
+	private TextData[] computeTextDisplay(Graphics g, String text, int x, int y, int[] fieldWidths, int deltaY, int color, GLText font, boolean centered) {
 		String[] textWords = text.split(" ");
 		List <TextData> resultList = new ArrayList<>();
 		String result = "";
 		int width = 0;
 		int count = 0;
+		int fieldWidth = fieldWidths[0];
 		for (String word: textWords) {
 			if (result.isEmpty()) {
 				result = word;
 				width = g.getTextWidth(result, font);
-			} else {
-				String test = result + " " + word;
-				int testWidth = g.getTextWidth(test, font);
-				if (testWidth > fieldWidth) {
-					int offset = centered ? fieldWidth - width >> 1 : 0;
-					resultList.add(new TextData(result, x + offset, y + deltaY * count++, color, font));
-					result = word;
-					width = g.getTextWidth(result, font);
-				} else {
-					result = test;
-					width = testWidth;
+				continue;
+			}
+			String test = result + " " + word;
+			int testWidth = g.getTextWidth(test, font);
+			if (testWidth > fieldWidth) {
+				int offset = centered ? fieldWidth - width >> 1 : 0;
+				resultList.add(new TextData(result, x + offset, y + deltaY * count, color, font));
+				count++;
+				if (count < fieldWidths.length) {
+					fieldWidth = fieldWidths[count];
 				}
+				result = word;
+				width = g.getTextWidth(result, font);
+			} else {
+				result = test;
+				width = testWidth;
 			}
 		}
 		if (!result.isEmpty()) {

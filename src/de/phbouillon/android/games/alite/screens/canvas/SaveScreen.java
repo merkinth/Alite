@@ -77,7 +77,7 @@ public class SaveScreen extends CatalogScreen {
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (saveNewCommanderButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				popupTextInput("New Commander Name", "Enter the new commander's name:",
+				popupTextInput("Enter the new commander's name:",
 					game.getPlayer().getName(), 16);
 			}
 		}

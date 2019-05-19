@@ -23,7 +23,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import android.graphics.Color;
 import de.phbouillon.android.framework.Graphics;
@@ -139,10 +138,10 @@ public class LibraryScreen extends AliteScreen {
 		for (TocEntryData entry : entries) {
 			LibraryPage libPage = entry.entry.getLinkedPage();
 			if (libPage != null) {
-				String[] highlights = currentFilter.toLowerCase(Locale.getDefault()).split(" ");
+				String[] highlights = currentFilter.toLowerCase(L.currentLocale).split(" ");
 				String paragraph = libPage.getParagraphs();
 				if (paragraph != null) {
-					paragraph = paragraph.toLowerCase(Locale.getDefault());
+					paragraph = paragraph.toLowerCase(L.currentLocale);
 					for (String h : highlights) {
 						if (paragraph.contains(h)) {
 							filteredEntries.add(entry);
@@ -194,7 +193,7 @@ public class LibraryScreen extends AliteScreen {
 				Math.abs(startY - touch.y) < 20) {
 				if (searchButton.isTouched(touch.x, touch.y)) {
 					SoundManager.play(Assets.click);
-					popupTextInput("Search Library", "Enter search text:", currentFilter, -1);
+					popupTextInput("Enter search text:", currentFilter, -1);
 				} else if (touch.y > 79) {
 					int index = 0;
 					for (Button b: button) {

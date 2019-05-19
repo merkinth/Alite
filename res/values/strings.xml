@@ -45,6 +45,7 @@
     <string name="notification_download_start">File Downloading... Please wait...</string>
     <string name="notification_download_assets">Downloading assets. This only needs to be done once...</string>
     <string name="notification_download_working">Working...</string>
+    <string name="notification_plugin_checking">Checking updates of plugins...</string>
 
     <string name="about_game_inspired_by">%1$s is inspired by classic Elite</string>
     <string name="about_elite_copyright">\u00a9 Acornsoft, Bell &amp; Braben</string>
@@ -222,9 +223,6 @@
     [6]Rolf Paulsen\n
     [6]Scott McGeachie\n
     [6]Stefan Widmaier\n
-    [3]Translations\n
-    [4]Hungarian\n
-    [5]Tamás Molnár\n
     [3]Special Thanks To\n
     [5]Duane McDonnell\n
     [7]This game would not have been completed\n
@@ -245,5 +243,28 @@
     [7]Thank you for letting me write this game\n
     [7]during all those long hours in the night.\n
     [7]For this, and so much more, I love you!</string>
+
+    <string name="com_aftShieldHasFailed">Aft shield has failed</string>
+    <string name="com_frontShieldHasFailed">Front shield has failed</string>
+    <string name="com_conditionRed">Condition Red!</string>
+    <string name="com_dockingComputerEngaged">Docking computer engaged</string>
+    <string name="com_dockingComputerDisengaged">Docking computer disengaged</string>
+    <string name="com_hyperdriveMalfunction">Hyperdrive malfunction!</string>
+    <string name="com_hyperdriveRepaired">Hyperdrive repaired!</string>
+    <string name="com_incomingMissile">Incoming Missile</string>
+    <string name="com_laserTemperatureCritical">Laser temperature critical</string>
+    <string name="com_cabinTemperatureCritical">Cabin temperature critical</string>
+    <string name="com_targetDestroyed">Target destroyed</string>
+    <string name="com_fuelSystemMalfunction">Fuel system malfunction</string>
+    <string name="com_accessDeclined">Access to the station has been declined</string>
+    <string name="com_lostDockingComputer">Docking Computer lost</string>
+    <string name="com_lost_ecm">ECM System lost</string>
+    <string name="com_lost_bomb">Energy Bomb lost</string>
+    <string name="com_lost_escape">Escape Capsule lost</string>
+    <string name="com_lost_energy">Extra Energy Unit lost</string>
+    <string name="com_lost_fuel_scoop">Fuel Scoop lost</string>
+    <string name="com_lost_galactic">Galactic Hyperdrive lost</string>
+    <string name="com_lost_retro_rockets">Retro Rockets lost</string>
+    <string name="com_escape_malfunction">Escape Capsule Malfunction</string>
 
 </resources>

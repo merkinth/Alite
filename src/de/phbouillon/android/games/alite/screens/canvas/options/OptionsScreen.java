@@ -20,11 +20,14 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.Locale;
 
 import android.content.Intent;
+import android.graphics.*;
+import android.support.v4.content.res.ResourcesCompat;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
+import de.phbouillon.android.framework.Pixmap;
+import de.phbouillon.android.framework.PluginModel;
 import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
@@ -34,11 +37,11 @@ import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.Rating;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
+import de.phbouillon.android.games.alite.screens.canvas.PluginsScreen;
 import de.phbouillon.android.games.alite.screens.opengl.AboutScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class OptionsScreen extends AliteScreen {
 	public static boolean SHOW_DEBUG_MENU = false;
 	private static final boolean RESTORE_SAVEGAME = false;
@@ -48,8 +51,10 @@ public class OptionsScreen extends AliteScreen {
 	private Button debug;
 	private Button gameplayOptions;
 	private Button displayOptions;
-	private Button controlOptions;
 	private Button audioOptions;
+	private Button controlOptions;
+	private Button languages;
+	private Button extensionPacks;
 	private boolean confirmReset = false;
 	private int rowSize = 130;
 	private int buttonSize = 100;
@@ -68,22 +73,83 @@ public class OptionsScreen extends AliteScreen {
 
 	Slider createFloatSlider(int row, float minValue, float maxValue, String text, float currentValue) {
 		Slider s = new Slider(50, rowSize * (row + 1), 1620, buttonSize, minValue, maxValue, currentValue, text, Assets.titleFont);
-		s.setScaleTexts(String.format(Locale.getDefault(),  "%2.1f", minValue),
-				        String.format(Locale.getDefault(),  "%2.1f", maxValue),
-				        String.format(Locale.getDefault(),  "%2.1f", (maxValue - minValue) / 2.0f + minValue));
+		s.setScaleTexts(String.format(L.currentLocale,  "%2.1f", minValue),
+				        String.format(L.currentLocale,  "%2.1f", maxValue),
+				        String.format(L.currentLocale,  "%2.1f", (maxValue + minValue) / 2.0f));
 		return s;
 	}
 
 	@Override
 	public void activate() {
-		gameplayOptions = createButton(0, "Gameplay Options");
-		displayOptions  = createButton(1, "Display Options");
-		audioOptions    = createButton(2, "Audio Options");
-		controlOptions  = createButton(3, "Control Options");
+		L.loadLocaleList(game.getFileIO(), Settings.localeFileName);
+		createForm();
+	}
+
+	private void createForm() {
+		gameplayOptions = createSmallButton(0, true, "Gameplay Options");
+		displayOptions  = createSmallButton(0, false, "Display Options");
+		audioOptions    = createSmallButton(1, true, "Audio Options");
+		controlOptions  = createSmallButton(1, false, "Control Options");
+
+		String languageText = "Language: " + L.currentLocale.getDisplayLanguage(L.currentLocale);
+		languages = createSmallButton(2, true, languageText);
+		addPixmapAfterText(languages, getCountryFlag(L.currentLocale.getCountry()));
+
+		int count = new PluginModel(game.getFileIO(),
+			PluginsScreen.DIRECTORY_PLUGINS + PluginsScreen.PLUGINS_META_FILE).countNewAndUpgraded();
+		extensionPacks = createSmallButton(2, false, "Extensions");
+		if (count > 0) {
+			addPixmapAfterText(extensionPacks, getNewAndUpgradedMarker(count));
+		}
+
 		resetGame       = createButton(4, "Reset Game");
 		about           = createButton(5, "About")
 			.setVisible(!(game.getCurrentScreen() instanceof FlightScreen));
 		debug           = createButton(6, SHOW_DEBUG_MENU ? "Debug Menu" : "Log to file: " + (Settings.logToFile ? "Yes" : "No"));
+	}
+
+	private Pixmap getCountryFlag(String countryCode) {
+		int firstLetter = Character.codePointAt(countryCode, 0) - 0x41 + 0x1F1E6;
+		int secondLetter = Character.codePointAt(countryCode, 1) - 0x41 + 0x1F1E6;
+
+		Bitmap bitmap = Bitmap.createBitmap(100, 50,
+			Settings.colorDepth  == 1 ? Bitmap.Config.ARGB_8888 : Bitmap.Config.ARGB_4444);
+		bitmap.eraseColor(Color.TRANSPARENT);
+		Paint paint = new Paint();
+		paint.setTextSize(60);
+		new Canvas(bitmap).drawText(new String(Character.toChars(firstLetter)) +
+			new String(Character.toChars(secondLetter)), 10, 50, paint);
+		return game.getGraphics().newPixmap(bitmap, "countryFlag");
+	}
+
+	private void addPixmapAfterText(Button b, Pixmap pixmap) {
+		b.setPixmap(pixmap).setPixmapOffset(b.getWidth() +
+			game.getGraphics().getTextWidth(b.getText(), Assets.titleFont) + 10 >> 1, b.getHeight() - pixmap.getHeight() >> 1);
+	}
+
+	private Pixmap getNewAndUpgradedMarker(int count) {
+		Paint paint = new Paint();
+		paint.setTypeface(ResourcesCompat.getFont(game, R.font.robotor));
+		paint.setTextSize(Assets.regularFont.getSize());
+
+		String text = String.format(L.currentLocale, "%d", count);
+
+		Graphics g = game.getGraphics();
+		int width = g.getTextWidth(text, Assets.regularFont);
+		int r = (Math.max(width, g.getTextHeight(text, Assets.regularFont)) >> 1) + 5;
+
+		Bitmap bitmap = Bitmap.createBitmap(r << 1, r << 1,
+			Settings.colorDepth  == 1 ? Bitmap.Config.ARGB_8888 : Bitmap.Config.ARGB_4444);
+		bitmap.eraseColor(Color.TRANSPARENT);
+
+		Canvas canvas = new Canvas(bitmap);
+		paint.setColor(ColorScheme.get(ColorScheme.COLOR_WARNING_MESSAGE));
+		paint.setStyle(Paint.Style.FILL);
+		canvas.drawCircle(r, r, r, paint);
+
+		paint.setColor(ColorScheme.get(ColorScheme.COLOR_MESSAGE));
+		canvas.drawText(text, r - (width >> 1), r  + ((int)Assets.regularFont.getSize() >> 1) - 5, paint);
+		return game.getGraphics().newPixmap(bitmap, "newPlugins");
 	}
 
 	@Override
@@ -96,9 +162,19 @@ public class OptionsScreen extends AliteScreen {
 		displayOptions.render(g);
 		audioOptions.render(g);
 		controlOptions.render(g);
+		languages.render(g);
+		extensionPacks.render(g);
 		resetGame.render(g);
 		about.render(g);
 		debug.render(g);
+	}
+
+	public static int cycleFromZeroTo(int current, int max) {
+		current++;
+		if (current > max) {
+			current = 0;
+		}
+		return current;
 	}
 
 	@Override
@@ -136,17 +212,19 @@ public class OptionsScreen extends AliteScreen {
 		}
 		if (languages.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			L.setLocale(game, Settings.DEFAULT_LOCALE_FILE.equals(Settings.localeFileName.substring(
-					Settings.localeFileName.lastIndexOf(File.separator) + 1)) ?
-				game.getFileIO().getFileName(L.DIRECTORY_LOCALES + File.separator + "hu_hu_official.zip") : "");
-			game.changeLocale();
 
-			String languageText = "Language: " + L.currentLocale.getDisplayLanguage(L.currentLocale);
-			languages.setText(languageText)
-				.setPixmap(getCountryFlag(L.currentLocale.getCountry()))
-				.setPixmapOffset(languages.getWidth() + game.getGraphics().
-					getTextWidth(languageText, Assets.titleFont) + 10 >> 1, 25);
+			Settings.localeFileName = L.getNextLocale();
+			L.setLocale(game, Settings.DEFAULT_LOCALE_FILE.equals(Settings.localeFileName) ? Settings.localeFileName :
+				game.getFileIO().getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
+			game.changeLocale();
+			// it is required to pass the new fonts to the buttons
+			createForm();
 			Settings.save(game.getFileIO());
+			return;
+		}
+		if (extensionPacks.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new PluginsScreen(game);
 			return;
 		}
 		if (resetGame.isTouched(touch.x, touch.y)) {

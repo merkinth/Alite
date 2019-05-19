@@ -48,6 +48,7 @@ public interface Graphics {
 	void rec3d(int x, int y, int width, int height, int borderSize, int lightColor, int darkColor);
 	void verticalGradientRect(int x, int y, int width, int height, int color1, int color2);
 	void diagonalGradientRect(int x, int y, int width, int height, int color1, int color2);
+	void drawArc(int cx, int cy, int r, int color, int degree);
 	void drawCircle(int cx, int cy, int r, int color, int segments);
 	void fillCircle(int cx, int cy, int r, int color, int segments);
 	void drawDashedCircle(int cx, int cy, int r, int color, int segments);

@@ -178,8 +178,7 @@ public class FileUtils {
 	private String generateRandomFilename() {
 		String fileName;
 		do {
-			fileName = CommanderData.DIRECTORY_COMMANDER + File.separator +
-				generateRandomString(12) + ALITE_COMMANDER_EXTENSION;
+			fileName = CommanderData.DIRECTORY_COMMANDER + generateRandomString(12) + ALITE_COMMANDER_EXTENSION;
 		} while (game.getFileIO().exists(fileName));
 		return fileName;
 	}
@@ -670,8 +669,8 @@ public class FileUtils {
 	}
 
 	private String getAutoSavedFileName(int index) {
-		return CommanderData.DIRECTORY_COMMANDER + File.separator +
-			CommanderData.AUTO_SAVED_COMMANDER_FILENAME + (index != 0 ? index : "") + ALITE_COMMANDER_EXTENSION;
+		return CommanderData.DIRECTORY_COMMANDER + CommanderData.AUTO_SAVED_COMMANDER_FILENAME +
+			(index != 0 ? index : "") + ALITE_COMMANDER_EXTENSION;
 	}
 
 	private String determineYoungestAutosaveSlot() {

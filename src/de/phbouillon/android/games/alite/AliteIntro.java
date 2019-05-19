@@ -358,7 +358,7 @@ public class AliteIntro extends Activity implements OnClickListener {
 			startAlite(videoView);
 		}
 		AliteLog.d("Change subtitle", "Current subtitle: " + currentSubtitle);
-		if (nativeSubtitleIndex >= 0 || localizedSubtitleIndex >= 0) {
+		if (mediaPlayer != null && (nativeSubtitleIndex >= 0 || localizedSubtitleIndex >= 0)) {
 			selectOrDeselectTrack(false);
 			currentSubtitle = currentSubtitle < 0 && nativeSubtitleIndex >= 0 ? 0 :
 				currentSubtitle < 0 || currentSubtitle == 0 && localizedSubtitleIndex >= 0 ? 1 : -1;
