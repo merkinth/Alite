@@ -78,6 +78,7 @@ public class ScreenBuilder {
 				case ScreenCodes.CATALOG_SCREEN: return CatalogScreen.initialize(alite, dis);
 				case ScreenCodes.OPTIONS_SCREEN: return OptionsScreen.initialize(alite, dis);
 				case ScreenCodes.DISPLAY_OPTIONS_SCREEN: return DisplayOptionsScreen.initialize(alite, dis);
+				case ScreenCodes.PLUGINS_SCREEN: return PluginsScreen.initialize(alite, dis);
 				case ScreenCodes.AUDIO_OPTIONS_SCREEN: return AudioOptionsScreen.initialize(alite, dis);
 				case ScreenCodes.CONTROL_OPTIONS_SCREEN: return ControlOptionsScreen.initialize(alite, dis);
 				case ScreenCodes.GAMEPLAY_OPTIONS_SCREEN: return GameplayOptionsScreen.initialize(alite, dis);
