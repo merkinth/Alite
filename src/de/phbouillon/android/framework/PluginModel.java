@@ -174,7 +174,7 @@ public class PluginModel {
 			return;
 		}
 		boolean upgradeSucceeded = pluginManager.updateFile(serverFile.fileId,
-			serverFile.size, getLastSubPath(localFile.getParent()) + localFile.getName());
+			serverFile.size, getLastSubPath(localFile.getParent()) + File.separator + localFile.getName());
 		String newStatus = upgradeSucceeded ? Plugin.META_STATUS_UPGRADED : Plugin.META_STATUS_OUTDATED;
 		Plugin file = metaInfo.get(serverFile.filename);
 		if (file == null) {
