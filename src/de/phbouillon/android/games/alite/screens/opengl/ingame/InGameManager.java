@@ -85,6 +85,7 @@ public class InGameManager implements Serializable {
 	public static boolean     safeZoneViolated = false;
 
 	private transient AliteScreen       postDockingScreen = null;
+	private transient IMethodHook hyperspaceHook    = null;
 	private transient String            feeText           = null;
 	private transient Alite             alite;
 
@@ -1603,6 +1604,14 @@ public class InGameManager implements Serializable {
 		killHud();
 		ship.setUpdater(new GameOverUpdater(alite, this, ship));
 		alite.getPlayer().setCondition(Condition.DOCKED);
+	}
+
+	public void setHyperspaceHook(IMethodHook hyperspaceHook) {
+		this.hyperspaceHook = hyperspaceHook;
+	}
+
+	public IMethodHook getHyperspaceHook() {
+		return hyperspaceHook;
 	}
 
 	public void toggleECMJammer() {

@@ -26,7 +26,6 @@ public class HyperspaceTimer extends TimedEvent {
 	private static final long serialVersionUID = -855725511472476223L;
 
 	private int countDown;
-	private transient IMethodHook hyperspaceHook;
 
 	HyperspaceTimer(InGameManager inGame, boolean isIntergalactic) {
 		super(1000000000L);
@@ -37,22 +36,14 @@ public class HyperspaceTimer extends TimedEvent {
 			SoundManager.play(Assets.click);
 			if (countDown == 0) {
 				SoundManager.stopAll();
-				if (hyperspaceHook != null) {
-					hyperspaceHook.execute(0);
+				if (inGame.getHyperspaceHook() != null) {
+					inGame.getHyperspaceHook().execute(0);
 				} else {
 					inGame.performHyperspaceJump(isIntergalactic);
 				}
 			}
 			inGame.getMessage().setText("" + countDown);
 		});
-	}
-
-	public void setHyperspaceHook(IMethodHook hyperspaceHook) {
-		this.hyperspaceHook = hyperspaceHook;
-	}
-
-	public IMethodHook getHyperspaceHook() {
-		return hyperspaceHook;
 	}
 
 }

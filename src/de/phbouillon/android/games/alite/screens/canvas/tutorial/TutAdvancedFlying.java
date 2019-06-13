@@ -192,8 +192,8 @@ public class TutAdvancedFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_LASER = true;
 			setPlayerControlOn();
 
-			if (flight != null && flight.getInGameManager().hyperspaceTimer.getHyperspaceHook() == null) {
-				flight.getInGameManager().hyperspaceTimer.setHyperspaceHook(deltaTime1 -> {
+			if (flight != null && flight.getInGameManager().getHyperspaceHook() == null) {
+				flight.getInGameManager().setHyperspaceHook(deltaTime1 -> {
 					hyperspace = new HyperspaceScreen(alite, false);
 					hyperspace.setNeedsSoundRestart();
 					hideCloseButton = true;
