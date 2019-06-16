@@ -21,8 +21,6 @@ package de.phbouillon.android.games.alite.screens.canvas.tutorial;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import android.graphics.Rect;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -32,10 +30,7 @@ import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.Laser;
-import de.phbouillon.android.games.alite.model.LegalStatus;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
-import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state,
@@ -44,16 +39,6 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 @SuppressWarnings("serial")
 public class TutHud extends TutorialScreen {
 	private FlightScreen flight;
-	private char[] savedGalaxySeed;
-	private SystemData savedPresentSystem;
-	private SystemData savedHyperspaceSystem;
-	private List <Equipment> savedInstalledEquipment;
-	private int savedFuel;
-	private Laser[] savedLasers = new Laser[4];
-	private int[] savedButtonConfiguration = new int[Settings.buttonPosition.length];
-	private int savedMarketFluct;
-	private LegalStatus savedLegalStatus;
-	private int savedLegalValue;
 
 	TutHud(final Alite alite) {
 		this(alite, null);
@@ -63,37 +48,9 @@ public class TutHud extends TutorialScreen {
 		super(alite, true);
 
 		this.flight = flight;
-		savedGalaxySeed = alite.getGenerator().getCurrentSeed();
-		savedPresentSystem = alite.getPlayer().getCurrentSystem();
-		savedHyperspaceSystem = alite.getPlayer().getHyperspaceSystem();
-		savedInstalledEquipment = new ArrayList<>();
-		savedInstalledEquipment.addAll(alite.getCobra().getInstalledEquipment());
-		savedLasers[0] = alite.getCobra().getLaser(PlayerCobra.DIR_FRONT);
-		savedLasers[1] = alite.getCobra().getLaser(PlayerCobra.DIR_RIGHT);
-		savedLasers[2] = alite.getCobra().getLaser(PlayerCobra.DIR_REAR);
-		savedLasers[3] = alite.getCobra().getLaser(PlayerCobra.DIR_LEFT);
-		savedFuel = alite.getCobra().getFuel();
-		savedMarketFluct = alite.getPlayer().getMarket().getFluct();
-		savedLegalStatus = alite.getPlayer().getLegalStatus();
-		savedLegalValue = alite.getPlayer().getLegalValue();
 
-		System.arraycopy(Settings.buttonPosition, 0, savedButtonConfiguration, 0, Settings.buttonPosition.length);
-		for (int i = 0; i < Settings.buttonPosition.length; i++) {
-			Settings.buttonPosition[i] = i;
-		}
-		for (Equipment e: savedInstalledEquipment) {
-			alite.getCobra().removeEquipment(e);
-		}
-		alite.getCobra().setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.pulseLaser);
-		alite.getCobra().setLaser(PlayerCobra.DIR_RIGHT, null);
-		alite.getCobra().setLaser(PlayerCobra.DIR_REAR, null);
-		alite.getCobra().setLaser(PlayerCobra.DIR_LEFT, null);
-		alite.getGenerator().buildGalaxy(1);
-		alite.getGenerator().setCurrentGalaxy(1);
-		alite.getPlayer().setCurrentSystem(alite.getGenerator().getSystem(7)); // Lave
-		alite.getPlayer().setHyperspaceSystem(alite.getGenerator().getSystem(129)); // Zaonce
-		alite.getCobra().setFuel(70);
-		alite.getPlayer().setLegalValue(0);
+		setInitialConditions();
+		game.getPlayer().setLegalValue(0);
 
 		initLine_00();
 		initLine_01();
@@ -135,6 +92,22 @@ public class TutHud extends TutorialScreen {
 		initLine_37();
 	}
 
+	private void setInitialConditions() {
+		for (int i = 0; i < Settings.buttonPosition.length; i++) {
+			Settings.buttonPosition[i] = i;
+		}
+		game.getCobra().clearEquipment();
+		game.getCobra().setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.pulseLaser);
+		game.getCobra().setLaser(PlayerCobra.DIR_RIGHT, null);
+		game.getCobra().setLaser(PlayerCobra.DIR_REAR, null);
+		game.getCobra().setLaser(PlayerCobra.DIR_LEFT, null);
+		game.getGenerator().buildGalaxy(1);
+		game.getGenerator().setCurrentGalaxy(1);
+		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(7)); // Lave
+		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(129)); // Zaonce
+		game.getCobra().setFuel(70);
+	}
+
 	private TutorialLine addTopLine(String text) {
 		return addLine(5, text).setX(250).setWidth(1420).setY(20).setHeight(140);
 	}
@@ -147,7 +120,7 @@ public class TutHud extends TutorialScreen {
 					flight.getInGameManager().setPlayerControl(false);
 				});
 		if (flight == null) {
-			flight = new FlightScreen(alite, true);
+			flight = new FlightScreen(game, true);
 			flight.setHandleUI(false);
 		}
 	}
@@ -528,7 +501,7 @@ public class TutHud extends TutorialScreen {
 				flight.getInGameManager().toggleDockingComputer(false);
 			}
 			if (flight.getInGameManager().getActualPostDockingScreen() == null) {
-				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen(alite));
+				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen(game));
 			}
 			if (flight.getPostDockingHook() == null) {
 				flight.setPostDockingHook(deltaTime1 -> dispose());
@@ -539,21 +512,7 @@ public class TutHud extends TutorialScreen {
 	@Override
 	public void activate() {
 		super.activate();
-		for (Equipment e: savedInstalledEquipment) {
-			alite.getCobra().removeEquipment(e);
-		}
-		for (int i = 0; i < Settings.buttonPosition.length; i++) {
-			Settings.buttonPosition[i] = i;
-		}
-		alite.getCobra().setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.pulseLaser);
-		alite.getCobra().setLaser(PlayerCobra.DIR_RIGHT, null);
-		alite.getCobra().setLaser(PlayerCobra.DIR_REAR, null);
-		alite.getCobra().setLaser(PlayerCobra.DIR_LEFT, null);
-		alite.getGenerator().buildGalaxy(1);
-		alite.getGenerator().setCurrentGalaxy(1);
-		alite.getPlayer().setCurrentSystem(alite.getGenerator().getSystem(7)); // Lave
-		alite.getPlayer().setHyperspaceSystem(alite.getGenerator().getSystem(129)); // Zaonce
-		alite.getCobra().setFuel(70);
+		setInitialConditions();
 
 		flight.activate();
 		flight.getInGameManager().setPlayerControl(false);
@@ -564,34 +523,9 @@ public class TutHud extends TutorialScreen {
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		try {
-			FlightScreen fs = FlightScreen.createScreen(alite, dis);
-			TutHud th = new TutHud(alite, fs);
+			TutHud th = new TutHud(alite, FlightScreen.createScreen(alite, dis));
 			th.currentLineIndex = dis.readInt();
-			th.savedGalaxySeed = new char[3];
-			th.savedGalaxySeed[0] = dis.readChar();
-			th.savedGalaxySeed[1] = dis.readChar();
-			th.savedGalaxySeed[2] = dis.readChar();
-			alite.getGenerator().buildGalaxy(th.savedGalaxySeed[0], th.savedGalaxySeed[1], th.savedGalaxySeed[2]);
-			int systemIndex = dis.readInt();
-			int hyperspaceIndex = dis.readInt();
-			th.savedPresentSystem = systemIndex == -1 ? null : alite.getGenerator().getSystem(systemIndex);
-			th.savedHyperspaceSystem = hyperspaceIndex == -1 ? null : alite.getGenerator().getSystem(hyperspaceIndex);
-			th.savedInstalledEquipment = new ArrayList<>();
-			int numEquip = dis.readInt();
-			for (int i = 0; i < numEquip; i++) {
-				th.savedInstalledEquipment.add(EquipmentStore.fromInt(dis.readByte()));
-			}
-			th.savedFuel = dis.readInt();
-			for (int i = 0; i < 4; i++) {
-				int laser = dis.readInt();
-				th.savedLasers[i] = laser < 0 ? null : (Laser) EquipmentStore.fromInt(laser);
-			}
-			for (int i = 0; i < Settings.buttonPosition.length; i++) {
-				th.savedButtonConfiguration[i] = dis.readInt();
-			}
-			th.savedMarketFluct = dis.readInt();
-			th.savedLegalStatus = LegalStatus.values()[dis.readInt()];
-			th.savedLegalValue = dis.readInt();
+			th.loadScreenState(dis);
 			alite.setScreen(th);
 		} catch (IOException | ClassNotFoundException e) {
 			AliteLog.e("Tutorial HUD Screen Initialize", "Error in initializer.", e);
@@ -607,25 +541,7 @@ public class TutHud extends TutorialScreen {
 		}
 		flight.saveScreenState(dos);
 		dos.writeInt(currentLineIndex - 1);
-		dos.writeChar(savedGalaxySeed[0]);
-		dos.writeChar(savedGalaxySeed[1]);
-		dos.writeChar(savedGalaxySeed[2]);
-		dos.writeInt(savedPresentSystem == null ? -1 : savedPresentSystem.getIndex());
-		dos.writeInt(savedHyperspaceSystem == null ? -1 : savedHyperspaceSystem.getIndex());
-		dos.writeInt(savedInstalledEquipment.size());
-		for (Equipment e: savedInstalledEquipment) {
-			dos.writeByte(EquipmentStore.ordinal(e));
-		}
-		dos.writeInt(savedFuel);
-		for (int i = 0; i < 4; i++) {
-			dos.writeInt(savedLasers[i] == null ? -1 : EquipmentStore.ordinal(savedLasers[i]));
-		}
-		for (int i = 0; i < Settings.buttonPosition.length; i++) {
-			dos.writeInt(savedButtonConfiguration[i]);
-		}
-		dos.writeInt(savedMarketFluct);
-		dos.writeInt(savedLegalStatus.ordinal());
-		dos.writeInt(savedLegalValue);
+		super.saveScreenState(dos);
 	}
 
 	@Override
@@ -650,7 +566,7 @@ public class TutHud extends TutorialScreen {
 	public void doUpdate(float deltaTime) {
 		if (flight != null) {
 			if (!flight.getInGameManager().isDockingComputerActive()) {
-				alite.getCobra().setRotation(0, 0);
+				game.getCobra().setRotation(0, 0);
 			}
 			flight.update(deltaTime);
 		}
@@ -664,23 +580,6 @@ public class TutHud extends TutorialScreen {
 			}
 			flight = null;
 		}
-		for (Equipment e: savedInstalledEquipment) {
-			alite.getCobra().addEquipment(e);
-		}
-		System.arraycopy(savedButtonConfiguration, 0, Settings.buttonPosition, 0, Settings.buttonPosition.length);
-		alite.getCobra().setLaser(PlayerCobra.DIR_FRONT, savedLasers[0]);
-		alite.getCobra().setLaser(PlayerCobra.DIR_RIGHT, savedLasers[1]);
-		alite.getCobra().setLaser(PlayerCobra.DIR_REAR, savedLasers[2]);
-		alite.getCobra().setLaser(PlayerCobra.DIR_LEFT, savedLasers[3]);
-		alite.getGenerator().buildGalaxy(savedGalaxySeed[0], savedGalaxySeed[1], savedGalaxySeed[2]);
-		alite.getGenerator().setCurrentGalaxy(alite.getGenerator().getCurrentGalaxyFromSeed());
-		alite.getPlayer().setCurrentSystem(savedPresentSystem);
-		alite.getPlayer().setLegalStatus(savedLegalStatus);
-		alite.getPlayer().setLegalValue(savedLegalValue);
-		alite.getPlayer().getMarket().setFluct(savedMarketFluct);
-		alite.getPlayer().getMarket().generate();
-		alite.getPlayer().setHyperspaceSystem(savedHyperspaceSystem);
-		alite.getCobra().setFuel(savedFuel);
 		super.dispose();
 	}
 

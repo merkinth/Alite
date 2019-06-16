@@ -43,8 +43,8 @@ public class TutIntroduction extends TutorialScreen {
 	private int screenToInitialize = 0;
 	private Pixmap quelo;
 
-	public TutIntroduction(final Alite alite) {
-		super(alite);
+	public TutIntroduction() {
+		super(Alite.get());
 
 		initLine_00();
 		initLine_01();
@@ -70,7 +70,7 @@ public class TutIntroduction extends TutorialScreen {
 				"Cobra does not give you the ability to fly it. I will give " +
 				"you that ability.").setPostPresentMethod(deltaTime -> game.getGraphics().drawPixmap(quelo, 642, 200));
 
-		status = new StatusScreen(alite);
+		status = new StatusScreen(game);
 	}
 
 	private void initLine_01() {
@@ -136,7 +136,7 @@ public class TutIntroduction extends TutorialScreen {
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			updateNavBar();
-			if (alite.getNavigationBar().isAtBottom()) {
+			if (game.getNavigationBar().isAtBottom()) {
 				line.setFinished();
 			}
 		}).addHighlight(makeHighlight(1740, 20, 160, 1040));
@@ -160,8 +160,8 @@ public class TutIntroduction extends TutorialScreen {
 			if (updateNavBar() instanceof BuyScreen) {
 				status.dispose();
 				status = null;
-				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
-				buy = new BuyScreen(alite);
+				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
+				buy = new BuyScreen(game);
 				buy.loadAssets();
 				buy.activate();
 				line.setFinished();
@@ -180,8 +180,8 @@ public class TutIntroduction extends TutorialScreen {
 			if (result instanceof GalaxyScreen && !(result instanceof LocalScreen)) {
 				buy.dispose();
 				buy = null;
-				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
-				galaxy = new GalaxyScreen(alite);
+				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
+				galaxy = new GalaxyScreen(game);
 				galaxy.loadAssets();
 				galaxy.activate();
 				line.setFinished();
@@ -204,31 +204,35 @@ public class TutIntroduction extends TutorialScreen {
 	public void activate() {
 		super.activate();
 		switch (screenToInitialize) {
-			case 0: status.activate();
-					alite.getNavigationBar().setActiveIndex(ScreenCodes.STATUS_SCREEN);
-					break;
-			case 1: status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(ScreenCodes.BUY_SCREEN);
-					buy = new BuyScreen(alite);
-					buy.loadAssets();
-					buy.activate();
-					break;
-			case 2: status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(ScreenCodes.GALAXY_SCREEN);
-					galaxy = new GalaxyScreen(alite);
-					galaxy.loadAssets();
-					galaxy.activate();
-					break;
+			case 0:
+				status.activate();
+				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
+				break;
+			case 1:
+				status.dispose();
+				status = null;
+				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
+				buy = new BuyScreen(game);
+				buy.loadAssets();
+				buy.activate();
+				break;
+			case 2:
+				status.dispose();
+				status = null;
+				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
+				galaxy = new GalaxyScreen(game);
+				galaxy.loadAssets();
+				galaxy.activate();
+				break;
 		}
 	}
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
-		TutIntroduction ti = new TutIntroduction(alite);
+		TutIntroduction ti = new TutIntroduction();
 		try {
 			ti.currentLineIndex = dis.readByte();
 			ti.screenToInitialize = dis.readByte();
+			ti.loadScreenState(dis);
 		} catch (IOException e) {
 			AliteLog.e("Tutorial Introduction Screen Initialize", "Error in initializer.", e);
 			return false;
@@ -241,6 +245,7 @@ public class TutIntroduction extends TutorialScreen {
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeByte(currentLineIndex - 1);
 		dos.writeByte(status != null ? 0 : buy != null ? 1 : 2);
+		super.saveScreenState(dos);
 	}
 
 	@Override

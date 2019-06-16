@@ -18,8 +18,7 @@ package de.phbouillon.android.games.alite.screens.canvas.tutorial;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,8 +41,8 @@ import de.phbouillon.android.games.alite.screens.canvas.TextData;
 public abstract class TutorialScreen extends AliteScreen {
 	private static final int TEXT_LINE_HEIGHT = 50;
 	private static final String DIRECTORY_SOUND_TUTORIAL = LoadingScreen.DIRECTORY_SOUND + "tutorial" + File.separator;
+	private static final String PLAYER_STATE_BACKUP = "tut_player_state.dat";
 
-	protected final transient Alite alite;
 	private final transient List <TutorialLine> lines = new ArrayList<>();
 	private transient TutorialLine currentLine;
 	int currentLineIndex;
@@ -67,19 +66,49 @@ public abstract class TutorialScreen extends AliteScreen {
 	TutorialScreen(Alite alite, boolean gl) {
 		super(alite);
 		isGl = gl;
-		this.alite = alite;
 		currentLineIndex = -1;
 		currentLine = null;
 		mediaPlayer = new MediaPlayer();
+		restorePlayerState();
+		backupPlayerState();
+		alite.getPlayer().clearMissions();
+	}
+
+	private void restorePlayerState() {
+		if (!game.getFileIO().exists(PLAYER_STATE_BACKUP)) {
+			return;
+		}
+		try {
+			byte[] state = game.getFileIO().readFileContents(PLAYER_STATE_BACKUP);
+			if (state != null && state.length > 0) {
+				game.loadCommander(new DataInputStream(new ByteArrayInputStream(state)));
+				game.getFileIO().deleteFile(PLAYER_STATE_BACKUP);
+				AliteLog.d("Tutorial Screen restorePlayerState", "Player state restored successfully.");
+			}
+		} catch (IOException e) {
+			AliteLog.e("Tutorial Screen restorePlayerState", "Error in restoring state.", e);
+		}
+	}
+
+	private void backupPlayerState() {
+		try (OutputStream stateFile = game.getFileIO().writeFile(PLAYER_STATE_BACKUP)) {
+			game.saveCommander(new DataOutputStream(stateFile));
+			AliteLog.d("Tutorial Screen backupPlayerState", "Player state backup successfully.");
+		} catch (IOException e) {
+			AliteLog.e("Tutorial Screen backupPlayerState", "Error in backup state.", e);
+		}
 	}
 
 	@Override
 	public void activate() {
 		closeButton = Button.createPictureButton(0, 970, 110, 110, Assets.noIcon);
+		restorePlayerState();
+		backupPlayerState();
+		game.getPlayer().clearMissions();
 	}
 
 	PulsingHighlighter makeHighlight(int x, int y, int width, int height) {
-		return new PulsingHighlighter(alite, x, y, width, height, 20,
+		return new PulsingHighlighter(game, x, y, width, height, 20,
 			ColorScheme.get(ColorScheme.COLOR_PULSING_HIGHLIGHTER_LIGHT),
 			ColorScheme.get(ColorScheme.COLOR_PULSING_HIGHLIGHTER_DARK));
 	}
@@ -103,7 +132,7 @@ public abstract class TutorialScreen extends AliteScreen {
 			return;
 		}
 
-		Graphics g = alite.getGraphics();
+		Graphics g = game.getGraphics();
 		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
 		GLES11.glEnable(GLES11.GL_BLEND);
 		if (currentX != -1 && currentY != -1) {
@@ -206,7 +235,7 @@ public abstract class TutorialScreen extends AliteScreen {
 		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
 		GLES11.glEnable(GLES11.GL_BLEND);
 		if (!hideCloseButton) {
-			closeButton.render(alite.getGraphics());
+			closeButton.render(game.getGraphics());
 		}
 		GLES11.glDisable(GLES11.GL_BLEND);
 		if (currentLine != null) {
@@ -240,7 +269,7 @@ public abstract class TutorialScreen extends AliteScreen {
 			if (currentLine != null) {
 				mediaPlayer.reset();
 			}
-			newScreen = new TutorialSelectionScreen(alite);
+			newScreen = new TutorialSelectionScreen(game);
 			performScreenChange();
 			postScreenChange();
 			tutorialAborted = true;
@@ -267,7 +296,7 @@ public abstract class TutorialScreen extends AliteScreen {
 		if (currentLine == null) {
 			currentLineIndex++;
 			if (currentLineIndex >= lines.size()) {
-				newScreen = new TutorialSelectionScreen(alite);
+				newScreen = new TutorialSelectionScreen(game);
 				performScreenChange();
 				postScreenChange();
 				return;
@@ -310,9 +339,11 @@ public abstract class TutorialScreen extends AliteScreen {
 
 	@Override
 	public void dispose() {
+		restorePlayerState();
 		super.dispose();
-		alite.getPlayer().setCondition(Condition.DOCKED);
-		alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK);
+		Settings.load(game.getFileIO());
+		game.getPlayer().setCondition(Condition.DOCKED);
+		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_ACADEMY);
 	}
 
 	@Override
@@ -322,4 +353,16 @@ public abstract class TutorialScreen extends AliteScreen {
 			mediaPlayer.reset();
 		}
 	}
+
+	@Override
+	public void saveScreenState(DataOutputStream dos) throws IOException {
+		game.saveCommander(dos);
+		super.saveScreenState(dos);
+	}
+
+	protected boolean loadScreenState(DataInputStream dis) throws IOException {
+		game.loadCommander(dis);
+		return true;
+	}
+
 }

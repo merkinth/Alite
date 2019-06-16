@@ -23,8 +23,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import android.graphics.Rect;
 import de.phbouillon.android.framework.IMethodHook;
@@ -59,25 +57,10 @@ public class TutBasicFlying extends TutorialScreen {
 	private static final int TUTORIAL_INDEX = 6;
 
 	private FlightScreen flight;
-	private char[] savedGalaxySeed;
-	private SystemData savedPresentSystem;
-	private SystemData savedHyperspaceSystem;
-	private List <Equipment> savedInstalledEquipment;
-	private int savedFuel;
-	private Laser[] savedLasers = new Laser[4];
-	private boolean savedDisableTraders;
-	private boolean savedDisableAttackers;
-	private int savedMissiles;
-	private long savedCredits;
-	private int savedScore;
-	private LegalStatus savedLegalStatus;
-	private int savedLegalValue;
 	private boolean resetShipPosition = true;
 	private Buoy yellowTarget;
 	private Buoy blueTarget;
 	private Buoy dockingBuoy;
-	private int[] savedButtonConfiguration = new int[Settings.buttonPosition.length];
-	private int savedMarketFluct;
 
 	TutBasicFlying(final Alite alite) {
 		this(alite, null);
@@ -87,24 +70,6 @@ public class TutBasicFlying extends TutorialScreen {
 		super(alite, true);
 
 		this.flight = flight;
-		savedGalaxySeed = alite.getGenerator().getCurrentSeed();
-		savedPresentSystem = alite.getPlayer().getCurrentSystem();
-		savedHyperspaceSystem = alite.getPlayer().getHyperspaceSystem();
-		savedInstalledEquipment = new ArrayList<>();
-		savedInstalledEquipment.addAll(alite.getCobra().getInstalledEquipment());
-		savedLasers[0] = alite.getCobra().getLaser(PlayerCobra.DIR_FRONT);
-		savedLasers[1] = alite.getCobra().getLaser(PlayerCobra.DIR_RIGHT);
-		savedLasers[2] = alite.getCobra().getLaser(PlayerCobra.DIR_REAR);
-		savedLasers[3] = alite.getCobra().getLaser(PlayerCobra.DIR_LEFT);
-		savedFuel = alite.getCobra().getFuel();
-		savedDisableTraders = Settings.disableTraders;
-		savedDisableAttackers = Settings.disableAttackers;
-		savedMissiles = alite.getCobra().getMissiles();
-		savedCredits = alite.getPlayer().getCash();
-		savedScore = alite.getPlayer().getScore();
-		savedLegalStatus = alite.getPlayer().getLegalStatus();
-		savedLegalValue = alite.getPlayer().getLegalValue();
-		savedMarketFluct = alite.getPlayer().getMarket().getFluct();
 
 		ObjectSpawnManager.SHUTTLES_ENABLED = false;
 		ObjectSpawnManager.ASTEROIDS_ENABLED = false;
@@ -114,14 +79,13 @@ public class TutBasicFlying extends TutorialScreen {
 		ObjectSpawnManager.TRADERS_ENABLED = false;
 		ObjectSpawnManager.VIPERS_ENABLED = false;
 
-		alite.getCobra().clearEquipment();
-		alite.getGenerator().buildGalaxy(1);
-		alite.getGenerator().setCurrentGalaxy(1);
-		alite.getPlayer().setCurrentSystem(alite.getGenerator().getSystem(7)); // Lave
-		alite.getPlayer().setHyperspaceSystem(alite.getGenerator().getSystem(129)); // Zaonce
-		alite.getPlayer().setLegalValue(0);
-		alite.getCobra().setFuel(70);
-		System.arraycopy(Settings.buttonPosition, 0, savedButtonConfiguration, 0, Settings.buttonPosition.length);
+		game.getCobra().clearEquipment();
+		game.getGenerator().buildGalaxy(1);
+		game.getGenerator().setCurrentGalaxy(1);
+		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(7)); // Lave
+		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(129)); // Zaonce
+		game.getPlayer().setLegalValue(0);
+		game.getCobra().setFuel(70);
 		Settings.resetButtonPosition();
 
 		initLine_00();
@@ -174,7 +138,7 @@ public class TutBasicFlying extends TutorialScreen {
 				});
 
 		if (flight == null) {
-			flight = new FlightScreen(alite, true);
+			flight = new FlightScreen(game, true);
 		}
 	}
 
@@ -463,9 +427,9 @@ public class TutBasicFlying extends TutorialScreen {
 				line.setFinished();
 				currentLineIndex+= 2;
 			}
-			if (alite.getCobra().isMissileTargetting()) {
+			if (game.getCobra().isMissileTargetting()) {
 				line.setFinished();
-			} else if (alite.getCobra().isMissileLocked()) {
+			} else if (game.getCobra().isMissileLocked()) {
 				line.setFinished();
 				currentLineIndex++;
 			}
@@ -587,7 +551,7 @@ public class TutBasicFlying extends TutorialScreen {
 				dockingBuoy = (Buoy) flight.findObjectByName("Docking Buoy");
 				if (dockingBuoy == null) {
 					InGameManager man = flight.getInGameManager();
-					dockingBuoy = new Buoy(alite);
+					dockingBuoy = new Buoy(game);
 					Vector3f position = new Vector3f(0, 0, 0);
 					man.getPlanet().getPosition().sub(man.getStation().getPosition(), position);
 					position.normalize();
@@ -650,7 +614,7 @@ public class TutBasicFlying extends TutorialScreen {
 				flight.setPostDockingHook(deltaTime1 -> dispose());
 			}
 			if (flight.getInGameManager().getActualPostDockingScreen() == null) {
-				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen(alite));
+				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen(game));
 			}
 		}).setFinishHook(deltaTime -> finishFlight());
 	}
@@ -659,13 +623,13 @@ public class TutBasicFlying extends TutorialScreen {
 	public void activate() {
 		super.activate();
 		Settings.resetButtonPosition();
-		alite.getCobra().clearEquipment();
-		alite.getGenerator().buildGalaxy(1);
-		alite.getGenerator().setCurrentGalaxy(1);
-		alite.getPlayer().setCurrentSystem(alite.getGenerator().getSystem(7)); // Lave
-		alite.getPlayer().setHyperspaceSystem(alite.getGenerator().getSystem(129)); // Zaonce
-		alite.getCobra().setFuel(70);
-		alite.getCobra().setMissiles(4);
+		game.getCobra().clearEquipment();
+		game.getGenerator().buildGalaxy(1);
+		game.getGenerator().setCurrentGalaxy(1);
+		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(7)); // Lave
+		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(129)); // Zaonce
+		game.getCobra().setFuel(70);
+		game.getCobra().setMissiles(4);
 
 		flight.activate();
 		flight.getInGameManager().setPlayerControl(false);
@@ -685,40 +649,9 @@ public class TutBasicFlying extends TutorialScreen {
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		try {
-			FlightScreen fs = FlightScreen.createScreen(alite, dis);
-			TutBasicFlying tb = new TutBasicFlying(alite, fs);
+			TutBasicFlying tb = new TutBasicFlying(alite, FlightScreen.createScreen(alite, dis));
 			tb.currentLineIndex = dis.readInt();
-			tb.savedGalaxySeed = new char[3];
-			tb.savedGalaxySeed[0] = dis.readChar();
-			tb.savedGalaxySeed[1] = dis.readChar();
-			tb.savedGalaxySeed[2] = dis.readChar();
-			alite.getGenerator().buildGalaxy(tb.savedGalaxySeed[0], tb.savedGalaxySeed[1], tb.savedGalaxySeed[2]);
-			int systemIndex = dis.readInt();
-			int hyperspaceIndex = dis.readInt();
-			tb.savedPresentSystem = systemIndex == -1 ? null : alite.getGenerator().getSystem(systemIndex);
-			tb.savedHyperspaceSystem = hyperspaceIndex == -1 ? null : alite.getGenerator().getSystem(hyperspaceIndex);
-			tb.savedInstalledEquipment = new ArrayList<>();
-			int numEquip = dis.readInt();
-			for (int i = 0; i < numEquip; i++) {
-				tb.savedInstalledEquipment.add(EquipmentStore.fromInt(dis.readByte()));
-			}
-			tb.savedFuel = dis.readInt();
-			for (int i = 0; i < 4; i++) {
-				int laser = dis.readInt();
-				tb.savedLasers[i] = laser < 0 ? null : (Laser) EquipmentStore.fromInt(laser);
-			}
-			for (int i = 0; i < Settings.buttonPosition.length; i++) {
-				tb.savedButtonConfiguration[i] = dis.readInt();
-			}
-			tb.savedDisableTraders = dis.readBoolean();
-			tb.savedDisableAttackers = dis.readBoolean();
-			tb.savedMissiles = dis.readInt();
-			tb.savedCredits = dis.readLong();
-			tb.savedScore = dis.readInt();
-			tb.savedLegalStatus = LegalStatus.values()[dis.readInt()];
-			tb.savedLegalValue = dis.readInt();
 			tb.resetShipPosition = dis.readBoolean();
-			tb.savedMarketFluct = dis.readInt();
 
 			tb.yellowTarget = (Buoy) tb.flight.findObjectByName("Yellow Target");
 			if (tb.yellowTarget != null) {
@@ -732,6 +665,7 @@ public class TutBasicFlying extends TutorialScreen {
 			if (buoy != null) {
 				buoy.setSaving(false);
 			}
+			tb.loadScreenState(dis);
 			alite.setScreen(tb);
 		} catch (IOException | ClassNotFoundException e) {
 			AliteLog.e("Tutorial Basic Flying Screen Initialize", "Error in initializer.", e);
@@ -756,31 +690,8 @@ public class TutBasicFlying extends TutorialScreen {
 		}
 		flight.saveScreenState(dos);
 		dos.writeInt(currentLineIndex - 1);
-		dos.writeChar(savedGalaxySeed[0]);
-		dos.writeChar(savedGalaxySeed[1]);
-		dos.writeChar(savedGalaxySeed[2]);
-		dos.writeInt(savedPresentSystem == null ? -1 : savedPresentSystem.getIndex());
-		dos.writeInt(savedHyperspaceSystem == null ? -1 : savedHyperspaceSystem.getIndex());
-		dos.writeInt(savedInstalledEquipment.size());
-		for (Equipment e: savedInstalledEquipment) {
-			dos.writeByte(EquipmentStore.ordinal(e));
-		}
-		dos.writeInt(savedFuel);
-		for (int i = 0; i < 4; i++) {
-			dos.writeInt(savedLasers[i] == null ? -1 : EquipmentStore.ordinal(savedLasers[i]));
-		}
-		for (int i = 0; i < Settings.buttonPosition.length; i++) {
-			dos.writeInt(savedButtonConfiguration[i]);
-		}
-		dos.writeBoolean(savedDisableTraders);
-		dos.writeBoolean(savedDisableAttackers);
-		dos.writeInt(savedMissiles);
-		dos.writeLong(savedCredits);
-		dos.writeInt(savedScore);
-		dos.writeInt(savedLegalStatus.ordinal());
-		dos.writeInt(savedLegalValue);
 		dos.writeBoolean(resetShipPosition);
-		dos.writeInt(savedMarketFluct);
+		super.saveScreenState(dos);
 	}
 
 	@Override
@@ -823,7 +734,7 @@ public class TutBasicFlying extends TutorialScreen {
 	public void doUpdate(float deltaTime) {
 		if (flight != null) {
 			if (!flight.getInGameManager().isDockingComputerActive()) {
-				alite.getCobra().setRotation(0, 0);
+				game.getCobra().setRotation(0, 0);
 			}
 			flight.update(deltaTime);
 			if (resetShipPosition) {
@@ -854,29 +765,6 @@ public class TutBasicFlying extends TutorialScreen {
 		ObjectSpawnManager.THARGONS_ENABLED = true;
 		ObjectSpawnManager.TRADERS_ENABLED = true;
 		ObjectSpawnManager.VIPERS_ENABLED = true;
-
-		for (Equipment e: savedInstalledEquipment) {
-			alite.getCobra().addEquipment(e);
-		}
-		System.arraycopy(savedButtonConfiguration, 0, Settings.buttonPosition, 0, Settings.buttonPosition.length);
-		alite.getCobra().setLaser(PlayerCobra.DIR_FRONT, savedLasers[0]);
-		alite.getCobra().setLaser(PlayerCobra.DIR_RIGHT, savedLasers[1]);
-		alite.getCobra().setLaser(PlayerCobra.DIR_REAR, savedLasers[2]);
-		alite.getCobra().setLaser(PlayerCobra.DIR_LEFT, savedLasers[3]);
-		alite.getGenerator().buildGalaxy(savedGalaxySeed[0], savedGalaxySeed[1], savedGalaxySeed[2]);
-		alite.getGenerator().setCurrentGalaxy(alite.getGenerator().getCurrentGalaxyFromSeed());
-		alite.getPlayer().setCurrentSystem(savedPresentSystem);
-		alite.getPlayer().getMarket().setFluct(savedMarketFluct);
-		alite.getPlayer().getMarket().generate();
-		alite.getPlayer().setHyperspaceSystem(savedHyperspaceSystem);
-		alite.getCobra().setFuel(savedFuel);
-		alite.getCobra().setMissiles(savedMissiles);
-		alite.getPlayer().setLegalStatus(savedLegalStatus);
-		alite.getPlayer().setLegalValue(savedLegalValue);
-		alite.getPlayer().setCash(savedCredits);
-		alite.getPlayer().setScore(savedScore);
-		Settings.disableAttackers = savedDisableAttackers;
-		Settings.disableTraders = savedDisableTraders;
 		super.dispose();
 	}
 

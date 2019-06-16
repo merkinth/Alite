@@ -144,7 +144,7 @@ public class ControlOptionsScreen extends OptionsScreen {
 				Settings.save(game.getFileIO());
 			} else if (back.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = forwardToIntroduction ? new TutIntroduction(game) : new OptionsScreen(game);
+				newScreen = forwardToIntroduction ? new TutIntroduction() : new OptionsScreen(game);
 			} else if (reverseDiveClimb.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.reversePitch = !Settings.reversePitch;

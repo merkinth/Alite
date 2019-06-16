@@ -44,23 +44,10 @@ public class TutTrading extends TutorialScreen {
 	private InventoryScreen inventory;
 	private QuantityPadScreen quantity;
 	private boolean success = false;
-	private long savedCash;
-	private int savedFoodQuantity;
-	private InventoryItem[] savedInventory;
 	private int screenToInitialize = 0;
 
 	TutTrading(final Alite alite) {
 		super(alite);
-
-		savedCash = alite.getPlayer().getCash();
-		savedFoodQuantity = alite.getPlayer().getMarket().getQuantity(TradeGoodStore.get().food());
-		savedInventory = new InventoryItem[TradeGoodStore.get().goods().length];
-		InventoryItem[] currentItems = alite.getCobra().getInventory();
-		for (int i = 0; i < TradeGoodStore.get().goods().length; i++) {
-			savedInventory[i] = new InventoryItem();
-			savedInventory[i].set(currentItems[i].getWeight(), currentItems[i].getPrice());
-			savedInventory[i].addUnpunished(currentItems[i].getUnpunished());
-		}
 
 		initLine_00();
 		initLine_01();
@@ -82,15 +69,10 @@ public class TutTrading extends TutorialScreen {
 				"basics? Ok, so first, open the Buy screen again. You " +
 				"remember how to do that, don't you?");
 
-		status = new StatusScreen(alite);
+		status = new StatusScreen(game);
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (updateNavBar() instanceof BuyScreen) {
-				status.dispose();
-				status = null;
-				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
-				buy = new BuyScreen(alite);
-				buy.loadAssets();
-				buy.activate();
+				changeToBuyScreen();
 				line.setFinished();
 			}
 		});
@@ -246,10 +228,7 @@ public class TutTrading extends TutorialScreen {
 			if (updateNavBar() instanceof InventoryScreen) {
 				buy.dispose();
 				buy = null;
-				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_INVENTORY);
-				inventory = new InventoryScreen(alite);
-				inventory.loadAssets();
-				inventory.activate();
+				changeToInventoryScreen();
 				line.setFinished();
 			}
 		}).setHeight(150);
@@ -292,42 +271,49 @@ public class TutTrading extends TutorialScreen {
 	public void activate() {
 		super.activate();
 		switch (screenToInitialize) {
-			case 0: status.activate();
-					alite.getNavigationBar().moveToTop();
-					alite.getNavigationBar().setActiveIndex(ScreenCodes.STATUS_SCREEN);
-					break;
-			case 1: status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(ScreenCodes.BUY_SCREEN);
-					buy = new BuyScreen(alite);
-					buy.loadAssets();
-					buy.activate();
-					break;
-			case 2: status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(ScreenCodes.BUY_SCREEN);
-					buy = new BuyScreen(alite);
-					buy.loadAssets();
-					buy.activate();
-			    	int avail = alite.getPlayer().getMarket().getQuantity(TradeGoodStore.get().food());
-			    	String maxAmountString = avail + TradeGoodStore.get().food().getUnit().toUnitString();
-			    	quantity = new QuantityPadScreen(buy, alite, maxAmountString, 1075, 200, 0, 0);
-					quantity.loadAssets();
-					quantity.activate();
-					break;
-			case 3: status.dispose();
-			        status = null;
-			        alite.getNavigationBar().setActiveIndex(ScreenCodes.INVENTORY_SCREEN);
-			        inventory = new InventoryScreen(alite);
-			        inventory.loadAssets();
-			        inventory.activate();
-			        break;
+			case 0:
+				status.activate();
+				game.getNavigationBar().moveToTop();
+				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
+				break;
+			case 1:
+				changeToBuyScreen();
+				break;
+			case 2:
+				changeToBuyScreen();
+				int avail = game.getPlayer().getMarket().getQuantity(TradeGoodStore.get().food());
+				String maxAmountString = avail + TradeGoodStore.get().food().getUnit().toUnitString();
+				quantity = new QuantityPadScreen(buy, game, maxAmountString, 1075, 200, 0, 0);
+				quantity.loadAssets();
+				quantity.activate();
+				break;
+			case 3:
+				status.dispose();
+				status = null;
+				changeToInventoryScreen();
+				break;
 		}
 		if (currentLineIndex <= 0) {
-			alite.getCobra().clearInventory();
-			alite.getPlayer().getMarket().setQuantity(TradeGoodStore.get().food(), 17);
-			alite.getPlayer().setCash(1000);
+			game.getCobra().clearInventory();
+			game.getPlayer().getMarket().setQuantity(TradeGoodStore.get().food(), 17);
+			game.getPlayer().setCash(1000);
 		}
+	}
+
+	private void changeToInventoryScreen() {
+		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_INVENTORY);
+		inventory = new InventoryScreen(game);
+		inventory.loadAssets();
+		inventory.activate();
+	}
+
+	private void changeToBuyScreen() {
+		status.dispose();
+		status = null;
+		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
+		buy = new BuyScreen(game);
+		buy.loadAssets();
+		buy.activate();
 	}
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
@@ -335,14 +321,7 @@ public class TutTrading extends TutorialScreen {
 		try {
 			tt.currentLineIndex = dis.readInt();
 			tt.screenToInitialize = dis.readByte();
-			tt.savedCash = dis.readLong();
-			tt.savedInventory = new InventoryItem[dis.readInt()];
-			for (int i = 0; i < tt.savedInventory.length; i++) {
-				tt.savedInventory[i] = new InventoryItem();
-				tt.savedInventory[i].set(Weight.grams(dis.readLong()), dis.readLong());
-				tt.savedInventory[i].addUnpunished(Weight.grams(dis.readLong()));
-			}
-			tt.savedFoodQuantity = dis.readInt();
+			tt.loadScreenState(dis);
 		} catch (IOException e) {
 			AliteLog.e("Tutorial Trading Screen Initialize", "Error in initializer.", e);
 			return false;
@@ -361,14 +340,7 @@ public class TutTrading extends TutorialScreen {
 		} else if (inventory != null) {
 			dos.writeByte(3);
 		}
-		dos.writeLong(savedCash);
-		dos.writeInt(savedInventory.length);
-		for (InventoryItem w: savedInventory) {
-			dos.writeLong(w.getWeight().getWeightInGrams());
-			dos.writeLong(w.getPrice());
-			dos.writeLong(w.getUnpunished().getWeightInGrams());
-		}
-		dos.writeInt(savedFoodQuantity);
+		super.saveScreenState(dos);
 	}
 
 	@Override
@@ -412,10 +384,6 @@ public class TutTrading extends TutorialScreen {
 			quantity.dispose();
 			quantity = null;
 		}
-		alite.getPlayer().setCash(savedCash);
-		alite.getCobra().clearInventory();
-		alite.getCobra().setInventory(savedInventory);
-		alite.getPlayer().getMarket().setQuantity(TradeGoodStore.get().food(), savedFoodQuantity);
 		super.dispose();
 	}
 

@@ -82,7 +82,7 @@ public class TutorialSelectionScreen extends AliteScreen {
 		}
 		if (introduction.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new TutIntroduction(game);
+			newScreen = new TutIntroduction();
 			return;
 		}
 		if (trading.isTouched(touch.x, touch.y)) {

@@ -67,17 +67,12 @@ public class TutNavigation extends TutorialScreen {
 				"already, but today, I'll tell you more about it. First: " +
 				"Open it.");
 
-		status = new StatusScreen(alite);
+		status = new StatusScreen(game);
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen screen = updateNavBar();
 			if (screen instanceof GalaxyScreen && !(screen instanceof LocalScreen)) {
 				line.setFinished();
-				status.dispose();
-				status = null;
-				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
-				galaxy = new GalaxyScreen(alite);
-				galaxy.loadAssets();
-				galaxy.activate();
+				changeToGalaxyScreen();
 			}
 		});
 	}
@@ -132,16 +127,20 @@ public class TutNavigation extends TutorialScreen {
 			if (screen instanceof PlanetScreen) {
 				galaxy.dispose();
 				galaxy = null;
-				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET);
-				planet = new PlanetScreen(alite);
-				planet.loadAssets();
-				planet.activate();
+				changeToPlanetScreen();
 				line.setFinished();
 				currentLineIndex++;
 			} else if (screen != null) {
 				line.setFinished();
 			}
 		});
+	}
+
+	private void changeToPlanetScreen() {
+		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET);
+		planet = new PlanetScreen(game);
+		planet.loadAssets();
+		planet.activate();
 	}
 
 	private void initLine_04() {
@@ -154,10 +153,7 @@ public class TutNavigation extends TutorialScreen {
 			if (newScreen instanceof PlanetScreen) {
 				galaxy.dispose();
 				galaxy = null;
-				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET);
-				planet = new PlanetScreen(alite);
-				planet.loadAssets();
-				planet.activate();
+				changeToPlanetScreen();
 				line.setFinished();
 			} else if (newScreen != null) {
 				line.setFinished();
@@ -188,10 +184,7 @@ public class TutNavigation extends TutorialScreen {
 			if (screen instanceof LocalScreen) {
 				planet.dispose();
 				planet = null;
-				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL);
-				local = new LocalScreen(alite);
-				local.loadAssets();
-				local.activate();
+				changeToLocalScreen();
 				line.setFinished();
 				currentLineIndex++;
 			} else if (screen != null) {
@@ -210,10 +203,7 @@ public class TutNavigation extends TutorialScreen {
 			if (newScreen instanceof LocalScreen) {
 				planet.dispose();
 				planet = null;
-				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL);
-				local = new LocalScreen(alite);
-				local.loadAssets();
-				local.activate();
+				changeToLocalScreen();
 				line.setFinished();
 			} else if (newScreen != null) {
 				line.setFinished();
@@ -261,32 +251,41 @@ public class TutNavigation extends TutorialScreen {
 	public void activate() {
 		super.activate();
 		switch (screenToInitialize) {
-			case 0: status.activate();
-					alite.getNavigationBar().moveToTop();
-					alite.getNavigationBar().setActiveIndex(ScreenCodes.STATUS_SCREEN);
-					break;
-			case 1: status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(ScreenCodes.GALAXY_SCREEN);
-					galaxy = new GalaxyScreen(alite);
-					galaxy.loadAssets();
-					galaxy.activate();
-					break;
-			case 2: status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(ScreenCodes.LOCAL_SCREEN);
-					local = new LocalScreen(alite);
-					local.loadAssets();
-					local.activate();
-					break;
-			case 3: status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(ScreenCodes.PLANET_SCREEN);
-					planet = new PlanetScreen(alite);
-					planet.loadAssets();
-					planet.activate();
-					break;
+			case 0:
+				status.activate();
+				game.getNavigationBar().moveToTop();
+				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
+				break;
+			case 1:
+				changeToGalaxyScreen();
+				break;
+			case 2:
+				status.dispose();
+				status = null;
+				changeToLocalScreen();
+				break;
+			case 3:
+				status.dispose();
+				status = null;
+				changeToPlanetScreen();
+				break;
 		}
+	}
+
+	private void changeToLocalScreen() {
+		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL);
+		local = new LocalScreen(game);
+		local.loadAssets();
+		local.activate();
+	}
+
+	private void changeToGalaxyScreen() {
+		status.dispose();
+		status = null;
+		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
+		galaxy = new GalaxyScreen(game);
+		galaxy.loadAssets();
+		galaxy.activate();
 	}
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
@@ -294,6 +293,7 @@ public class TutNavigation extends TutorialScreen {
 		try {
 			tn.currentLineIndex = dis.readInt();
 			tn.screenToInitialize = dis.readByte();
+			tn.loadScreenState(dis);
 		} catch (IOException e) {
 			AliteLog.e("Tutorial Navigation Screen Initialize", "Error in initializer.", e);
 			return false;
@@ -306,6 +306,7 @@ public class TutNavigation extends TutorialScreen {
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeInt(currentLineIndex - 1);
 		dos.writeByte(status != null ? 0 : galaxy != null ? 1 : local != null ? 2 : 3);
+		super.saveScreenState(dos);
 	}
 
 	@Override

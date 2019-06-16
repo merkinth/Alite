@@ -37,16 +37,10 @@ import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 public class TutEquipment extends TutorialScreen {
 	private StatusScreen status;
 	private EquipmentScreen equip;
-	private int savedFuel;
-	private long savedCash;
 	private int screenToInitialize = 0;
 
 	TutEquipment(final Alite alite) {
 		super(alite);
-
-		savedFuel = alite.getCobra().getFuel();
-		savedCash = alite.getPlayer().getCash();
-
 		initLine_00();
 		initLine_01();
 		initLine_02();
@@ -59,7 +53,7 @@ public class TutEquipment extends TutorialScreen {
 		addLine(3, "Back so soon? Ok, I'll make this lesson brief and " +
 				"simple. Consider it a favor, especially for you.").setY(700);
 
-		status = new StatusScreen(alite);
+		status = new StatusScreen(game);
 	}
 
 	private void initLine_01() {
@@ -69,12 +63,7 @@ public class TutEquipment extends TutorialScreen {
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
 			if (newScreen instanceof EquipmentScreen) {
-				status.dispose();
-				status = null;
-				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP);
-				equip = new EquipmentScreen(alite);
-				equip.loadAssets();
-				equip.activate();
+				changeToEquipmentScreen();
 				line.setFinished();
 				currentLineIndex++;
 			} else if (newScreen != null) {
@@ -83,18 +72,22 @@ public class TutEquipment extends TutorialScreen {
 		});
 	}
 
+	private void changeToEquipmentScreen() {
+		status.dispose();
+		status = null;
+		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP);
+		equip = new EquipmentScreen(game);
+		equip.loadAssets();
+		equip.activate();
+	}
+
 	private void initLine_02() {
 		final TutorialLine line = addLine(3, "No, I said \"Equipment\" screen.").setY(700);
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
 			if (newScreen instanceof EquipmentScreen) {
-				status.dispose();
-				status = null;
-				alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP);
-				equip = new EquipmentScreen(alite);
-				equip.loadAssets();
-				equip.activate();
+				changeToEquipmentScreen();
 				line.setFinished();
 			} else if (newScreen != null) {
 				line.setFinished();
@@ -153,30 +146,24 @@ public class TutEquipment extends TutorialScreen {
 	public void activate() {
 		super.activate();
 		switch (screenToInitialize) {
-			case 0: status.activate();
-			        alite.getNavigationBar().setActiveIndex(ScreenCodes.STATUS_SCREEN);
-			        break;
-			case 1: status.dispose();
-					status = null;
-					alite.getNavigationBar().setActiveIndex(ScreenCodes.EQUIP_SCREEN);
-					equip = new EquipmentScreen(alite);
-					equip.loadAssets();
-					equip.activate();
-					break;
+			case 0:
+				status.activate();
+				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
+				break;
+			case 1:
+				changeToEquipmentScreen();
+				break;
 		}
 		if (currentLineIndex <= 0) {
-			alite.getCobra().setFuel(0);
-			alite.getPlayer().setCash(1000);
+			game.getCobra().setFuel(0);
+			game.getPlayer().setCash(1000);
 		}
 	}
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		TutEquipment te = new TutEquipment(alite);
 		try {
-			te.currentLineIndex = dis.readInt();
-			te.screenToInitialize = dis.readByte();
-			te.savedCash = dis.readLong();
-			te.savedFuel = dis.readInt();
+			te.loadScreenState(dis);
 		} catch (IOException e) {
 			AliteLog.e("Tutorial Equipment Screen Initialize", "Error in initializer.", e);
 			return false;
@@ -193,8 +180,14 @@ public class TutEquipment extends TutorialScreen {
 		} else if (equip != null) {
 			dos.writeByte(1);
 		}
-		dos.writeLong(savedCash);
-		dos.writeInt(savedFuel);
+		super.saveScreenState(dos);
+	}
+
+	@Override
+	protected boolean loadScreenState(DataInputStream dis) throws IOException {
+		currentLineIndex = dis.readInt();
+		screenToInitialize = dis.readByte();
+		return super.loadScreenState(dis);
 	}
 
 	@Override
@@ -224,8 +217,6 @@ public class TutEquipment extends TutorialScreen {
 			equip.dispose();
 			equip = null;
 		}
-		alite.getCobra().setFuel(savedFuel);
-		alite.getPlayer().setCash(savedCash);
 		super.dispose();
 	}
 
