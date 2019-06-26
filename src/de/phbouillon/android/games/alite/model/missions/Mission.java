@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model.missions;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -20,10 +20,13 @@ package de.phbouillon.android.games.alite.model.missions;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.phbouillon.android.games.alite.Alite;
+import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -34,60 +37,70 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
 
-public abstract class Mission {
+public abstract class Mission implements Serializable {
+	private static final long serialVersionUID = 9188011962471959641L;
+
 	protected boolean active = false;
 	protected boolean started = false;
-	protected final Alite alite;
+	protected transient Alite alite;
 	private final int id;
 	private String targetName = null;
-	
+
 	protected abstract boolean checkStart();
-	protected abstract void acceptMission(boolean accept); 
+	protected abstract void acceptMission(boolean accept);
 	public abstract void onMissionAccept();
 	public abstract void onMissionDecline();
 	public abstract void onMissionComplete();
-	public abstract void onMissionUpdate();	
+	public abstract void onMissionUpdate();
 	public abstract AliteScreen getMissionScreen();
-	
+
 	public boolean willStartOnDock() {
 		return false;
 	}
-	
+
 	protected Mission(Alite alite, int id) {
 		this.alite = alite;
 		this.id = id;
 	}
-	
+
 	public int getId() {
 		return id;
 	}
 
 	public boolean missionStarts() {
-		boolean result = checkStart();
-		if (result) {
+		if (checkStart()) {
 			active = true;
 			started = true;
 			return true;
 		}
 		return false;
 	}
-	
+
 	public abstract AliteScreen checkForUpdate();
-	
+
 	public void setPlayerAccepts(boolean playerAccepts) {
 		acceptMission(playerAccepts);
 		if (!playerAccepts) {
 			active = false;
 		}
 	}
-	
+
 	public boolean isActive() {
 		return active;
 	}
-	
+
+	private void readObject(ObjectInputStream in) throws IOException {
+		try {
+			in.defaultReadObject();
+			alite = Alite.get();
+		} catch (ClassNotFoundException e) {
+			AliteLog.e("Error in Initializer", e.getMessage(), e);
+		}
+	}
+
 	public abstract void load(DataInputStream dis) throws IOException;
 	public abstract byte [] save() throws IOException;
-	
+
 	public final SystemData findMostDistantSystem() {
 		int maxDist = -1;
 		SystemData current = alite.getPlayer().getCurrentSystem();
@@ -101,9 +114,9 @@ public abstract class Mission {
 		}
 		return target;
 	}
-	
-	public final SystemData findRandomSystemInRange(int min, int max) {		
-		List <SystemData> candidates = new ArrayList<SystemData>();
+
+	public final SystemData findRandomSystemInRange(int min, int max) {
+		List <SystemData> candidates = new ArrayList<>();
 		SystemData current = alite.getPlayer().getCurrentSystem();
 		for (SystemData system: alite.getGenerator().getSystems()) {
 			int dist = current.computeDistance(system);
@@ -112,83 +125,76 @@ public abstract class Mission {
 			}
 		}
 		if (candidates.isEmpty()) {
-			if (current.getIndex() == 0) {
-				return alite.getGenerator().getSystem(1);
-			} else {
-				return alite.getGenerator().getSystem(0);
-			}
-		} 
+			return alite.getGenerator().getSystem(current.getIndex() == 0 ? 1 : 0);
+		}
 		return candidates.get((int) (Math.random() * candidates.size()));
 	}
-	
-	protected boolean positionMatchesTarget(char [] seed, int targetIndex) {
+
+	boolean positionMatchesTarget(char[] seed, int targetIndex) {
 		for (int i = 0; i < 3; i++) {
 			if (alite.getGenerator().getCurrentSeed()[i] != seed[i]) {
 				return false;
 			}
 		}
-		if (alite.getPlayer().getCurrentSystem() != null) {
-			if (targetIndex == -1 || targetIndex == alite.getPlayer().getCurrentSystem().getIndex()) {
-				return true;
-			}
-		}
-		return false;
+		return alite.getPlayer().getCurrentSystem() != null &&
+			(targetIndex == -1 || targetIndex == alite.getPlayer().getCurrentSystem().getIndex());
 	}
+
 	public TimedEvent getWitchSpaceSpawnEvent(final ObjectSpawnManager manager) {
 		return null;
 	}
-	
+
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		return null;
 	}
-	
+
 	public TimedEvent getConditionRedSpawnReplacementEvent(final ObjectSpawnManager manager) {
 		return null;
 	}
-		
+
 	public boolean willEnterWitchSpace() {
 		return false;
 	}
-	
+
 	public TimedEvent getPreStartEvent(InGameManager manager) {
 		return null;
 	}
-	
+
 	public boolean performTrade(TradeScreen tradeScreen, Equipment equipment) {
 		return false;
 	}
-	
+
 	public boolean performTrade(TradeScreen tradeScreen, TradeGood tradeGood) {
 		return false;
 	}
-	
+
 	public TimedEvent getViperSpawnReplacementEvent(final ObjectSpawnManager objectSpawnManager) {
 		return null;
 	}
-	
+
 	public TimedEvent getShuttleSpawnReplacementEvent(final ObjectSpawnManager objectSpawnManager) {
 		return null;
 	}
-	
+
 	public TimedEvent getAsteroidSpawnReplacementEvent(final ObjectSpawnManager objectSpawnManager) {
 		return null;
 	}
-	
+
 	public TimedEvent getTraderSpawnReplacementEvent(final ObjectSpawnManager objectSpawnManager) {
 		return null;
 	}
-	
+
 	public abstract String getObjective();
-	
+
 	public void resetStarted() {
 		started = false;
 	}
-	
+
 	public void resetTargetName() {
 		targetName = null;
 	}
-	
-	protected String getTargetName(int targetIndex, char [] galaxySeed) {
+
+	String getTargetName(int targetIndex, char[] galaxySeed) {
 		if (targetName != null) {
 			return targetName;
 		}

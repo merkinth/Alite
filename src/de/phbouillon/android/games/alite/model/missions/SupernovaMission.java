@@ -18,10 +18,7 @@ package de.phbouillon.android.games.alite.model.missions;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Timer;
@@ -43,7 +40,9 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManage
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
 import de.phbouillon.android.games.alite.screens.opengl.objects.SphericalSpaceObject;
 
-public class SupernovaMission extends Mission {
+public class SupernovaMission extends Mission implements Serializable {
+	private static final long serialVersionUID = -526592825746968885L;
+
 	public static final int ID = 3;
 
 	private char [] galaxySeed;

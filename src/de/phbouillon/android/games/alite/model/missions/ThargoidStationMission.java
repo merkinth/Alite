@@ -18,10 +18,7 @@ package de.phbouillon.android.games.alite.model.missions;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -41,7 +38,9 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjec
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceStation;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargoid;
 
-public class ThargoidStationMission extends Mission {
+public class ThargoidStationMission extends Mission implements Serializable {
+	private static final long serialVersionUID = 4664546653830973675L;
+
 	public static final int ID = 5;
 
 	private char[] galaxySeed;
