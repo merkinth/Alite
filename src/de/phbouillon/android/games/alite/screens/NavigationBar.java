@@ -262,7 +262,6 @@ public class NavigationBar {
 			return null;
 		}
 		NavigationEntry entry = targets.get(index);
-		Screen newScreen = null;
 		if (entry.navigationTarget != null) {
 			SoundManager.play(Assets.click);
 			try {
@@ -270,14 +269,15 @@ public class NavigationBar {
 						game.getPlayer().getCurrentSystem() == null && game.getPlayer().getHyperspaceSystem() == null) {
 					SoundManager.play(Assets.error);
 				}
-				newScreen = (Screen) Class.forName(getClass().getPackage().getName() + ".canvas." + entry.navigationTarget).
+				Screen newScreen = (Screen) Class.forName(getClass().getPackage().getName() + ".canvas." + entry.navigationTarget).
 					getConstructor(Alite.class).newInstance(game);
 				pendingIndex = index;
+				return newScreen;
 			} catch (NoSuchMethodException | IllegalArgumentException | IllegalAccessException |
 				InvocationTargetException | ClassNotFoundException | InstantiationException e) {
 				e.printStackTrace();
 			}
-			return newScreen;
+			return null;
 		}
 
 		switch (entry.title) {
@@ -290,8 +290,7 @@ public class NavigationBar {
 					AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
 				}
 				InGameManager.safeZoneViolated = false;
-				newScreen = new FlightScreen(game, true);
-				break;
+				return new FlightScreen(game, true);
 			case "Front":
 				SoundManager.play(Assets.click);
 				((FlightScreen) game.getCurrentScreen()).setForwardView();
@@ -300,10 +299,9 @@ public class NavigationBar {
 			case "Quit":
 				SoundManager.play(Assets.click);
 				FlightScreen fs = game.getCurrentScreen() instanceof FlightScreen ? (FlightScreen) game.getCurrentScreen() : null;
-				newScreen = new QuitScreen(game, fs);
-				break;
+				return new QuitScreen(game);
 		}
-		return newScreen;
+		return null;
 	}
 
 	public void resetPending() {

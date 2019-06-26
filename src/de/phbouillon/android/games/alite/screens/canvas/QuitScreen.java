@@ -18,8 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import android.annotation.SuppressLint;
-import android.os.Build;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.games.alite.Alite;
@@ -31,17 +29,16 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import java.io.IOException;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class QuitScreen extends AliteScreen {
 	private Screen callingScreen;
 	private Screen mockStatusScreen;
 
-	public QuitScreen(Alite game, FlightScreen flightScreen) {
+	public QuitScreen(Alite game) {
 		super(game);
 		mockStatusScreen = new StatusScreen(game);
 		mockStatusScreen.loadAssets();
-		if (flightScreen != null) {
-			callingScreen = flightScreen;
+		if (game.getCurrentScreen() instanceof FlightScreen) {
+			callingScreen = game.getCurrentScreen();
 		} else {
 			callingScreen = mockStatusScreen;
 		}
@@ -54,7 +51,6 @@ public class QuitScreen extends AliteScreen {
 		showModalQuestionDialog("Do you really want to quit " + AliteConfig.GAME_NAME + "?");
 	}
 
-	@SuppressLint("NewApi")
 	@Override
 	public void processTouch(TouchEvent touch) {
 		if (messageResult == RESULT_NONE) {
@@ -67,46 +63,40 @@ public class QuitScreen extends AliteScreen {
 			} catch (IOException e) {
 				AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
 			}
-		  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 			game.finishAffinity();
-		  } else {
-			game.setResult(AliteStartManager.ALITE_RESULT_CLOSE_ALL);
-			game.finish();
-		  }
-		} else {
-		messageResult = RESULT_NONE;
-		  newScreen = callingScreen;
 		}
 	}
 
 	@Override
 	public void present(float deltaTime) {
-		if (callingScreen == null) {
-			return;
-		}
-		if (callingScreen instanceof FlightScreen) {
-		  mockStatusScreen.present(deltaTime);
+		if (messageResult == RESULT_NO) {
+			messageResult = RESULT_NONE;
+			newScreen = callingScreen;
+			if (callingScreen != mockStatusScreen) {
+				((FlightScreen) callingScreen).setInformationScreen(null);
+			}
+			callingScreen.present(deltaTime);
 		} else {
-		  callingScreen.present(deltaTime);
+			mockStatusScreen.present(deltaTime);
 		}
 	}
 
 	@Override
 	public void dispose() {
 		if (mockStatusScreen != null) {
-		  mockStatusScreen.dispose();
-		  mockStatusScreen = null;
+			mockStatusScreen.dispose();
+			mockStatusScreen = null;
 		}
-    super.dispose();
+		super.dispose();
 	}
 
 	@Override
 	public void loadAssets() {
-	  mockStatusScreen.loadAssets();
+		mockStatusScreen.loadAssets();
 	}
 
 	@Override
 	public int getScreenCode() {
-		return callingScreen == null ? -1 : callingScreen.getScreenCode();
+		return callingScreen.getScreenCode();
 	}
 }
