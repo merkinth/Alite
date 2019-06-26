@@ -118,7 +118,7 @@ public class NavigationBar {
 	}
 
 	public void setFlightMode(boolean b) {
-		targets.get(Alite.NAVIGATION_BAR_LAUNCH).title = b ? "Front" : "Launch";
+		targets.get(Alite.NAVIGATION_BAR_LAUNCH).title = L.string(b ? R.string.navbar_front : R.string.navbar_launch);
 		targets.get(Alite.NAVIGATION_BAR_DISK).visible = !b;
 		targets.get(Alite.NAVIGATION_BAR_ACADEMY).visible = !b;
 		targets.get(Alite.NAVIGATION_BAR_HACKER).visible = !b && game.isHackerActive();
@@ -280,26 +280,28 @@ public class NavigationBar {
 			return null;
 		}
 
-		switch (entry.title) {
-			case "Launch":
-				SoundManager.play(Assets.click);
-				try {
-					AliteLog.d("[ALITE]", "Performing autosave. [Launch]");
-					game.autoSave();
-				} catch (IOException e) {
-					AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
-				}
-				InGameManager.safeZoneViolated = false;
-				return new FlightScreen(game, true);
-			case "Front":
-				SoundManager.play(Assets.click);
-				((FlightScreen) game.getCurrentScreen()).setForwardView();
-				((FlightScreen) game.getCurrentScreen()).setInformationScreen(null);
-				break;
-			case "Quit":
-				SoundManager.play(Assets.click);
-				FlightScreen fs = game.getCurrentScreen() instanceof FlightScreen ? (FlightScreen) game.getCurrentScreen() : null;
-				return new QuitScreen(game);
+		if (L.string(R.string.navbar_launch).equals(entry.title)) {
+			SoundManager.play(Assets.click);
+			try {
+				AliteLog.d("[ALITE]", "Performing autosave. [Launch]");
+				game.autoSave();
+			} catch (IOException e) {
+				AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
+			}
+			InGameManager.safeZoneViolated = false;
+			return new FlightScreen(game, true);
+		}
+
+		if (L.string(R.string.navbar_front).equals(entry.title)) {
+			SoundManager.play(Assets.click);
+			((FlightScreen) game.getCurrentScreen()).setForwardView();
+			((FlightScreen) game.getCurrentScreen()).setInformationScreen(null);
+			return null;
+		}
+
+		if (L.string(R.string.navbar_quit).equals(entry.title)) {
+			SoundManager.play(Assets.click);
+			return new QuitScreen(game);
 		}
 		return null;
 	}

@@ -259,7 +259,7 @@ public final class SpaceObjectAI implements Serializable {
 		so.getPosition().copy(v0);
 		if (target == null) {
 			AliteLog.dumpStack("Execute Steering", "No target set. But why?");
-			AliteLog.e("Target is not set in executeSteering", "No target in execute steering for object " + so.getName() + ".");
+			AliteLog.e("Target is not set in executeSteering", "No target in execute steering for object " + so.getId() + ".");
 			return 90; // To make sure this doesn't fire randomly...
 		}
 		v0.sub(target.getPosition());

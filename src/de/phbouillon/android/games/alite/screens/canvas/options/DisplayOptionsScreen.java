@@ -50,47 +50,47 @@ public class DisplayOptionsScreen extends OptionsScreen {
 
 	@Override
 	public void activate() {
-		textureLevel    = createSmallButton(0, true, "Texture Details: " + getTextureLevelString(Settings.textureLevel));
-		stardustDensity = createSmallButton(0, false, "Stardust Density: " + getStardustDensityString(Settings.particleDensity));
-		colorDepth      = createSmallButton(1, true, "Color Depth: " + (Settings.colorDepth == 1 ? "32 Bit" : "16 Bit"));
-		engineExhaust   = createSmallButton(1, false, "Engine Exhaust: " + (Settings.engineExhaust ? "On" : "Off"));
-		lockOrientation = createSmallButton(2, true, "Lock Orientation: " + getOrientationLockString(Settings.lockScreen));
-		targetBox       = createSmallButton(2, false, "Show Target Box: " + (Settings.targetBox ? "Yes" : "No"));
-		alpha           = createFloatSlider(3, 0, 1, "HUD Alpha", Settings.alpha);
-		controlsAlpha   = createFloatSlider(4, 0, 1, "Control Keys Alpha", Settings.controlAlpha);
+		textureLevel    = createSmallButton(0, true, L.string(R.string.options_display_texture_level, L.string(getTextureLevelString(Settings.textureLevel))));
+		stardustDensity = createSmallButton(0, false, L.string(R.string.options_display_stardust_density, L.string(getStardustDensityString(Settings.particleDensity))));
+		colorDepth      = createSmallButton(1, true, L.string(R.string.options_display_color_depth, L.string(Settings.colorDepth == 1 ? R.string.options_display_color_depth_32_bit : R.string.options_display_color_depth_16_bit)));
+		engineExhaust   = createSmallButton(1, false, L.string(R.string.options_display_engine_exhaust, L.string(Settings.engineExhaust ? R.string.options_on : R.string.options_off)));
+		lockOrientation = createSmallButton(2, true, L.string(R.string.options_display_lock_orientation, L.string(getOrientationLockString(Settings.lockScreen))));
+		targetBox       = createSmallButton(2, false, L.string(R.string.options_display_target_box, L.string(Settings.targetBox ? R.string.options_yes : R.string.options_no)));
+		alpha           = createFloatSlider(3, 0, 1, L.string(R.string.options_display_alpha), Settings.alpha);
+		controlsAlpha   = createFloatSlider(4, 0, 1, L.string(R.string.options_display_controls_alpha), Settings.controlAlpha);
 
-		animations      = createSmallButton(5, true, "Animations: " + (Settings.animationsEnabled ? "On" : "Off"));
-		colorScheme     = createSmallButton(5, false, "Color scheme: " + ColorScheme.getSchemeDisplayName(Settings.colorScheme));
-		immersion       = createSmallButton(6, true, "Immersion: " + (Settings.navButtonsVisible ? "Off" : "Full"));
-		back            = createSmallButton(6, false, "Back");
+		animations      = createSmallButton(5, true, L.string(R.string.options_display_animations, L.string(Settings.animationsEnabled ? R.string.options_on : R.string.options_off)));
+		colorScheme     = createSmallButton(5, false, L.string(R.string.options_display_color_scheme, ColorScheme.getSchemeDisplayName(Settings.colorScheme)));
+		immersion       = createSmallButton(6, true, L.string(R.string.options_display_immersion, L.string(Settings.navButtonsVisible ? R.string.options_off : R.string.options_display_immersion_full)));
+		back            = createSmallButton(6, false, L.string(R.string.options_back));
 	}
 
-	private String getTextureLevelString(int i) {
+	private int getTextureLevelString(int i) {
 		switch (i) {
-			case 1: return "High";
-			case 2: return "Medium";
-			case 4: return "Low";
+			case 1: return R.string.options_display_texture_level_high;
+			case 2: return R.string.options_display_texture_level_medium;
+			case 4: return R.string.options_display_texture_level_low;
 		}
-		return "Invalid";
+		return R.string.options_display_invalid_value;
 	}
 
-	private String getStardustDensityString(int i) {
+	private int getStardustDensityString(int i) {
 		switch (i) {
-			case 0: return "Off";
-			case 1: return "Low";
-			case 2: return "Medium";
-			case 3: return "High";
+			case 0: return R.string.options_display_stardust_density_off;
+			case 1: return R.string.options_display_stardust_density_low;
+			case 2: return R.string.options_display_stardust_density_medium;
+			case 3: return R.string.options_display_stardust_density_high;
 		}
-		return "Invalid";
+		return R.string.options_display_invalid_value;
 	}
 
-	private String getOrientationLockString(int i) {
+	private int getOrientationLockString(int i) {
 		switch (i) {
-			case 0: return "No Lock";
-			case 1: return "Right";
-			case 2: return "Left";
+			case 0: return R.string.options_display_lock_orientation_no_lock;
+			case 1: return R.string.options_display_lock_orientation_right;
+			case 2: return R.string.options_display_lock_orientation_left;
 		}
-		return "Invalid";
+		return R.string.options_display_invalid_value;
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class DisplayOptionsScreen extends OptionsScreen {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 
-		displayTitle("Display Options");
+		displayTitle(L.string(R.string.title_display_options));
 		textureLevel.render(g);
 		stardustDensity.render(g);
 		engineExhaust.render(g);
@@ -130,7 +130,7 @@ public class DisplayOptionsScreen extends OptionsScreen {
 				if (Settings.textureLevel > 4) {
 					Settings.textureLevel = 1;
 				}
-				textureLevel.setText("Texture Details: " + getTextureLevelString(Settings.textureLevel));
+				textureLevel.setText(L.string(R.string.options_display_texture_level, L.string(getTextureLevelString(Settings.textureLevel))));
 				Settings.save(game.getFileIO());
 			} else if (stardustDensity.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
@@ -138,27 +138,26 @@ public class DisplayOptionsScreen extends OptionsScreen {
 				if (Settings.particleDensity >= 4) {
 					Settings.particleDensity = 0;
 				}
-				stardustDensity.setText("Stardust Density: " + getStardustDensityString(Settings.particleDensity));
+				stardustDensity.setText(L.string(R.string.options_display_stardust_density, L.string(getStardustDensityString(Settings.particleDensity))));
 				Settings.save(game.getFileIO());
 			} else if (colorDepth.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.colorDepth = -Settings.colorDepth + 1;
-				colorDepth.setText("Color Depth: " + (Settings.colorDepth == 1 ? "32 Bit" : "16 Bit"));
+				colorDepth.setText(L.string(R.string.options_display_color_depth, L.string(Settings.colorDepth == 1 ? R.string.options_display_color_depth_32_bit : R.string.options_display_color_depth_16_bit)));
 				Settings.save(game.getFileIO());
 			} else if (animations.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.animationsEnabled = !Settings.animationsEnabled;
-				animations.setText("Animations: " + (Settings.animationsEnabled ? "On" : "Off"));
+				animations.setText(L.string(R.string.options_display_animations, L.string(Settings.animationsEnabled ? R.string.options_on : R.string.options_off)));
 				Settings.save(game.getFileIO());
 			} else if (colorScheme.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.colorScheme = ColorScheme.getNextColorScheme(Settings.colorScheme);
-				colorScheme.setText("Color scheme: " + ColorScheme.getSchemeDisplayName(Settings.colorScheme));
+				colorScheme.setText(L.string(R.string.options_display_color_scheme, ColorScheme.getSchemeDisplayName(Settings.colorScheme)));
 				String error = ColorScheme.setColorScheme(game.getFileIO(), null, Settings.colorScheme);
 				if (error != null) {
-					showMessageDialog("Color scheme file is skipped, error: " + error);
+					showMessageDialog(L.string(R.string.options_display_color_scheme,error));
 				}
-				Condition.update();
 				Settings.save(game.getFileIO());
 				newScreen = new DisplayOptionsScreen(game);
 			} else if (lockOrientation.isTouched(touch.x, touch.y)) {
@@ -172,22 +171,22 @@ public class DisplayOptionsScreen extends OptionsScreen {
 					case 1: game.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); break;
 					case 2: game.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE); break;
 				}
-				lockOrientation.setText("Lock Orientation: " + getOrientationLockString(Settings.lockScreen));
+				lockOrientation.setText(L.string(R.string.options_display_lock_orientation, L.string(getOrientationLockString(Settings.lockScreen))));
 				Settings.save(game.getFileIO());
 			} else if (targetBox.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.targetBox = !Settings.targetBox;
-				targetBox.setText("Show Target Box: " + (Settings.targetBox ? "Yes" : "No"));
+				targetBox.setText(L.string(R.string.options_display_target_box, L.string(Settings.targetBox ? R.string.options_yes : R.string.options_no)));
 				Settings.save(game.getFileIO());
 			} else if (engineExhaust.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.engineExhaust = !Settings.engineExhaust;
-				engineExhaust.setText("Engine Exhaust: " + (Settings.engineExhaust ? "On" : "Off"));
+				engineExhaust.setText(L.string(R.string.options_display_engine_exhaust, L.string(Settings.engineExhaust ? R.string.options_on : R.string.options_off)));
 				Settings.save(game.getFileIO());
 			} else if (immersion.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.navButtonsVisible = !Settings.navButtonsVisible;
-				immersion.setText("Immersion: " + (Settings.navButtonsVisible ? "Off" : "Full"));
+				immersion.setText(L.string(R.string.options_display_immersion, L.string(Settings.navButtonsVisible ? R.string.options_off : R.string.options_display_immersion_full)));
 				Settings.save(game.getFileIO());
 			} else if (back.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);

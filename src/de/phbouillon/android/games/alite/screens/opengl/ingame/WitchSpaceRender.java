@@ -23,10 +23,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 
 import de.phbouillon.android.framework.IMethodHook;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Rating;
 
 public class WitchSpaceRender implements Serializable {
@@ -69,7 +66,7 @@ public class WitchSpaceRender implements Serializable {
 			@Override
 			public void execute(float deltaTime) {
 				hyperdriveMalfunction = false;
-				inGame.getMessage().repeatText("Hyperdrive repaired!", 1, 4, 1);
+				inGame.getMessage().repeatText(L.string(R.string.com_hyperdrive_repaired), 1, 4, 1);
 				SoundManager.play(Assets.com_hyperdriveRepaired);
 				driveRepairedMessage.remove();
 			}
@@ -92,7 +89,7 @@ public class WitchSpaceRender implements Serializable {
 		if (inGame.getHud() != null) {
 			inGame.getHud().setWitchSpace(true);
 		}
-		inGame.getMessage().repeatText("Hyperdrive malfunction!", 1, 4, 1);
+		inGame.getMessage().repeatText(L.string(R.string.com_hyperdrive_malfunction), 1, 4, 1);
 		SoundManager.play(Assets.com_hyperdriveMalfunction);
 		int maxAttackersNumber = alite.getPlayer().getRating().ordinal() - Rating.AVERAGE.ordinal();
 		if (maxAttackersNumber < 1) {

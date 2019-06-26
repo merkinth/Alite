@@ -26,9 +26,7 @@ import java.io.IOException;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.Player;
@@ -221,7 +219,7 @@ public class CougarMission extends Mission {
 				manager.lockConditionRedEvent();
 				event.remove();
 				SoundManager.play(Assets.com_conditionRed);
-				manager.getInGameManager().repeatMessage("Condition Red!", 3);
+				manager.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
 				Vector3f spawnPosition = manager.getSpawnPosition();
 				final Cougar cougar = new Cougar(alite);
 				AspMkII asp1 = new AspMkII(alite);
@@ -247,6 +245,6 @@ public class CougarMission extends Mission {
 
 	@Override
 	public String getObjective() {
-		return "Destroy the unknown ship.";
+		return L.string(R.string.mission_cougar_obj);
 	}
 }

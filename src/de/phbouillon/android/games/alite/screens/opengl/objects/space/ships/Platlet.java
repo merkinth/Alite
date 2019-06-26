@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects.space.ships;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -25,6 +25,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects.space.ships;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
+import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.model.statistics.ShipType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
@@ -34,82 +35,83 @@ public class Platlet extends SpaceObject {
 
 	public static final Vector3f HUD_COLOR = new Vector3f(0.94f, 0.0f, 0.94f);
 
-    private static final float [] VERTEX_DATA = new float [] {
-        -20.00f, -36.00f,  -0.80f, -20.00f, -36.00f,   0.80f, 
-        -20.00f,  36.00f,   0.80f, -20.00f,  36.00f,  -0.80f, 
-         20.00f, -36.00f,  -0.80f,  20.00f, -36.00f,   0.80f, 
-         20.00f,  36.00f,   0.80f,  20.00f,  36.00f,  -0.80f
-    };
+	private static final float [] VERTEX_DATA = new float [] {
+		-20.00f, -36.00f,  -0.80f, -20.00f, -36.00f,   0.80f,
+		-20.00f,  36.00f,   0.80f, -20.00f,  36.00f,  -0.80f,
+		20.00f, -36.00f,  -0.80f,  20.00f, -36.00f,   0.80f,
+		20.00f,  36.00f,   0.80f,  20.00f,  36.00f,  -0.80f
+	};
 
-    private static final float [] NORMAL_DATA = new float [] {
-          0.00000f,   1.00000f,   0.00000f,   0.00000f,   1.00000f,  -0.00000f, 
-         -0.00000f,  -1.00000f,   0.00000f,   0.00000f,  -1.00000f,  -0.00000f, 
-         -1.00000f,  -0.00000f,   0.00000f,  -1.00000f,   0.00000f,   0.00000f, 
-          1.00000f,   0.00000f,   0.00000f,   1.00000f,  -0.00000f,   0.00000f, 
-          0.00000f,   0.00000f,  -1.00000f,   0.00000f,   0.00000f,  -1.00000f, 
-          0.00000f,   0.00000f,   1.00000f,   0.00000f,   0.00000f,   1.00000f
-    };
+	private static final float [] NORMAL_DATA = new float [] {
+		0.00000f,   1.00000f,   0.00000f,   0.00000f,   1.00000f,  -0.00000f,
+		-0.00000f,  -1.00000f,   0.00000f,   0.00000f,  -1.00000f,  -0.00000f,
+		-1.00000f,  -0.00000f,   0.00000f,  -1.00000f,   0.00000f,   0.00000f,
+		1.00000f,   0.00000f,   0.00000f,   1.00000f,  -0.00000f,   0.00000f,
+		0.00000f,   0.00000f,  -1.00000f,   0.00000f,   0.00000f,  -1.00000f,
+		0.00000f,   0.00000f,   1.00000f,   0.00000f,   0.00000f,   1.00000f
+	};
 
-    private static final float [] TEXTURE_COORDINATE_DATA = new float [] {
-          1.00f,   1.00f,   0.00f,   1.00f,   0.00f,   0.00f, 
-          1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f, 
-          1.00f,   1.00f,   0.00f,   1.00f,   0.00f,   0.00f, 
-          1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f, 
-          1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f, 
-          0.00f,   1.00f,   0.00f,   0.00f,   1.00f,   1.00f, 
-          1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f, 
-          0.00f,   1.00f,   0.00f,   0.00f,   1.00f,   1.00f, 
-          0.00f,   1.00f,   0.00f,   0.00f,   1.00f,   1.00f, 
-          1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f, 
-          1.00f,   1.00f,   0.00f,   1.00f,   0.00f,   0.00f, 
-          1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f
-    };
+	private static final float [] TEXTURE_COORDINATE_DATA = new float [] {
+		1.00f,   1.00f,   0.00f,   1.00f,   0.00f,   0.00f,
+		1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f,
+		1.00f,   1.00f,   0.00f,   1.00f,   0.00f,   0.00f,
+		1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f,
+		1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f,
+		0.00f,   1.00f,   0.00f,   0.00f,   1.00f,   1.00f,
+		1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f,
+		0.00f,   1.00f,   0.00f,   0.00f,   1.00f,   1.00f,
+		0.00f,   1.00f,   0.00f,   0.00f,   1.00f,   1.00f,
+		1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f,
+		1.00f,   1.00f,   0.00f,   1.00f,   0.00f,   0.00f,
+		1.00f,   1.00f,   0.00f,   0.00f,   1.00f,   0.00f
+	};
 
-    public Platlet(Alite alite) {
-        super(alite, "Platlet", ObjectType.Platlet);
-        shipType = ShipType.Platlet;
-        boundingBox = new float [] {-20.00f,  20.00f, -36.00f,  36.00f,  -0.80f,   0.80f};
-        numberOfVertices = 36;
-        textureFilename = "textures/platlet.png";
-        maxSpeed          =  50.5f;
-        maxPitchSpeed     = 0.100f;
-        maxRollSpeed      = 0.100f;
-        hullStrength      =  33.0f;
-        hasEcm            = false;
-        cargoType         = 0;
-        aggressionLevel   = 0;
-        escapeCapsuleCaps = 0;
-        bounty            = 0;
-        legalityType      = 3;
-        maxCargoCanisters = 0;
-        missileCount      = 0;        
-        spawnCargoCanisters = false;
-        init();
-    }
+	public Platlet(Alite alite) {
+		super(alite, "Platlet", ObjectType.Platlet);
+		setName(R.string.so_platlet);
+		shipType = ShipType.Platlet;
+		boundingBox = new float [] {-20.00f,  20.00f, -36.00f,  36.00f,  -0.80f,   0.80f};
+		numberOfVertices = 36;
+		textureFilename = "textures/platlet.png";
+		maxSpeed          =  50.5f;
+		maxPitchSpeed     = 0.100f;
+		maxRollSpeed      = 0.100f;
+		hullStrength      =  33.0f;
+		hasEcm            = false;
+		cargoType         = 0;
+		aggressionLevel   = 0;
+		escapeCapsuleCaps = 0;
+		bounty            = 0;
+		legalityType      = 3;
+		maxCargoCanisters = 0;
+		missileCount      = 0;
+		spawnCargoCanisters = false;
+		init();
+	}
 
-    @Override
-    protected void init() {
-        vertexBuffer = createFaces(VERTEX_DATA, NORMAL_DATA,
-                7,   3,   2,   7,   2,   6,   5,   1,   0,   5,   0,   4,   2,   0,   1, 
-                3,   0,   2,   6,   4,   7,   5,   4,   6,   0,   3,   4,   4,   3,   7, 
-                6,   2,   1,   6,   1,   5);
-        texCoordBuffer = GlUtils.toFloatBufferPositionZero(TEXTURE_COORDINATE_DATA);
-        alite.getTextureManager().addTexture(textureFilename); 
-        initTargetBox();  	
-    }
+	@Override
+	protected void init() {
+		vertexBuffer = createFaces(VERTEX_DATA, NORMAL_DATA,
+			7,   3,   2,   7,   2,   6,   5,   1,   0,   5,   0,   4,   2,   0,   1,
+			3,   0,   2,   6,   4,   7,   5,   4,   6,   0,   3,   4,   4,   3,   7,
+			6,   2,   1,   6,   1,   5);
+		texCoordBuffer = GlUtils.toFloatBufferPositionZero(TEXTURE_COORDINATE_DATA);
+		alite.getTextureManager().addTexture(textureFilename);
+		initTargetBox();
+	}
 
-    @Override
-    public boolean isVisibleOnHud() {
-        return true;
-    }
+	@Override
+	public boolean isVisibleOnHud() {
+		return true;
+	}
 
-    @Override
-    public Vector3f getHudColor() {
-        return HUD_COLOR;
-    }
+	@Override
+	public Vector3f getHudColor() {
+		return HUD_COLOR;
+	}
 
-    @Override
-    public float getDistanceFromCenterToBorder(Vector3f dir) {
-        return 50.0f;
-    }
+	@Override
+	public float getDistanceFromCenterToBorder(Vector3f dir) {
+		return 50.0f;
+	}
 }

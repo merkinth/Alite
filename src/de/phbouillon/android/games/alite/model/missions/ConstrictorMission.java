@@ -25,9 +25,7 @@ import java.io.IOException;
 
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
@@ -172,7 +170,7 @@ public class ConstrictorMission extends Mission {
 				constrictorCreated = true;
 				event.remove();
 				SoundManager.play(Assets.com_conditionRed);
-				manager.getInGameManager().repeatMessage("Condition Red!", 3);
+				manager.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
 				Vector3f spawnPosition = manager.getSpawnPosition();
 				Constrictor constrictor = new Constrictor(alite);
 				manager.spawnEnemyAndAttackPlayer(constrictor, 0, spawnPosition);
@@ -193,14 +191,11 @@ public class ConstrictorMission extends Mission {
 
 	@Override
 	public String getObjective() {
-		switch (state) {
-			case 0: return "";
-			case 1: return "Fly to " + getTargetName(targetIndex, galaxySeed) + ".";
-			case 2: return "Perform an intergalactic jump.";
-			case 3: return "Fly to " + getTargetName(targetIndex, galaxySeed) + ".";
-			case 4: return "Fly to " + getTargetName(targetIndex, galaxySeed) + ".";
-			case 5: return "Fly to " + getTargetName(targetIndex, galaxySeed) + ".";
-			case 6: return "Fly to " + getTargetName(targetIndex, galaxySeed) + ".";
+		if (state == 2) {
+			return L.string(R.string.mission_constrictor_obj_jump);
+		}
+		if (state >= 1 && state <= 6) {
+			return L.string(R.string.mission_constrictor_obj_fly, getTargetName(targetIndex, galaxySeed));
 		}
 		return "";
 	}

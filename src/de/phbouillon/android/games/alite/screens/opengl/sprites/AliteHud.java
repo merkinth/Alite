@@ -407,11 +407,11 @@ public class AliteHud extends Sprite implements Serializable {
 		GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, 0);
 		renderLollipops();
 		if (zoomFactor > 1.5f && zoomFactor < 3.0f) {
-			alite.getGraphics().drawText("x2", RADAR_X1 + 20, RADAR_Y1 + 20,
+			alite.getGraphics().drawText(L.string(R.string.radar_zoom_x2), RADAR_X1 + 20, RADAR_Y1 + 20,
 				AliteColor.argb(0.6f * Settings.alpha, 0.94f * Settings.alpha, 0.94f * Settings.alpha, 0.0f),
 				Assets.regularFont, 1.0f);
 		} else if (zoomFactor > 3.0f) {
-			alite.getGraphics().drawText("x4", RADAR_X1 + 20, RADAR_Y1 + 20,
+			alite.getGraphics().drawText(L.string(R.string.radar_zoom_x4), RADAR_X1 + 20, RADAR_Y1 + 20,
 				AliteColor.argb(0.6f * Settings.alpha, 0.94f * Settings.alpha, 0.94f * Settings.alpha, 0.0f),
 				Assets.regularFont, 1.0f);
 		}

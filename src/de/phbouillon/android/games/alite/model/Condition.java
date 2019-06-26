@@ -18,39 +18,34 @@ package de.phbouillon.android.games.alite.model;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 public enum Condition {
-	DOCKED("Docked", ColorScheme.get(ColorScheme.COLOR_CONDITION_GREEN)),
-	GREEN("Green",   ColorScheme.get(ColorScheme.COLOR_CONDITION_GREEN)),
-	YELLOW("Yellow", ColorScheme.get(ColorScheme.COLOR_CONDITION_YELLOW)),
-	RED("Red",       ColorScheme.get(ColorScheme.COLOR_CONDITION_RED));
+	DOCKED(ColorScheme.COLOR_CONDITION_GREEN),
+	GREEN(ColorScheme.COLOR_CONDITION_GREEN),
+	YELLOW(ColorScheme.COLOR_CONDITION_YELLOW),
+	RED(ColorScheme.COLOR_CONDITION_RED);
 
-	private String name;
-	private int color;
+	private int colorIndex;
 
-	Condition(String name, int color) {
-		this.name = name;
-		this.color = color;
+	Condition(int colorIndex) {
+		this.colorIndex = colorIndex;
 	}
 
 	public String getName() {
-		return name;
-	}
-
-	@Override
-	public String toString() {
-		return name;
+		switch (this) {
+			case DOCKED: return L.string(R.string.condition_docked);
+			case GREEN: return L.string(R.string.condition_green);
+			case YELLOW: return L.string(R.string.condition_yellow);
+			case RED: return L.string(R.string.condition_red);
+		}
+		return "";
 	}
 
 	public int getColor() {
-		return color;
+		return ColorScheme.get(colorIndex);
 	}
 
-	public static void update() {
-		DOCKED.color = ColorScheme.get(ColorScheme.COLOR_CONDITION_GREEN);
-		GREEN.color = ColorScheme.get(ColorScheme.COLOR_CONDITION_GREEN);
-		YELLOW.color = ColorScheme.get(ColorScheme.COLOR_CONDITION_YELLOW);
-		RED.color = ColorScheme.get(ColorScheme.COLOR_CONDITION_RED);
-	}
 }

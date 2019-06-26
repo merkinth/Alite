@@ -26,12 +26,7 @@ import java.util.ArrayList;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.InventoryItem;
@@ -39,17 +34,15 @@ import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.model.missions.Mission;
-import de.phbouillon.android.games.alite.model.trading.Market;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
-import de.phbouillon.android.games.alite.model.trading.Unit;
+import de.phbouillon.android.games.alite.model.Unit;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class InventoryScreen extends TradeScreen {
 	static class InventoryPair {
 		TradeGood good;
@@ -62,8 +55,6 @@ public class InventoryScreen extends TradeScreen {
 	}
 
 	private static final float CARGO_CANISTER_EJECTION_DISTANCE = 800.0f;
-	private static final String INVENTORY_HINT = "(Tap again to sell)";
-	private static final String EJECT_HINT = "(Tap again to eject)";
 	private final ArrayList<InventoryPair> inventoryList = new ArrayList<>();
 	private Pixmap thargoidDocuments;
 	private Pixmap unhappyRefugees;
@@ -150,7 +141,7 @@ public class InventoryScreen extends TradeScreen {
 		int x = 0;
 		for (InventoryPair pair: inventoryList) {
 			tradeButton[x][y] = Button.createOverlayButton(x * GAP_X + X_OFFSET, y * GAP_Y + Y_OFFSET, SIZE, SIZE,
-					tradeGoods[TradeGoodStore.get().ordinal(pair.good)], beam)
+					tradeGoods[pair.good.getId()], beam)
 				.setName(pair.good.getName());
 			x++;
 			if (x == COLUMNS) {
@@ -166,7 +157,7 @@ public class InventoryScreen extends TradeScreen {
 		if (y >= ROWS) {
 			return;
 		}
-		if (cobra.getSpecialCargo("Thargoid Documents") != null) {
+		if (cobra.getSpecialCargo(TradeGoodStore.GOOD_THARGOID_DOCUMENTS) != null) {
 			tradeButton[x][y] = Button.createOverlayButton(x * GAP_X + X_OFFSET, y * GAP_Y + Y_OFFSET, SIZE, SIZE, thargoidDocuments, beam);
 			x++;
 			if (x == COLUMNS) {
@@ -177,7 +168,7 @@ public class InventoryScreen extends TradeScreen {
 				}
 			}
 		}
-		if (cobra.getSpecialCargo("Unhappy Refugees") != null) {
+		if (cobra.getSpecialCargo(TradeGoodStore.GOOD_UNHAPPY_REFUGEES) != null) {
 			tradeButton[x][y] = Button.createOverlayButton(x * GAP_X + X_OFFSET, y * GAP_Y + Y_OFFSET, SIZE, SIZE, unhappyRefugees, beam);
 		}
 	}
@@ -191,33 +182,18 @@ public class InventoryScreen extends TradeScreen {
         return value;
     }
 
-    private long computePrice(Market market, int factor, long weightInGrams, TradeGood good) {
-        long tradeGoodPrice = market.getPrice(good) * 19 * 4 / 20;
+    private long computePrice(InventoryPair pair) {
+		long weightInGrams = pair.item.getWeight().getWeightInGrams();
+		int factor = pair.good.getUnit().getValue();
+        long tradeGoodPrice = game.getPlayer().getMarket().getPrice(pair.good) * 19 * 4 / 20;
         long price = (weightInGrams / factor + (weightInGrams % factor != 0 ? 1 : 0)) * tradeGoodPrice;
         price = cap(price) / 4;
         return price;
     }
 
-	private String computeCashString(InventoryPair pair) {
-		Market market = game.getPlayer().getMarket();
-
-		int factor = pair.good.getUnit() == Unit.TON ? 1000000 : pair.good.getUnit() == Unit.KILOGRAM ? 1000 : 1;
-		long price = computePrice(market, factor, pair.item.getWeight().getWeightInGrams(), pair.good);
-		return getOneDecimalFormatString("%d.%d Cr", price);
-	}
-
-	private String computeGainLossString(InventoryPair pair) {
-		Market market = game.getPlayer().getMarket();
-
-		int factor = pair.good.getUnit() == Unit.TON ? 1000000 : pair.good.getUnit() == Unit.KILOGRAM ? 1000 : 1;
-		long price = computePrice(market, factor, pair.item.getWeight().getWeightInGrams(), pair.good);
-		long gain = price - pair.item.getPrice();
-		boolean loss = false;
-		if (gain < 0) {
-			loss = true;
-			gain = -gain;
-		}
-		return (loss ? "Loss: -" : "Gain: ") + getOneDecimalFormatString("%d.%d Cr", gain);
+	private String computeGainLossString(long gain) {
+		return L.string(gain < 0 ? R.string.inventory_loss : R.string.inventory_gain,
+			L.getOneDecimalFormatString(R.string.cash_amount_value_ccy, Math.abs(gain))) + ". ";
 	}
 
 	@Override
@@ -234,11 +210,11 @@ public class InventoryScreen extends TradeScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Inventory");
+		displayTitle(L.string(R.string.title_inventory));
 
 		if (inventoryList.isEmpty()) {
 			if (!game.getCobra().containsSpecialCargo()) {
-				g.drawText("Cargo hold is empty.", 180, 200, ColorScheme.get(ColorScheme.COLOR_WARNING_MESSAGE), Assets.regularFont);
+				g.drawText(L.string(R.string.inventory_empty_cargo), 180, 200, ColorScheme.get(ColorScheme.COLOR_WARNING_MESSAGE), Assets.regularFont);
 			}
 		}
 		presentTradeGoods(deltaTime);
@@ -253,28 +229,27 @@ public class InventoryScreen extends TradeScreen {
 				return;
 			}
 			if (tradeButton[column][row].getPixmap() == thargoidDocuments) {
-				game.getGraphics().drawText("Important Thargoid Documents", X_OFFSET, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
+				game.getGraphics().drawText(L.string(R.string.goods_thargoid_documents), X_OFFSET, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 				return;
 			}
 			if (tradeButton[column][row].getPixmap() == unhappyRefugees) {
-				game.getGraphics().drawText("Unhappy Refugees", X_OFFSET, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
+				game.getGraphics().drawText(L.string(R.string.goods_unhappy_refugees), X_OFFSET, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 			}
 			return;
 		}
 		InventoryPair pair = inventoryList.get(index);
-		TradeGood tradeGood = pair.good;
-		String worthText = tradeGood.getName() + " - worth: " + computeCashString(pair) + ". ";
+		long price = computePrice(pair);
+		String worthText = L.string(R.string.inventory_worth, pair.good.getName(), L.getOneDecimalFormatString(R.string.cash_amount_value_ccy, price));
 		int width = game.getGraphics().getTextWidth(worthText, Assets.regularFont);
 		game.getGraphics().drawText(worthText, X_OFFSET, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
-		String gainText = computeGainLossString(pair) + ". ";
+		long gain = price - pair.item.getPrice();
+		String gainText = computeGainLossString(gain);
 		int widthComplete = width + game.getGraphics().getTextWidth(gainText, Assets.regularFont);
-		game.getGraphics().drawText(gainText, X_OFFSET + width, 1050, ColorScheme.get(gainText.startsWith("Loss") ?
+		game.getGraphics().drawText(gainText, X_OFFSET + width, 1050, ColorScheme.get(gain < 0 ?
 			ColorScheme.COLOR_CONDITION_RED : ColorScheme.COLOR_CONDITION_GREEN), Assets.regularFont);
-		if (game.getCurrentScreen() instanceof FlightScreen && game.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop)) {
-			game.getGraphics().drawText(EJECT_HINT, X_OFFSET + widthComplete, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
-		} else {
-			game.getGraphics().drawText(INVENTORY_HINT, X_OFFSET + widthComplete, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
-		}
+		game.getGraphics().drawText(L.string(game.getCurrentScreen() instanceof FlightScreen &&
+			game.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop) ? R.string.inventory_eject : R.string.inventory_sell),
+			X_OFFSET + widthComplete, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
 
 	protected void performTradeWhileInFlight(int row, int column) {
@@ -331,9 +306,7 @@ public class InventoryScreen extends TradeScreen {
 				return;
 			}
 		}
-		Market market = player.getMarket();
-		int factor = pair.good.getUnit() == Unit.TON ? 1000000 : pair.good.getUnit() == Unit.KILOGRAM ? 1000 : 1;
-		long price = computePrice(market, factor, pair.item.getWeight().getWeightInGrams(), pair.good);
+		long price = computePrice(pair);
 		int chanceInPercent = game.getPlayer().getLegalProblemLikelihoodInPercent();
 		if (Math.random() * 100 < chanceInPercent) {
 			game.getPlayer().setLegalValue(game.getPlayer().getLegalValue() +
@@ -341,7 +314,7 @@ public class InventoryScreen extends TradeScreen {
 		}
 		player.getCobra().removeTradeGood(tradeGood);
 		player.setCash(player.getCash() + price);
-		cashLeft = getOneDecimalFormatString("Cash: %d.%d Cr", player.getCash());
+		cashLeft = L.getOneDecimalFormatString(R.string.cash_amount, player.getCash());
 		SoundManager.play(Assets.kaChing);
 		createButtons();
 		try {

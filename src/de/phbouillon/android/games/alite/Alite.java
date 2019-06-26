@@ -257,19 +257,17 @@ public class Alite extends AndroidGame {
 
 	@Override
 	protected void saveState(Screen screen) {
-		try {
-			AliteLog.d("Saving state", "Saving state. Screen = " + (screen == null ? "<null>" : screen.getClass().getName()));
-			int screenCode = screen == null ? -1 : screen.getScreenCode();
-			if (screenCode != -1) {
-				OutputStream stateFile = getFileIO().writeFile(AliteStartManager.ALITE_STATE_FILE);
-				stateFile.write(screenCode);
-				screen.saveScreenState(new DataOutputStream(stateFile));
-				stateFile.close();
-				AliteLog.d("Saving state", "Saving state completed successfully.");
-			} else {
-				getFileIO().deleteFile(AliteStartManager.ALITE_STATE_FILE);
-				AliteLog.d("Saving state", "Saving state could not identify current screen, hence the state file was deleted.");
-			}
+		AliteLog.d("Saving state", "Saving state. Screen = " + (screen == null ? "<null>" : screen.getClass().getName()));
+		int screenCode = screen == null ? -1 : screen.getScreenCode();
+		if (screenCode == -1) {
+			getFileIO().deleteFile(AliteStartManager.ALITE_STATE_FILE);
+			AliteLog.d("Saving state", "Saving state could not identify current screen, hence the state file was deleted.");
+			return;
+		}
+		try (OutputStream stateFile = getFileIO().writeFile(AliteStartManager.ALITE_STATE_FILE)) {
+			stateFile.write(screenCode);
+			screen.saveScreenState(new DataOutputStream(stateFile));
+			AliteLog.d("Saving state", "Saving state completed successfully.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -277,7 +275,7 @@ public class Alite extends AndroidGame {
 
 	public final boolean readState() throws IOException {
 		byte[] state = getFileIO().readFileContents(AliteStartManager.ALITE_STATE_FILE);
-		AliteLog.d("Reading state", "State == " + (state == null ? "" : ", " + state[0]));
+		AliteLog.d("Reading state", "State == " + (state == null || state.length == 0 ? "" : state[0]));
 		if (state != null && state.length > 0) {
 			return ScreenBuilder.createScreen(this, state);
 		}
@@ -351,30 +349,32 @@ public class Alite extends AndroidGame {
 		AliteLog.d("Alite.onResume", "onResume end");
 	}
 
-	@Override
-	public void afterSurfaceCreated() {
+	private void createNavigationBar() {
 		// if navigation target is defined package root of screens is screens.canvas
 		navigationBar = new NavigationBar(this);
-		NAVIGATION_BAR_LAUNCH = navigationBar.add("Launch", Assets.launchIcon, null);
-		NAVIGATION_BAR_STATUS = navigationBar.add("Status", Assets.statusIcon, "StatusScreen");
-		NAVIGATION_BAR_BUY = navigationBar.add("Buy", Assets.buyIcon, "BuyScreen");
-		NAVIGATION_BAR_INVENTORY = navigationBar.add("Inventory", Assets.inventoryIcon, "InventoryScreen");
-		NAVIGATION_BAR_EQUIP = navigationBar.add("Equip", Assets.equipIcon, "EquipmentScreen");
-		NAVIGATION_BAR_GALAXY = navigationBar.add("Galaxy", Assets.galaxyIcon, "GalaxyScreen");
-		NAVIGATION_BAR_LOCAL = navigationBar.add("Local", Assets.localIcon, "LocalScreen");
-		NAVIGATION_BAR_PLANET = navigationBar.add("Planet", Assets.planetIcon, "PlanetScreen");
-		NAVIGATION_BAR_DISK = navigationBar.add("Disk", Assets.diskIcon, "DiskScreen");
-		NAVIGATION_BAR_OPTIONS = navigationBar.add("Options", Assets.optionsIcon, "options.OptionsScreen");
-		NAVIGATION_BAR_LIBRARY = navigationBar.add("Library", Assets.libraryIcon, "LibraryScreen");
-		NAVIGATION_BAR_ACADEMY = navigationBar.add("Academy", Assets.academyIcon, "tutorial.TutorialSelectionScreen");
-		NAVIGATION_BAR_HACKER = navigationBar.add("Hacker", Assets.hackerIcon, "HackerScreen");
+		NAVIGATION_BAR_LAUNCH = navigationBar.add(L.string(R.string.navbar_launch), Assets.launchIcon, null);
+		NAVIGATION_BAR_STATUS = navigationBar.add(L.string(R.string.navbar_status), Assets.statusIcon, "StatusScreen");
+		NAVIGATION_BAR_BUY = navigationBar.add(L.string(R.string.navbar_buy), Assets.buyIcon, "BuyScreen");
+		NAVIGATION_BAR_INVENTORY = navigationBar.add(L.string(R.string.navbar_inventory), Assets.inventoryIcon, "InventoryScreen");
+		NAVIGATION_BAR_EQUIP = navigationBar.add(L.string(R.string.navbar_equip), Assets.equipIcon, "EquipmentScreen");
+		NAVIGATION_BAR_GALAXY = navigationBar.add(L.string(R.string.navbar_galaxy), Assets.galaxyIcon, "GalaxyScreen");
+		NAVIGATION_BAR_LOCAL = navigationBar.add(L.string(R.string.navbar_local), Assets.localIcon, "LocalScreen");
+		NAVIGATION_BAR_PLANET = navigationBar.add(L.string(R.string.navbar_planet), Assets.planetIcon, "PlanetScreen");
+		NAVIGATION_BAR_DISK = navigationBar.add(L.string(R.string.navbar_disk), Assets.diskIcon, "DiskScreen");
+		NAVIGATION_BAR_OPTIONS = navigationBar.add(L.string(R.string.navbar_options), Assets.optionsIcon, "options.OptionsScreen");
+		NAVIGATION_BAR_LIBRARY = navigationBar.add(L.string(R.string.navbar_library), Assets.libraryIcon, "LibraryScreen");
+		NAVIGATION_BAR_ACADEMY = navigationBar.add(L.string(R.string.navbar_academy), Assets.academyIcon, "tutorial.TutorialSelectionScreen");
+		NAVIGATION_BAR_HACKER = navigationBar.add(L.string(R.string.navbar_hacker), Assets.hackerIcon, "HackerScreen");
 		navigationBar.setVisible(NAVIGATION_BAR_HACKER, false);
-		NAVIGATION_BAR_QUIT = navigationBar.add("Quit", Assets.quitIcon, null);
-		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
+		NAVIGATION_BAR_QUIT = navigationBar.add(L.string(R.string.navbar_quit), Assets.quitIcon, null);
+		navigationBar.setActiveIndex(NAVIGATION_BAR_OPTIONS);
+	}
 
+	public void afterSurfaceCreated() {
+		createNavigationBar();
+		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
 		Assets.yesIcon = getGraphics().newPixmap("yes_icon_small.png");
 		Assets.noIcon = getGraphics().newPixmap("no_icon_small.png");
-
 		loadFonts();
 	}
 
@@ -400,6 +400,7 @@ public class Alite extends AndroidGame {
 	public void changeLocale() {
 		new LoadingScreen(this).changeLocale();
 		loadFonts();
+		createNavigationBar();
 		generator.rebuildGalaxy();
 		player.setCurrentSystem(generator.getSystem(player.getCurrentSystem().getIndex()));
 		player.setHyperspaceSystem(generator.getSystem(player.getHyperspaceSystem().getIndex()));

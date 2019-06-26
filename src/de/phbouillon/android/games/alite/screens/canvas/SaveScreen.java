@@ -23,12 +23,7 @@ import java.io.IOException;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -41,14 +36,14 @@ public class SaveScreen extends CatalogScreen {
 	}
 
 	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		alite.setScreen(new SaveScreen(alite, "Save Commander"));
+		alite.setScreen(new SaveScreen(alite, L.string(R.string.title_cmdr_save)));
 		return true;
 	}
 
 	@Override
 	public void activate() {
 		super.activate();
-		saveNewCommanderButton = Button.createGradientRegularButton(50, 950, 500, 100, "Save New Commander");
+		saveNewCommanderButton = Button.createGradientRegularButton(50, 950, 500, 100, L.string(R.string.cmdr_btn_save));
 		deleteButton = null;
 	}
 
@@ -61,7 +56,7 @@ public class SaveScreen extends CatalogScreen {
 			} catch (IOException e) {
 				AliteLog.e("[ALITE] SaveCommander", "Error while saving commander.", e);
 			}
-			showMessageDialog("Commander " + inputText + " saved successfully.");
+			showMessageDialog(L.string(R.string.cmdr_save_succeeded, inputText));
 			confirmedSave = true;
 		}
 		messageResult = RESULT_NONE;
@@ -77,16 +72,14 @@ public class SaveScreen extends CatalogScreen {
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (saveNewCommanderButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				popupTextInput("Enter the new commander's name:",
-					game.getPlayer().getName(), 16);
+				popupTextInput(L.string(R.string.cmdr_get_name), game.getPlayer().getName(), 16);
 			}
 		}
 		if (selectedCommanderData.size() != 1) {
 			return;
 		}
 		if (messageResult == RESULT_NONE) {
-			showQuestionDialog(String.format("Are you sure you want to overwrite Commander %s?",
-				selectedCommanderData.get(0).getName()));
+			showQuestionDialog(L.string(R.string.cmdr_save_overwrite, selectedCommanderData.get(0).getName()));
 			confirmDelete = false;
 			SoundManager.play(Assets.alert);
 			return;
@@ -98,11 +91,11 @@ public class SaveScreen extends CatalogScreen {
 				} else {
 					game.saveCommander(selectedCommanderData.get(0).getName(), selectedCommanderData.get(0).getFileName());
 				}
-				showMessageDialog(String.format("Commander %s saved successfully.", selectedCommanderData.get(0).getName()));
+				showMessageDialog(L.string(R.string.cmdr_save_succeeded, selectedCommanderData.get(0).getName()));
 				SoundManager.play(Assets.alert);
 				confirmedSave = true;
 			} catch (IOException e) {
-				showMessageDialog(String.format("Error while saving commander %s: %s", selectedCommanderData.get(0).getName(), e.getMessage()));
+				showMessageDialog(L.string(R.string.cmdr_save_failed, selectedCommanderData.get(0).getName(), e.getMessage()));
 			}
 		}
 		clearSelection();

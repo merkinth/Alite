@@ -36,8 +36,8 @@ public class Laser extends Equipment implements Serializable {
 	private final boolean beam;
 	private final String textureName;
 
-	public Laser(String name, int cost, String shortName, int index, String quantityDescription, long delay, int power, long color, boolean beam, String texture) {
-		super(name, cost, shortName, quantityDescription, false);
+	public Laser(int id, int name, int cost, int shortName, int index, long delay, int power, long color, boolean beam, String texture) {
+		super(id, name, cost, shortName, false);
 		this.index = index;
 		this.power = power;
 		this.delayTime = delay;
@@ -46,8 +46,7 @@ public class Laser extends Equipment implements Serializable {
 		this.textureName = texture;
 	}
 
-	private void writeObject(ObjectOutputStream out)
-            throws IOException {
+	private void writeObject(ObjectOutputStream out) throws IOException {
 		try {
 			out.defaultWriteObject();
 		} catch(IOException e) {

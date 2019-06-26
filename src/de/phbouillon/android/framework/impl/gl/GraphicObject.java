@@ -28,11 +28,11 @@ import android.opengl.Matrix;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.AliteLog;
+import de.phbouillon.android.games.alite.L;
 
 public class GraphicObject implements Serializable {
 	private static final long serialVersionUID = -8039542554642450651L;
 	private static final float SPEED_CHANGE_PER_SECOND = 225.0f;
-	private static int idGen = 1;
 
 	protected Vector3f worldPosition;
 	protected Vector3f rightVector;
@@ -43,8 +43,8 @@ public class GraphicObject implements Serializable {
 	private float speed;
 	private float targetSpeed;
 
-	private String name;
-	private int id = idGen++;
+	private String id;
+	private int name;
 
 	protected float [] currentMatrix = new float[16];
 	private float [] tempMatrix = new float[16];
@@ -57,8 +57,7 @@ public class GraphicObject implements Serializable {
 	}
 
 	private String toDebugString() {
-		return "GO:            " + (name == null ? "<null>" : name) +
-			   "\nId:            " + id +
+		return "GO:            " + (id == null ? "<null>" : id) +
 			   "\nworldPosition: " + worldPosition +
 			   "\nforward:       " + forwardVector +
 			   "\nup:            " + upVector +
@@ -99,17 +98,17 @@ public class GraphicObject implements Serializable {
 		}
 	}
 
-	public GraphicObject(String name) {
+	public GraphicObject(String id) {
 		worldPosition = new Vector3f(0.0f, 0.0f, 0.0f);
 		rightVector   = new Vector3f(1.0f, 0.0f, 0.0f);
 		upVector      = new Vector3f(0.0f, 1.0f, 0.0f);
 		forwardVector = new Vector3f(0.0f, 0.0f, 1.0f);
 		speed         = 0.0f;
 		targetSpeed   = 0.0f;
-		this.name     = name;
+		this.id = id;
 	}
 
-	public GraphicObject(float [] matrix, String name) {
+	public GraphicObject(float [] matrix, String id) {
 		worldPosition = new Vector3f(matrix[12], matrix[13], matrix[14]);
 		rightVector   = new Vector3f(matrix[ 0], matrix[ 1], matrix[ 2]);
 		rightVector.normalize();
@@ -119,7 +118,7 @@ public class GraphicObject implements Serializable {
 		forwardVector.normalize();
 		speed         = 0.0f;
 		targetSpeed   = 0.0f;
-		this.name     = name;
+		this.id = id;
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
@@ -139,7 +138,7 @@ public class GraphicObject implements Serializable {
 		try {
 			out.defaultWriteObject();
 		} catch(IOException e) {
-			AliteLog.e("PersistenceException", "Graphic Object " + getName(), e);
+			AliteLog.e("PersistenceException", "Graphic Object " + getId(), e);
 			throw e;
 		}
     }
@@ -206,15 +205,19 @@ public class GraphicObject implements Serializable {
 		return forwardVector;
 	}
 
-	public int getId() {
+	public String getId() {
 		return id;
 	}
 
-	public String getName() {
-		return name;
+	public void setId(String id) {
+		this.id = id;
 	}
 
-	public void setName(String name) {
+	public String getName() {
+		return name == 0 ? id : L.string(name);
+	}
+
+	public void setName(int name) {
 		this.name = name;
 	}
 

@@ -257,7 +257,7 @@ public abstract class TutorialScreen extends AliteScreen {
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (closeButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				showQuestionDialog("Are you sure you want to quit this tutorial?");
+				showQuestionDialog(L.string(R.string.tutorial_quit_confirm));
 			}
 		}
 	}

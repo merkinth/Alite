@@ -18,19 +18,12 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.util.Locale;
-
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.*;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
-import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -108,25 +101,24 @@ public abstract class TradeScreen extends AliteScreen {
 	void presentTradeStatus() {
 		Player player = game.getPlayer();
 		Graphics g = game.getGraphics();
-		String cash = getOneDecimalFormatString("%d.%d", player.getCash());
+		String cash = L.getOneDecimalFormatString(R.string.cash_amount_only, player.getCash());
 		String freeCargo = player.getCobra().getFreeCargo().getStringWithoutUnit();
-		String spareText = Weight.getUnitString(player.getCobra().getFreeCargo().getAppropriateUnit()) + " spare";
-		int cashTextWidth = g.getTextWidth("Cash:_", Assets.regularFont);
+		String spareText = player.getCobra().getFreeCargo().getAppropriateUnit().toUnitString() + L.string(R.string.trade_spare_cargo);
+		int cashTextWidth = g.getTextWidth(L.string(R.string.trade_cash), Assets.regularFont);
 		int cashWidth = g.getTextWidth(cash, Assets.regularFont);
-		int holdTextWidth = g.getTextWidth("Cr      Hold:_", Assets.regularFont);
+		int holdTextWidth = g.getTextWidth(L.string(R.string.trade_ccy_hold), Assets.regularFont);
 		int freeCargoWidth = g.getTextWidth(freeCargo, Assets.regularFont);
-		int spaceWidth = g.getTextWidth("_", Assets.regularFont);
+		int spaceWidth = g.getTextWidth(" ", Assets.regularFont);
 
-		int halfWidth = cashTextWidth + cashWidth + spaceWidth +
-				         holdTextWidth + freeCargoWidth + spaceWidth +
-				         g.getTextWidth(spareText, Assets.regularFont) >> 1;
+		int halfWidth = cashTextWidth + cashWidth + spaceWidth + holdTextWidth + freeCargoWidth + spaceWidth +
+			g.getTextWidth(spareText, Assets.regularFont) >> 1;
 		int currentX = 860 - halfWidth;
 
-		g.drawText("Cash: ", currentX, 1000, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.trade_cash), currentX, 1000, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		currentX += cashTextWidth;
 		g.drawText(cash, currentX, 1000, ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT), Assets.regularFont);
 		currentX += cashWidth + spaceWidth;
-		g.drawText("Cr      Hold: ", currentX, 1000, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.trade_ccy_hold), currentX, 1000, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		currentX += holdTextWidth;
 		g.drawText(freeCargo, currentX, 1000, ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT), Assets.regularFont);
 		currentX += freeCargoWidth + spaceWidth;
@@ -135,7 +127,7 @@ public abstract class TradeScreen extends AliteScreen {
 
 	protected void performTradeWhileInFlight(int row, int column) {
 		SoundManager.play(Assets.error);
-		errorText = "Not Docked.";
+		errorText = L.string(R.string.state_not_docked);
 	}
 
 	void presentTradeGoods(float deltaTime) {
@@ -268,10 +260,7 @@ public abstract class TradeScreen extends AliteScreen {
 	}
 
 	String getCashLeftString() {
-		return getOneDecimalFormatString("Cash left: %d.%d Cr", game.getPlayer().getCash());
+		return L.getOneDecimalFormatString(R.string.cash_left, game.getPlayer().getCash());
 	}
 
-	public static String getOneDecimalFormatString(String format, long value) {
-		return String.format(Locale.getDefault(), format, value / 10, value % 10);
-	}
 }

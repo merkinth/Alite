@@ -25,12 +25,7 @@ import java.io.IOException;
 import android.graphics.Color;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.Weight;
@@ -38,16 +33,15 @@ import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.trading.Market;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
-import de.phbouillon.android.games.alite.model.trading.Unit;
+import de.phbouillon.android.games.alite.model.Unit;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
 public class BuyScreen extends TradeScreen {
-	private static final String MARKET_HINT = "(Tap again to buy)";
 	private static final int[] availColors = new int[] {Color.RED, 0xFFFF3E00, 0xFFFF7D00,
 		0xFFFFBD00, Color.YELLOW, 0xFFFFFF3B, 0xFFFFFF7D, 0xFFFFFFBF, Color.WHITE };
 	private int currentAvailabiltyColor;
-	private String boughtAmount = null;
+	private int boughtAmount;
 	private float elapsedTime;
 	private String pendingSelection = null;
 	private TradeGood goodToBuy;
@@ -128,7 +122,7 @@ public class BuyScreen extends TradeScreen {
 
 	@Override
 	protected String getCost(int row, int column) {
-		return getOneDecimalFormatString("%d.%d Cr",
+		return L.getOneDecimalFormatString(R.string.cash_amount_value_ccy,
 			game.getPlayer().getMarket().getPrice(TradeGoodStore.get().goods()[row * COLUMNS + column]));
 	}
 
@@ -148,7 +142,7 @@ public class BuyScreen extends TradeScreen {
 		return goodToBuy;
 	}
 
-	public String getBoughtAmount() {
+	public int getBoughtAmount() {
 		return boughtAmount;
 	}
 
@@ -156,7 +150,7 @@ public class BuyScreen extends TradeScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Buy Cargo");
+		displayTitle(L.string(R.string.title_buy_cargo));
 
 		elapsedTime+= deltaTime;
 		currentAvailabiltyColor = (int) (elapsedTime % availColors.length);
@@ -179,14 +173,14 @@ public class BuyScreen extends TradeScreen {
 	protected void presentSelection(int row, int column) {
 		TradeGood tradeGood = TradeGoodStore.get().goods()[row * COLUMNS + column];
 		int avail = game.getPlayer().getMarket().getQuantity(tradeGood);
-		String average = getOneDecimalFormatString("%d.%d Cr ", game.getGenerator().getAveragePrice(tradeGood));
-		game.getGraphics().drawText(tradeGood.getName() + " - " + avail + tradeGood.getUnit().toUnitString() +
-			" available. Average Price: " + average + MARKET_HINT, X_OFFSET, 1050,
+		String average = L.getOneDecimalFormatString(R.string.cash_amount_value_ccy, game.getGenerator().getAveragePrice(tradeGood));
+		game.getGraphics().drawText(L.string(R.string.trade_good_info, tradeGood.getName(), avail,
+			tradeGood.getUnit().toUnitString(), average), X_OFFSET, 1050,
 			ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
 
-	void setBoughtAmountString(String s) {
-		boughtAmount = s;
+	void setBoughtAmount(int amount) {
+		boughtAmount = amount;
 	}
 
     @Override
@@ -201,12 +195,12 @@ public class BuyScreen extends TradeScreen {
 		}
 		int avail = market.getQuantity(tradeGood);
 		if (avail == 0) {
-			showMessageDialog("Sorry - that item is out of stock.");
+			showMessageDialog(L.string(R.string.trade_out_of_stock));
 			SoundManager.play(Assets.error);
 			return;
 		}
 		String maxAmountString = avail + tradeGood.getUnit().toUnitString();
-		if (boughtAmount == null) {
+		if (boughtAmount == 0) {
 			goodToBuy = TradeGoodStore.get().goods()[row * COLUMNS + column];
 			newScreen = new QuantityPadScreen(this, game,
 				maxAmountString, column < 3 ? 1075 : 215, 200, row, column);
@@ -214,23 +208,17 @@ public class BuyScreen extends TradeScreen {
 		}
 
 		goodToBuy = null;
-		long buyAmount;
-		try {
-			buyAmount = Long.parseLong(boughtAmount);
-		} catch (NumberFormatException ignored) {
-			boughtAmount = null;
-			return;
-		}
-		boughtAmount = null;
+		long buyAmount = boughtAmount;
+		boughtAmount = 0;
 		if (buyAmount > avail) {
 			SoundManager.play(Assets.error);
-			showMessageDialog("Sorry - we don't have that much in stock.");
+			showMessageDialog(L.string(R.string.trade_not_enough_in_stock));
 			return;
 		}
 		long totalPrice = buyAmount * market.getPrice(tradeGood);
 		if (totalPrice > player.getCash()) {
 			SoundManager.play(Assets.error);
-			showMessageDialog("Sorry - you don't have enough credits.");
+			showMessageDialog(L.string(R.string.trade_not_enough_money));
 			return;
 		}
 		Weight buyWeight = tradeGood.getUnit() == Unit.GRAM ? Weight.grams(buyAmount) :
@@ -238,7 +226,7 @@ public class BuyScreen extends TradeScreen {
 						   Weight.tonnes(buyAmount);
 		if (buyWeight.compareTo(player.getCobra().getFreeCargo()) > 0) {
 			SoundManager.play(Assets.error);
-			showMessageDialog("Sorry - you don't have enough room in your hold.");
+			showMessageDialog(L.string(R.string.trade_not_enough_space));
 			return;
 		}
 		market.setQuantity(tradeGood, (int) (market.getQuantity(tradeGood) - buyAmount));

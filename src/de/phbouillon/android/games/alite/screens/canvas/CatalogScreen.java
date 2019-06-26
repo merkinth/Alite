@@ -99,7 +99,7 @@ public class CatalogScreen extends AliteScreen {
 			return result == 0 ? c1.getGameTime() < c2.getGameTime() ? 1 : -1 : result;
 		});
 
-		deleteButton = Button.createGradientRegularButton(50, 950, 600, 100, "Delete selected Commander");
+		deleteButton = Button.createGradientRegularButton(50, 950, 600, 100, L.string(R.string.cmdr_btn_delete_one));
 		if (pendingSelectionIndices != null) {
 			int n = commanderData.size();
 			for (int i: pendingSelectionIndices) {
@@ -112,9 +112,9 @@ public class CatalogScreen extends AliteScreen {
 		}
 		if (pendingShowMessage) {
 			if (selectedCommanderData.size() == 1) {
-				showQuestionDialog(String.format("Are you sure you want to delete Commander %s?", selectedCommanderData.get(0).getName()));
+				showQuestionDialog(L.string(R.string.cmdr_delete_one_confirm, selectedCommanderData.get(0).getName()));
 			} else {
-				showQuestionDialog("Are you sure you want to delete the selected Commanders?");
+				showQuestionDialog(L.string(R.string.cmdr_delete_more_confirm));
 			}
 			pendingShowMessage = false;
 		}
@@ -122,7 +122,7 @@ public class CatalogScreen extends AliteScreen {
 	}
 
 	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		CatalogScreen cs = new CatalogScreen(alite, "Catalog");
+		CatalogScreen cs = new CatalogScreen(alite, L.string(R.string.title_catalog));
 		try {
 			cs.currentPage = dis.readInt();
 			cs.confirmDelete = dis.readBoolean();
@@ -184,7 +184,8 @@ public class CatalogScreen extends AliteScreen {
 				}
 				button.get(i).setSelected(select);
 				if (deleteButton != null) {
-					deleteButton.setText(selectedCommanderData.size() > 1 ? "Delete selected Commanders" : "Delete selected Commander");
+					deleteButton.setText(selectedCommanderData.size() > 1 ?
+						L.string(R.string.cmdr_btn_delete_more) : L.string(R.string.cmdr_btn_delete_one));
 				}
 			}
 		}
@@ -194,7 +195,7 @@ public class CatalogScreen extends AliteScreen {
 				for (CommanderData cd: selectedCommanderData) {
 					game.getFileIO().deleteFile(cd.getFileName());
 				}
-				newScreen = new CatalogScreen(game, "Catalog");
+				newScreen = new CatalogScreen(game, L.string(R.string.title_catalog));
 			}
 			clearSelection();
 			messageResult = RESULT_NONE;
@@ -203,9 +204,9 @@ public class CatalogScreen extends AliteScreen {
 			if (messageResult == RESULT_NONE) {
 				SoundManager.play(Assets.alert);
 				if (selectedCommanderData.size() == 1) {
-					showQuestionDialog(String.format("Are you sure you want to delete Commander %s?", selectedCommanderData.get(0).getName()));
+					showQuestionDialog(L.string(R.string.cmdr_delete_one_confirm, selectedCommanderData.get(0).getName()));
 				} else {
-					showQuestionDialog("Are you sure you want to delete the selected Commanders?");
+					showQuestionDialog(L.string(R.string.cmdr_delete_more_confirm));
 				}
 				confirmDelete = true;
 			}
@@ -229,11 +230,11 @@ public class CatalogScreen extends AliteScreen {
 
 		g.diagonalGradientRect(20, 100, 1680, 80, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT));
 		g.rec3d(20, 100, 1680, 800, 3, ColorScheme.get(ColorScheme.COLOR_FRAME_LIGHT), ColorScheme.get(ColorScheme.COLOR_FRAME_DARK));
-		g.drawText("Commander Name",   50, 160, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
-		g.drawText("Docked",          600, 160, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
-		g.drawText("Time",            850, 160, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
-		g.drawText("Score",          1100, 160, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
-		g.drawText("Rating",         1300, 160, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
+		g.drawText(L.string(R.string.cmdr_table_name), 50, 160, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
+		g.drawText(L.string(R.string.cmdr_table_system), 600, 160, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
+		g.drawText(L.string(R.string.cmdr_table_time), 850, 160, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
+		g.drawText(L.string(R.string.cmdr_table_score), 1100, 160, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
+		g.drawText(L.string(R.string.cmdr_table_rating), 1300, 160, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
 		g.rec3d(20, 100, 1680, 80, 3, ColorScheme.get(ColorScheme.COLOR_FRAME_LIGHT), ColorScheme.get(ColorScheme.COLOR_FRAME_DARK));
 		g.rec3d(590, 100, 3, 800, 3, ColorScheme.get(ColorScheme.COLOR_FRAME_LIGHT), ColorScheme.get(ColorScheme.COLOR_FRAME_DARK));
 		g.rec3d(840, 100, 3, 800, 3, ColorScheme.get(ColorScheme.COLOR_FRAME_LIGHT), ColorScheme.get(ColorScheme.COLOR_FRAME_DARK));
@@ -253,7 +254,7 @@ public class CatalogScreen extends AliteScreen {
 				} else if (data.getFileName().contains("2")) {
 					no = 2;
 				}
-				textToDisplay = "[Autosave " + (no + 1) + "] " + data.getName();
+				textToDisplay = "[" +  L.string(R.string.cmdr_file_autosave) + " " + (no + 1) + "] " + data.getName();
 			}
 			while (g.getTextWidth(textToDisplay + suffix, Assets.regularFont) > 500) {
 				textToDisplay = textToDisplay.substring(0, textToDisplay.length() - 1);
@@ -264,7 +265,8 @@ public class CatalogScreen extends AliteScreen {
 			String timeString = StatusScreen.getGameTime(data.getGameTime());
 			g.drawText(timeString, AliteConfig.SCREEN_HEIGHT - g.getTextWidth(timeString, Assets.regularFont),
 				285 + (i % 5) * 140, color, Assets.regularFont);
-			g.drawText("" + data.getPoints(), 1280 - g.getTextWidth("" + data.getPoints(), Assets.regularFont), 285 + (i % 5) * 140, color, Assets.regularFont);
+			g.drawText("" + data.getPoints(), 1280 - g.getTextWidth("" + data.getPoints(), Assets.regularFont),
+				285 + (i % 5) * 140, color, Assets.regularFont);
 			g.drawText(data.getRating().getName(), 1300, 285 + (i % 5) * 140, color, Assets.regularFont);
 		}
 		back.render(g);

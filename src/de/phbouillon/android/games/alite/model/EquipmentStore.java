@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,53 +18,32 @@ package de.phbouillon.android.games.alite.model;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.games.alite.R;
+
 public class EquipmentStore {
-	public static final int ENTRIES = 18;
-	
-	public static final Equipment fuel = new Equipment("Fuel (WS Thru-Space Drive)", -1, "Fuel", "", false);
-	public static final Equipment missiles = new Equipment("Lance And Ferman Missiles", 300, "Missiles", "a Missile", false);
-	public static final Equipment largeCargoBay = new Equipment("Mariner 35t Freight Chamber", 4000, "Large Cargo Bay", "a Large Cargo Bay", false);
-	public static final Equipment ecmSystem = new Equipment("Interspace Heavy Element ECM", 6000, "ECM System", "an ECM System", true);
-	public static final Laser pulseLaser = new Laser("Ingram Model 1919A4 Pulse Laser", 4000, "Pulse Laser", 0, "a Pulse Laser (%1)", 598802395l, 5, 0x7fffff00l, false, "textures/laser_yellow.png");
-	public static final Laser beamLaser = new Laser("Ingram Model 1928A2 Beam Laser", 10000, "Beam Laser", 1, "a Beam Laser (%1)", 359281437l, 9, 0x7f0000ffl, true, "textures/laser_blue.png");
-	public static final Equipment fuelScoop = new Equipment("Deep Space ReAqx Fuel Scoop", 5250, "Fuel Scoop", "a Fuel Scoop", true); 
-	public static final Equipment escapeCapsule = new Equipment("Xeesian FastJet LSC Escape Capsule", 10000, "Escape Capsule", "an Escape Capsule", true);
-	public static final Equipment energyBomb = new Equipment("Medusa Pandora Energy Bomb", 9000, "Energy Bomb", "an Energy Bomb", true);
-	public static final Equipment extraEnergyUnit = new Equipment("Extra Zieman Energy Unit", 15000, "Extra Energy Unit", "an Extra Energy Unit", true);
-	public static final Equipment dockingComputer = new Equipment("SinCorn RemLock Docking Computer", 15000, "Docking Computer", "a Docking Computer", true);
-	public static final Equipment galacticHyperdrive = new Equipment("Xexor/Hikan Galactic Hyperdrive", 50000, "Galactic Hyperdrive", "a Galactic Hyperdrive", true);
-	public static final Laser miningLaser = new Laser("Kruger ARM64 Sp. Mining Laser", 8000, "Mining Laser", 2, "a Mining Laser (%1)", 479041916l, 7, 0x7f00ff00l, false, "textures/laser_green.png");
-	public static final Laser militaryLaser = new Laser("M1928A2 Military Laser", 60000, "Military Laser", 3, "a Military Laser (%1)", 179640718l, 11, 0x7fff00ffl, true, "textures/laser_purple.png");
-	public static final Equipment retroRockets = new Equipment("Xasar Ion Retro-Rockets", 80000, "Retro Rockets", "a set of Retro Rockets", true);
-	
-	public static final Equipment navalEnergyUnit = new Equipment("Naval Energy Unit", 15000, "Naval Energy Unit", "a Naval Energy Unit", false);
-	public static final Equipment cloakingDevice = new Equipment("Cloaking Device", 150000, "Cloaking Device", "a Cloaking Device", false);
-	public static final Equipment ecmJammer = new Equipment("ECM Jammer", 150000, "ECM Jammer", "an ECM Jammer", false);
-	
-	public static final int ordinal(Equipment e) {
-		if (e == fuel) return 0;
-		if (e == missiles) return 1;
-		if (e == largeCargoBay) return 2;
-		if (e == ecmSystem) return 3;
-		if (e == pulseLaser) return 4;
-		if (e == beamLaser) return 5;
-		if (e == fuelScoop) return 6;
-		if (e == escapeCapsule) return 7;
-		if (e == energyBomb) return 8;
-		if (e == extraEnergyUnit) return 9;
-		if (e == dockingComputer) return 10;
-		if (e == galacticHyperdrive) return 11;
-		if (e == miningLaser) return 12;
-		if (e == militaryLaser) return 13;
-		if (e == retroRockets) return 14;
-		if (e == navalEnergyUnit) return 15;
-		if (e == cloakingDevice) return 16;
-		if (e == ecmJammer) return 17;
-		
-		return 0;
-	}
-	
-	public static final Equipment fromInt(int val) {
+	static final int ENTRIES = 18;
+
+	public static final Equipment fuel = new Equipment(0, R.string.equip_fuel, -1, R.string.equip_short_fuel, false);
+	public static final Equipment missiles = new Equipment(1,R.string.equip_missiles, 300, R.string.equip_short_missiles, false);
+	public static final Equipment largeCargoBay = new Equipment(2, R.string.equip_large_cargo_bay, 4000, R.string.equip_short_large_cargo_bay, false);
+	public static final Equipment ecmSystem = new Equipment(3, R.string.equip_ecm_system, 6000, R.string.equip_short_ecm_system, true);
+	public static final Laser pulseLaser = new Laser(4, R.string.equip_pulse_laser, 4000, R.string.equip_short_pulse_laser, 0, 598802395L, 5, 0x7fffff00L, false, "textures/laser_yellow.png");
+	public static final Laser beamLaser = new Laser(5, R.string.equip_beam_laser, 10000, R.string.equip_short_beam_laser, 1, 359281437L, 9, 0x7f0000ffL, true, "textures/laser_blue.png");
+	public static final Equipment fuelScoop = new Equipment(6, R.string.equip_fuel_scoop, 5250, R.string.equip_short_fuel_scoop, true);
+	public static final Equipment escapeCapsule = new Equipment(7, R.string.equip_escape_capsule, 10000, R.string.equip_short_escape_capsule, true);
+	public static final Equipment energyBomb = new Equipment(8, R.string.equip_energy_bomb, 9000, R.string.equip_short_energy_bomb, true);
+	public static final Equipment extraEnergyUnit = new Equipment(9, R.string.equip_extra_energy_unit, 15000, R.string.equip_short_extra_energy_unit, true);
+	public static final Equipment dockingComputer = new Equipment(10, R.string.equip_docking_computer, 15000, R.string.equip_short_docking_computer, true);
+	public static final Equipment galacticHyperdrive = new Equipment(11, R.string.equip_galactic_hyperdrive, 50000, R.string.equip_short_galactic_hyperdrive, true);
+	public static final Laser miningLaser = new Laser(12, R.string.equip_mining_laser, 8000, R.string.equip_short_mining_laser, 2, 479041916L, 7, 0x7f00ff00L, false, "textures/laser_green.png");
+	public static final Laser militaryLaser = new Laser(13, R.string.equip_military_laser, 60000, R.string.equip_short_military_laser, 3, 179640718L, 11, 0x7fff00ffL, true, "textures/laser_purple.png");
+	public static final Equipment retroRockets = new Equipment(14, R.string.equip_retro_rockets, 80000, R.string.equip_short_retro_rockets, true);
+
+	public static final Equipment navalEnergyUnit = new Equipment(15, R.string.equip_naval_energy_unit, 15000, R.string.equip_short_naval_energy_unit, false);
+	public static final Equipment cloakingDevice = new Equipment(16, R.string.equip_cloaking_device, 150000, R.string.equip_short_cloaking_device, false);
+	public static final Equipment ecmJammer = new Equipment(17, R.string.equip_ecm_jammer, 150000, R.string.equip_short_ecm_jammer, false);
+
+	public static Equipment fromInt(int val) {
 		switch (val) {
 			case 0: return fuel;
 			case 1: return missiles;

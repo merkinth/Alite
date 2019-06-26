@@ -25,10 +25,7 @@ import java.util.List;
 
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.LegalStatus;
@@ -193,7 +190,7 @@ class InGameHelper implements Serializable {
 			if (scoopCallback != null) {
 				scoopCallback.rammed(cargo);
 			}
-			inGame.getMessage().setText("Cargo hold is full.");
+			inGame.getMessage().setText(L.string(R.string.msg_full_cargo));
 			return;
 		}
 		cargo.applyDamage(4000.0f);
@@ -265,20 +262,20 @@ class InGameHelper implements Serializable {
 						inGame.getLaserManager().damageShip(5, ((SpaceObject) object).getDisplayMatrix()[14] < 0);
 						inGame.getShip().setSpeed(0.0f);
 					}
-				} else if (object.getName().equals("Cargo Canister") ||
+				} else if (object.getId().equals("Cargo Canister") ||
 						   object instanceof Thargon && (((Thargon) object).getMother() == null || ((Thargon) object).getMother().getHullStrength() <= 0) ||
 						   object instanceof EscapeCapsule ||
 						   object instanceof Platlet) {
 					scoop((SpaceObject) object);
 				} else if (!(object instanceof Missile)) {
-					if (inGame.getWitchSpace() != null && (object.getName().equals("Planet") ||
-							object.getName().equals("Sun") ||
+					if (inGame.getWitchSpace() != null && (object.getId().equals("Planet") ||
+							object.getId().equals("Sun") ||
 							object instanceof SpaceObject && ((SpaceObject) object).getType() == ObjectType.SpaceStation ||
-							object.getName().equals("Glow"))) {
+							object.getId().equals("Glow"))) {
 						continue;
 					}
 					if (object instanceof SpaceObject && ((SpaceObject) object).getHullStrength() > 0) {
-						AliteLog.d("Crash Occurred", object.getName() + " crashed into player. " + ((SpaceObject) object).getCurrentAIStack());
+						AliteLog.d("Crash Occurred", object.getId() + " crashed into player. " + ((SpaceObject) object).getCurrentAIStack());
 						inGame.getLaserManager().damageShip(20, ((SpaceObject) object).getDisplayMatrix()[14] < 0);
 						((SpaceObject) object).setHullStrength(0);
 						object.setRemove(true);
@@ -391,7 +388,7 @@ class InGameHelper implements Serializable {
 		}
 
 		if (missile.getTarget() == null || missile.getTarget().mustBeRemoved() || missile.getTarget().getHullStrength() <= 0) {
-			inGame.setMessage("Target lost");
+			inGame.setMessage(L.string(R.string.msg_target_lost));
 			missile.setHullStrength(0);
 			inGame.getLaserManager().explode(missile, WeaponType.PulseLaser);
 			return;
@@ -442,7 +439,7 @@ class InGameHelper implements Serializable {
 		float altitude = alite.getCobra().getAltitude();
 		if (altitude < 6 && !SoundManager.isPlaying(Assets.altitudeLow)) {
 			SoundManager.repeat(Assets.altitudeLow);
-			inGame.getMessage().repeatText("Altitude Low", 1);
+			inGame.getMessage().repeatText(L.string(R.string.msg_altitude_low), 1);
 		} else if (altitude >= 6 && SoundManager.isPlaying(Assets.altitudeLow)) {
 			if (alite.getCobra().getEnergy() > PlayerCobra.MAX_ENERGY_BANK) {
 				SoundManager.stop(Assets.altitudeLow);
@@ -468,7 +465,7 @@ class InGameHelper implements Serializable {
 					cabinTemperatureAlarm = true;
 				}
 				fuelScoopFuel = alite.getCobra().getFuel();
-				inGame.getMessage().repeatText("Cabin temperature critical", 1);
+				inGame.getMessage().repeatText(L.string(R.string.com_cabin_temperature_critical), 1);
 			}
 		} else if (hasCabinTemperatureSound()) {
 			if (alite.getCobra().getEnergy() > PlayerCobra.MAX_ENERGY_BANK) {
@@ -480,7 +477,7 @@ class InGameHelper implements Serializable {
 		}
 		if (cabinTemperature > 26 && alite.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop) &&
 				alite.getCobra().getFuel() < PlayerCobra.MAXIMUM_FUEL) {
-			inGame.getMessage().repeatText("Fuel Scoop Activated", 1);
+			inGame.getMessage().repeatText(L.string(R.string.msg_fuel_scoop_activated), 1);
 			fuelScoopFuel += 20 * -inGame.getShip().getSpeed() / inGame.getShip().getMaxSpeed() * deltaTime;
 			int newFuel = (int) fuelScoopFuel;
 			if (newFuel > PlayerCobra.MAX_FUEL) {
@@ -488,7 +485,7 @@ class InGameHelper implements Serializable {
 			}
 			alite.getCobra().setFuel(newFuel);
 			if (newFuel >= PlayerCobra.MAX_FUEL) {
-				inGame.getMessage().repeatText("Cabin temperature critical", 1);
+				inGame.getMessage().repeatText(L.string(R.string.com_cabin_temperature_critical), 1);
 			}
 		}
 		if (cabinTemperature > 28) {
@@ -520,7 +517,7 @@ class InGameHelper implements Serializable {
 				Condition conditionNew = alite.getPlayer().getCondition();
 				if (conditionOld != conditionNew && conditionNew == Condition.RED) {
 					SoundManager.play(Assets.com_conditionRed);
-					inGame.repeatMessage("Condition Red!", 3);
+					inGame.repeatMessage(L.string(R.string.com_condition_red), 3);
 				}
 			}
 		} else {

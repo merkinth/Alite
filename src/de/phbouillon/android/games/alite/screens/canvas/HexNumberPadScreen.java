@@ -37,10 +37,10 @@ public class HexNumberPadScreen extends AliteScreen {
 	private final int x;
 	private final int y;
 	private final String[] buttonTexts = new String[] {
-		"7", "8", "9", "E", "F",
-		"4", "5", "6", "C", "D",
-		"1", "2", "3", "A", "B",
-		"0", "<-", "OK"};
+		"7", "8", "9", L.string(R.string.pad_btn_hex_e), L.string(R.string.pad_btn_hex_f),
+		"4", "5", "6", L.string(R.string.pad_btn_hex_c), L.string(R.string.pad_btn_hex_d),
+		"1", "2", "3", L.string(R.string.pad_btn_hex_a), L.string(R.string.pad_btn_hex_b),
+		"0", "<-", L.string(R.string.pad_btn_hex_ok)};
 	private final Button[] pads;
 	private String currentValueString = "";
 	private final HackerScreen hackerScreen;
@@ -129,7 +129,8 @@ public class HexNumberPadScreen extends AliteScreen {
 			b.render(g);
 		}
 		g.fillRect(50, 1018, 1669, 56, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		g.drawText("New value for byte " + String.format("%02X", valueIndex) + ": " + currentValueString, 50, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
+		g.drawText(L.string(R.string.hacker_new_value, String.format("%02X", valueIndex), currentValueString),
+			50, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
 
 	@Override
@@ -148,7 +149,7 @@ public class HexNumberPadScreen extends AliteScreen {
 						if (!currentValueString.isEmpty()) {
 							currentValueString = currentValueString.substring(0, currentValueString.length() - 1);
 						}
-					} else if ("OK".equals(t)) {
+					} else if (L.string(R.string.pad_btn_hex_ok).equals(t)) {
 						try {
 							byte newValue = (byte) Integer.parseInt(currentValueString, 16);
 							hackerScreen.changeState(valueIndex, newValue);

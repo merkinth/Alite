@@ -59,8 +59,8 @@ public class SystemDataTest {
 			system.getX() + "\t" +
 			system.getY() + "\t" +
 			system.getTechLevel() + "\t" +
-			system.getEconomy() + "\t" +
-			system.getGovernment() + "\t" +
+			system.getEconomy().getDescription() + "\t" +
+			system.getGovernment().getDescription() + "\t" +
 			system.getInhabitants() + "\t" +
 			system.getGnp() + "\t" +
 			system.getDiameter() + "\t" +

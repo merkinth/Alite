@@ -168,12 +168,12 @@ public class LibraryPageScreen extends AliteScreen {
 			computePageText(game.getGraphics(), tocEntry.getLinkedPage().getParagraphs());
 			if (tocEntry.getLinkedPage().getNextPage() != null) {
 				next = Button.createGradientRegularButton(1200, 960, 500, 120, null)
-					.setTextData(computeCenteredTextDisplay(g, "Next: "+ tocEntry.getLinkedPage().getNextPage().getHeader(),
+					.setTextData(computeCenteredTextDisplay(g, L.string(R.string.library_btn_next) + tocEntry.getLinkedPage().getNextPage().getHeader(),
 					0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
 			}
 			if (tocEntry.getLinkedPage().getPrevPage() != null) {
 				prev = Button.createGradientRegularButton(45, 960, 500, 120, null)
-					.setTextData(computeCenteredTextDisplay(g, "Prev: " + tocEntry.getLinkedPage().getPrevPage().getHeader(),
+					.setTextData(computeCenteredTextDisplay(g, L.string(R.string.library_btn_prev) + tocEntry.getLinkedPage().getPrevPage().getHeader(),
 					0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
 			}
 			ItemDescriptor bgImageDesc = tocEntry.getLinkedPage().getBackgroundImage();
@@ -201,7 +201,7 @@ public class LibraryPageScreen extends AliteScreen {
 			}
 		}
 		toc = Button.createGradientRegularButton(624, 960, 500, 120, null)
-			.setTextData(computeCenteredTextDisplay(g, "Table of Contents", 0, 50,
+			.setTextData(computeCenteredTextDisplay(g, L.string(R.string.library_btn_toc), 0, 50,
 			500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
 	}
 
@@ -637,7 +637,8 @@ public class LibraryPageScreen extends AliteScreen {
 				for (int i = 0; i < images.size(); i++) {
 					Button b = images.get(i);
 					if (b.isTouched(touch.x, touch.y)) {
-						Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY + tocEntry.getLinkedPage().getImages()[i].getFileName() + ".png");
+						Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY +
+							tocEntry.getLinkedPage().getImages()[i].getFileName() + ".png");
 						fullScreenImage(pixmap, tocEntry.getLinkedPage().getImages()[i].getText());
 					}
 				}
@@ -708,7 +709,7 @@ public class LibraryPageScreen extends AliteScreen {
 		g.setClip(0, (int) (PAGE_BEGIN - Assets.regularFont.getSize() + 40), -1, 980);
 		String[] highlights = new String[0];
 		if (currentFilter != null) {
-			highlights = currentFilter.toLowerCase(Locale.getDefault()).split(" ");
+			highlights = currentFilter.toLowerCase(L.currentLocale).split(" ");
 		}
 		int yOffset = 0;
 		int hardClip = -1;
@@ -727,7 +728,7 @@ public class LibraryPageScreen extends AliteScreen {
 			for (int x = 0, words = pt.words.length; x < words; x++) {
 				int color = pt.words[x].color;
 				for (String h: highlights) {
-					if (pt.words[x].text.toLowerCase(Locale.getDefault()).contains(h)) {
+					if (pt.words[x].text.toLowerCase(L.currentLocale).contains(h)) {
 						color = ColorScheme.get(ColorScheme.COLOR_SELECTED_TEXT);
 					}
 				}

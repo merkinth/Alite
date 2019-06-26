@@ -31,12 +31,7 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -54,43 +49,6 @@ public class ConstrictorScreen extends AliteScreen {
 	static final int STRETCH_Y = 7;
 
 	private transient MediaPlayer mediaPlayer;
-
-	private final String attentionCommander = "Attention Commander!";
-
-	private final String missionDescription =
-			"A prototype model of the new top-secret military ship, the " +
-			"Constrictor, has been stolen by unknown agents from a Navy " +
-			"research base. Due to the capabilities of this ship the " +
-			"Galactic Co-operative of Worlds is offering a large reward " +
-			"to anyone who destroys the Constrictor before it falls into " +
-			"enemy hands.";
-
-	private final String accept = "Do you accept this mission?";
-
-	private final String reportToBase =
-			"For full mission briefing, please report to the space station " +
-			"at this system here. Due to the sensitive nature of this " +
-			"assignment, it is vital that you keep details of the " +
-			"Constrictor to yourself. Good luck Commander!";
-
-	private final String intergalacticJump =
-			"The Galactic Intelligence Agency (GIA) reports that the " +
-	        "Constrictor made an intergalactic jump out of this system a " +
-			"short while ago. It is suggested that you make the same jump " +
-	        "and report to the nearest space station for further details.";
-
-	private final String hyperspaceJump =
-			"GIA reports that after causing havoc, the Constrictor made a " +
-			"hyperspace jump out of this system. The deep space tracking " +
-			"station suggests that its destination is this system here.";
-
-	private final String success =
-			"The Galactic Co-operative of Worlds is forever in your debt, " +
-	        "oh mighty trader! As a small token of our appreciation, please " +
-			"accept a reward of 10,000 credits for your trouble. While I " +
-	        "have your attention, the Galactic Police would like me to " +
-			"remind you about the small matter of several hundred unpaid " +
-	        "parking tickets!";
 
 	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
 	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
@@ -130,25 +88,25 @@ public class ConstrictorScreen extends AliteScreen {
 		mediaPlayer = new MediaPlayer();
 		String path = MissionManager.DIRECTORY_SOUND_MISSION + "1/";
 		try {
-			attCommander = new MissionLine(path + "01.mp3", attentionCommander);
+			attCommander = new MissionLine(path + "01.mp3", L.string(R.string.mission_attention_commander));
 			if (state == 0) {
-				missionLine = new MissionLine(path + "02.mp3", missionDescription);
-				acceptMission = new MissionLine(path + "03.mp3", accept);
+				missionLine = new MissionLine(path + "02.mp3", L.string(R.string.mission_constrictor_mission_description));
+				acceptMission = new MissionLine(path + "03.mp3", L.string(R.string.mission_accept));
 				constrictor = new Constrictor(game);
 				constrictor.setPosition(200, 0, -700.0f);
 			} else if (state == 1) {
-				missionLine = new MissionLine(path + "04.mp3", reportToBase);
+				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_constrictor_report_to_base));
 				targetSystem = mission.findMostDistantSystem();
 				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), state);
 			} else if (state == 2) {
-				missionLine = new MissionLine(path + "06.mp3", intergalacticJump);
+				missionLine = new MissionLine(path + "06.mp3", L.string(R.string.mission_constrictor_intergalactic_jump));
 				mission.setTarget(game.getGenerator().getNextSeed(), -1, state);
 			} else if (state == 3) {
-				missionLine = new MissionLine(path + "05.mp3", hyperspaceJump);
+				missionLine = new MissionLine(path + "05.mp3", L.string(R.string.mission_constrictor_hyperspace_jump));
 				targetSystem = mission.findRandomSystemInRange(75, 120);
 				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), mission.getState() + 1);
 			} else if (state == 4) {
-				missionLine = new MissionLine(path + "07.mp3", success);
+				missionLine = new MissionLine(path + "07.mp3", L.string(R.string.mission_constrictor_success));
 				mission.onMissionComplete();
 				Player player = game.getPlayer();
 				player.removeActiveMission(mission);
@@ -269,14 +227,14 @@ public class ConstrictorScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Mission #1 - Destroy the Constrictor");
+		displayTitle(L.string(R.string.title_mission_constrictor));
 
-		g.drawText(attentionCommander, 50, 200, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.mission_attention_commander), 50, 200, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		if (missionText != null) {
 			displayText(g, missionText);
 		}
 		if (acceptMission != null) {
-			g.drawText(accept, 50, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+			g.drawText(L.string(R.string.mission_accept), 50, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 			if (acceptButton != null) {
 				acceptButton.render(g);
 			}
@@ -390,15 +348,13 @@ public class ConstrictorScreen extends AliteScreen {
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		try {
 			int state = dis.readInt();
+			ConstrictorScreen cs = new ConstrictorScreen(alite, state);
 			if (state == 3) {
-				ConstrictorScreen cs = new ConstrictorScreen(alite, state);
 				cs.targetSystem = alite.getGenerator().getSystems()[dis.readInt()];
 				// Mission (model) state has been increased in constructor; now reduce it again...
 				cs.mission.setTarget(alite.getGenerator().getCurrentSeed(), cs.targetSystem.getIndex(), cs.mission.getState() - 1);
-				alite.setScreen(cs);
-			} else {
-				alite.setScreen(new ConstrictorScreen(alite, state));
 			}
+			alite.setScreen(cs);
 		} catch (IOException e) {
 			AliteLog.e("Constrictor Screen Initialize", "Error in initializer.", e);
 			return false;

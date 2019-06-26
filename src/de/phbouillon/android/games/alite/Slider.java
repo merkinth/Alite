@@ -112,7 +112,8 @@ public class Slider {
 		for (int x: tickX) {
 			g.drawLine(x, middle - scaleHeight - 3, x, middle + scaleHeight + 3, tickColor);
 		}
-		g.drawText(text + ": " + String.format("%3.2f", currentValue), xCoord + (width >> 1) - (g.getTextWidth(text, font) >> 1), middle - 20, textColor, font);
+		g.drawText(text + ": " + String.format(L.currentLocale, "%3.2f", currentValue),
+			xCoord + (width >> 1) - (g.getTextWidth(text, font) >> 1), middle - 20, textColor, font);
 		if (minText != null) {
 			int x = tickX[0] - (g.getTextWidth(minText, Assets.regularFont) >> 1);
 			g.drawText(minText, x, middle + scaleHeight + 30, textColor, Assets.regularFont);

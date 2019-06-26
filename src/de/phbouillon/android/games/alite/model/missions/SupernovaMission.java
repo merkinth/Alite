@@ -22,9 +22,7 @@ import java.io.*;
 
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Timer;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
@@ -97,7 +95,7 @@ public class SupernovaMission extends Mission implements Serializable {
 
 	@Override
 	public TimedEvent getPreStartEvent(InGameManager manager) {
-		manager.setMessage("Fuel system malfunction");
+		manager.setMessage(L.string(R.string.com_fuel_system_malfunction));
 		SoundManager.play(Assets.com_fuelSystemMalfunction);
 		return preStartEvent;
 	}
@@ -113,7 +111,7 @@ public class SupernovaMission extends Mission implements Serializable {
 		alite.getPlayer().addActiveMission(this);
 		if (state == 1) {
 			alite.getCobra().clearInventory();
-			alite.getCobra().addSpecialCargo("Unhappy Refugees", alite.getCobra().isEquipmentInstalled(EquipmentStore.largeCargoBay) ? Weight.tonnes(35) : Weight.tonnes(20));
+			alite.getCobra().addSpecialCargo(TradeGoodStore.GOOD_UNHAPPY_REFUGEES, alite.getCobra().isEquipmentInstalled(EquipmentStore.largeCargoBay) ? Weight.tonnes(35) : Weight.tonnes(20));
 		}
 	}
 
@@ -128,7 +126,7 @@ public class SupernovaMission extends Mission implements Serializable {
 	@Override
 	public void onMissionComplete() {
 		active = false;
-		alite.getCobra().removeSpecialCargo("Unhappy Refugees");
+		alite.getCobra().removeSpecialCargo(TradeGoodStore.GOOD_UNHAPPY_REFUGEES);
 		alite.getCobra().addTradeGood(TradeGoodStore.get().gemStones(), Weight.kilograms(1), 0);
 	}
 
@@ -185,14 +183,14 @@ public class SupernovaMission extends Mission implements Serializable {
 
 	@Override
 	public boolean performTrade(TradeScreen tradeScreen, Equipment equipment) {
-		tradeScreen.showMessageDialog("Sorry - there is no one here to trade with.");
+		tradeScreen.showMessageDialog(L.string(R.string.mission_supernova_trade));
 		SoundManager.play(Assets.error);
 		return true;
 	}
 
 	@Override
 	public boolean performTrade(TradeScreen tradeScreen, TradeGood tradeGood) {
-		tradeScreen.showMessageDialog("Sorry - there is no one here to trade with.");
+		tradeScreen.showMessageDialog(L.string(R.string.mission_supernova_trade));
 		SoundManager.play(Assets.error);
 		return true;
 	}
@@ -215,7 +213,7 @@ public class SupernovaMission extends Mission implements Serializable {
 				SphericalSpaceObject sunGlow = (SphericalSpaceObject) inGame.getSunGlow();
 				sunGlow.setNewSize(sun.getRadius() + 400.0f);
 				if (timer == null) {
-					inGame.setMessage("Danger: Supernova");
+					inGame.setMessage(L.string(R.string.mission_supernova_danger));
 					SoundManager.repeat(Assets.criticalCondition);
 					timer = new Timer();
 				} else {
@@ -231,6 +229,6 @@ public class SupernovaMission extends Mission implements Serializable {
 
 	@Override
 	public String getObjective() {
-		return "Escape the supernova.";
+		return L.string(R.string.mission_supernova_obj);
 	}
 }

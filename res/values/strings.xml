@@ -2,6 +2,18 @@
     <string name="app_name">Alite</string>
     <string name="menu_settings">Settings</string>
 
+    <!-- Do not remove plurals_pattern section.
+         It is required for plural handling of plug-in language resource files.
+         Do not localize it, moreover, do not copy it into plug-in language resource files at all. -->
+    <plurals name="plurals_pattern">
+        <item quantity="zero">zero</item>
+        <item quantity="one">one</item>
+        <item quantity="two">two</item>
+        <item quantity="few">few</item>
+        <item quantity="many">many</item>
+        <item quantity="other">other</item>
+    </plurals>
+
     <string name="color_scheme_classic">Classic</string>
     <string name="color_scheme_modern">Modern</string>
 
@@ -20,7 +32,7 @@
     <string name="notification_download_failed">Download unsuccessful</string>
 
 
-    <string name="state_unknown">Starting..."</string>
+    <string name="state_unknown">Starting...</string>
     <string name="state_idle">Waiting for download to start</string>
     <string name="state_fetching_url">Looking for resources to download</string>
     <string name="state_connecting">Connecting to the download server</string>
@@ -46,6 +58,12 @@
     <string name="notification_download_assets">Downloading assets. This only needs to be done once...</string>
     <string name="notification_download_working">Working...</string>
     <string name="notification_plugin_checking">Checking updates of plugins...</string>
+    <string name="notification_download_error">Error while downloading expansion file: %s</string>
+    <string name="notification_downloading_info">Downloading... %d of %dMB read. Speed: %4.2f MB/s. Time remaining: %ds.</string>
+    <string name="obb_download_error">There was an error when trying to access %1$s\'s resource files.
+        I am very sorry for the inconvenience! You can either try to restart
+        your device (seriously: It helped on a Nexus 4), or you can download
+        the all-in-one-version of %1$s, where this problem cannot occur, from %2$s</string>
 
     <string name="about_game_inspired_by">%1$s is inspired by classic Elite</string>
     <string name="about_elite_copyright">\u00a9 Acornsoft, Bell &amp; Braben</string>
@@ -133,6 +151,7 @@
         <item>9f2: hockey| cricket| karate| polo| tennis</item>
     </string-array>
 
+    <string name="about_version">%s Version %s</string>
     <string name="about">
     [0]%1$s\n
     [1]A Game By\n
@@ -244,20 +263,20 @@
     [7]during all those long hours in the night.\n
     [7]For this, and so much more, I love you!</string>
 
-    <string name="com_aftShieldHasFailed">Aft shield has failed</string>
-    <string name="com_frontShieldHasFailed">Front shield has failed</string>
-    <string name="com_conditionRed">Condition Red!</string>
-    <string name="com_dockingComputerEngaged">Docking computer engaged</string>
-    <string name="com_dockingComputerDisengaged">Docking computer disengaged</string>
-    <string name="com_hyperdriveMalfunction">Hyperdrive malfunction!</string>
-    <string name="com_hyperdriveRepaired">Hyperdrive repaired!</string>
-    <string name="com_incomingMissile">Incoming Missile</string>
-    <string name="com_laserTemperatureCritical">Laser temperature critical</string>
-    <string name="com_cabinTemperatureCritical">Cabin temperature critical</string>
-    <string name="com_targetDestroyed">Target destroyed</string>
-    <string name="com_fuelSystemMalfunction">Fuel system malfunction</string>
-    <string name="com_accessDeclined">Access to the station has been declined</string>
-    <string name="com_lostDockingComputer">Docking Computer lost</string>
+    <string name="com_aft_shield_has_failed">Aft shield has failed</string>
+    <string name="com_front_shield_has_failed">Front shield has failed</string>
+    <string name="com_condition_red">Condition Red!</string>
+    <string name="com_docking_computer_engaged">Docking computer engaged</string>
+    <string name="com_docking_computer_disengaged">Docking computer disengaged</string>
+    <string name="com_hyperdrive_malfunction">Hyperdrive malfunction!</string>
+    <string name="com_hyperdrive_repaired">Hyperdrive repaired!</string>
+    <string name="com_incoming_missile">Incoming Missile</string>
+    <string name="com_laser_temperature_critical">Laser temperature critical</string>
+    <string name="com_cabin_temperature_critical">Cabin temperature critical</string>
+    <string name="com_target_destroyed">Target destroyed</string>
+    <string name="com_fuel_system_malfunction">Fuel system malfunction</string>
+    <string name="com_access_declined">Access to the station has been declined</string>
+    <string name="com_lost_docking_computer">Docking Computer lost</string>
     <string name="com_lost_ecm">ECM System lost</string>
     <string name="com_lost_bomb">Energy Bomb lost</string>
     <string name="com_lost_escape">Escape Capsule lost</string>
@@ -266,5 +285,846 @@
     <string name="com_lost_galactic">Galactic Hyperdrive lost</string>
     <string name="com_lost_retro_rockets">Retro Rockets lost</string>
     <string name="com_escape_malfunction">Escape Capsule Malfunction</string>
+    <string name="com_cargo_lost">Cargo lost</string>
+    <string name="com_launch_area_violation_1st">Hey rookie! Clear the launch area immediately.</string>
+    <string name="com_launch_area_violation_2nd">Clear the launch area immediately, or we will open fire.</string>
+    <string name="com_launch_area_violation_3rd">Space Station defensive measures activated.</string>
 
+    <string name="navbar_launch">Launch</string>
+    <string name="navbar_front">Front</string>
+    <string name="navbar_status">Status</string>
+    <string name="navbar_buy">Buy</string>
+    <string name="navbar_inventory">Inventory</string>
+    <string name="navbar_equip">Equip</string>
+    <string name="navbar_galaxy">Galaxy</string>
+    <string name="navbar_local">Local</string>
+    <string name="navbar_planet">Planet</string>
+    <string name="navbar_disk">Disk</string>
+    <string name="navbar_options">Options</string>
+    <string name="navbar_library">Library</string>
+    <string name="navbar_academy">Academy</string>
+    <string name="navbar_hacker">Hacker</string>
+    <string name="navbar_quit">Quit</string>
+
+    <string name="goods_food">Food</string>
+    <string name="goods_textiles">Textiles</string>
+    <string name="goods_radioactives">Radioactives</string>
+    <string name="goods_slaves">Slaves</string>
+    <string name="goods_liquor_wines">Liquor/Wines</string>
+    <string name="goods_luxuries">Luxuries</string>
+    <string name="goods_narcotics">Narcotics</string>
+    <string name="goods_computers">Computers</string>
+    <string name="goods_machinery">Machinery</string>
+    <string name="goods_alloys">Alloys</string>
+    <string name="goods_firearms">Firearms</string>
+    <string name="goods_furs">Furs</string>
+    <string name="goods_minerals">Minerals</string>
+    <string name="goods_gold">Gold</string>
+    <string name="goods_platinum">Platinum</string>
+    <string name="goods_gem_stones">Gem-Stones</string>
+    <string name="goods_alien_items">Alien Items</string>
+    <string name="goods_medical_supplies">Medical Supplies</string>
+    <string name="goods_thargoid_documents">Important Thargoid Documents</string>
+    <string name="goods_unhappy_refugees">Unhappy Refugees</string>
+
+    <string name="condition_docked">Docked</string>
+    <string name="condition_green">Green</string>
+    <string name="condition_yellow">Yellow</string>
+    <string name="condition_red">Red</string>
+
+    <string name="equip_fuel">Fuel (WS Thru-Space Drive)</string>
+    <string name="equip_missiles">Lance And Ferman Missiles</string>
+    <string name="equip_large_cargo_bay">Mariner 35t Freight Chamber</string>
+    <string name="equip_ecm_system">Interspace Heavy Element ECM</string>
+    <string name="equip_pulse_laser">Ingram Model 1919A4 Pulse Laser</string>
+    <string name="equip_beam_laser">Ingram Model 1928A2 Beam Laser</string>
+    <string name="equip_fuel_scoop">Deep Space ReAqx Fuel Scoop</string>
+    <string name="equip_escape_capsule">Xeesian FastJet LSC Escape Capsule</string>
+    <string name="equip_energy_bomb">Medusa Pandora Energy Bomb</string>
+    <string name="equip_extra_energy_unit">Extra Zieman Energy Unit</string>
+    <string name="equip_docking_computer">SinCorn RemLock Docking Computer</string>
+    <string name="equip_galactic_hyperdrive">Xexor/Hikan Galactic Hyperdrive</string>
+    <string name="equip_mining_laser">Kruger ARM64 Sp. Mining Laser</string>
+    <string name="equip_military_laser">M1928A2 Military Laser</string>
+    <string name="equip_retro_rockets">Xasar Ion Retro-Rockets</string>
+    <string name="equip_naval_energy_unit">Naval Energy Unit</string>
+    <string name="equip_cloaking_device">Cloaking Device</string>
+    <string name="equip_ecm_jammer">ECM Jammer</string>
+
+    <string name="equip_short_fuel">Fuel</string>
+    <string name="equip_short_missiles">Missiles</string>
+    <string name="equip_short_large_cargo_bay">Large Cargo Bay</string>
+    <string name="equip_short_ecm_system">ECM System</string>
+    <string name="equip_short_pulse_laser">Pulse Laser</string>
+    <string name="equip_short_beam_laser">Beam Laser</string>
+    <string name="equip_short_fuel_scoop">Fuel Scoop</string>
+    <string name="equip_short_escape_capsule">Escape Capsule</string>
+    <string name="equip_short_energy_bomb">Energy Bomb</string>
+    <string name="equip_short_extra_energy_unit">Extra Energy Unit</string>
+    <string name="equip_short_docking_computer">Docking Computer</string>
+    <string name="equip_short_galactic_hyperdrive">Galactic Hyperdrive</string>
+    <string name="equip_short_mining_laser">Mining Laser</string>
+    <string name="equip_short_military_laser">Military Laser</string>
+    <string name="equip_short_retro_rockets">Retro Rockets</string>
+    <string name="equip_short_naval_energy_unit">Naval Energy Unit</string>
+    <string name="equip_short_cloaking_device">Cloaking Device</string>
+    <string name="equip_short_ecm_jammer">ECM Jammer</string>
+
+    <string name="legal_status_clean">Clean</string>
+    <string name="legal_status_offender">Offender</string>
+    <string name="legal_status_fugitive">Fugitive</string>
+
+    <string name="rating_harmless">Harmless</string>
+    <string name="rating_mostly_harmless">Mostly Harmless</string>
+    <string name="rating_poor">Poor</string>
+    <string name="rating_average">Average</string>
+    <string name="rating_above_average">Above Average</string>
+    <string name="rating_competent">Competent</string>
+    <string name="rating_dangerous">Dangerous</string>
+    <string name="rating_deadly">Deadly</string>
+    <string name="rating_elite">E-L-I-T-E</string>
+
+    <string name="inhabitant_human_colonial">Human Colonial</string>
+    <string name="inhabitant_friendly_green_treeards">Friendly Green Treeards</string>
+
+    <string name="inhabitant_desc_large">Large</string>
+    <string name="inhabitant_desc_fierce">Fierce</string>
+    <string name="inhabitant_desc_small">Small</string>
+
+    <string name="inhabitant_color_green">Green</string>
+    <string name="inhabitant_color_red">Red</string>
+    <string name="inhabitant_color_yellow">Yellow</string>
+    <string name="inhabitant_color_blue">Blue</string>
+    <string name="inhabitant_color_white">White</string>
+    <string name="inhabitant_color_harmless">Harmless</string>
+
+    <string name="inhabitant_appearance_slimy">Slimy</string>
+    <string name="inhabitant_appearance_bug_eyed">Bug-eyed</string>
+    <string name="inhabitant_appearance_horned">Horned</string>
+    <string name="inhabitant_appearance_bony">Bony</string>
+    <string name="inhabitant_appearance_fat">Fat</string>
+    <string name="inhabitant_appearance_furry">Furry</string>
+    <string name="inhabitant_appearance_mutant">Mutant</string>
+    <string name="inhabitant_appearance_weird">Weird</string>
+
+    <string name="inhabitant_type_rodent">Rodent</string>
+    <string name="inhabitant_type_frog">Frog</string>
+    <string name="inhabitant_type_lizard">Lizard</string>
+    <string name="inhabitant_type_lobster">Lobster</string>
+    <string name="inhabitant_type_bird">Bird</string>
+    <string name="inhabitant_type_humanoid">Humanoid</string>
+    <string name="inhabitant_type_feline">Feline</string>
+    <string name="inhabitant_type_insect">Insect</string>
+
+    <string name="raxxla_name">Raxxla</string>
+    <string name="raxxla_desc">The fabled planet Raxxla is the home of all Elite pilots in the universe.
+        It provides retreat and peace for them along with a portal to another universe.</string>
+
+    <string name="government_anarchy">Anarchy</string>
+    <string name="government_feudal">Feudal</string>
+    <string name="government_multi_government">Multi-Government</string>
+    <string name="government_dictatorship">Dictatorship</string>
+    <string name="government_communist">Communist</string>
+    <string name="government_confederacy">Confederacy</string>
+    <string name="government_democracy">Democracy</string>
+    <string name="government_corporate_state">Corporate state</string>
+
+    <string name="economy_rich_industrial">Rich Industrial</string>
+    <string name="economy_average_industrial">Average Industrial</string>
+    <string name="economy_poor_industrial">Poor Industrial</string>
+    <string name="economy_mainly_industrial">Mainly Industrial</string>
+    <string name="economy_mainly_agricultural">Mainly Agricultural</string>
+    <string name="economy_rich_agricultural">Rich Agricultural</string>
+    <string name="economy_average_agricultural">Average Agricultural</string>
+    <string name="economy_poor_agriculturall">Poor Agricultural</string>
+
+    <string name="mission_attention_commander">Attention Commander!</string>
+    <string name="mission_unknown_target">&lt;Unknown&gt;</string>
+    <string name="mission_accept">Do you accept this mission?</string>
+
+    <string name="mission_constrictor_obj_jump">Perform an intergalactic jump.</string>
+    <string name="mission_constrictor_obj_fly">Fly to %s.</string>
+    <string name="mission_constrictor_mission_description">A prototype model of the new top-secret military ship, the
+        Constrictor, has been stolen by unknown agents from a Navy research base. Due to the capabilities of this ship
+        the Galactic Co-operative of Worlds is offering a large reward to anyone who destroys the Constrictor before
+        it falls into enemy hands.</string>
+    <string name="mission_constrictor_report_to_base">For full mission briefing, please report to the space station
+        at this system here. Due to the sensitive nature of this assignment, it is vital that you keep details of
+        the Constrictor to yourself. Good luck Commander!</string>
+    <string name="mission_constrictor_intergalactic_jump">The Galactic Intelligence Agency (GIA) reports that the
+        Constrictor made an intergalactic jump out of this system a short while ago. It is suggested that you make
+        the same jump and report to the nearest space station for further details.</string>
+    <string name="mission_constrictor_hyperspace_jump">GIA reports that after causing havoc, the Constrictor made a
+        hyperspace jump out of this system. The deep space tracking station suggests that its destination is this system here.</string>
+    <string name="mission_constrictor_success">The Galactic Co-operative of Worlds is forever in your debt,
+        oh mighty trader! As a small token of our appreciation, please accept a reward of 10,000 credits for your trouble.
+        While I have your attention, the Galactic Police would like me to remind you about the small matter of several
+        hundred unpaid parking tickets!</string>
+
+    <string name="mission_thargoid_documents_obj">Take the documents to %s.</string>
+    <string name="mission_thargoid_documents_mission_description">The Navy has managed to obtain rare blueprints of a
+        Thargoid battle ship giving details of the drive and weapon systems. These documents need to be taken as soon
+        as possible to the main naval base in orbit around the planet shown here. The enemy is unaware that we have
+        these documents so the journey should proceed without any trouble.</string>
+    <string name="mission_thargoid_documents_fully_serviced">The documents have been placed in your cargo hold.
+        Your ship has been fully serviced and is ready for takeoff. Good luck Commander!</string>
+    <string name="mission_thargoid_documents_success">We are (again) forever in your debt for bringing these very
+        important documents to us. As a reward we have fitted your ship with the latest naval energy unit which will
+        recharge your energy banks at twice the normal rate. In light of the number of \'incidents\' you get yourself
+        involved in, you will probably find it rather useful. The GIA also wishes to apologize for the security leak
+        to the Thargoids. They are carrying out intensive investigations and the culprit will soon be found.</string>
+
+    <string name="mission_supernova_trade">Sorry - there is no one here to trade with.</string>
+    <string name="mission_supernova_danger">Danger: Supernova</string>
+    <string name="mission_supernova_obj">Escape the supernova.</string>
+    <string name="mission_supernova_announcement">Warning - the sun in this system is going supernova.
+        You are advised to leave as soon as possible.</string>
+    <string name="mission_supernova_mission_description">Please help us! Everyone else has fled the supernova but
+        we were left behind when our shuttle was damaged by an asteroid. We managed to limp back to the space station
+        but face certain death if we don\'t leave soon. There are only a few of us. We could fit in your cargo hold.</string>
+    <string name="mission_supernova_accept">Will you help us?</string>
+    <string name="mission_supernova_drop_us_off">Thank you, you will be well rewarded by our government.
+        I\'m afraid that we\'ve had to dump any cargo you had to get us all in.
+        If you could just drop us off at the nearest star system that\'ll be fine.</string>
+    <string name="mission_supernova_success">Thank you for carrying us to safety.
+        Please accept a selection of precious Zanxian gem stones as a token of our appreciation.</string>
+    <string name="mission_supernova_mission_decline">I hope you die a horribly long and lingering death at the hands
+        of a slimy green lobstoid, that\'s if you\'re now blown to bits by our sun!</string>
+
+    <string name="mission_cougar_obj">Destroy the unknown ship.</string>
+    <string name="mission_cougar_mission_description">Warning to all Traders: Reports have been coming in from
+        Traders in this sector of an unknown hostile ship with awesome capabilities. Rumours suggest that this
+        ship is fitted with a device which causes on-board computer systems to malfunction.</string>
+
+    <string name="thargoid_station_name">Alien Space Station</string>
+    <string name="mission_thargoid_station_obj">Destroy the Thargoid base.</string>
+    <string name="mission_thargoid_station_mission_description">The Galactic Intelligence Agency reports that a
+        nearby system has been invaded by Thargoid ships and that the space station has been captured.
+        All available forces are being gathered to destroy the invading force. The space station has become the
+        main Thargoid headquarters and it\'s from this base that the planetary attack is being mounted.
+        The space station must be destroyed - no matter what the cost!</string>
+    <string name="mission_thargoid_station_success">Thanks for destroying the Thargoid base.
+        A new device was salvaged from one of the Thargoid ships which we have fitted to your ship.
+        The device appears to jam ECM broadcasts.</string>
+
+    <string name="mission_elite_welcome_commander">Welcome to Raxxla, Commander.</string>
+    <string name="mission_elite_mission_description">You have proven yourself worthy and now you have finally come to
+        a place where you can rest and find peace. We welcome you here. Take a look around and enjoy Raxxla.
+        You are free to leave at any time, of course, but most pilots stay. There just isn\'t anything new out in the universe.</string>
+    <string name="mission_elite_congratulations">Congratulations, Commander. Now you are truly among the Elite.</string>
+
+
+    <string name="trade_good_info">%s - %d%s available. Average Price: %s (Tap again to buy)</string>
+    <string name="trade_out_of_stock">Sorry - that item is out of stock.</string>
+    <string name="trade_not_enough_in_stock">Sorry - we don\'t have that much in stock.</string>
+    <string name="trade_not_enough_money">Sorry - you don\'t have enough credits.</string>
+    <string name="trade_not_enough_space">Sorry - you don\'t have enough room in your hold.</string>
+    <string name="trade_amount_to_buy">Amount to buy (up to %s)? %s</string>
+    <string name="trade_spare_cargo">\u0020spare</string>
+    <string name="trade_cash">Cash:\u0020</string>
+    <string name="trade_ccy_hold">Cr\u0020\u0020\u0020\u0020\u0020\u0020Hold:\u0020</string>
+    <string name="state_not_docked">Not Docked.</string>
+
+    <string name="unit_gram">g</string>
+    <string name="unit_kilogram">kg</string>
+    <string name="unit_tonne">t</string>
+
+    <string name="cash_amount_only">%d.%d</string>
+    <string name="cash_amount_value_ccy">%d.%d Cr</string>
+    <string name="cash_int_amount_value_ccy">%d Cr</string>
+    <string name="cash_amount">Cash: %d.%d Cr</string>
+    <string name="cash_left">Cash left: %d.%d Cr</string>
+    <string name="cash_amount_value_currency">%d.%d Credits</string>
+
+    <string name="bounty_none">Bounty for %s: None.</string>
+    <string name="bounty_amount">Bounty for %s: %s.</string>
+    <string name="assisted_docking">The fee for assisted docking is %d.%d Cr. Accept?</string>
+
+    <string name="equip_info">%s (Tap again to equip)</string>
+    <string name="equip_all_lasers_mounted">All lasers (of that type) already mounted.</string>
+    <string name="equip_fuel_full">Fuel system already full (%d.%d light years).</string>
+    <string name="equip_only_one_allowed">Only 1 %s allowed.</string>
+    <string name="equip_max_missiles_reached">Only %d missiles allowed.</string>
+
+    <string name="title_buy_cargo">Buy Cargo</string>
+    <string name="title_catalog">Catalog</string>
+    <string name="title_disk_menu">Disk Menu</string>
+    <string name="title_equip_ship">Equip Ship</string>
+    <string name="title_local_nav_chart">Local Navigation Chart</string>
+    <string name="title_fatal_error">Fatal Error Occurred</string>
+    <string name="title_galaxy">Galactic Chart #%d</string>
+    <string name="title_hacker">Hacker v2.0</string>
+    <string name="title_inventory">Inventory</string>
+    <string name="title_library">Library</string>
+    <string name="title_cmdr_load">Load Commander</string>
+    <string name="title_cmdr_save">Save Commander</string>
+    <string name="title_planet">Data on %s</string>
+    <string name="title_plugins">Extensions, languages</string>
+    <string name="title_status">Commander %s</string>
+    <string name="title_options">Options</string>
+    <string name="title_audio_options">Audio Options</string>
+    <string name="title_control_options">Control Options</string>
+    <string name="title_debug_options">Debug Options</string>
+    <string name="title_display_options">Display Options</string>
+    <string name="title_gameplay_options">Gameplay Options</string>
+    <string name="title_button_position_options">Button Position Options</string>
+    <string name="title_more_debug_options">More Debug Options</string>
+    <string name="title_training_academy">Training Academy</string>
+    <string name="title_debug_menu">Debug Menu</string>
+
+    <string name="title_mission_constrictor">Mission #1 - Destroy the Constrictor</string>
+    <string name="title_mission_thargoid_documents">Mission #2 - Deliver Thargoid Documents</string>
+    <string name="title_mission_supernova">Mission #3 - Supernova</string>
+    <string name="title_mission_cougar">Mission #4 - Destroy the Hostile Ship</string>
+    <string name="title_mission_thargoid_station">Mission #5 - Destroy the Alien Space Stationp</string>
+    <string name="title_mission_elite">Congratulations</string>
+
+    <string name="cmdr_btn_delete_one">Delete selected Commander</string>
+    <string name="cmdr_btn_delete_more">Delete selected Commanders</string>
+    <string name="cmdr_delete_one_confirm">Are you sure you want to delete Commander %s?</string>
+    <string name="cmdr_delete_more_confirm">Are you sure you want to delete the selected Commanders?</string>
+    <string name="cmdr_table_name">Commander Name</string>
+    <string name="cmdr_table_system">Docked</string>
+    <string name="cmdr_table_time">Time</string>
+    <string name="cmdr_table_score">Score</string>
+    <string name="cmdr_table_rating">Rating</string>
+    <string name="cmdr_file_autosave">Autosave</string>
+
+    <string name="cmdr_load_new_commander">Load New Commander?</string>
+    <string name="cmdr_load_confirm">Are you sure you want to load Commander %s?</string>
+    <string name="cmdr_load_succeeded">Cursor reset to %s.</string>
+    <string name="cmdr_load_failed">Error while loading commander %s: %s</string>
+
+    <string name="cmdr_btn_save">Save New Commander</string>
+    <string name="cmdr_save_overwrite">Are you sure you want to overwrite Commander %s?</string>
+    <string name="cmdr_save_succeeded">Commander %s saved successfully.</string>
+    <string name="cmdr_save_failed">Error while saving commander %s: %s</string>
+    <string name="cmdr_get_name">Enter the new commander\'s name:</string>
+    <string name="cmdr_unknown_system">Unknown</string>
+    <string name="cmdr_default_commander_name">Jameson</string>
+
+    <string name="disk_menu_load">Load</string>
+    <string name="disk_menu_save">Save</string>
+
+    <string name="exc_btn_send_error_in_mail">Send Error in Mail</string>
+    <string name="exc_btn_save_error_to_file">Save Error to File</string>
+    <string name="exc_btn_restart">Restart %s</string>
+    <string name="exc_error_info1">Unfortunately, %s has crashed. I am sorry for the inconvenience :(</string>
+    <string name="exc_error_info2">Please send the error cause detailed below with button \'%s\',</string>
+    <string name="exc_error_info3">it helps tracking down the problem.</string>
+    <string name="exc_error_info4">Neither the subject nor the content does not contain any personal information</string>
+    <string name="exc_error_info5">only the error itself and the environmental data.</string>
+    <string name="exc_error_info6">The code sequence in the subject is formed from the error message,</string>
+    <string name="exc_error_info7">please do not change it, it helps in recognizing the more times sent identical errors.</string>
+    <string name="exc_error_file_name">Report saved to: %s</string>
+    <string name="exc_save_error">Saving Failed</string>
+    <string name="exc_sending_email">Sending email...</string>
+    <string name="exc_mail_sending_error">Request failed try again: %s</string>
+
+    <string name="galaxy_unknown_planet">Planet %s is unknown.</string>
+    <string name="galaxy_unknown_planet_in_galaxy">Planet %s is in Galaxy %d. You are currently in Galaxy %d.</string>
+    <string name="galaxy_find_planet_name">Enter planet name to find:</string>
+    <string name="galaxy_distance_info">%s: %d.%d Light Years</string>
+    <string name="galaxy_unknown">Unknown</string>
+    <string name="galaxy_btn_find">Find</string>
+    <string name="galaxy_btn_home">Home</string>
+
+    <string name="hacker_btn_done">Done</string>
+    <string name="hacker_new_value">New value for byte %s: %s</string>
+
+    <string name="pad_btn_hex_a">A</string>
+    <string name="pad_btn_hex_b">B</string>
+    <string name="pad_btn_hex_c">C</string>
+    <string name="pad_btn_hex_d">D</string>
+    <string name="pad_btn_hex_e">E</string>
+    <string name="pad_btn_hex_f">F</string>
+    <string name="pad_btn_hex_ok">OK</string>
+
+    <string name="inventory_sell">(Tap again to sell)</string>
+    <string name="inventory_eject">(Tap again to eject)</string>
+    <string name="inventory_loss">Loss: -%s</string>
+    <string name="inventory_gain">Gain:%s</string>
+    <string name="inventory_empty_cargo">Cargo hold is empty.</string>
+    <string name="inventory_worth">%s - worth: %s.\u0020</string>
+
+    <string name="laser_pos_front">Front</string>
+    <string name="laser_pos_right">Right</string>
+    <string name="laser_pos_rear">Rear</string>
+    <string name="laser_pos_left">Left</string>
+    <string name="laser_pos_select">Select Position For Laser</string>
+
+    <string name="library_btn_next">Next:\u0020</string>
+    <string name="library_btn_prev">Prev:\u0020</string>
+    <string name="library_btn_toc">Table of Contents</string>
+    <string name="library_btn_search">Search</string>
+    <string name="library_search_text">Enter search text:</string>
+    <string name="library_no_results">No results found.</string>
+    <string name="library_cheat_code_obsoleted1">Sorry, %s does not work here, anymore.</string>
+    <string name="library_cheat_code_obsoleted2">No, %s does not work here, either. Sorry.</string>
+    <string name="library_cheat_code_hacker">Hacker activated.</string>
+    <string name="library_cheat_code_shield_booster">Shield Power Booster activated.</string>
+    <string name="library_cheat_code_hyperdrive_booster">Hyperdrive Booster activated.</string>
+    <string name="library_cheat_code_laser_booster">Laser Power Booster activated.</string>
+    <string name="library_cheat_code_max_laser">Maximum Laser Power.</string>
+    <string name="library_cheat_code_max_shield">Maximum Shield Power.</string>
+    <string name="library_cheat_code_clear_path">Clear Path Ahead.</string>
+    <string name="library_cheat_code_master_prg">The Master Control Program is at your service.</string>
+
+    <string name="planet_inhabitant_db_load1">Accessing</string>
+    <string name="planet_inhabitant_db_load2">Database...</string>
+    <string name="planet_economy">Economy:</string>
+    <string name="planet_government">Government:</string>
+    <string name="planet_technical_level">Technical Level:</string>
+    <string name="planet_population">Population:</string>
+    <string name="planet_population_value">%d.%d bn</string>
+    <string name="planet_distance">Light Years</string>
+    <string name="planet_gnp">GNP:</string>
+    <string name="planet_gnp_value">%d.%d MCr</string>
+    <string name="planet_diameter_value">%,d km</string>
+
+    <string name="plugins_no_description">(No description)</string>
+    <string name="plugins_removal_reason">Removal reason: %s</string>
+    <string name="plugins_get_removal_reason">Enter removal reason:</string>
+    <string name="plugins_download_succeeded">Extension \'%s\' installed successfully.</string>
+    <string name="plugins_download_failed">Downloading extension \'%s\' failed.</string>
+    <string name="plugins_download_progress">%dMB / %dMB</string>
+    <string name="plugins_download_time">%4.2f MB/s, %ds</string>
+    <string name="plugins_size_mb">%d MB</string>
+    <string name="plugins_size_kb">%d KB</string>
+
+    <string name="quit_confirm">Do you really want to quit %s?</string>
+
+    <string name="intro_btn_tap_to_start">Tap to start</string>
+    <string name="intro_new_player">You seem to be new to %s, Commander. Would you like to visit the Training Academy now?</string>
+    <string name="intro_new_player_info">If you want to visit the Academy later, you can find it at the bottom of the Command Console.
+        Before you launch, it might be a good idea to review your Control Settings. Would you like to do so, now?</string>
+
+    <string name="status_fuel_value">%d.%d Light Years</string>
+    <string name="status_present_system">Present System:</string>
+    <string name="status_hyperspace">Hyperspace:</string>
+    <string name="status_condition">Condition:</string>
+    <string name="status_legal_status">Legal Status:</string>
+    <string name="status_rating">Rating:</string>
+    <string name="status_fuel">Fuel:</string>
+    <string name="status_cash">Cash:</string>
+    <string name="status_mission_objective">Mission Objective:</string>
+    <string name="status_score">\u0020\u0020(Score: %d)</string>
+    <string name="status_visit_web_page">Visit %s</string>
+    <string name="status_missiles_count">Missiles x%d</string>
+    <string name="status_game_time">Game Time:</string>
+
+    <string name="options_back">Back</string>
+    <string name="options_yes">Yes</string>
+    <string name="options_no">No</string>
+    <string name="options_on">On</string>
+    <string name="options_off">Off</string>
+
+    <string name="options_audio_music_volume">Music Volume</string>
+    <string name="options_audio_sound_fx_volume">Sound FX Volume</string>
+    <string name="options_audio_combat_fx_volume">Combat FX Volume</string>
+    <string name="options_audio_voice_volume">Voice Volume</string>
+    <string name="options_audio_vibrate_level">Vibrate Level</string>
+
+    <string name="options_ctrl_ship_control_mode">Ship Control: %s</string>
+    <string name="ship_ctrl_acc">Accelerometer</string>
+    <string name="ship_ctrl_alt_acc">Alternative Accelerometer</string>
+    <string name="ship_ctrl_alt_acc_help_line1">Use this option, if Accelerometer controls don\'t work for you (Nexus 10 for example).</string>
+    <string name="ship_ctrl_alt_acc_help_line2">Note however that alternative Accelerometer controls only work sitting up (Sorry!).</string>
+    <string name="ship_ctrl_control_pad">Control Pad</string>
+    <string name="ship_ctrl_cursor_block">Cursor Block</string>
+    <string name="ship_ctrl_cursor_split_block">Split Cursor Blocks</string>
+
+    <string name="ship_ctrl_side_text_control_pad">Position: %s</string>
+    <string name="ship_ctrl_side_text_cursor_block">Position: %s</string>
+    <string name="ship_ctrl_side_text_cursor_split_block">Dive/Climb is: %s</string>
+    <string name="ship_ctrl_side_text_left_position">Left</string>
+    <string name="ship_ctrl_side_text_right_position">Right</string>
+
+    <string name="options_ctrl_button_position_options">Configure Button Positions</string>
+    <string name="options_ctrl_forward_to_introduction">Start Training</string>
+    <string name="options_ctrl_forward_to_introduction_help">Please review your Control Settings before we begin your training.</string>
+
+    <string name="options_ctrl_reverse_climb">Reverse Climb: %s</string>
+
+    <string name="options_ctrl_radar_change_view">Change View: %s</string>
+    <string name="options_ctrl_radar_change_view_tap">Tap</string>
+    <string name="options_ctrl_radar_change_view_slide">Slide</string>
+
+    <string name="options_ctrl_linear_layout">Linear Layout: %s</string>
+    <string name="debug_settings_log_to_file">Log to file: %s</string>
+    <string name="debug_settings_mem_debug">Debug Memory:  %s</string>
+    <string name="debug_settings_show_frame_rate">Display frame rate</string>
+    <string name="debug_settings_invulnerable">Invulnerable: %s</string>
+    <string name="debug_settings_show_docking_debug">Docking Information: %s</string>
+    <string name="debug_settings_laser_does_not_overheat">Laser Overheats: %s</string>
+    <string name="debug_settings_adjust_credits">Adjust Credits (%s)</string>
+    <string name="debug_settings_arrive_in_safe_zone">Arrive in Safe Zone: %s</string>
+    <string name="debug_settings_adjust_legal_status">Adjust Legal (%s, %d)</string>
+    <string name="debug_settings_disable_attackers">Disable Attackers: %s</string>
+    <string name="debug_settings_adjust_score">Adjust Score (%d)</string>
+    <string name="debug_settings_disable_traders">Disable Traders: %s</string>
+    <string name="debug_settings_add_docking_computer">Add Docking Computer</string>
+    <string name="debug_settings_unlimited_fuel">Unlimited Fuel: %s</string>
+    <string name="debug_settings_button_more">More</string>
+
+    <string name="options_display_texture_level">Texture Details: %s</string>
+    <string name="options_display_texture_level_high">High</string>
+    <string name="options_display_texture_level_medium">Medium</string>
+    <string name="options_display_texture_level_low">Low</string>
+
+    <string name="options_display_invalid_value">Invalid</string>
+
+    <string name="options_display_stardust_density">Stardust Density: %s</string>
+    <string name="options_display_stardust_density_off">Off</string>
+    <string name="options_display_stardust_density_low">Low</string>
+    <string name="options_display_stardust_density_medium">Medium</string>
+    <string name="options_display_stardust_density_high">High</string>
+
+    <string name="options_display_color_depth">Color Depth: %s</string>
+    <string name="options_display_color_depth_32_bit">32 Bit</string>
+    <string name="options_display_color_depth_16_bit">16 Bit</string>
+
+    <string name="options_display_engine_exhaust">Engine Exhaust: %s</string>
+
+    <string name="options_display_lock_orientation">Lock Orientation: %s</string>
+    <string name="options_display_lock_orientation_no_lock">No Lock</string>
+    <string name="options_display_lock_orientation_right">Right</string>
+    <string name="options_display_lock_orientation_left">Left</string>
+
+    <string name="options_display_target_box">Show Target Box: %s</string>
+    <string name="options_display_alpha">HUD Alpha</string>
+    <string name="options_display_controls_alpha">Control Keys Alpha</string>
+    <string name="options_display_animations">Animations: %s</string>
+
+    <string name="options_display_color_scheme">Color scheme: %s</string>
+    <string name="options_display_color_scheme_error">Color scheme file is skipped, error: %s</string>
+
+    <string name="options_display_immersion">Immersion: %s</string>
+    <string name="options_display_immersion_full">Full</string>
+
+    <string name="options_gameplay_difficulty_level">Difficulty Level: %s</string>
+    <string name="options_gameplay_difficulty_sedate">Sedate</string>
+    <string name="options_gameplay_difficulty_very_easy">Very easy</string>
+    <string name="options_gameplay_difficulty_easy">Easy</string>
+    <string name="options_gameplay_difficulty_normal">Normal</string>
+    <string name="options_gameplay_difficulty_hard">Hard</string>
+    <string name="options_gameplay_difficulty_extremely_hard">Extremely Hard</string>
+
+    <string name="options_gameplay_difficulty_sedate_desc">No enemies at all. Only Vipers attack if your legal status requires it.</string>
+    <string name="options_gameplay_difficulty_very_easy_desc">Very few enemies. At most 2 at a time. No Thargoids.</string>
+    <string name="options_gameplay_difficulty_easy_desc">Few enemies. At most 3 at a time. Thargoids are rare.</string>
+    <string name="options_gameplay_difficulty_normal_desc">Normal number of enemies. At most 4 at a time. Some Thargoids.</string>
+    <string name="options_gameplay_difficulty_hard_desc">Enemies appear frequently. At most 6 at a time. Thargoids are abundant.</string>
+    <string name="options_gameplay_difficulty_extremely_hard_desc">Armageddon. Be warned: Frustration level is extremely high.</string>
+
+    <string name="options_gameplay_auto_id">Auto Id: %s</string>
+
+    <string name="options_gameplay_docking_speed">Docking Computer: %s</string>
+    <string name="options_gameplay_docking_normal_speed">Normal Speed</string>
+    <string name="options_gameplay_docking_time_drive_speed">Time Drive Speed</string>
+    <string name="options_gameplay_docking_dock_immediate">Dock immediate</string>
+
+    <string name="options_gameplay_laser">Laser: %s</string>
+    <string name="options_gameplay_laser_auto_fire">Auto Fire</string>
+    <string name="options_gameplay_laser_single_shot">Single Shot</string>
+
+    <string name="options_gameplay_extension_update_mode">Extension update mode: %s</string>
+    <string name="options_gameplay_extension_update_mode_no_update">No update</string>
+    <string name="options_gameplay_extension_update_mode_check_for_updates_only">Check for updates only</string>
+    <string name="options_gameplay_extension_update_mode_auto_update_at_any_time">Auto-update at any time</string>
+    <string name="options_gameplay_extension_update_mode_auto_update_over_wifi_only">Auto-update over Wi-Fi only</string>
+
+    <string name="options_main_language">Language: %s</string>
+    <string name="options_main_reset_game">Reset Game</string>
+    <string name="options_main_reset_game_confirm">Are you sure?</string>
+    <string name="options_main_about">About</string>
+
+    <string name="options_more_debug_start_constrictor_mission">Start Constrictor Mission</string>
+    <string name="options_more_debug_start_thargoid_documents_mission">Start Thargoid Documents Mission</string>
+    <string name="options_more_debug_start_supernova_mission">Start Supernova Mission</string>
+    <string name="options_more_debug_start_cougar_mission">Start Cougar Mission</string>
+    <string name="options_more_debug_start_thargoid_base_mission">Start Thargoid Base Mission</string>
+    <string name="options_more_debug_clear_mission">Clear Active Mission</string>
+    <string name="options_more_debug_completed_missions">Completed Missions: %s</string>
+
+    <string name="in_flight_button_fire">Fire Laser</string>
+    <string name="in_flight_button_missile">Fire Missile</string>
+    <string name="in_flight_button_ecm">ECM</string>
+    <string name="in_flight_button_retro_rockets">Retro Rockets</string>
+    <string name="in_flight_button_escape_capsule">Escape Capsule</string>
+    <string name="in_flight_button_energy_bomb">Energy Bomb</string>
+    <string name="in_flight_button_status">Status</string>
+    <string name="in_flight_button_drive_docking">Torus/Time Drive;Docking Computer</string>
+    <string name="in_flight_button_hyperspace">Hyperspace</string>
+    <string name="in_flight_button_galactic_hyperspace">Galactic Hyperspace</string>
+    <string name="in_flight_button_cloaking_device">Cloaking Device</string>
+    <string name="in_flight_button_ecm_jammer">ECM Jammer</string>
+
+    <string name="options_in_flight_selection_mode">Selection Mode: %s</string>
+    <string name="options_in_flight_selection_mode_group">Group</string>
+    <string name="options_in_flight_selection_mode_button">Button</string>
+
+    <string name="options_in_flight_reset_positions">Reset Positions</string>
+    <string name="options_in_flight_reset_positions_confirm">Are you sure?</string>
+    <string name="options_in_flight_primary">Primary</string>
+    <string name="options_in_flight_secondary">Secondary</string>
+    <string name="options_in_flight_source_button_group">Select the group of buttons you\'d like to change.</string>
+    <string name="options_in_flight_target_button_group">Select the target button group.</string>
+    <string name="options_in_flight_source_button">Select the button you\'d like to change.</string>
+    <string name="options_in_flight_target_button">Select the target button.</string>
+
+    <string name="tutorial_selection_introduction">Introduction</string>
+    <string name="tutorial_selection_trading">Trading</string>
+    <string name="tutorial_selection_equipment">Equipment</string>
+    <string name="tutorial_selection_navigation">Navigation</string>
+    <string name="tutorial_selection_hud">HUD</string>
+    <string name="tutorial_selection_basic_flying">Basic Flying</string>
+    <string name="tutorial_selection_advanced_flying">Advanced Flying</string>
+
+    <string name="tutorial_quit_confirm">Are you sure you want to quit this tutorial?</string>
+
+    <string name="tutorial_introduction_00">Welcome to your basic training, nugget. I am Commander Quelo and I\'ll make sure that you can handle that Cobra once you get out of my training. Remember kid: Owning a Cobra does not give you the ability to fly it. I will give you that ability.</string>
+    <string name="tutorial_introduction_01">What you see on the screen in front of you is the status screen. You can check all the details of your Cobra.</string>
+    <string name="tutorial_introduction_02">It tells you where you are currently docked and where you\'re headed.</string>
+    <string name="tutorial_introduction_03">Watch that \'Condition\' read-out: If it turns to red, there might be a chance for you to make a kill and get some bounty -- or get killed in the process.</string>
+    <string name="tutorial_introduction_04">Your legal status should be clean at all times, unless you plan to trade in illegal goods or can\'t tell friend from foe and destroy a friendly Python while targeting a Krait.</string>
+    <string name="tutorial_introduction_05">Your rating tells others how dangerous you are. A fresh-meat like you should be concerned with surviving out there in space. It\'s a hard life outside and only few of us survive. However, in the unlikely event that you should prove less inept than usual, there might be a slim chance your rating will improve to Mostly Harmless and beyond, but you need to kill other ships for that, kiddo.</string>
+    <string name="tutorial_introduction_06">The fuel indicator tells you how many light years you can travel in hyperspace,</string>
+    <string name="tutorial_introduction_07">and finally you can check your current balance by looking at the cash read-out.</string>
+    <string name="tutorial_introduction_08">One more thing about the status screen is that it shows the equipment of your ship. You start with a measly pulse laser, which couldn\'t even scare my granny, and three Lance and Ferman missiles. You may want to improve on that ASAP, greenhorn.</string>
+    <string name="tutorial_introduction_09">On the right hand side, you find the command console. Put your finger on it and drag it all the way up.</string>
+    <string name="tutorial_introduction_10">Fascinating, eh? This console allows you to interact with the station you are docked with and do all the trading and improving your ship -- so you don\'t even have to leave your ship anymore.</string>
+    <string name="tutorial_introduction_11">Want to see what there is to do in the console? Ok, so go ahead, kiddo. Push the "Buy" button on the console. If you can\'t find it, that\'s because you have to drag the console back down first.</string>
+    <string name="tutorial_introduction_12">I see, you have got that one right. Now, for today\'s final exercise, try to find the "Galaxy" button and marvel at the vastness of the universe you and I are living in.</string>
+    <string name="tutorial_introduction_13">Great. You have shown the ability to do as you are told. I like that. My dog does what I tell him. Maybe I should introduce the two of you. Remind me to do this.</string>
+    <string name="tutorial_introduction_14">Now, go have a good think about what you\'ve learned and come back when you\'re ready for more, nugget.</string>
+
+    <string name="tutorial_trading_00">Ah, I see you\'re back. Think you\'re ready for more basics? Ok, so first, open the Buy screen again. You remember how to do that, don\'t you?</string>
+    <string name="tutorial_trading_01">Here, you can see all the goods that are offered on the station you\'re docked with. The price of the good is given below the good and right next to the trade item, you can see how much of it is available. If you can\'t figure out what a symbol represents, just tap it, and a description will be displayed at the bottom of the screen.</string>
+    <string name="tutorial_trading_02">Oh, don\'t be shy, try it: Tap one trade item once. Come on.</string>
+    <string name="tutorial_trading_03">See? That wasn\'t so hard after all, was it? Now, if you tap it again, and the item is available, you can buy some.</string>
+    <string name="tutorial_trading_04">Let\'s try that: Tap on the symbol for food.</string>
+    <string name="tutorial_trading_05">No, I told you to tap on the food-icon, that\'s the one in the upper left corner, wet-nose.</string>
+    <string name="tutorial_trading_06">Ok. Now tap it again.</string>
+    <string name="tutorial_trading_07">Now you need to enter the quantity: How much do you want to buy. Let\'s not overindulge ourselves here: Although this is a simulation only, and nothing will really be added to your cargo bay, enter a 1 followed by OK.</string>
+    <string name="tutorial_trading_08">I don\'t know if you failed basic reading, but it sure looks like that you fleshy-headed mutant. Type a 1, that\'s the number in the first column, third row, followed by OK; that\'s the third column, fourth row button.</string>
+    <string name="tutorial_trading_09">Good. You have now bought 1 ton of food and your account has been reduced by the price of food. Now go to the inventory screen and see how that ton of food is displayed there.</string>
+    <string name="tutorial_trading_10">See? You can also see at the bottom of the screen that you now have less cargo space available. You start with a 20t Cargo hold in a Cobra Mk III. I sure hope you\'ll upgrade that soon. Now, what about selling? To sell something, go to the inventory screen and tap the item you want to sell twice. Easy, right? Go ahead, do it...</string>
+    <string name="tutorial_trading_11">Yeah. See. Now you sold the food back. But what\'s that? You lost money in the process! That\'s the standard fee for selling anything at a space station. It will automatically be removed from your price. So you better make sure that you sell your goods at a higher price than you bought them. Don\'t worry, though, cub, this was only a simulation. We did not take anything from your account. Understood all that? -- I didn\'t think so. So go back and think about everything I told you today and then come back when you\'re ready for more.</string>
+
+    <string name="tutorial_equipment_00">Back so soon? Ok, I\'ll make this lesson brief and simple. Consider it a favor, especially for you.</string>
+    <string name="tutorial_equipment_01">Go to the Equipment screen now.</string>
+    <string name="tutorial_equipment_02">No, I said "Equipment" screen.</string>
+    <string name="tutorial_equipment_03">Yes, here we are. This one works just as the buy screen: Tap an item once to get information about the item and tap it again to install it on your ship -- provided of course you have enough credits. I have drained your hyperspace fuel as a training exercise, so go ahead. Buy some fuel.</string>
+    <string name="tutorial_equipment_04">Fuel, nugget. Fuel! That\'s the upper left icon. Tap it twice. Is it really that hard for you?</string>
+    <string name="tutorial_equipment_05">Wow. I\'m impressed. You have now refueled your ship. Well done! You can tap on the other icons if you must, but come back tomorrow for another training session. Today, I am busy. I need to go to that amazing -- um -- shipyard. Now.</string>
+
+    <string name="tutorial_navigation_00">Wonderful morning, eh, rookie? I have a bunch of information for you today. So wipe the sleep from your face and pay attention! You have seen the Galaxy screen already, but today, I\'ll tell you more about it. First: Open it.</string>
+    <string name="tutorial_navigation_01">The white cross you see indicates your current position. The red circle around it, shows how far you can travel with your current fuel. You can zoom in by pressing two fingers on the screen and move them apart. Do that until you can see the names of the systems appear.</string>
+    <string name="tutorial_navigation_02">Now, push the "Home" button.</string>
+    <string name="tutorial_navigation_03">See how it moved the map back to your current location? Helps newbies like yourself not to get lost so easily... Did you notice the different colors of the star systems? These colors indicate the economy of the system. It ranges from poor agricultures in grey to rich industrials in blue. In case you forget, however, you can switch to the planet screen to get more information on the selected planet. Do that now.</string>
+    <string name="tutorial_navigation_04">No, I told you to switch to the planet screen, wet-nose. Try again.</string>
+    <string name="tutorial_navigation_05">Here on the planet screen, you\'ll see all the relevant information for a planetary system: The name, its economy, its government, and the tech level, which tells you what kind of equipment you\'ll be able to buy at that system. You\'ll also have information on the inhabitants of that planet, which you should read carefully, so you can trade successfully and not risk insulting a feline by not smelling enough -- not that I think you\'d have a problem with that particular requirement, nugget.</string>
+    <string name="tutorial_navigation_06">Now that you have gathered information on the planet, switch to the local screen.</string>
+    <string name="tutorial_navigation_07">No, I told you to switch to the local screen, wet-nose. Try again.</string>
+    <string name="tutorial_navigation_08">The local screen is the same as the galaxy screen but it shows only a small region around your current location if accessed. You can zoom out, though. Just hold two fingers on the screen and move them together. Do it now.</string>
+    <string name="tutorial_navigation_09">Good. Now, you know everything about navigation. Or almost: Remember that the system you select is always your destination system. If you launch and engage hyperspace, you\'ll end up in that system -- if you\'re not intercepted by Thargoids that is.</string>
+    <string name="tutorial_navigation_10">Scared, nugget? Well, you should be. Life as a pilot is hard, dangerous, and hardly rewarding. Still, we get to see rare sights, if we master control of our ship and survive assaults. Do you have it in you? We are soon going to find out: Next lesson, I\'ll start the flying instructions. Until then: Think hard if this is really what you want. If not, don\'t show up next time. Your secret is safe with me. I won\'t tell a soul about your fears. Trust me.</string>
+
+    <string name="tutorial_hud_00">Welcome Back, \'Commander\'. Well? How does it feel to be in the Cockpit of a Cobra, hm?</string>
+    <string name="tutorial_hud_01">Don\'t worry, rookie, you are in the safe zone around Lave space station, no one will attack you here.</string>
+    <string name="tutorial_hud_02">The safe zone is a zone around a space station where the police Vipers will watch over you.</string>
+    <string name="tutorial_hud_03">You can see that you have reached a safe zone by the large S in the bottom right corner of your radar.</string>
+    <string name="tutorial_hud_04">So now you can relax and enjoy the view of Lave right in front of you. Isn\'t it beautiful?</string>
+    <string name="tutorial_hud_05">If you want to look around, you can change the display to show the right, rear, or left view out of your ship. To look right, </string>
+    <string name="tutorial_hud_05a">tap the right half of your radar.</string>
+    <string name="tutorial_hud_05b">swipe your finger from right to left over the screen.</string>
+    <string name="tutorial_hud_06">Why don\'t you try it?</string>
+    <string name="tutorial_hud_07">No. Look to your right. Remember: %s</string>
+    <string name="tutorial_hud_08">Yes. Just like that. You can now see that the green indicator of your radar is on its right half: You are looking right. To look behind you, %s</string>
+    <string name="tutorial_hud_08a">tap the bottom half of your radar.</string>
+    <string name="tutorial_hud_08b">swipe your finger from right to left over the screen again.</string>
+    <string name="tutorial_hud_09">Go ahead, try it...</string>
+    <string name="tutorial_hud_10">No. Look behind you. Remember: %s</string>
+    <string name="tutorial_hud_10a">tap the bottom half of your radar.</string>
+    <string name="tutorial_hud_11">Good. You are now looking at the Coriolis station in orbit around Lave. That\'s where you\'ll eventually have to dock, but we\'ll keep that for a later lesson.</string>
+    <string name="tutorial_hud_12">You can look left, too, I suppose you know how to do that on your own, don\'t you? Go ahead, look left...</string>
+    <string name="tutorial_hud_13">No. To look left, %s</string>
+    <string name="tutorial_hud_13a">tap the left half of your radar.</string>
+    <string name="tutorial_hud_13b">swipe your finger from right to left over the screen again.</string>
+    <string name="tutorial_hud_14">Ok, so now you can look around. Good. The green area on your radar tells you in which direction you are looking, and the purple bar on the radar is the space station.</string>
+    <string name="tutorial_hud_15">It is now almost in the center of the radar, which means that you are very close to it. In fact, the space station is a little behind you. You can see that more clearly, if you increase the zoom factor of the radar.</string>
+    <string name="tutorial_hud_16">To do that %s</string>
+    <string name="tutorial_hud_16a">tap the green area on your radar.</string>
+    <string name="tutorial_hud_16b">tap the radar.</string>
+    <string name="tutorial_hud_17">Good. You can enhance the zoom factor even more, by tapping again. If you tap once more, the zoom factor will be back to normal.</string>
+    <string name="tutorial_hud_18">We will get back to the radar in more detail in the next lesson, for now, let\'s focus on the gauges you see next to your radar.</string>
+    <string name="tutorial_hud_19">On the left hand side, you have your front and aft shield gauges.</string>
+    <string name="tutorial_hud_20">When they are depleted, the next laser hits are going to damage your hull and the energy bars on the lower right, numbered 1 through 4 are affected.</string>
+    <string name="tutorial_hud_21">If you lose your last bit of energy, the Cobra is destroyed, so you want to watch out who\'s in the vicinity, kiddo.</string>
+    <string name="tutorial_hud_22">Below the aft shield on the left hand side is the fuel gauge. It only depletes in hyperspace travel and tells you how far you can jump.</string>
+    <string name="tutorial_hud_23">Next is the cabin temperature meter. If you go fuel scooping near the sun, you want to watch that gauge closely. If it gets too hot, your Cobra will explode.</string>
+    <string name="tutorial_hud_24">Next is the laser temperature. If you fire too much, the laser becomes too hot and you will have to wait until it cools down again.</string>
+    <string name="tutorial_hud_25">Below that, there is the altitude meter. It shows, how high you are above the planet. Do not try to land on alien planets, kiddo, the locals don\'t appreciate that.</string>
+    <string name="tutorial_hud_26">Finally, at the bottom of the left hand side is your missile indicator. Your Cobra has four missile slots. If a slot is empty, the circle representing the slot is black.</string>
+    <string name="tutorial_hud_27">If a missile is in the slot, the circle is green, if the missile is targeting, it is yellow and if it is locked, it becomes red.</string>
+    <string name="tutorial_hud_28">On the right hand side, you can see your current speed, your current roll, and your current pitch.</string>
+    <string name="tutorial_hud_29">Did you wonder about the four buttons on the top of your screen? We won\'t touch them right now, but let me tell you what they do:</string>
+    <string name="tutorial_hud_30">The button on the top left fires your laser. %s</string>
+    <string name="tutorial_hud_30a">Tap it once and the laser starts shooting. Tap it again and the laser stops.</string>
+    <string name="tutorial_hud_30b">Tap it once to shoot.</string>
+    <string name="tutorial_hud_31">Of course, this only works if you have a laser equipped in the current view.</string>
+    <string name="tutorial_hud_32">The other button on the left lets you target a missile. Whatever target will be in your crosshairs, will be targeted. Tap the button again to fire a locked missile.</string>
+    <string name="tutorial_hud_33">The upper button on the right hand side will take you to the station interface, you can use that to select a hyperspace target or check local market prices.</string>
+    <string name="tutorial_hud_34">Of course, you can\'t sell or buy anything while in space. You need to dock first.</string>
+    <string name="tutorial_hud_35">The lower button on the right takes you to hyperspace and you will get out at your selected destination -- unless you are hijacked by Thargoids, that is.</string>
+    <string name="tutorial_hud_36">Some pretty heavy stuff, hm? I bet you have a lot to think about. So let me dock this ship for you now and you can then rest a little and come back when you\'re ready for more...</string>
+
+    <string name="tutorial_basic_flying_00">Good Morning kiddo, we\'ll do some real flying today, so you\'d better pay attention...</string>
+    <string name="tutorial_basic_flying_01">The horizontal bars on the radar tell you the direction in which an object is, vertical bars indicate the difference in altitude relative to your ship.</string>
+    <string name="tutorial_basic_flying_02">Too difficult for you, rookie? Let me show you:</string>
+    <string name="tutorial_basic_flying_03">See those two bars? The yellow bar is a target which is in front of you, to your left, and above you.</string>
+    <string name="tutorial_basic_flying_04">The blue bar is a target behind you, on your right, and below you.</string>
+    <string name="tutorial_basic_flying_05">But wait, there\'s more. Did you notice the small radar to the right and above your main radar?</string>
+    <string name="tutorial_basic_flying_06">Inside the safe zone, the small radar shows the position of the space station.</string>
+    <string name="tutorial_basic_flying_07">If the dot in the radar is red, the station is in front of you, if it is green, it is behind you.</string>
+    <string name="tutorial_basic_flying_08">Outside the safe zone, the dot represents the planet: Red means the planet is in front of you, green means, the planet is behind you.</string>
+    <string name="tutorial_basic_flying_09">But why don\'t you try to get the blue target in front of you. You will also see how the smaller radar will change.</string>
+    <string name="tutorial_basic_flying_10">I will let you control the pitch and roll of your Cobra. To control pitch, %s</string>
+    <string name="tutorial_basic_flying_10a">tilt your screen towards you to go up and away from you to go down.</string>
+    <string name="tutorial_basic_flying_10b">tap the upper part of the control pad to go down and the lower part to go up.</string>
+    <string name="tutorial_basic_flying_10c">tap the arrow pointing up to go down and the arrow pointing down to go up.</string>
+    <string name="tutorial_basic_flying_11">To control roll, %s</string>
+    <string name="tutorial_basic_flying_11a">rotate the left side of your screen away from you to roll left and rotate it towards you to roll right.</string>
+    <string name="tutorial_basic_flying_11b">tap the left part of the control pad to roll left and the right part to roll right.</string>
+    <string name="tutorial_basic_flying_11c">tap the arrow pointing left to roll left and the arrow pointing right to roll right.</string>
+    <string name="tutorial_basic_flying_12">Now, are you ready to take command of the Cobra? Try to bring the blue target into the crosshairs in front of you.</string>
+    <string name="tutorial_basic_flying_13">Not bad for a rookie. You sure took your time, you will have to master the controls in order to survive, wet-nose.</string>
+    <string name="tutorial_basic_flying_14">Why don\'t you get the yellow target in front of you?</string>
+    <string name="tutorial_basic_flying_15">Ok, I think you\'re getting the hang of this. Now, let\'s approach the yellow target, ok?</string>
+    <string name="tutorial_basic_flying_16">To increase speed, slide your finger up on the screen. To reduce speed, slide it down.</string>
+    <string name="tutorial_basic_flying_17">If you tap on the target, the computer will identify the target for you.</string>
+    <string name="tutorial_basic_flying_18">Go ahead, fly a little closer.</string>
+    <string name="tutorial_basic_flying_19">Good. That\'s close enough. Now, for a little target practice:</string>
+    <string name="tutorial_basic_flying_20">We are using simulated lasers, so don\'t worry, you cannot harm anyone.</string>
+    <string name="tutorial_basic_flying_21">Do try to destroy the target in front of you, though. It will be affected by the simulated laser. To engage the laser, press the button on the upper left.</string>
+    <string name="tutorial_basic_flying_22">Right on, Commander!</string>
+    <string name="tutorial_basic_flying_23">Now for the remaining target: Approach the blue target.</string>
+    <string name="tutorial_basic_flying_24">Ok, you\'re close enough, now tap the missile button on the left once to target the missile.</string>
+    <string name="tutorial_basic_flying_25">Get the blue target into your crosshairs, so that the missile indicator turns red.</string>
+    <string name="tutorial_basic_flying_26">And then tap the missile button again.</string>
+    <string name="tutorial_basic_flying_27">Good shooting, Commander!</string>
+    <string name="tutorial_basic_flying_28">Now let\'s return to the station, shall we?</string>
+    <string name="tutorial_basic_flying_29">Remember, the docking bay of a Space Station is always oriented towards the planet.</string>
+    <string name="tutorial_basic_flying_30">So pick a point between the planet and the station and approach the station from there.</string>
+    <string name="tutorial_basic_flying_31">Let me help you: See the new red target? Approach it.</string>
+    <string name="tutorial_basic_flying_32">Good. Now turn around so that you face the station.</string>
+    <string name="tutorial_basic_flying_33">And then dock: Keep the docking bay horizontal and approach the station carefully.</string>
+    <string name="tutorial_basic_flying_34">This will be the last thing I teach you, today. If you manage to dock successfully, you can officially call yourself \'Commander\'. Good luck, wet-nose.</string>
+
+    <string name="tutorial_advanced_flying_00">Welcome back, Commander! A fair landing you produced there. I\'m proud of you!</string>
+    <string name="tutorial_advanced_flying_01">You are now ready for more advanced controls, but we need to be out in space for those.</string>
+    <string name="tutorial_advanced_flying_02">Therefore, when you activate the hyperspace, you will reach a simulated space region a little off of Lave. Go there, now. Activate the hyperspace drive.</string>
+    <string name="tutorial_advanced_flying_03">You have now reached a space region outside Lave, you can see clearly that you are outside the safe zone.</string>
+    <string name="tutorial_advanced_flying_04">Now, in order to reach Lave station, you have to fly towards the planet. So bring the circle in the small radar to your front. Remember: The circle is red once the planet is in front of you.</string>
+    <string name="tutorial_advanced_flying_05">Good. Now accelerate to maximum speed by sliding your finger up.</string>
+    <string name="tutorial_advanced_flying_06">Ok. If you traveled at this speed, it would take forever to reach Lave, but did you notice that a new button appeared once you reached maximum speed?</string>
+    <string name="tutorial_advanced_flying_07">This is the torus drive button and it will allow you to utilize the engine boosters.</string>
+    <string name="tutorial_advanced_flying_08">It only works, however, if you are already flying with maximum speed and no other ships are in the vicinity. Try it. Activate the torus drive.</string>
+    <string name="tutorial_advanced_flying_09">Wow... That was fast, wasn\'t it? Why did we stop?</string>
+    <string name="tutorial_advanced_flying_10">Usually the torus drive is interrupted, if you are too close to the planet or the star, or an enemy ship appears waiting to get a shot at you.</string>
+    <string name="tutorial_advanced_flying_11">In this simulation, I killed the torus drive.</string>
+    <string name="tutorial_advanced_flying_12">And now, you\'re about to make a kill. An enemy ship will appear soon, and I want you to destroy it.</string>
+    <string name="tutorial_advanced_flying_13">It will attack you, but it is a relatively harmless and slow Adder. There is a slim chance, though, that it might destroy you.</string>
+    <string name="tutorial_advanced_flying_14">In that case: You pay the drinks tonight and we\'ll try again tomorrow.</string>
+    <string name="tutorial_advanced_flying_15">Ready? Good. Go!</string>
+    <string name="tutorial_advanced_flying_17">Hey not bad... You destroyed the Adder. And it released a couple of Cargo Canisters. You can see them on the radar as purple bars.</string>
+    <string name="tutorial_advanced_flying_18">Remember: If you tap on a target on your screen, it will be identified by the computer.</string>
+    <string name="tutorial_advanced_flying_19">Your simulated Cobra is equipped with a fuel scoop, so you may collect those Cargo Canisters and their contents are then added to your inventory.</string>
+    <string name="tutorial_advanced_flying_20">To successfully do that, ram a Cargo Canister with the lower part of your Cobra, where the Fuel Scoop is installed. Go ahead, now.</string>
+    <string name="tutorial_advanced_flying_22">Oh no. You have destroyed the Cargo Canister. Remember: You must touch it with the lower part of your Cobra.</string>
+    <string name="tutorial_advanced_flying_23">Excellent flying, Commander.</string>
+    <string name="tutorial_advanced_flying_24">This is all I can teach you, really. As a last training exercise, dock at Lave station. You are on your own. Good luck out there, Commander.</string>
+
+    <string name="msg_cloaking_active">Cloaking active</string>
+    <string name="msg_blue_danube_loading_error">The Blue Danube now playing in your head.</string>
+    <string name="msg_game_over">Game Over</string>
+    <string name="msg_full_cargo">Cargo hold is full.</string>
+    <string name="msg_target_lost">Target lost</string>
+    <string name="msg_altitude_low">Altitude Low</string>
+    <string name="msg_fuel_scoop_activated">Fuel Scoop Activated</string>
+    <string name="msg_mass_locked">Mass locked.</string>
+    <string name="msg_missile_locked">Missile locked on %s</string>
+
+    <string name="msg_pause_game">%s is Paused (tap screen to continue)...</string>
+    <string name="msg_pause_game_scrolling_info">%s v%s - by Philipp Bouillon and Duane McDonnell. You have played for %s, %s, and %s and you have scored %d points.</string>
+    <plurals name="game_time_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="game_time_hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="game_time_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+
+    <string name="msg_hyperspace_jump_aborted">Hyperspace jump aborted.</string>
+    <string name="msg_right_on_commander">Right On, Commander.</string>
+    <string name="msg_good_shooting_commander">Good Shooting, Commander!</string>
+    <string name="msg_ecm_jammer_active">ECM Jammer active</string>
+    <string name="msg_equipment_lost">%s lost.</string>
+
+    <string name="radar_zoom_x2">x2</string>
+    <string name="radar_zoom_x4">x4</string>
+
+    <!-- Name of space objects - temporary solution, till space objects are not pluggable -->
+    <string name="so_adder">Adder</string>
+    <string name="so_anaconda">Anaconda</string>
+    <string name="so_asp_mk_ii">Asp Mk II</string>
+    <string name="so_asteroid">Asteroid</string>
+    <string name="so_boa_class_cruiser">Boa Class Cruiser</string>
+    <string name="so_harken">Harken</string>
+    <string name="so_bushmaster">Bushmaster</string>
+    <string name="so_buoy">Buoy</string>
+    <string name="so_cargo_canister">Cargo Canister</string>
+    <string name="so_cobra_mk_i">Cobra Mk I</string>
+    <string name="so_cobra_mk_iii">Cobra Mk III</string>
+    <string name="so_constrictor">Constrictor</string>
+    <string name="so_coral">Coral</string>
+    <string name="so_coroilis_station">Coriolis Station</string>
+    <string name="so_cottonmouth">Cottonmouth</string>
+    <string name="so_cougar">Cougar</string>
+    <string name="so_dodec_station">Dodec Station</string>
+    <string name="so_dugite">Dugite</string>
+    <string name="so_escape_capsule">Escape Capsule</string>
+    <string name="so_fer_de_lance">Fer-De-Lance</string>
+    <string name="so_gecko">Gecko</string>
+    <string name="so_gopher">Gopher</string>
+    <string name="so_harlequin">Harlequin</string>
+    <string name="so_hognose">Hognose</string>
+    <string name="so_icosaeder_station">Icosaeder Station</string>
+    <string name="so_indigo">Indigo</string>
+    <string name="so_krait">Krait</string>
+    <string name="so_lancehead">Lancehead</string>
+    <string name="so_lyre">Lyre</string>
+    <string name="so_mamba">Mamba</string>
+    <string name="so_missile">Missile</string>
+    <string name="so_moray_star_boat">Moray Star Boat</string>
+    <string name="so_mussurana">Mussurana</string>
+    <string name="so_platlet">Platlet</string>
+    <string name="so_python">Python</string>
+    <string name="so_rattlesnake">Rattlesnake</string>
+    <string name="so_rolfs_cobra">Rolfs Cobra</string>
+    <string name="so_sidewinder">Sidewinder</string>
+    <string name="so_thargoid">Thargoid</string>
+    <string name="so_thargon">Thargon</string>
+    <string name="so_tie_fighter">Tie Fighter</string>
+    <string name="so_transporter">Transporter</string>
+    <string name="so_orbit_shuttle">Orbit Shuttle</string>
+    <string name="so_viper">Viper</string>
+    <string name="so_wolf_mk_ii">Wolf Mk II</string>
+    <string name="so_yellowbelly">Yellowbelly</string>
 </resources>

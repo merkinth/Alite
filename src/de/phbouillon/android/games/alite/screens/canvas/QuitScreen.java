@@ -20,10 +20,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteConfig;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.AliteStartManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 import java.io.IOException;
@@ -48,7 +45,7 @@ public class QuitScreen extends AliteScreen {
 	public void activate() {
 		mockStatusScreen.activate();
 		setUpForDisplay(game.getGraphics().getVisibleArea());
-		showModalQuestionDialog("Do you really want to quit " + AliteConfig.GAME_NAME + "?");
+		showModalQuestionDialog(L.string(R.string.quit_confirm, AliteConfig.GAME_NAME));
 	}
 
 	@Override

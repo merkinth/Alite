@@ -27,6 +27,8 @@ import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.model.statistics.WeaponType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
 
@@ -98,7 +100,7 @@ class GameOverUpdater implements IMethodHook {
 		ship.setSpeed(0);
 		state = GameOverState.MOVE;
 		inGame.addObject(cobra);
-		inGame.getMessage().setScaledTextForDuration("Game Over", 14, 4.0f);
+		inGame.getMessage().setScaledTextForDuration(L.string(R.string.msg_game_over), 14, 4.0f);
 	}
 
 	private void moveShip() {

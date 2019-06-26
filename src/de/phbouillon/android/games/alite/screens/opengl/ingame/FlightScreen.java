@@ -643,9 +643,9 @@ public class FlightScreen extends GlScreen implements Serializable {
 		oos.writeObject(this);
 	}
 
-	public AliteObject findObjectByName(String name) {
+	public AliteObject findObjectById(String id) {
 		for (AliteObject ao: allObjects) {
-			if (name.equals(ao.getName())) {
+			if (id.equals(ao.getId())) {
 				return ao;
 			}
 		}

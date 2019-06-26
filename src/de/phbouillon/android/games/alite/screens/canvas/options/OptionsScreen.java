@@ -82,30 +82,26 @@ public class OptionsScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		L.loadLocaleList(game.getFileIO(), Settings.localeFileName);
-		createForm();
-	}
+		gameplayOptions = createSmallButton(0, true, L.string(R.string.title_gameplay_options));
+		displayOptions  = createSmallButton(0, false, L.string(R.string.title_display_options));
+		audioOptions    = createSmallButton(1, true, L.string(R.string.title_audio_options));
+		controlOptions  = createSmallButton(1, false, L.string(R.string.title_control_options));
 
-	private void createForm() {
-		gameplayOptions = createSmallButton(0, true, "Gameplay Options");
-		displayOptions  = createSmallButton(0, false, "Display Options");
-		audioOptions    = createSmallButton(1, true, "Audio Options");
-		controlOptions  = createSmallButton(1, false, "Control Options");
-
-		String languageText = "Language: " + L.currentLocale.getDisplayLanguage(L.currentLocale);
-		languages = createSmallButton(2, true, languageText);
+		languages = createSmallButton(2, true, L.string(R.string.options_main_language, L.currentLocale.getDisplayLanguage(L.currentLocale)));
 		addPixmapAfterText(languages, getCountryFlag(L.currentLocale.getCountry()));
 
 		int count = new PluginModel(game.getFileIO(),
 			PluginsScreen.DIRECTORY_PLUGINS + PluginsScreen.PLUGINS_META_FILE).countNewAndUpgraded();
-		extensionPacks = createSmallButton(2, false, "Extensions");
+		extensionPacks = createSmallButton(2, false, L.string(R.string.title_plugins));
 		if (count > 0) {
 			addPixmapAfterText(extensionPacks, getNewAndUpgradedMarker(count));
 		}
 
-		resetGame       = createButton(4, "Reset Game");
-		about           = createButton(5, "About")
+		resetGame = createButton(4, L.string(R.string.options_main_reset_game));
+		about = createButton(5, L.string(R.string.options_main_about))
 			.setVisible(!(game.getCurrentScreen() instanceof FlightScreen));
-		debug           = createButton(6, SHOW_DEBUG_MENU ? "Debug Menu" : "Log to file: " + (Settings.logToFile ? "Yes" : "No"));
+		debug = createButton(6, SHOW_DEBUG_MENU ? L.string(R.string.title_debug_menu) :
+			L.string(R.string.debug_settings_log_to_file, L.string(Settings.logToFile ? R.string.options_yes : R.string.options_no)));
 	}
 
 	private Pixmap getCountryFlag(String countryCode) {
@@ -157,7 +153,7 @@ public class OptionsScreen extends AliteScreen {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 
-		displayTitle("Options");
+		displayTitle(L.string(R.string.title_options));
 		gameplayOptions.render(g);
 		displayOptions.render(g);
 		audioOptions.render(g);
@@ -212,14 +208,12 @@ public class OptionsScreen extends AliteScreen {
 		}
 		if (languages.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-
 			Settings.localeFileName = L.getNextLocale();
 			L.setLocale(game, Settings.DEFAULT_LOCALE_FILE.equals(Settings.localeFileName) ? Settings.localeFileName :
 				game.getFileIO().getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
 			game.changeLocale();
-			// it is required to pass the new fonts to the buttons
-			createForm();
 			Settings.save(game.getFileIO());
+			newScreen = new OptionsScreen(game);
 			return;
 		}
 		if (extensionPacks.isTouched(touch.x, touch.y)) {
@@ -229,7 +223,7 @@ public class OptionsScreen extends AliteScreen {
 		}
 		if (resetGame.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			showQuestionDialog("Are you sure?");
+			showQuestionDialog(L.string(R.string.options_main_reset_game_confirm));
 			confirmReset = true;
 			return;
 		}
@@ -244,7 +238,8 @@ public class OptionsScreen extends AliteScreen {
 				newScreen = new DebugSettingsScreen(game);
 			} else {
 				Settings.logToFile = !Settings.logToFile;
-				debug.setText("Log to file: " + (Settings.logToFile ? "Yes" : "No"));
+				debug.setText(L.string(R.string.debug_settings_log_to_file,
+					L.string(Settings.logToFile ? R.string.options_yes : R.string.options_no)));
 				Settings.save(game.getFileIO());
 			}
 		}

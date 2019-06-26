@@ -167,7 +167,7 @@ public class GLText {
 		charHeight = 0; // Reset Character Width/Height Maximums
 		float[] w = new float[2]; // Working Width Value
 		int cnt = 0; // Array Counter
-		for (String charRange : L.stringArray(R.array.char_sets)) {
+		for (String charRange : L.array(R.array.char_sets)) {
 			for (char c = charRange.charAt(0); c <= charRange.charAt(3); c++) { // FOR Each Character
 				paint.getTextWidths("" + c, 0, 1, w); // Get Character Bounds
 				charWidths[cnt] = w[0]; // Get Width
@@ -205,7 +205,7 @@ public class GLText {
 		float y = 0;// Set Start Position (Y)
 		float yShift = (cellHeight - 1) - fontDescent - fontPadY;
 		cnt = 0;
-		for (String charRange : L.stringArray(R.array.char_sets)) {
+		for (String charRange : L.array(R.array.char_sets)) {
 			for (char c = charRange.charAt(0); c <= charRange.charAt(3); c++) { // FOR Each Character
 				canvas.drawText("" + c, x + fontPadX, y + yShift, paint); // Draw Character
 				charData[cnt] = new CharacterData((int)charWidths[cnt], (int)charHeight, textureWidth, textureHeight,
@@ -281,7 +281,7 @@ public class GLText {
 
 	private int getCharCount() {
 		int count = 0;
-		for (String charRange : L.stringArray(R.array.char_sets)) {
+		for (String charRange : L.array(R.array.char_sets)) {
 			count += charRange.charAt(3) - charRange.charAt(0) + 1;
 		}
 		return count;
@@ -289,7 +289,7 @@ public class GLText {
 
 	private int getCharIndex(char c) {
 		int index = 0;
-		for (String charRange : L.stringArray(R.array.char_sets)) {
+		for (String charRange : L.array(R.array.char_sets)) {
 			if (c >= charRange.charAt(0) && c <= charRange.charAt(3)) {
 				return index + c - charRange.charAt(0);
 			}

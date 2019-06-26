@@ -24,11 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.CommanderData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -46,14 +42,14 @@ public class LoadScreen extends CatalogScreen {
 		super.activate();
 		deleteButton = null;
 		if (pendingShowMessage) {
-			showQuestionDialog("Are you sure you want to load Commander " + selectedCommanderData.get(0).getName() + "?");
+			showQuestionDialog(L.string(R.string.cmdr_load_confirm, selectedCommanderData.get(0).getName()));
 			confirmDelete = false;
 			pendingShowMessage = false;
 		}
 	}
 
 	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		LoadScreen ls = new LoadScreen(alite, "Load Commander");
+		LoadScreen ls = new LoadScreen(alite, L.string(R.string.title_cmdr_load));
 		try {
 			ls.currentPage = dis.readInt();
 			ls.confirmDelete = dis.readBoolean();
@@ -98,7 +94,7 @@ public class LoadScreen extends CatalogScreen {
 		}
 		if (selectedCommanderData.size() == 1) {
 			if (messageResult == RESULT_NONE) {
-				showQuestionDialog("Are you sure you want to load Commander " + selectedCommanderData.get(0).getName() + "?");
+				showQuestionDialog(L.string(R.string.cmdr_load_confirm, selectedCommanderData.get(0).getName()));
 				confirmDelete = false;
 				SoundManager.play(Assets.alert);
 				return;
@@ -106,11 +102,11 @@ public class LoadScreen extends CatalogScreen {
 			if (messageResult == RESULT_YES) {
 				try {
 					game.loadCommander(selectedCommanderData.get(0).getFileName());
-					showMessageDialog("Cursor reset to " + selectedCommanderData.get(0).getDockedSystem() + ".");
+					showMessageDialog(L.string(R.string.cmdr_load_succeeded, selectedCommanderData.get(0).getDockedSystem()));
 					SoundManager.play(Assets.alert);
 					confirmedLoad = true;
 				} catch (IOException e) {
-					showMessageDialog("Error while loading commander " + selectedCommanderData.get(0).getName() + ": " + e.getMessage());
+					showMessageDialog(L.string(R.string.cmdr_load_failed, selectedCommanderData.get(0).getName(), e.getMessage()));
 				}
 			}
 			clearSelection();

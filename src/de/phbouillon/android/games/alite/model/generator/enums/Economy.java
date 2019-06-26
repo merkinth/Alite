@@ -18,36 +18,42 @@ package de.phbouillon.android.games.alite.model.generator.enums;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 public enum Economy {
-	RICH_INDUSTRIAL("Rich Industrial", ColorScheme.COLOR_RICH_INDUSTRIAL),
-	AVERAGE_INDUSTRIAL("Average Industrial", ColorScheme.COLOR_AVERAGE_INDUSTRIAL),
-	POOR_INDUSTRIAL("Poor Industrial", ColorScheme.COLOR_POOR_INDUSTRIAL),
-	MAINLY_INDUSTRIAL("Mainly Industrial", ColorScheme.COLOR_MAIN_INDUSTRIAL),
-	MAINLY_AGRICULTURAL("Mainly Agricultural", ColorScheme.COLOR_MAIN_AGRICULTURAL),
-	RICH_AGRICULTURAL("Rich Agricultural", ColorScheme.COLOR_RICH_AGRICULTURAL),
-	AVERAGE_AGRICULTURAL("Average Agricultural", ColorScheme.COLOR_AVERAGE_AGRICULTURAL),
-	POOR_AGRICULTURAL("Poor Agricultural", ColorScheme.COLOR_POOR_AGRICULTURAL);
+	RICH_INDUSTRIAL(ColorScheme.COLOR_RICH_INDUSTRIAL),
+	AVERAGE_INDUSTRIAL(ColorScheme.COLOR_AVERAGE_INDUSTRIAL),
+	POOR_INDUSTRIAL(ColorScheme.COLOR_POOR_INDUSTRIAL),
+	MAINLY_INDUSTRIAL(ColorScheme.COLOR_MAIN_INDUSTRIAL),
+	MAINLY_AGRICULTURAL(ColorScheme.COLOR_MAIN_AGRICULTURAL),
+	RICH_AGRICULTURAL(ColorScheme.COLOR_RICH_AGRICULTURAL),
+	AVERAGE_AGRICULTURAL(ColorScheme.COLOR_AVERAGE_AGRICULTURAL),
+	POOR_AGRICULTURAL(ColorScheme.COLOR_POOR_AGRICULTURAL);
 
-	private String description;
 	private int colorIndex;
 
-	Economy(String desc, int colorIndex) {
-		this.description = desc;
+	Economy(int colorIndex) {
 		this.colorIndex = colorIndex;
 	}
 
 	public String getDescription() {
-		return description;
+		switch (this) {
+			case RICH_INDUSTRIAL: return L.string(R.string.economy_rich_industrial);
+			case AVERAGE_INDUSTRIAL: return L.string(R.string.economy_average_industrial);
+			case POOR_INDUSTRIAL: return L.string(R.string.economy_poor_industrial);
+			case MAINLY_INDUSTRIAL: return L.string(R.string.economy_mainly_industrial);
+			case MAINLY_AGRICULTURAL: return L.string(R.string.economy_mainly_agricultural);
+			case RICH_AGRICULTURAL: return L.string(R.string.economy_rich_agricultural);
+			case AVERAGE_AGRICULTURAL: return L.string(R.string.economy_average_agricultural);
+			case POOR_AGRICULTURAL: return L.string(R.string.economy_poor_agriculturall);
+		}
+		return "";
 	}
 
 	public int getColor() {
 		return ColorScheme.get(colorIndex);
-	}
-
-	public String toString() {
-		return description;
 	}
 
 }

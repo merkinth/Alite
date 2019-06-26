@@ -1,8 +1,8 @@
-package de.phbouillon.android.games.alite.model.trading;
+package de.phbouillon.android.games.alite.model;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,17 +18,30 @@ package de.phbouillon.android.games.alite.model.trading;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
+
 public enum Unit {
-	TON,
-	KILOGRAM,
-	GRAM;
-	
+	TONNE(1000000),
+	KILOGRAM(1000),
+	GRAM(1);
+
+	private int value;
+
+	Unit(int value) {
+		this.value = value;
+	}
+
 	public String toUnitString() {
 		switch (this) {
-			case TON: return "t";
-			case KILOGRAM: return "kg";
-			case GRAM: return "g";
+			case TONNE: return L.string(R.string.unit_tonne);
+			case KILOGRAM: return L.string(R.string.unit_kilogram);
+			case GRAM: return L.string(R.string.unit_gram);
 		}
 		return "";
+	}
+
+	public int getValue() {
+		return value;
 	}
 }

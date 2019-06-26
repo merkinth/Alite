@@ -63,7 +63,7 @@ public class OnScreenDebug {
 	}
 
 	public static void debugHitArea(final Alite alite, final SpaceObject enemy, float scaleFactor) {
-		alite.getGraphics().drawText("Hit area of " + enemy.getName() + ": " +
+		alite.getGraphics().drawText("Hit area of " + enemy.getId() + ": " +
 		String.format("%3.2f", (scaleFactor * 100.0f)) + "%", 960, 50, Color.WHITE, Assets.regularFont, 1.0f);
 	}
 
@@ -72,7 +72,7 @@ public class OnScreenDebug {
 		for (DepthBucket depthBucket: sortedObjectsToDraw) {
 			String objectsString = "";
 			for (AliteObject o: depthBucket.sortedObjects) {
-				objectsString += o.getName() + ", ";
+				objectsString += o.getId() + ", ";
 			}
 			String debugString = "Bucket " + depthBucketIndex + ": " + String.format("%7.2f", depthBucket.near) + ", " +
 				String.format("%7.2f", depthBucket.far) + ": " + objectsString;

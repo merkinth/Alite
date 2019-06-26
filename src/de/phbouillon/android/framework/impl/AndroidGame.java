@@ -201,7 +201,7 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		if (screen == null) {
 			throw new IllegalArgumentException("Screen must not be null");
 		}
-
+		System.out.println("setScreen: " + screen);
 		this.screen.pause();
 		textureManager.clear();
 

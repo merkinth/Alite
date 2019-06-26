@@ -23,11 +23,7 @@ import java.io.DataInputStream;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -43,7 +39,7 @@ public class DiskScreen extends AliteScreen {
 	private static Pixmap catalogIcon;
 
 	private Button[] button = new Button[3];
-	private final String[] text = new String[] {"Load", "Save", "Catalog"};
+	private final String[] text = new String[] {L.string(R.string.disk_menu_load), L.string(R.string.disk_menu_save), L.string(R.string.title_catalog)};
 
 	// public constructor(Alite) is required for navigation bar
 	public DiskScreen(Alite game) {
@@ -66,14 +62,15 @@ public class DiskScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Disk Menu");
+		displayTitle(L.string(R.string.title_disk_menu));
 
 		int index = 0;
 		for (Button b: button) {
 			if (b != null) {
 				b.render(g);
 				int halfWidth = g.getTextWidth(text[index], Assets.regularFont) >> 1;
-				g.drawText(text[index], b.getX() + (b.getWidth() >> 1) - halfWidth, b.getY() + b.getHeight() + 35, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
+				g.drawText(text[index], b.getX() + (b.getWidth() >> 1) - halfWidth, b.getY() + b.getHeight() + 35,
+					ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
 			}
 			index++;
 		}
@@ -84,15 +81,15 @@ public class DiskScreen extends AliteScreen {
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (button[0].isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new LoadScreen(game, "Load Commander");
+				newScreen = new LoadScreen(game, L.string(R.string.title_cmdr_load));
 			}
 			if (button[1].isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new SaveScreen(game, "Save Commander");
+				newScreen = new SaveScreen(game, L.string(R.string.title_cmdr_save));
 			}
 			if (button[2].isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new CatalogScreen(game, "Catalog");
+				newScreen = new CatalogScreen(game, L.string(R.string.title_catalog));
 			}
 		}
 	}

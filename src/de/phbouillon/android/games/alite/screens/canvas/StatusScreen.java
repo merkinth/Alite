@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 import java.io.DataInputStream;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Intent;
@@ -34,6 +33,7 @@ import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.screens.canvas.options.ControlOptionsScreen;
@@ -75,8 +75,7 @@ public class StatusScreen extends AliteScreen {
 			Player player = game.getPlayer();
 			if (game.getGenerator().getCurrentGalaxyFromSeed() == 1) {
 				if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == 7) {
-					showModalQuestionDialog("You seem to be new to " + AliteConfig.GAME_NAME +
-						", Commander. Would you like to visit the Training Academy now?");
+					showModalQuestionDialog(L.string(R.string.intro_new_player, AliteConfig.GAME_NAME));
 					requireAnswer = true;
 					Settings.hasBeenPlayedBefore = true;
 					Settings.save(game.getFileIO());
@@ -88,36 +87,37 @@ public class StatusScreen extends AliteScreen {
 	private void drawInformation(final Graphics g) {
 		Player player = game.getPlayer();
 
-		g.drawText("Present System:",    40, 150, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText("Hyperspace:",        40, 190, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText("Condition:",         40, 230, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText("Legal Status:",      40, 270, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText("Rating:",            40, 310, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText("Fuel:",              40, 350, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText("Cash:",              40, 390, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_present_system), 40, 150, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_hyperspace),     40, 190, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_condition),      40, 230, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_legal_status),   40, 270, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_rating),         40, 310, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_fuel),           40, 350, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_cash),           40, 390, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		if (!player.getActiveMissions().isEmpty()) {
-			g.drawText("Mission Objective:", 750, 150, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+			g.drawText(L.string(R.string.status_mission_objective), 750, 150, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		}
 
 		if (player.getCurrentSystem() != null) {
-			g.drawText(player.getCurrentSystem().getName(),    400, 150, ColorScheme.get(ColorScheme.COLOR_CURRENT_SYSTEM_NAME), Assets.regularFont);
+			g.drawText(player.getCurrentSystem().getName(), 400, 150, ColorScheme.get(ColorScheme.COLOR_CURRENT_SYSTEM_NAME), Assets.regularFont);
 		}
 		if (player.getHyperspaceSystem() != null) {
 			g.drawText(player.getHyperspaceSystem().getName(), 400, 190, ColorScheme.get(ColorScheme.COLOR_HYPERSPACE_SYSTEM_NAME), Assets.regularFont);
 		}
-		g.drawText(player.getCondition().getName(),        400, 230, player.getCondition().getColor(),  Assets.regularFont);
-		g.drawText(player.getLegalStatus().getName(),      400, 270, ColorScheme.get(ColorScheme.COLOR_LEGAL_STATUS),  Assets.regularFont);
-		g.drawText(player.getRating().getName() + "  (Score:  " + player.getScore() + ")", 400, 310, ColorScheme.get(ColorScheme.COLOR_RATING), Assets.regularFont);
-		g.drawText(String.format("%d.%d Light Years", player.getCobra().getFuel() / 10, player.getCobra().getFuel() % 10), 400, 350,
+		g.drawText(player.getCondition().getName(), 400, 230, player.getCondition().getColor(),  Assets.regularFont);
+		g.drawText(player.getLegalStatus().getName(), 400, 270, ColorScheme.get(ColorScheme.COLOR_LEGAL_STATUS),  Assets.regularFont);
+		g.drawText(player.getRating().getName() + L.string(R.string.status_score, player.getScore()),
+			400, 310, ColorScheme.get(ColorScheme.COLOR_RATING), Assets.regularFont);
+		g.drawText(L.getOneDecimalFormatString(R.string.status_fuel_value, player.getCobra().getFuel()), 400, 350,
 			ColorScheme.get(ColorScheme.COLOR_REMAINING_FUEL), Assets.regularFont);
-		g.drawText(String.format("%d.%d Credits", player.getCash() / 10, player.getCash() % 10), 400, 390,
+		g.drawText(L.getOneDecimalFormatString(R.string.cash_amount_value_currency, player.getCash()), 400, 390,
 				ColorScheme.get(ColorScheme.COLOR_BALANCE), Assets.regularFont);
 		if (!player.getActiveMissions().isEmpty()) {
 			g.drawText(player.getActiveMissions().get(0).getObjective(), 1110, 150,
 					ColorScheme.get(ColorScheme.COLOR_MISSION_OBJECTIVE), Assets.regularFont);
 		}
 		if (!(game.getCurrentScreen() instanceof FlightScreen)) {
-			g.drawText("Visit " + AliteConfig.ALITE_WEBSITE, 50, 1050,
+			g.drawText(L.string(R.string.status_visit_web_page, AliteConfig.ALITE_WEBSITE), 50, 1050,
 				ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
 		}
 	}
@@ -176,7 +176,7 @@ public class StatusScreen extends AliteScreen {
 			counter++;
 		}
 		if (missileCount > 0) {
-			g.drawText("Missiles x " + missileCount, SHIP_X + 980, SHIP_Y + 170,
+			g.drawText(L.string(R.string.status_missiles_count, missileCount), SHIP_X + 980, SHIP_Y + 170,
 				ColorScheme.get(ColorScheme.COLOR_EQUIPMENT_DESCRIPTION), Assets.smallFont);
 			g.drawLine(SHIP_X + 960, beginY + 18, SHIP_X + 930, beginY + 18, ColorScheme.get(ColorScheme.COLOR_ARROW));
 		}
@@ -195,13 +195,13 @@ public class StatusScreen extends AliteScreen {
 		diffInSeconds -= diffInHours * 3600;
 		int diffInMinutes = (int) (diffInSeconds / 60);
 		diffInSeconds -= diffInMinutes * 60;
-		return String.format(Locale.getDefault(), "%02d:%02d:%02d:%02d", diffInDays, diffInHours, diffInMinutes, diffInSeconds);
+		return String.format(L.currentLocale, "%02d:%02d:%02d:%02d", diffInDays, diffInHours, diffInMinutes, diffInSeconds);
 	}
 
 	private void drawGameTime(final Graphics g) {
 		g.drawRect(SHIP_X + 800, SHIP_Y + 570, 300, 100, ColorScheme.get(ColorScheme.COLOR_MESSAGE));
-		int halfWidth = g.getTextWidth("Game Time:", Assets.regularFont) >> 1;
-		g.drawText("Game Time:", SHIP_X + 800 + 150 - halfWidth, SHIP_Y + 610, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
+		int halfWidth = g.getTextWidth(L.string(R.string.status_game_time), Assets.regularFont) >> 1;
+		g.drawText(L.string(R.string.status_game_time), SHIP_X + 800 + 150 - halfWidth, SHIP_Y + 610, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 		String text = getGameTime(game.getGameTime());
 		halfWidth = g.getTextWidth(text, Assets.regularFont) >> 1;
 		g.drawText(text, SHIP_X + 800 + 150 - halfWidth, SHIP_Y + 650, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
@@ -233,8 +233,7 @@ public class StatusScreen extends AliteScreen {
 			if (messageResult == RESULT_YES) {
 				newScreen = new ControlOptionsScreen(game, !pendingShowControlOptions);
 			} else if (!pendingShowControlOptions) {
-				showLargeModalQuestionDialog("If you want to visit the Academy later, you can find it at the bottom of the Command Console. " +
-					"Before you launch, it might be a good idea to review your Control Settings. Would you like to do so, now?");
+				showLargeModalQuestionDialog(L.string(R.string.intro_new_player_info));
 				requireAnswer = true;
 				pendingShowControlOptions = true;
 			}
@@ -247,7 +246,7 @@ public class StatusScreen extends AliteScreen {
 		Graphics g = game.getGraphics();
 		Player player = game.getPlayer();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Commander " + player.getName());
+		displayTitle(L.string(R.string.title_status, StringUtil.toUpperFirstCase(player.getName())));
 		if (cobra == null) {
 		  loadAssets();
 		} else {

@@ -23,9 +23,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.ScreenCodes;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.screens.canvas.EquipmentScreen;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
@@ -50,15 +48,14 @@ public class TutEquipment extends TutorialScreen {
 	}
 
 	private void initLine_00() {
-		addLine(3, "Back so soon? Ok, I'll make this lesson brief and " +
-				"simple. Consider it a favor, especially for you.").setY(700);
+		addLine(3, L.string(R.string.tutorial_equipment_00)).setY(700);
 
 		status = new StatusScreen(game);
 	}
 
 	private void initLine_01() {
 		final TutorialLine line =
-				addLine(3,  "Go to the Equipment screen now.").setY(700);
+				addLine(3,  L.string(R.string.tutorial_equipment_01)).setY(700);
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
@@ -82,7 +79,7 @@ public class TutEquipment extends TutorialScreen {
 	}
 
 	private void initLine_02() {
-		final TutorialLine line = addLine(3, "No, I said \"Equipment\" screen.").setY(700);
+		final TutorialLine line = addLine(3, L.string(R.string.tutorial_equipment_02)).setY(700);
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
@@ -97,13 +94,7 @@ public class TutEquipment extends TutorialScreen {
 	}
 
 	private void initLine_03() {
-		final TutorialLine line = addLine(3,
-				"Yes, here we are. This one works just as the buy screen: " +
-				"Tap an item once to get information about the item and " +
-				"tap it again to install it on your ship -- provided of " +
-				"course you have enough credits. I have drained your " +
-				"hyperspace fuel as a training exercise, so go ahead. Buy " +
-                "some fuel.").setY(700).addHighlight(makeHighlight(150, 100, 225, 225));
+		final TutorialLine line = addLine(3, L.string(R.string.tutorial_equipment_03)).setY(700).addHighlight(makeHighlight(150, 100, 225, 225));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			equip.processAllTouches();
@@ -117,10 +108,8 @@ public class TutEquipment extends TutorialScreen {
 	}
 
 	private void initLine_04() {
-		final TutorialLine line = addLine(3,
-				"Fuel, nugget. Fuel! That's the upper left icon. Tap it " +
-				"twice. Is it really that hard for you?").setY(700).
-					addHighlight(makeHighlight(150, 100, 225, 225));
+		final TutorialLine line = addLine(3, L.string(R.string.tutorial_equipment_04)).setY(700).
+			addHighlight(makeHighlight(150, 100, 225, 225));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			equip.processAllTouches();
@@ -135,11 +124,7 @@ public class TutEquipment extends TutorialScreen {
 	}
 
 	private void initLine_05() {
-		addLine(3, "Wow. I'm impressed. You have now refueled your ship. " +
-				"Well done! You can tap on the other icons if you must, " +
-				"but come back tomorrow for another training session. " +
-				"Today, I am busy. I need to go to that amazing -- um " +
-				"-- shipyard. Now.").setY(700).setPause(5000);
+		addLine(3, L.string(R.string.tutorial_equipment_05)).setY(700).setPause(5000);
 	}
 
 	@Override

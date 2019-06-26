@@ -22,11 +22,7 @@ import java.io.DataInputStream;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 
@@ -51,13 +47,13 @@ public class TutorialSelectionScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		introduction   = createButton(0, "Introduction");
-		trading        = createButton(1, "Trading");
-		equipment      = createButton(2, "Equipment");
-		navigation     = createButton(3, "Navigation");
-		hud            = createButton(4, "HUD");
-		basicFlying    = createButton(5, "Basic Flying");
-		advancedFlying = createButton(6, "Advanced Flying");
+		introduction   = createButton(0, L.string(R.string.tutorial_selection_introduction));
+		trading        = createButton(1, L.string(R.string.tutorial_selection_trading));
+		equipment      = createButton(2, L.string(R.string.tutorial_selection_equipment));
+		navigation     = createButton(3, L.string(R.string.tutorial_selection_navigation));
+		hud            = createButton(4, L.string(R.string.tutorial_selection_hud));
+		basicFlying    = createButton(5, L.string(R.string.tutorial_selection_basic_flying));
+		advancedFlying = createButton(6, L.string(R.string.tutorial_selection_advanced_flying));
 	}
 
 	@Override
@@ -65,7 +61,7 @@ public class TutorialSelectionScreen extends AliteScreen {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 
-		displayTitle("Training Academy");
+		displayTitle(L.string(R.string.title_training_academy));
 		introduction.render(g);
 		trading.render(g);
 		equipment.render(g);

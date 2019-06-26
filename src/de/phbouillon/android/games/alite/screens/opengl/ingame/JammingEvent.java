@@ -18,12 +18,15 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
+
 class JammingEvent extends TimedEvent {
 	private static final long serialVersionUID = 6781370287851521876L;
 
 	JammingEvent(InGameManager inGame) {
 		super(359281437L);
-		inGame.getMessage().repeatText("ECM Jammer active", 3);
+		inGame.getMessage().repeatText(L.string(R.string.msg_ecm_jammer_active), 3);
 		addAlarmEvent(deltaTime -> inGame.reduceShipEnergy(1));
 	}
 

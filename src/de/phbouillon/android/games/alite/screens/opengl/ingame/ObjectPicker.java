@@ -122,7 +122,7 @@ class ObjectPicker implements Serializable {
 					if (d > 0) {
 						d += radius;
 						if (d < minD) {
-							AliteLog.d("Picking", "Object " + object.getName() + " identified at " + d + " - BSR: " + radius);
+							AliteLog.d("Picking", "Object " + object.getId() + " identified at " + d + " - BSR: " + radius);
 							minD = d;
 							identifiedObject = (SpaceObject) object;
 						}

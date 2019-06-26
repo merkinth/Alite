@@ -23,12 +23,7 @@ import java.io.DataInputStream;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.PluginManager;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -51,61 +46,61 @@ public class GameplayOptionsScreen extends OptionsScreen {
 		dockingSpeed      = createButton(3, getDockingComputerButtonText());
 		laserAutoFire     = createButton(4, getLaserButtonText());
 		extensionUpdateMode = createButton(5, getExtensionUpdateModeButtonText());
-		back              = createButton(6, "Back");
+		back              = createButton(6, L.string(R.string.options_back));
 	}
 
 	private String getLaserButtonText() {
-		return "Laser: " + (Settings.laserButtonAutoFire ? "Auto Fire" : "Single Shot");
+		return L.string(R.string.options_gameplay_laser, L.string(Settings.laserButtonAutoFire ? R.string.options_gameplay_laser_auto_fire : R.string.options_gameplay_laser_single_shot));
 	}
 
 	private String getDockingComputerButtonText() {
-		return "Docking Computer: " + (Settings.dockingComputerSpeed == 0 ? "Normal Speed" :
-			Settings.dockingComputerSpeed == 1 ? "Time Drive Speed" : "Dock immediate");
+		return L.string(R.string.options_gameplay_docking_speed, L.string(Settings.dockingComputerSpeed == 0 ? R.string.options_gameplay_docking_normal_speed :
+			Settings.dockingComputerSpeed == 1 ? R.string.options_gameplay_docking_time_drive_speed  : R.string.options_gameplay_docking_dock_immediate));
 	}
 
 	private String getAutoIdButtonText() {
-		return "Auto Id: " + (Settings.autoId ? "On" : "Off");
+		return L.string(R.string.options_gameplay_auto_id, L.string(Settings.autoId ? R.string.options_on : R.string.options_off));
 	}
 
 	private String getExtensionUpdateModeButtonText() {
-		return "Extension update mode: " + getExtensionUpdateModeString();
+		return L.string(R.string.options_gameplay_extension_update_mode, L.string(getExtensionUpdateModeString()));
 	}
 
-	private String getExtensionUpdateModeString() {
+	private int getExtensionUpdateModeString() {
 		switch (Settings.extensionUpdateMode) {
-			case PluginManager.UPDATE_MODE_NO_UPDATE: return "No update";
-			case PluginManager.UPDATE_MODE_CHECK_FOR_UPDATES_ONLY: return "Check for updates only";
-			case PluginManager.UPDATE_MODE_AUTO_UPDATE_AT_ANY_TIME: return "Auto-update at any time";
+			case PluginManager.UPDATE_MODE_NO_UPDATE: return R.string.options_gameplay_extension_update_mode_no_update;
+			case PluginManager.UPDATE_MODE_CHECK_FOR_UPDATES_ONLY: return R.string.options_gameplay_extension_update_mode_check_for_updates_only;
+			case PluginManager.UPDATE_MODE_AUTO_UPDATE_AT_ANY_TIME: return R.string.options_gameplay_extension_update_mode_auto_update_at_any_time;
 		}
-		return "Auto-update over Wi-Fi only";
+		return R.string.options_gameplay_extension_update_mode_auto_update_over_wifi_only;
 	}
 
 	private String getDifficultyButtonText() {
-		return "Difficulty Level: " + getDifficultyString();
+		return L.string(R.string.options_gameplay_difficulty_level, L.string(getDifficultyString()));
 	}
 
-	private String getDifficultyString() {
+	private int getDifficultyString() {
 		switch (Settings.difficultyLevel) {
-			case 0: return "Sedate";
-			case 1: return "Very easy";
-			case 2: return "Easy";
-			case 3: return "Normal";
-			case 4: return "Hard";
-			case 5: return "Extremely Hard";
+			case 0: return R.string.options_gameplay_difficulty_sedate;
+			case 1: return R.string.options_gameplay_difficulty_very_easy;
+			case 2: return R.string.options_gameplay_difficulty_easy;
+			case 3: return R.string.options_gameplay_difficulty_normal;
+			case 4: return R.string.options_gameplay_difficulty_hard;
+			case 5: return R.string.options_gameplay_difficulty_extremely_hard;
 		}
-		return "Normal";
+		return R.string.options_gameplay_difficulty_normal;
 	}
 
-	private String getDifficultyDescription() {
+	private int getDifficultyDescription() {
 		switch (Settings.difficultyLevel) {
-			case 0: return "No enemies at all. Only Vipers attack if your legal status requires it.";
-			case 1: return "Very few enemies. At most 2 at a time. No Thargoids.";
-			case 2: return "Few enemies. At most 3 at a time. Thargoids are rare.";
-			case 3: return "Normal number of enemies. At most 4 at a time. Some Thargoids.";
-			case 4: return "Enemies appear frequently. At most 6 at a time. Thargoids are abundant.";
-			case 5: return "Armageddon. Be warned: Frustration level is extremely high.";
+			case 0: return R.string.options_gameplay_difficulty_sedate_desc;
+			case 1: return R.string.options_gameplay_difficulty_very_easy_desc;
+			case 2: return R.string.options_gameplay_difficulty_easy_desc;
+			case 3: return R.string.options_gameplay_difficulty_normal_desc;
+			case 4: return R.string.options_gameplay_difficulty_hard_desc;
+			case 5: return R.string.options_gameplay_difficulty_extremely_hard_desc;
 		}
-		return "";
+		return R.string.options_gameplay_difficulty_normal_desc;
 	}
 
 	@Override
@@ -113,10 +108,9 @@ public class GameplayOptionsScreen extends OptionsScreen {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 
-		displayTitle("Gameplay Options");
+		displayTitle(L.string(R.string.title_gameplay_options));
 		difficultyLevel.render(g);
-		String text = getDifficultyDescription();
-		centerText(text, 315, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+		centerText(L.string(getDifficultyDescription()), 315, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		autoId.render(g);
 		dockingSpeed.render(g);
 		laserAutoFire.render(g);

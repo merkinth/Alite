@@ -18,37 +18,58 @@ package de.phbouillon.android.games.alite.model.generator;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
+
 class InhabitantComputation {
-	private static final String [] DESCRIPTION = {
-		"Large", "Fierce", "Small"
-	};
-
-	private static final String [] COLOR = {
-		"Green", "Red", "Yellow", "Blue", "White", "Harmless"
-	};
-
-	private static final String [] APPEARANCE = {
-		"Slimy", "Bug-eyed", "Horned", "Bony", "Fat", "Furry", "Mutant", "Weird"
-	};
-
-	private static final String [] TYPE = {
-		"Rodent", "Frog", "Lizard", "Lobster", "Bird", "Humanoid", "Feline", "Insect"
-	};
 
 	private static String getDescription(int index) {
-		return index < DESCRIPTION.length ? DESCRIPTION[index] : "";
+		switch (index) {
+			case 0: return L.string(R.string.inhabitant_desc_large);
+			case 1: return L.string(R.string.inhabitant_desc_fierce);
+			case 2: return L.string(R.string.inhabitant_desc_small);
+		}
+		return "";
 	}
 
 	private static String getColor(int index) {
-		return index < COLOR.length ? COLOR[index] : "";
+		switch (index) {
+			case 0: return L.string(R.string.inhabitant_color_green);
+			case 1: return L.string(R.string.inhabitant_color_red);
+			case 2: return L.string(R.string.inhabitant_color_yellow);
+			case 3: return L.string(R.string.inhabitant_color_blue);
+			case 4: return L.string(R.string.inhabitant_color_white);
+			case 5: return L.string(R.string.inhabitant_color_harmless);
+		}
+		return "";
 	}
 
 	private static String getAppearance(int index) {
-		return index < APPEARANCE.length ? APPEARANCE[index] : "";
+		switch (index) {
+			case 0: return L.string(R.string.inhabitant_appearance_slimy);
+			case 1: return L.string(R.string.inhabitant_appearance_bug_eyed);
+			case 2: return L.string(R.string.inhabitant_appearance_horned);
+			case 3: return L.string(R.string.inhabitant_appearance_bony);
+			case 4: return L.string(R.string.inhabitant_appearance_fat);
+			case 5: return L.string(R.string.inhabitant_appearance_furry);
+			case 6: return L.string(R.string.inhabitant_appearance_mutant);
+			case 7: return L.string(R.string.inhabitant_appearance_weird);
+		}
+		return "";
 	}
 
 	private static String getType(int index) {
-		return index < TYPE.length ? TYPE[index] : "";
+		switch (index) {
+			case 0: return L.string(R.string.inhabitant_type_rodent);
+			case 1: return L.string(R.string.inhabitant_type_frog);
+			case 2: return L.string(R.string.inhabitant_type_lizard);
+			case 3: return L.string(R.string.inhabitant_type_lobster);
+			case 4: return L.string(R.string.inhabitant_type_bird);
+			case 5: return L.string(R.string.inhabitant_type_humanoid);
+			case 6: return L.string(R.string.inhabitant_type_feline);
+			case 7: return L.string(R.string.inhabitant_type_insect);
+		}
+		return "";
 	}
 
 	private static String computeHumanColonial(SeedType seed) {
@@ -79,7 +100,7 @@ class InhabitantComputation {
 
 	static String computeInhabitantString(SeedType seed) {
 		if (seed.getLoByte(2) < 128) {
-			return "Human Colonial";
+			return L.string(R.string.inhabitant_human_colonial);
 		}
 		StringBuilder inhabitantName = new StringBuilder();
 		int descriptionFlag = seed.getHiByte(2) >> 2;
@@ -99,6 +120,6 @@ class InhabitantComputation {
 		int typeFlag = ((seed.getHiByte(2) & 3) + temp) & 7;
 		StringUtil.addSpaceAndStringToBuilder(getType(typeFlag), inhabitantName);
 
-		return inhabitantName.toString();
+		return StringUtil.toUpperFirstCase(inhabitantName.toString());
 	}
 }

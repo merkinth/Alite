@@ -53,8 +53,8 @@ public abstract class AliteObject extends GraphicObject implements Serializable 
 	protected final Vector3f qvec  = new Vector3f(0, 0, 0);
 	protected final Vector3f tvec  = new Vector3f(0, 0, 0);
 
-	public AliteObject(String name) {
-		super(name);
+	public AliteObject(String id) {
+		super(id);
 	}
 
 	public void setSaving(boolean b) {

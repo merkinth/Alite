@@ -91,6 +91,10 @@ public class LoadingScreen extends AliteScreen {
 		Assets.com_lostGalacticHyperdrive = safeLoadSound(Assets.com_lostGalacticHyperdrive, "lost_galactic");
 		Assets.com_lostRetroRockets = safeLoadSound(Assets.com_lostRetroRockets, "lost_retro_rockets");
 		Assets.com_escapeMalfunction = safeLoadSound(Assets.com_escapeMalfunction, "escape_malfunction");
+		Assets.com_lostCargo = safeLoadSound(Assets.com_lostCargo, "lost_cargo");
+		Assets.com_launch_area_violation_1st = safeLoadSound(Assets.com_launch_area_violation_1st, "launch_viol1");
+		Assets.com_launch_area_violation_2nd = safeLoadSound(Assets.com_launch_area_violation_2nd, "launch_viol2");
+		Assets.com_launch_area_violation_3rd = safeLoadSound(Assets.com_launch_area_violation_3rd, "launch_viol3");
 	}
 
 	private Sound safeLoadSound(Sound current, String soundFileName) {

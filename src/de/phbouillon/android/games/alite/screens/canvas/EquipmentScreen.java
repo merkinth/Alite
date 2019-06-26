@@ -21,19 +21,12 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Locale;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
@@ -47,7 +40,6 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
 public class EquipmentScreen extends TradeScreen {
-	private static final String EQUIP_HINT = "(Tap again to equip)";
 	private int mountLaserPosition = -1;
 	private int selectionIndex = -1;
 	private static Pixmap[][] equipment;
@@ -157,16 +149,16 @@ public class EquipmentScreen extends TradeScreen {
 		int price = equipment.getCost();
 		if (price == -1) { // variable price for fuel
 			SystemData currentSystem = game.getPlayer().getCurrentSystem();
-			return getOneDecimalFormatString("%d.%d Cr", currentSystem == null ? 10 : currentSystem.getFuelPrice());
+			return L.getOneDecimalFormatString(R.string.cash_amount_value_ccy, currentSystem == null ? 10 : currentSystem.getFuelPrice());
 		}
-		return String.format(Locale.getDefault(), "%d Cr", price / 10);
+		return L.string(R.string.cash_int_amount_value_ccy, price / 10);
 	}
 
 	@Override
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Equip Ship");
+		displayTitle(L.string(R.string.title_equip_ship));
 
 		presentTradeGoods(deltaTime);
 	}
@@ -179,7 +171,8 @@ public class EquipmentScreen extends TradeScreen {
 	@Override
 	protected void presentSelection(int row, int column) {
 		Equipment equipment = game.getCobra().getEquipment(row * COLUMNS + column);
-		game.getGraphics().drawText(equipment.getName() + " " + EQUIP_HINT, X_OFFSET, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
+		game.getGraphics().drawText(L.string(R.string.equip_info, equipment.getName()),
+			X_OFFSET, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
 
 	void setLaserPosition(int laserPosition) {
@@ -227,7 +220,7 @@ public class EquipmentScreen extends TradeScreen {
 			if (mountLaserPosition == -1) {
 				int result = getNewLaserLocation((Laser) equipment, row, column);
 				if (result == -1) {
-					showMessageDialog("All lasers (of that type) already mounted.");
+					showMessageDialog(L.string(R.string.equip_all_lasers_mounted));
 					SoundManager.play(Assets.error);
 				}
 				return;
@@ -242,25 +235,25 @@ public class EquipmentScreen extends TradeScreen {
 			price = cobra.getLaser(where) == null ? equipment.getCost() : equipment.getCost() - cobra.getLaser(where).getCost();
 		}
 		if (player.getCash() < price) {
-			showMessageDialog("Sorry - you don't have enough Credits.");
+			showMessageDialog(L.string(R.string.trade_not_enough_money));
 			SoundManager.play(Assets.error);
 			return;
 		}
 		if (equipment.getCost() == -1) {
 			// Fuel
 			if (cobra.getFuel() == PlayerCobra.MAXIMUM_FUEL) {
-				showMessageDialog(getOneDecimalFormatString("Fuel system already full (%d.%d light years).", PlayerCobra.MAXIMUM_FUEL));
+				showMessageDialog(L.getOneDecimalFormatString(R.string.equip_fuel_full, PlayerCobra.MAXIMUM_FUEL));
 				SoundManager.play(Assets.error);
 				return;
 			}
 		}
 		if (!(equipment instanceof Laser) && cobra.isEquipmentInstalled(equipment)) {
-			showMessageDialog("Only 1 " + equipment.getShortName() + " allowed.");
+			showMessageDialog(L.string(R.string.equip_only_one_allowed, equipment.getShortName()));
 			SoundManager.play(Assets.error);
 			return;
 		}
 		if (cobra.isEquipmentInstalled(EquipmentStore.navalEnergyUnit) && equipment.equals(EquipmentStore.extraEnergyUnit)) {
-			showMessageDialog("Only 1 " + equipment.getShortName() + " allowed.");
+			showMessageDialog(L.string(R.string.equip_only_one_allowed, equipment.getShortName()));
 			SoundManager.play(Assets.error);
 			return;
 		}
@@ -280,7 +273,7 @@ public class EquipmentScreen extends TradeScreen {
 				int fuelToBuy = PlayerCobra.MAXIMUM_FUEL - cobra.getFuel();
 				int priceToPay = fuelToBuy * price / 10;
 				if (priceToPay > player.getCash()) {
-					showMessageDialog("Sorry - you don't have enough Credits.");
+					showMessageDialog(L.string(R.string.trade_not_enough_money));
 					SoundManager.play(Assets.error);
 					return;
 				}
@@ -295,7 +288,7 @@ public class EquipmentScreen extends TradeScreen {
 			}
 			if (equipment == EquipmentStore.missiles) {
 				if (cobra.getMissiles() == PlayerCobra.MAXIMUM_MISSILES) {
-					showMessageDialog("Only " + PlayerCobra.MAXIMUM_MISSILES + " missiles allowed.");
+					showMessageDialog(L.string(R.string.equip_max_missiles_reached, PlayerCobra.MAXIMUM_MISSILES));
 					SoundManager.play(Assets.error);
 					return;
 				}
@@ -350,7 +343,7 @@ public class EquipmentScreen extends TradeScreen {
 				if (selection == tradeButton[x][y]) {
 					if (game.getCurrentScreen() instanceof FlightScreen) {
 						SoundManager.play(Assets.error);
-						errorText = "Not Docked.";
+						errorText = L.string(R.string.state_not_docked);
 					} else {
 						performTrade(y, x);
 						SoundManager.play(Assets.click);

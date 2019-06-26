@@ -19,16 +19,10 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
  */
 
 import java.io.DataInputStream;
-import java.util.Locale;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.Player;
@@ -61,34 +55,48 @@ public class DebugSettingsScreen extends AliteScreen {
 
 	private String formatCash() {
 		Player player = game.getPlayer();
-		return String.format(Locale.getDefault(), "%d.%d Cr", player.getCash() / 10, player.getCash() % 10);
+		return L.getOneDecimalFormatString(R.string.cash_amount_value_ccy, player.getCash());
 	}
 
 	@Override
 	public void activate() {
-		logToFile = Button.createGradientTitleButton(50, 130, 780, 100, "Log to file: " + (Settings.logToFile ? "Yes" : "No"));
-		memDebug = Button.createGradientTitleButton(890, 130, 780, 100, "Debug Memory: " + (Settings.memDebug ? "Yes" : "No"));
+		logToFile = Button.createGradientTitleButton(50, 130, 780, 100, L.string(R.string.debug_settings_log_to_file,
+			L.string(Settings.logToFile ? R.string.options_yes : R.string.options_no)));
+		memDebug = Button.createGradientTitleButton(890, 130, 780, 100, L.string(R.string.debug_settings_mem_debug,
+			L.string(Settings.memDebug ? R.string.options_yes : R.string.options_no)));
 
-		showFrameRate = Button.createGradientTitleButton(50, 250, 780, 100, "Display frame rate: " + (Settings.displayFrameRate ? "Yes" : "No"));
-		invulnerable = Button.createGradientTitleButton(890, 250, 780, 100, "Invulnerable: " + (Settings.invulnerable ? "Yes" : "No"));
-		showDockingDebug = Button.createGradientTitleButton(50, 370, 780, 100, "Docking Information: " + (Settings.displayDockingInformation ? "Yes" : "No"));
-		laserDoesNotOverheat = Button.createGradientTitleButton(890, 370, 780, 100, "Laser Overheats: " + (Settings.laserDoesNotOverheat ? "No" : "Yes"));
-		adjustCredits = Button.createGradientTitleButton(50, 490, 780, 100, "Adjust Credits (" + formatCash() + ")");
-		arriveInSafeZone = Button.createGradientTitleButton(890, 490, 780, 100, "Arrive in Safe Zone: " + (Settings.enterInSafeZone ? "Yes" : "No"));
-		adjustLegalStatus = Button.createGradientTitleButton(50, 610, 780, 100, "Adjust Legal (" + game.getPlayer().getLegalStatus() + ", " + game.getPlayer().getLegalValue() + ")");
-		disableAttackers = Button.createGradientTitleButton(890, 610, 780, 100, "Disable Attackers: " + (Settings.disableAttackers ? "Yes" : "No"));
-		adjustScore = Button.createGradientTitleButton(50, 730, 780, 100, "Adjust Score (" + game.getPlayer().getScore() + ")");
-		disableTraders = Button.createGradientTitleButton(890, 730, 780, 100, "Disable Traders: " + (Settings.disableTraders ? "Yes" : "No"));
-		addDockingComputer = Button.createGradientTitleButton(50, 850, 780, 100, "Add Docking Computer");
-		unlimitedFuel = Button.createGradientTitleButton(890, 850, 780, 100, "Unlimited Fuel: " + (Settings.unlimitedFuel ? "Yes" : "No"));
-		more = Button.createGradientTitleButton(50, 970, 1620, 100, "More");
+		showFrameRate = Button.createGradientTitleButton(50, 250, 780, 100,
+			L.string(R.string.debug_settings_show_frame_rate, L.string(Settings.displayFrameRate ? R.string.options_yes : R.string.options_no)));
+		invulnerable = Button.createGradientTitleButton(890, 250, 780, 100,
+			L.string(R.string.debug_settings_invulnerable, L.string(Settings.invulnerable ? R.string.options_yes : R.string.options_no)));
+		showDockingDebug = Button.createGradientTitleButton(50, 370, 780, 100,
+			L.string(R.string.debug_settings_show_docking_debug, L.string(Settings.displayDockingInformation ? R.string.options_yes : R.string.options_no)));
+		laserDoesNotOverheat = Button.createGradientTitleButton(890, 370, 780, 100,
+			L.string(R.string.debug_settings_laser_does_not_overheat, L.string(Settings.laserDoesNotOverheat ? R.string.options_no : R.string.options_yes)));
+		adjustCredits = Button.createGradientTitleButton(50, 490, 780, 100,
+			L.string(R.string.debug_settings_adjust_credits, formatCash()));
+		arriveInSafeZone = Button.createGradientTitleButton(890, 490, 780, 100,
+			L.string(R.string.debug_settings_arrive_in_safe_zone, L.string(Settings.enterInSafeZone ? R.string.options_yes : R.string.options_no)));
+		adjustLegalStatus = Button.createGradientTitleButton(50, 610, 780, 100,
+			L.string(R.string.debug_settings_adjust_legal_status, game.getPlayer().getLegalStatus().getName(), game.getPlayer().getLegalValue()));
+		disableAttackers = Button.createGradientTitleButton(890, 610, 780, 100,
+			L.string(R.string.debug_settings_disable_attackers, L.string(Settings.disableAttackers ? R.string.options_yes : R.string.options_no)));
+		adjustScore = Button.createGradientTitleButton(50, 730, 780, 100,
+			L.string(R.string.debug_settings_adjust_score, game.getPlayer().getScore()));
+		disableTraders = Button.createGradientTitleButton(890, 730, 780, 100,
+			L.string(R.string.debug_settings_disable_traders, L.string(Settings.disableTraders ? R.string.options_yes : R.string.options_no)));
+		addDockingComputer = Button.createGradientTitleButton(50, 850, 780, 100,
+			L.string(R.string.debug_settings_add_docking_computer));
+		unlimitedFuel = Button.createGradientTitleButton(890, 850, 780, 100,
+			L.string(R.string.debug_settings_unlimited_fuel, L.string(Settings.unlimitedFuel ? R.string.options_yes : R.string.options_no)));
+		more = Button.createGradientTitleButton(50, 970, 1620, 100, L.string(R.string.debug_settings_button_more));
 	}
 
 	@Override
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Debug Options");
+		displayTitle(L.string(R.string.title_debug_options));
 
 		logToFile.render(g);
 		memDebug.render(g);
@@ -115,49 +123,50 @@ public class DebugSettingsScreen extends AliteScreen {
 		if (logToFile.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			Settings.logToFile = !Settings.logToFile;
-			logToFile.setText("Log to file: " + (Settings.logToFile ? "Yes" : "No"));
+			logToFile.setText(L.string(R.string.debug_settings_log_to_file,
+				L.string(Settings.logToFile ? R.string.options_yes : R.string.options_no)));
 			Settings.save(game.getFileIO());
 			return;
 		}
 		if (memDebug.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			Settings.memDebug = !Settings.memDebug;
-			memDebug.setText("Debug Memory: " + (Settings.memDebug ? "Yes" : "No"));
+			memDebug.setText(L.string(R.string.debug_settings_mem_debug, L.string(Settings.memDebug ? R.string.options_yes : R.string.options_no)));
 			Settings.save(game.getFileIO());
 			return;
 		}
 		if (showFrameRate.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			Settings.displayFrameRate = !Settings.displayFrameRate;
-			showFrameRate.setText("Display frame rate: " + (Settings.displayFrameRate ? "Yes" : "No"));
+			showFrameRate.setText(L.string(R.string.debug_settings_show_frame_rate, L.string(Settings.displayFrameRate ? R.string.options_yes : R.string.options_no)));
 			Settings.save(game.getFileIO());
 			return;
 		}
 		if (invulnerable.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			Settings.invulnerable = !Settings.invulnerable;
-			invulnerable.setText("Invulnerable: " + (Settings.invulnerable ? "Yes" : "No"));
+			invulnerable.setText(L.string(R.string.debug_settings_invulnerable, L.string(Settings.invulnerable ? R.string.options_yes : R.string.options_no)));
 			Settings.save(game.getFileIO());
 			return;
 		}
 		if (showDockingDebug.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			Settings.displayDockingInformation = !Settings.displayDockingInformation;
-			showDockingDebug.setText("Docking Information: " + (Settings.displayDockingInformation ? "Yes" : "No"));
+			showDockingDebug.setText(L.string(R.string.debug_settings_show_docking_debug, L.string(Settings.displayDockingInformation ? R.string.options_yes : R.string.options_no)));
 			Settings.save(game.getFileIO());
 			return;
 		}
 		if (laserDoesNotOverheat.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			Settings.laserDoesNotOverheat = !Settings.laserDoesNotOverheat;
-			laserDoesNotOverheat.setText("Laser Overheats: " + (Settings.laserDoesNotOverheat ? "No" : "Yes"));
+			laserDoesNotOverheat.setText(L.string(R.string.debug_settings_laser_does_not_overheat, L.string(Settings.laserDoesNotOverheat ? R.string.options_no : R.string.options_yes)));
 			Settings.save(game.getFileIO());
 			return;
 		}
 		if (adjustCredits.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			game.getPlayer().setCash(game.getPlayer().getCash() + 10000);
-			adjustCredits.setText("Adjust Credits (" + formatCash() + ")");
+			adjustCredits.setText(L.string(R.string.debug_settings_adjust_credits, formatCash()));
 			return;
 		}
 		if (adjustLegalStatus.isTouched(touch.x, touch.y)) {
@@ -168,7 +177,7 @@ public class DebugSettingsScreen extends AliteScreen {
 			} else {
 				player.setLegalValue(255);
 			}
-			adjustLegalStatus.setText("Adjust Legal (" + player.getLegalStatus() + ", " + player.getLegalValue() + ")");
+			adjustLegalStatus.setText(L.string(R.string.debug_settings_adjust_legal_status, game.getPlayer().getLegalStatus().getName(), game.getPlayer().getLegalValue()));
 			return;
 		}
 		if (adjustScore.isTouched(touch.x, touch.y)) {
@@ -196,7 +205,7 @@ public class DebugSettingsScreen extends AliteScreen {
 			while (score >= game.getPlayer().getRating().getScoreThreshold() && game.getPlayer().getRating().getScoreThreshold() > 0) {
 				game.getPlayer().setRating(Rating.values()[game.getPlayer().getRating().ordinal() + 1]);
 			}
-			adjustScore.setText("Adjust Score (" + game.getPlayer().getScore() + ")");
+			adjustScore.setText(L.string(R.string.debug_settings_adjust_score, game.getPlayer().getScore()));
 			return;
 		}
 		if (addDockingComputer.isTouched(touch.x, touch.y)) {
@@ -207,28 +216,28 @@ public class DebugSettingsScreen extends AliteScreen {
 		if (unlimitedFuel.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			Settings.unlimitedFuel = !Settings.unlimitedFuel;
-			unlimitedFuel.setText("Unlimited Fuel: " + (Settings.unlimitedFuel ? "Yes" : "No"));
+			unlimitedFuel.setText(L.string(R.string.debug_settings_unlimited_fuel, L.string(Settings.unlimitedFuel ? R.string.options_yes : R.string.options_no)));
 			Settings.save(game.getFileIO());
 			return;
 		}
 		if (arriveInSafeZone.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			Settings.enterInSafeZone = !Settings.enterInSafeZone;
-			arriveInSafeZone.setText("Arrive in Safe Zone: " + (Settings.enterInSafeZone ? "Yes" : "No"));
+			arriveInSafeZone.setText(L.string(R.string.debug_settings_arrive_in_safe_zone, L.string(Settings.enterInSafeZone ? R.string.options_yes : R.string.options_no)));
 			Settings.save(game.getFileIO());
 			return;
 		}
 		if (disableAttackers.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			Settings.disableAttackers = !Settings.disableAttackers;
-			disableAttackers.setText("Disable Attackers: " + (Settings.disableAttackers ? "Yes" : "No"));
+			disableAttackers.setText(L.string(R.string.debug_settings_disable_attackers, L.string(Settings.disableAttackers ? R.string.options_yes : R.string.options_no)));
 			Settings.save(game.getFileIO());
 			return;
 		}
 		if (disableTraders.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			Settings.disableTraders = !Settings.disableTraders;
-			disableTraders.setText("Disable Traders: " + (Settings.disableTraders ? "Yes" : "No"));
+			disableTraders.setText(L.string(R.string.debug_settings_disable_traders, L.string(Settings.disableTraders ? R.string.options_yes : R.string.options_no)));
 			Settings.save(game.getFileIO());
 			return;
 		}

@@ -19,12 +19,13 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  */
 
 import java.io.Serializable;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteConfig;
 import de.phbouillon.android.games.alite.Assets;
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
@@ -42,14 +43,12 @@ class ScrollingText implements Serializable {
 		int diffInHours = (int) (diffInSeconds / 3600);
 		diffInSeconds -= diffInHours * 3600;
 		int diffInMinutes = (int) (diffInSeconds / 60);
-		String gameTime = String.format(Locale.getDefault(),
-			"%d day" + (diffInDays == 1 ? "" : "s") +
-				", %d hour" + (diffInHours == 1 ? "" : "s") +
-				", and %d minute" + (diffInMinutes == 1 ? "" : "s"), diffInDays, diffInHours, diffInMinutes);
 
-		textToDisplay = AliteConfig.GAME_NAME + " v" + AliteConfig.VERSION_STRING +
-			" - by Philipp Bouillon and Duane McDonnell. You have played for " + gameTime +
-			" and you have scored " + alite.getPlayer().getScore() + " points. ";
+		textToDisplay = L.string(R.string.msg_pause_game_scrolling_info, AliteConfig.GAME_NAME,
+			AliteConfig.VERSION_STRING, L.plurals(R.plurals.game_time_days, diffInDays, diffInDays),
+			L.plurals(R.plurals.game_time_hours, diffInHours, diffInHours),
+			L.plurals(R.plurals.game_time_minutes, diffInMinutes, diffInMinutes),
+			alite.getPlayer().getScore());
 		width = (int) Assets.regularFont.getWidth(textToDisplay,1.5f);
 	}
 

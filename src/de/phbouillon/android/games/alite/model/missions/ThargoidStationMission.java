@@ -22,9 +22,7 @@ import java.io.*;
 
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.Player;
@@ -42,6 +40,7 @@ public class ThargoidStationMission extends Mission implements Serializable {
 	private static final long serialVersionUID = 4664546653830973675L;
 
 	public static final int ID = 5;
+	public static final String ALIEN_SPACE_STATION = "Alien Space Station";
 
 	private char[] galaxySeed;
 	private int targetIndex;
@@ -184,10 +183,12 @@ public class ThargoidStationMission extends Mission implements Serializable {
 
 			@Override
 			public void execute(float deltaTime) {
-				manager.getInGameManager().getStation().setName("Alien Space Station");
-				((SpaceObject) manager.getInGameManager().getStation()).setHullStrength(1024);
-				((SpaceStation) manager.getInGameManager().getStation()).denyAccess();
-				manager.getInGameManager().getStation().addDestructionCallback(2, new IMethodHook() {
+				SpaceObject station = (SpaceObject) manager.getInGameManager().getStation();
+				station.setId(ALIEN_SPACE_STATION);
+				station.setName(R.string.thargoid_station_name);
+				station.setHullStrength(1024);
+				((SpaceStation) station).denyAccess();
+				station.addDestructionCallback(2, new IMethodHook() {
 					private static final long serialVersionUID = 6715650816893032921L;
 
 					@Override
@@ -206,7 +207,7 @@ public class ThargoidStationMission extends Mission implements Serializable {
 			manager.leaveTorus();
 		}
 		SoundManager.play(Assets.com_conditionRed);
-		manager.getInGameManager().repeatMessage("Condition Red!", 3);
+		manager.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
 		conditionRedEvent.pause();
 		Vector3f spawnPosition = manager.getSpawnPosition();
 		int thargoidNum = alite.getPlayer().getRating().ordinal() < 3 ? 1 : Math.random() < 0.5 ? 2 : 3;
@@ -259,6 +260,6 @@ public class ThargoidStationMission extends Mission implements Serializable {
 
 	@Override
 	public String getObjective() {
-		return "Destroy the Thargoid base.";
+		return L.string(R.string.mission_thargoid_station_obj);
 	}
 }

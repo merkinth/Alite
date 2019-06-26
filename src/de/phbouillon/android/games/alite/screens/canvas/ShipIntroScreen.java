@@ -200,7 +200,7 @@ public class ShipIntroScreen extends AliteScreen {
 		}
 		if (yesButton.isPressed(touch)) {
 			SoundManager.play(Assets.click);
-			newScreen = new LoadScreen(game, "Load Commander");
+			newScreen = new LoadScreen(game, L.string(R.string.title_cmdr_load));
 			game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK);
 		}
 		if (noButton.isPressed(touch)) {
@@ -241,7 +241,7 @@ public class ShipIntroScreen extends AliteScreen {
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayShip();
 		if (showLoadNewCommander) {
-			g.drawText("Load New Commander?", 300, 1015, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
+			g.drawText(L.string(R.string.cmdr_load_new_commander), 300, 1015, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.titleFont);
 		}
 		centerTextWide(currentShip.getName(), 80, Assets.titleFont, ColorScheme.get(ColorScheme.COLOR_SHIP_TITLE));
 		g.drawText(L.string(R.string.about_game_inspired_by, AliteConfig.GAME_NAME),
@@ -334,7 +334,7 @@ public class ShipIntroScreen extends AliteScreen {
 			.setVisible(showLoadNewCommander);
 		noButton = Button.createGradientPictureButton(1150, 950, 110, 110, Assets.noIcon)
 			.setVisible(showLoadNewCommander);
-		tapToStartButton = Button.createGradientRegularButton(560, 950, 800, 110, "Tap to start")
+		tapToStartButton = Button.createGradientRegularButton(560, 950, 800, 110, L.string(R.string.intro_btn_tap_to_start))
 			.setTextColor(ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT))
 			.setVisible(!showLoadNewCommander);
 	}

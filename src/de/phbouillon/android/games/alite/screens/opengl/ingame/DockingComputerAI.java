@@ -25,11 +25,7 @@ import java.io.Serializable;
 import android.opengl.Matrix;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
@@ -131,7 +127,7 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		if (active) {
 			loadBlueDanube();
 			if (Assets.danube == null) {
-				inGame.setMessage("The Blue Danube now playing in your head.");
+				inGame.setMessage(L.string(R.string.msg_blue_danube_loading_error));
 			}
 			if (Assets.danube != null && !Assets.danube.isPlaying()) {
 				Assets.danube.setLooping(true);
@@ -160,7 +156,7 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		}
 		loadBlueDanube();
 		if (Assets.danube == null) {
-			inGame.setMessage("The Blue Danube now playing in your head.");
+			inGame.setMessage(L.string(R.string.msg_blue_danube_loading_error));
 		} else {
 			Assets.danube.setLooping(true);
 			Assets.danube.play();
@@ -238,7 +234,7 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		if (!((SpaceStation) inGame.getStation()).accessAllowed()) {
 			// Ok, you cannot land here at all... Access denied...
 			SoundManager.playOnce(Assets.com_accessDeclined, 3000);
-			inGame.getMessage().setText("Access to the station has been declined");
+			inGame.getMessage().setText(L.string(R.string.com_access_declined));
 			return false;
 		}
 

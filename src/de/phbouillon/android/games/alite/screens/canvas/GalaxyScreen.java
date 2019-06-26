@@ -130,7 +130,8 @@ public class GalaxyScreen extends AliteScreen {
 	}
 
 	private String capitalize(String t) {
-		return t == null || t.length() < 1 ? "" : t.length() < 2 ? t : Character.toUpperCase(t.charAt(0)) + t.substring(1).toLowerCase(Locale.getDefault());
+		return t == null || t.length() < 1 ? "" : t.length() < 2 ? t :
+			Character.toUpperCase(t.charAt(0)) + t.substring(1).toLowerCase(L.currentLocale);
 	}
 
 	private void findSystem(String text) {
@@ -147,11 +148,11 @@ public class GalaxyScreen extends AliteScreen {
 		}
 		int galaxy = game.getGenerator().findGalaxyOfPlanet(text);
 		if (galaxy == -1) {
-			showMessageDialog("Planet " + capitalize(text) + " is unknown.");
+			showMessageDialog(L.string(R.string.galaxy_unknown_planet, capitalize(text)));
 			SoundManager.play(Assets.error);
 		} else {
-			showMessageDialog("Planet " + capitalize(text) + " is in Galaxy " + galaxy +
-				". You are currently in Galaxy " + game.getGenerator().getCurrentGalaxy() + ".");
+			showMessageDialog(L.string(R.string.galaxy_unknown_planet_in_galaxy, capitalize(text), galaxy,
+				game.getGenerator().getCurrentGalaxy()));
 			SoundManager.play(Assets.alert);
 		}
 
@@ -226,7 +227,7 @@ public class GalaxyScreen extends AliteScreen {
 				}
 				if (findButton.isTouched(touch.x, touch.y)) {
 					SoundManager.play(Assets.click);
-					popupTextInput("Enter planet name to find:", "", 8);
+					popupTextInput(L.string(R.string.galaxy_find_planet_name), "", 8);
 					return;
 				}
 				MappedSystemData closestSystem = findClosestSystem(touch.x, touch.y);
@@ -397,10 +398,10 @@ public class GalaxyScreen extends AliteScreen {
 		Graphics g = game.getGraphics();
 
         if (player.getHyperspaceSystem() != null) {
-        	int distance = player.getCurrentSystem() == null ? computeDistance(player.getHyperspaceSystem(), player.getPosition())
+			int distance = player.getCurrentSystem() == null ? computeDistance(player.getHyperspaceSystem(), player.getPosition())
 				 : player.getHyperspaceSystem().computeDistance(player.getCurrentSystem());
-        	g.drawText(String.format("%s: %d.%d Light Years",
-				player.getHyperspaceSystem() == null ? "Unknown" : player.getHyperspaceSystem().getName(), distance / 10, distance % 10),
+			g.drawText(L.string(R.string.galaxy_distance_info, player.getHyperspaceSystem() == null ?
+				L.string(R.string.galaxy_unknown) : player.getHyperspaceSystem().getName(), distance / 10, distance % 10),
 				100, 1060, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
         }
 	}
@@ -435,11 +436,11 @@ public class GalaxyScreen extends AliteScreen {
 		initializeSystems();
 		findDoubles();
 
-		findButton = Button.createGradientRegularButton(1375, 980, 320, 100, "Find")
+		findButton = Button.createGradientRegularButton(1375, 980, 320, 100, L.string(R.string.galaxy_btn_find))
 			.setPixmap(findIcon)
 			.setTextPosition(TextPosition.RIGHT);
 
-		homeButton = Button.createGradientRegularButton(1020, 980, 320, 100, "Home")
+		homeButton = Button.createGradientRegularButton(1020, 980, 320, 100, L.string(R.string.galaxy_btn_home))
 			.setPixmap(homeIcon)
 			.setTextPosition(TextPosition.RIGHT);
 	}
@@ -447,7 +448,7 @@ public class GalaxyScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		zoomFactor = 1.0f;
-		title = "Galactic Chart #" + game.getGenerator().getCurrentGalaxy();
+		title = L.string(R.string.title_galaxy, game.getGenerator().getCurrentGalaxy());
 		game.getInput().setZoomFactor(zoomFactor);
 		centerX = HALF_WIDTH;
 		centerY = HALF_HEIGHT;

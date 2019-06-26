@@ -21,9 +21,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.ScreenCodes;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 
@@ -36,7 +34,7 @@ public class LocalScreen extends GalaxyScreen {
 
 	@Override
 	public void activate() {
-		title = "Local Navigation Chart";
+		title = L.string(R.string.title_local_nav_chart);
 		Player player = game.getPlayer();
 		SystemData hyper = player.getHyperspaceSystem();
 		zoomFactor = 4.0f;

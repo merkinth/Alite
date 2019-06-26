@@ -59,12 +59,8 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		@Override
 		public void execute(float deltaTime) {
 			setContentView(R.layout.activity_start_manager);
-			((TextView) findViewById(R.id.downloadTextView)).setText(
-					"There was an error when trying to access " + AliteConfig.GAME_NAME + "'s resource files. " +
-					"I am very sorry for the inconvenience! You can either try to restart " +
-					"your device (seriously: It helped on a Nexus 4), or you can download " +
-					"the all-in-one-version of " + AliteConfig.GAME_NAME + ", where this problem cannot occur, " +
-					"from " + AliteConfig.ALITE_WEBSITE);
+			((TextView) findViewById(R.id.downloadTextView)).setText(String.format(L.string(R.string.obb_download_error),
+				AliteConfig.GAME_NAME, AliteConfig.ALITE_WEBSITE));
 		}
 	}
 
@@ -108,7 +104,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 					return;
 				}
 			} catch (NameNotFoundException e) {
-				setStatus("Error while downloading expansion file: " + e.getMessage());
+				setStatus(L.string(R.string.notification_download_error, e.getMessage()));
 				AliteLog.e("Error while Downloading Expansions", "Name not Found: " + e.getMessage(), e);
 			}
 		}
@@ -284,10 +280,9 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 			String.format(L.currentLocale, "%d%%", progressInPercent));
 		((ProgressBar) findViewById(R.id.downloadProgressBar)).setProgress(progressInPercent);
 
-		((TextView) findViewById(R.id.downloadTextView)).setText(
-			String.format(L.currentLocale, "Downloading... %d of %dMB read. Speed: %4.2f MB/s. Time remaining: %ds.",
-				(int) (progress.mOverallProgress / AliteLog.MB), (int) (progress.mOverallTotal / AliteLog.MB),
-				progress.mCurrentSpeed / AliteLog.KB, (int) (progress.mTimeRemaining / 1000.0f)));
+		((TextView) findViewById(R.id.downloadTextView)).setText(L.string(R.string.notification_downloading_info,
+			(int) (progress.mOverallProgress / AliteLog.MB), (int) (progress.mOverallTotal / AliteLog.MB),
+			progress.mCurrentSpeed / AliteLog.KB, (int) (progress.mTimeRemaining / 1000.0f)));
 
 		AliteLog.d("Progress", "Current Speed: " + progress.mCurrentSpeed +
 			", Overall progress: " + progress.mOverallProgress +

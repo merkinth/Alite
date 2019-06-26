@@ -25,13 +25,7 @@ import java.io.IOException;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 
@@ -79,22 +73,23 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		uiButton[Settings.FIRE] = createButton(Settings.buttonPosition[Settings.FIRE], firePixmap, Settings.FIRE, "Fire Laser");
-		uiButton[Settings.MISSILE] = createButton(Settings.buttonPosition[Settings.MISSILE], missilePixmap, Settings.MISSILE, "Fire Missile");
-		uiButton[Settings.ECM] = createButton(Settings.buttonPosition[Settings.ECM], ecmPixmap, Settings.ECM, "ECM");
-		uiButton[Settings.RETRO_ROCKETS] = createButton(Settings.buttonPosition[Settings.RETRO_ROCKETS], retroRocketsPixmap, Settings.RETRO_ROCKETS, "Retro Rockets");
-		uiButton[Settings.ESCAPE_CAPSULE] = createButton(Settings.buttonPosition[Settings.ESCAPE_CAPSULE], escapeCapsulePixmap, Settings.ESCAPE_CAPSULE, "Escape Capsule");
-		uiButton[Settings.ENERGY_BOMB] = createButton(Settings.buttonPosition[Settings.ENERGY_BOMB], energyBombPixmap, Settings.ENERGY_BOMB, "Energy Bomb");
-		uiButton[Settings.STATUS] = createButton(Settings.buttonPosition[Settings.STATUS], statusPixmap, Settings.STATUS, "Status");
-		uiButton[Settings.TORUS] = createButton(Settings.buttonPosition[Settings.TORUS], torusDriveDockingComputerPixmap, Settings.TORUS, "Torus/Time Drive;Docking Computer");
-		uiButton[Settings.HYPERSPACE] = createButton(Settings.buttonPosition[Settings.HYPERSPACE], hyperspacePixmap, Settings.HYPERSPACE, "Hyperspace");
-		uiButton[Settings.GALACTIC_HYPERSPACE] = createButton(Settings.buttonPosition[Settings.GALACTIC_HYPERSPACE], galacticHyperspacePixmap, Settings.GALACTIC_HYPERSPACE, "Galactic Hyperspace");
-	    uiButton[Settings.CLOAKING_DEVICE] = createButton(Settings.buttonPosition[Settings.CLOAKING_DEVICE], cloakingDevicePixmap, Settings.CLOAKING_DEVICE, "Cloaking Device");
-	    uiButton[Settings.ECM_JAMMER] = createButton(Settings.buttonPosition[Settings.ECM_JAMMER], ecmJammerPixmap, Settings.ECM_JAMMER, "ECM Jammer");
+		uiButton[Settings.FIRE] = createButton(Settings.buttonPosition[Settings.FIRE], firePixmap, Settings.FIRE, L.string(R.string.in_flight_button_fire));
+		uiButton[Settings.MISSILE] = createButton(Settings.buttonPosition[Settings.MISSILE], missilePixmap, Settings.MISSILE, L.string(R.string.in_flight_button_missile));
+		uiButton[Settings.ECM] = createButton(Settings.buttonPosition[Settings.ECM], ecmPixmap, Settings.ECM, L.string(R.string.in_flight_button_ecm));
+		uiButton[Settings.RETRO_ROCKETS] = createButton(Settings.buttonPosition[Settings.RETRO_ROCKETS], retroRocketsPixmap, Settings.RETRO_ROCKETS, L.string(R.string.in_flight_button_retro_rockets));
+		uiButton[Settings.ESCAPE_CAPSULE] = createButton(Settings.buttonPosition[Settings.ESCAPE_CAPSULE], escapeCapsulePixmap, Settings.ESCAPE_CAPSULE, L.string(R.string.in_flight_button_escape_capsule));
+		uiButton[Settings.ENERGY_BOMB] = createButton(Settings.buttonPosition[Settings.ENERGY_BOMB], energyBombPixmap, Settings.ENERGY_BOMB, L.string(R.string.in_flight_button_energy_bomb));
+		uiButton[Settings.STATUS] = createButton(Settings.buttonPosition[Settings.STATUS], statusPixmap, Settings.STATUS, L.string(R.string.in_flight_button_status));
+		uiButton[Settings.TORUS] = createButton(Settings.buttonPosition[Settings.TORUS], torusDriveDockingComputerPixmap, Settings.TORUS, L.string(R.string.in_flight_button_drive_docking));
+		uiButton[Settings.HYPERSPACE] = createButton(Settings.buttonPosition[Settings.HYPERSPACE], hyperspacePixmap, Settings.HYPERSPACE, L.string(R.string.in_flight_button_hyperspace));
+		uiButton[Settings.GALACTIC_HYPERSPACE] = createButton(Settings.buttonPosition[Settings.GALACTIC_HYPERSPACE], galacticHyperspacePixmap, Settings.GALACTIC_HYPERSPACE, L.string(R.string.in_flight_button_galactic_hyperspace));
+	    uiButton[Settings.CLOAKING_DEVICE] = createButton(Settings.buttonPosition[Settings.CLOAKING_DEVICE], cloakingDevicePixmap, Settings.CLOAKING_DEVICE, L.string(R.string.in_flight_button_cloaking_device));
+	    uiButton[Settings.ECM_JAMMER] = createButton(Settings.buttonPosition[Settings.ECM_JAMMER], ecmJammerPixmap, Settings.ECM_JAMMER, L.string(R.string.in_flight_button_ecm_jammer));
 
-		selectionMode = Button.createGradientTitleButton(50, 860, 1620, 100, "Selection Mode: " + (groupSelectionMode ? "Group" : "Button"));
-		back = Button.createGradientTitleButton(50, 970, 780, 100, "Back");
-		reset = Button.createGradientTitleButton(890, 970, 780, 100, "Reset Positions");
+		selectionMode = Button.createGradientTitleButton(50, 860, 1620, 100,
+			L.string(R.string.options_in_flight_selection_mode, L.string(groupSelectionMode ? R.string.options_in_flight_selection_mode_group : R.string.options_in_flight_selection_mode_button)));
+		back = Button.createGradientTitleButton(50, 970, 780, 100, L.string(R.string.options_back));
+		reset = Button.createGradientTitleButton(890, 970, 780, 100, L.string(R.string.options_in_flight_reset_positions));
 	}
 
 	private ButtonConfigData createButton(int position, Pixmap pixmap, int settingsPosition, String name) {
@@ -133,27 +128,16 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 
-		displayTitle("Button Position Options");
+		displayTitle(L.string(R.string.title_button_position_options));
 
-		g.drawText("Primary", 20, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText("Secondary", 320, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText("Secondary", 1180, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText("Primary", 1480, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		String text;
-		if (groupSelectionMode) {
-			if (selectedButton == null) {
-				text = "Select the group of buttons you'd like to change.";
-			} else {
-				text = "Select the target button group.";
-			}
-		} else {
-			if (selectedButton == null) {
-				text = "Select the button you'd like to change.";
-			} else {
-				text = "Select the target button.";
-			}
-		}
-		centerText(text, 800, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+		g.drawText(L.string(R.string.options_in_flight_primary), 20, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.options_in_flight_secondary), 320, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.options_in_flight_secondary), 1180, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.options_in_flight_primary), 1480, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
+		centerText(L.string(groupSelectionMode ?
+			selectedButton == null ? R.string.options_in_flight_source_button_group : R.string.options_in_flight_target_button_group :
+			selectedButton == null ? R.string.options_in_flight_source_button : R.string.options_in_flight_target_button),
+			800, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 
 		for (ButtonConfigData b: uiButton) {
 			b.button.render(g);
@@ -281,7 +265,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		if (selectionMode.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			groupSelectionMode = !groupSelectionMode;
-			selectionMode.setText("Selection Mode: " + (groupSelectionMode ? "Group" : "Button"));
+			selectionMode.setText(L.string(R.string.options_in_flight_selection_mode, L.string(groupSelectionMode ? R.string.options_in_flight_selection_mode_group : R.string.options_in_flight_selection_mode_button)));
 			selectedButton = null;
 			for (ButtonConfigData b: uiButton) {
 				b.button.setSelected(false);
@@ -290,7 +274,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		}
 		if (reset.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			showQuestionDialog("Are you sure?");
+			showQuestionDialog(L.string(R.string.options_in_flight_reset_positions_confirm));
 			confirmReset = true;
 			return;
 		}

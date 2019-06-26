@@ -26,12 +26,7 @@ import android.media.MediaPlayer;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
@@ -42,34 +37,6 @@ import de.phbouillon.android.games.alite.screens.canvas.TextData;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class SupernovaScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
-
-	private final String supernovaAnnouncement =
-			"Warning - the sun in this system is going supernova. You are " +
-			"advised to leave as soon as possible.";
-
-	private final String missionDescription =
-			"Please help us! Everyone else has fled the supernova but we " +
-			"were left behind when our shuttle was damaged by an asteroid. " +
-			"We managed to limp back to the space station but face certain " +
-			"death if we don't leave soon. There are only a few of us. We " +
-			"could fit in your cargo hold.";
-
-	private final String accept = "Will you help us?";
-
-	private final String dropUsOff =
-			"Thank you, you will be well rewarded by our government. I'm " +
-			"afraid that we've had to dump any cargo you had to get us all " +
-			"in. If you could just drop us off at the nearest star system " +
-			"that'll be fine.";
-
-	private final String success =
-			"Thank you for carrying us to safety. Please accept a selection " +
-			"of precious Zanxian gem stones as a token of our appreciation.";
-
-	private final String missionDecline =
-			"I hope you die a horribly long and lingering death at the " +
-			"hands of a slimy green lobstoid, that's if you're now blown " +
-			"to bits by our sun!";
 
 	private MissionLine announcement;
 	private MissionLine missionLine;
@@ -92,17 +59,17 @@ public class SupernovaScreen extends AliteScreen {
 		String path = MissionManager.DIRECTORY_SOUND_MISSION + "3/";
 		try {
 			if (state == 0) {
-				announcement = new MissionLine(path + "01.mp3", supernovaAnnouncement);
-				missionLine = new MissionLine(path + "02.mp3", missionDescription);
-				acceptMission = new MissionLine(path + "06.mp3", accept);
+				announcement = new MissionLine(path + "01.mp3", L.string(R.string.mission_supernova_announcement));
+				missionLine = new MissionLine(path + "02.mp3", L.string(R.string.mission_supernova_mission_description));
+				acceptMission = new MissionLine(path + "06.mp3", L.string(R.string.mission_supernova_accept));
 			} else if (state == 1) {
-				missionLine = new MissionLine(path + "05.mp3", missionDecline);
+				missionLine = new MissionLine(path + "05.mp3", L.string(R.string.mission_supernova_mission_decline));
 				mission.setSupernovaSystem(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex());
 			} else if (state == 2) {
-				missionLine = new MissionLine(path + "03.mp3", dropUsOff);
+				missionLine = new MissionLine(path + "03.mp3", L.string(R.string.mission_supernova_drop_us_off));
 				mission.setSupernovaSystem(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex());
 			} else if (state == 3) {
-				missionLine = new MissionLine(path + "04.mp3", success);
+				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_supernova_success));
 				mission.onMissionComplete();
 				Player player = game.getPlayer();
 				player.removeActiveMission(mission);
@@ -170,7 +137,7 @@ public class SupernovaScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Mission #3 - Supernova");
+		displayTitle(L.string(R.string.title_mission_supernova));
 
 		if (announcementText != null) {
 			displayText(g, announcementText);
@@ -179,7 +146,7 @@ public class SupernovaScreen extends AliteScreen {
 			displayText(g, missionText);
 		}
 		if (acceptMission != null) {
-			g.drawText(accept, 50, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+			g.drawText(L.string(R.string.mission_supernova_accept), 50, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 			if (acceptButton != null) {
 				acceptButton.render(g);
 			}

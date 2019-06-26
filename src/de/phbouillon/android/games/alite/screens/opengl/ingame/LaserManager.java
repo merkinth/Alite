@@ -35,11 +35,7 @@ import de.phbouillon.android.framework.impl.Pool;
 import de.phbouillon.android.framework.impl.Pool.PoolObjectFactory;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.Laser;
@@ -56,6 +52,8 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjec
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Platlet;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteHud;
+
+import static de.phbouillon.android.games.alite.model.missions.ThargoidStationMission.ALIEN_SPACE_STATION;
 
 public class LaserManager implements Serializable {
 	private static final long serialVersionUID = -3608347957484414304L;
@@ -163,7 +161,7 @@ public class LaserManager implements Serializable {
 	}
 
 	private void spawnCargoCanisters(final SpaceObject so, int forceCount, WeaponType weaponType) {
-		AliteLog.d("Spawn Cargo Canisters", so.getName() + " has Cargo type: " + so.getCargoType() + " and spawns cargo canisters: " + so.spawnsCargoCanisters());
+		AliteLog.d("Spawn Cargo Canisters", so.getId() + " has Cargo type: " + so.getCargoType() + " and spawns cargo canisters: " + so.spawnsCargoCanisters());
 		if (so.getType() == ObjectType.Asteroid) {
 			spawnPlatlets(so, weaponType);
 			return;
@@ -222,9 +220,9 @@ public class LaserManager implements Serializable {
 
 	private void loseCargo() {
 		if (alite.getCobra().hasCargo()) {
-			inGame.setMessage("Cargo lost.");
+			SoundManager.play(Assets.com_lostCargo);
+			inGame.setMessage(L.string(R.string.com_cargo_lost));
 			alite.getCobra().clearInventory();
-			// TODO add computer voice message
 		}
 	}
 
@@ -235,7 +233,7 @@ public class LaserManager implements Serializable {
 		}
 		int i = (int) (Math.random() * installedLosableEquipment.size());
 		Equipment lostEquip = installedLosableEquipment.get(i);
-		inGame.setMessage(lostEquip.getShortName() + " lost.");
+		inGame.setMessage(L.string(R.string.msg_equipment_lost, lostEquip.getShortName()));
 		alite.getCobra().removeEquipment(lostEquip);
 		if (lostEquip == EquipmentStore.dockingComputer) {
 			SoundManager.play(Assets.com_lostDockingComputer);
@@ -275,13 +273,13 @@ public class LaserManager implements Serializable {
 			if (front) {
 				if (shield <= 0 && !lastFrontWarning.hasPassedSeconds(4)) {
 					SoundManager.play(Assets.com_frontShieldHasFailed);
-					inGame.setMessage("Front shield has failed");
+					inGame.setMessage(L.string(R.string.com_front_shield_has_failed));
 				}
 				alite.getCobra().setFrontShield(shield);
 			} else {
 				if (shield <= 0 && !lastRearWarning.hasPassedSeconds(4)) {
 					SoundManager.play(Assets.com_aftShieldHasFailed);
-					inGame.setMessage("Aft shield has failed");
+					inGame.setMessage(L.string(R.string.com_aft_shield_has_failed));
 				}
 				alite.getCobra().setRearShield(shield);
 			}
@@ -363,7 +361,7 @@ public class LaserManager implements Serializable {
 						lc.removeInNFrames(4);
 					}
 					SoundManager.play(Assets.laserHit);
-					if (((SpaceObject) eo).getType() != ObjectType.SpaceStation || "Alien Space Station".equals(eo.getName())) {
+					if (((SpaceObject) eo).getType() != ObjectType.SpaceStation || ALIEN_SPACE_STATION.equals(eo.getId())) {
 						// Space Stations are invulnerable --- in general ;)
 						if (Settings.laserPowerOverride != 0) {
 							alite.getPlayer().setCheater(true);
@@ -499,7 +497,7 @@ public class LaserManager implements Serializable {
 		}
 		if (alite.getCobra().getLaserTemperature() == 40 && lockTime.hasPassedSeconds(5)) {
 			SoundManager.play(Assets.com_laserTemperatureCritical);
-			inGame.setMessage("Laser temperature critical!");
+			inGame.setMessage(L.string(R.string.com_laser_temperature_critical));
 		}
 	}
 

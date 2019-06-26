@@ -292,7 +292,7 @@ public class AboutScreen extends GlScreen {
 				}
 			}
 		}
-		game.getGraphics().drawText(AliteConfig.GAME_NAME + " Version " + AliteConfig.VERSION_STRING, 0, 1030,
+		game.getGraphics().drawText(L.string(R.string.about_version, AliteConfig.GAME_NAME, AliteConfig.VERSION_STRING), 0, 1030,
 			AliteColor.argb(globalAlpha, globalAlpha, globalAlpha, globalAlpha), Assets.regularFont, 1.0f);
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);

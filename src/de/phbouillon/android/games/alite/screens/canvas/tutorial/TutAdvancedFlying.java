@@ -26,13 +26,7 @@ import android.graphics.Rect;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.model.Equipment;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
@@ -113,23 +107,18 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	private void initLine_00() {
-		addTopLine("Welcome back, Commander! A fair landing you produced " +
-				"there. I'm proud of you!").setUpdateMethod(deltaTime -> {
-					flight.getInGameManager().getShip().setSpeed(0);
-					flight.getInGameManager().setPlayerControl(false);
-				});
+		addTopLine(L.string(R.string.tutorial_advanced_flying_00)).setUpdateMethod(deltaTime -> {
+			flight.getInGameManager().getShip().setSpeed(0);
+			flight.getInGameManager().setPlayerControl(false);
+		});
 	}
 
 	private void initLine_01() {
-		addTopLine("You are now ready for more advanced controls, but we " +
-				"need to be out in space for those.");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_01));
 	}
 
 	private void initLine_02() {
-		final TutorialLine line =
-			addTopLine("Therefore, when you activate the hyperspace, you will " +
-				"reach a simulated space region a little off of Lave. Go " +
-				"there, now. Activate the hyperspace drive.").
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_advanced_flying_02)).
 			setMustRetainEvents().addHighlight(makeHighlight(1710, 300, 200, 200)).
 			setUnskippable();
 
@@ -174,16 +163,11 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	private void initLine_03() {
-		addTopLine("You have now reached a space region outside Lave, you " +
-				"can see clearly that you are outside the safe zone.");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_03));
 	}
 
 	private void initLine_04() {
-		final TutorialLine line =
-			addTopLine("Now, in order to reach Lave station, you have to fly " +
-				"towards the planet. So bring the circle in the small radar " +
-				"to your front. Remember: The circle is red once the planet " +
-				"is in front of you.").setHeight(180).
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_advanced_flying_04)).setHeight(180).
 			setUnskippable().setMustRetainEvents();
 
 		line.setUpdateMethod(deltaTime -> {
@@ -220,9 +204,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	private void initLine_05() {
-		final TutorialLine line =
-				addTopLine("Good. Now accelerate to maximum speed by " +
-				"sliding your finger up.").setUnskippable();
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_advanced_flying_05)).setUnskippable();
 		line.setMustRetainEvents().setUpdateMethod(deltaTime -> {
 			enableControlButtons(true);
 			setPlayerControlOn();
@@ -237,22 +219,16 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	private void initLine_06() {
-		addTopLine("Ok. If you traveled at this speed, it would take " +
-				"forever to reach Lave, but did you notice that a new " +
-				"button appeared once you reached maximum speed?");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_06));
 	}
 
 	private void initLine_07() {
-		addTopLine("This is the torus drive button and it will allow you to " +
-				"utilize the engine boosters.").addHighlight(
+		addTopLine(L.string(R.string.tutorial_advanced_flying_07)).addHighlight(
 						makeHighlight(1560, 150, 200, 200));
 	}
 
 	private void initLine_08() {
-		final TutorialLine line =
-			addTopLine("It only works, however, if you are already flying " +
-					"with maximum speed and no other ships are in the " +
-					"vicinity. Try it. Activate the torus drive.").
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_advanced_flying_08)).
 			setMustRetainEvents().
 			setUnskippable().
 			addHighlight(makeHighlight(1560, 150, 200, 200));
@@ -274,37 +250,31 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	private void initLine_09() {
-		addTopLine("Wow... That was fast, wasn't it? Why did we stop?");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_09));
 	}
 
 	private void initLine_10() {
-		addTopLine("Usually the torus drive is interrupted, if you are too " +
-				"close to the planet or the star, or an enemy ship appears " +
-				"waiting to get a shot at you.");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_10));
 	}
 
 	private void initLine_11() {
-		addTopLine("In this simulation, I killed the torus drive.");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_11));
 	}
 
 	private void initLine_12() {
-		addTopLine("And now, you're about to make a kill. An enemy ship " +
-				"will appear soon, and I want you to destroy it.");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_12));
 	}
 
 	private void initLine_13() {
-		addTopLine("It will attack you, but it is a relatively harmless and " +
-				"slow Adder. There is a slim chance, though, that it might " +
-				"destroy you.");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_13));
 	}
 
 	private void initLine_14() {
-		addTopLine("In that case: You pay the drinks tonight and we'll try " +
-				"again tomorrow.");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_14));
 	}
 
 	private void initLine_15() {
-		addTopLine("Ready? Good. Go!");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_15));
 	}
 
 	private void initLine_16() {
@@ -319,10 +289,10 @@ public class TutAdvancedFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_TORUS = true;
 			setPlayerControlOn();
 			if (adder == null) {
-				adder = (Adder) flight.findObjectByName("Adder");
+				adder = (Adder) flight.findObjectById("Adder");
 				if (adder == null) {
 					SoundManager.play(Assets.com_conditionRed);
-					flight.getInGameManager().repeatMessage("Condition Red!", 3);
+					flight.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
 					Vector3f spawnPosition = flight.getInGameManager().getSpawnManager().getSpawnPosition();
 					adder = new Adder(game);
 					adder.setAggression(4);
@@ -345,8 +315,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	private void initLine_17() {
-		addTopLine("Hey not bad... You destroyed the Adder. And it released " +
-			"a couple of Cargo Canisters. You can see them on the radar as purple bars.")
+		addTopLine(L.string(R.string.tutorial_advanced_flying_17))
 		.setFinishHook(deltaTime -> {
 			if (scooped) currentLineIndex = 23;
 			flight.getInGameManager().setScoopCallback(null);
@@ -354,20 +323,15 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	private void initLine_18() {
-		addTopLine("Remember: If you tap on a target on your screen, it " +
-				"will be identified by the computer.");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_18));
 	}
 
 	private void initLine_19() {
-		addTopLine("Your simulated Cobra is equipped with a fuel scoop, so " +
-				"you may collect those Cargo Canisters and their contents " +
-				"are then added to your inventory.").setHeight(180);
+		addTopLine(L.string(R.string.tutorial_advanced_flying_19)).setHeight(180);
 	}
 
 	private void initLine_20() {
-		addTopLine("To successfully do that, ram a Cargo Canister with " +
-				"the lower part of your Cobra, where the Fuel Scoop is " +
-				"installed. Go ahead, now.").setHeight(180);
+		addTopLine(L.string(R.string.tutorial_advanced_flying_20)).setHeight(180);
 	}
 
 	private void initLine_21() {
@@ -407,25 +371,22 @@ public class TutAdvancedFlying extends TutorialScreen {
 
 	private void initLine_22() {
 		final TutorialLine line =
-			addTopLine("Oh no. You have destroyed the Cargo Canister. " +
-			"Remember: You must touch it with the lower part of your Cobra.").setUnskippable();
+			addTopLine(L.string(R.string.tutorial_advanced_flying_22)).setUnskippable();
 		line.setUpdateMethod(deltaTime -> {
 			if (line.getCurrentSpeechIndex() > 0) {
 				line.setFinished();
-				if (flight.findObjectByName("Cargo Canister") != null) currentLineIndex = 19;
+				if (flight.findObjectById("Cargo Canister") != null) currentLineIndex = 19;
 				else currentLineIndex++;
 			}
 		});
 	}
 
 	private void initLine_23() {
-		addTopLine("Excellent flying, Commander.");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_23));
 	}
 
 	private void initLine_24() {
-		addTopLine("This is all I can teach you, really. As a last training " +
-				"exercise, dock at Lave station. You are on your own. Good " +
-				"luck out there, Commander.");
+		addTopLine(L.string(R.string.tutorial_advanced_flying_24));
 	}
 
 	private void initLine_25() {
@@ -497,8 +458,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 			TutAdvancedFlying ta = new TutAdvancedFlying(alite, dis.readInt(), fs);
 			ta.hyperspace = hs;
 			ta.timer.setTimer(dis.readLong());
-			ta.savedMarketFluct = dis.readInt();
-			ta.adder = (Adder) ta.flight.findObjectByName("Adder");
+			ta.adder = (Adder) ta.flight.findObjectById("Adder");
 			if (ta.adder != null) {
 				ta.adder.setSaving(false);
 			}

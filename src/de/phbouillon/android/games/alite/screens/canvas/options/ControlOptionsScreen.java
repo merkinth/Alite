@@ -24,14 +24,7 @@ import java.io.IOException;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.ShipControl;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.tutorial.TutIntroduction;
 
@@ -56,28 +49,30 @@ public class ControlOptionsScreen extends OptionsScreen {
 
 	@Override
 	public void activate() {
-		shipControlMode       = createButton(0, "Ship Control: " + Settings.controlMode.getDescription());
-		controlDisplaySide    = createButton(1, computeControlDisplaySideText())
+		shipControlMode = createButton(0, L.string(R.string.options_ctrl_ship_control_mode, Settings.controlMode.getDescription()));
+		controlDisplaySide = createButton(1, computeControlDisplaySideText())
 			.setVisible(Settings.controlMode != ShipControl.ACCELEROMETER &&
 				Settings.controlMode != ShipControl.ALTERNATIVE_ACCELEROMETER);
 
-		buttonPositionOptions = createButton(2, "Configure Button Positions")
+		buttonPositionOptions = createButton(2, L.string(R.string.options_ctrl_button_position_options))
 			.setVisible(!forwardToIntroduction);
-		reverseDiveClimb      = createButton(3, "Reverse Climb: " + (Settings.reversePitch ? "Yes" : "No"));
-		radarTapZoom          = createButton(4, "Change View: " + (Settings.tapRadarToChangeView ? "Tap" : "Slide"));
-		linearLayout          = createButton(5, "Linear Layout: " + (Settings.flatButtonDisplay ? "Yes" : "No"));
+		reverseDiveClimb = createButton(3, L.string(R.string.options_ctrl_reverse_climb,
+			L.string(Settings.reversePitch ? R.string.options_yes : R.string.options_no)));
+		radarTapZoom = createButton(4, L.string(R.string.options_ctrl_radar_change_view,
+			L.string(Settings.tapRadarToChangeView ? R.string.options_ctrl_radar_change_view_tap : R.string.options_ctrl_radar_change_view_slide)));
+		linearLayout = createButton(5, L.string(R.string.options_ctrl_linear_layout,
+			L.string(Settings.flatButtonDisplay ? R.string.options_yes : R.string.options_no)));
 
-		back                  = createButton(6, forwardToIntroduction ? "Start Training" : "Back");
+		back = createButton(6, L.string(forwardToIntroduction ? R.string.options_ctrl_forward_to_introduction : R.string.options_back));
 
 	}
 
 	private String computeControlDisplaySideText() {
+		String controlPosition = L.string(Settings.controlPosition == 0 ? R.string.ship_ctrl_side_text_left_position : R.string.ship_ctrl_side_text_right_position);
 		switch (Settings.controlMode) {
-			case ACCELEROMETER: return "";
-			case ALTERNATIVE_ACCELEROMETER: return "";
-			case CONTROL_PAD: return "Position: " + (Settings.controlPosition == 0 ? "Left" : "Right");
-			case CURSOR_BLOCK: return "Position: " + (Settings.controlPosition == 0 ? "Left" : "Right");
-			case CURSOR_SPLIT_BLOCK: return "Dive/Climb is: " + (Settings.controlPosition == 0 ? "Left" : "Right");
+			case CONTROL_PAD: return L.string(R.string.ship_ctrl_side_text_control_pad, controlPosition);
+			case CURSOR_BLOCK: return L.string(R.string.ship_ctrl_side_text_cursor_block, controlPosition);
+			case CURSOR_SPLIT_BLOCK: return L.string(R.string.ship_ctrl_side_text_cursor_split_block, controlPosition);
 		}
 		return "";
 	}
@@ -87,7 +82,7 @@ public class ControlOptionsScreen extends OptionsScreen {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 
-		displayTitle("Control Options");
+		displayTitle(L.string(R.string.title_control_options));
 		shipControlMode.render(g);
 		controlDisplaySide.render(g);
 		buttonPositionOptions.render(g);
@@ -97,14 +92,14 @@ public class ControlOptionsScreen extends OptionsScreen {
 
 		back.render(g);
 		if (forwardToIntroduction) {
-			centerText("Please review your Control Settings before we begin your training.",
-					115, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+			centerText(L.string(R.string.options_ctrl_forward_to_introduction_help),
+				115, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		}
 		if (Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER) {
-			centerText("Use this option, if Accelerometer controls don't work for you (Nexus 10 for example).",
-					275, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
-			centerText("Note however that alternative Accelerometer controls only work sitting up (Sorry!).",
-					315, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+			centerText(L.string(R.string.ship_ctrl_alt_acc_help_line1),
+				275, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+			centerText(L.string(R.string.ship_ctrl_alt_acc_help_line2),
+				315, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		}
 	}
 
@@ -124,7 +119,7 @@ public class ControlOptionsScreen extends OptionsScreen {
 				} else if (Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER && !game.getInput().isAlternativeAccelerometer()) {
 					game.getInput().switchAccelerometerHandler();
 				}
-				shipControlMode.setText("Ship Control: " + Settings.controlMode.getDescription());
+				shipControlMode.setText(L.string(R.string.options_ctrl_ship_control_mode, Settings.controlMode.getDescription()));
 				controlDisplaySide.setVisible(Settings.controlMode != ShipControl.ACCELEROMETER &&
 						Settings.controlMode != ShipControl.ALTERNATIVE_ACCELEROMETER)
 					.setText(computeControlDisplaySideText());
@@ -140,7 +135,7 @@ public class ControlOptionsScreen extends OptionsScreen {
 			} else if (linearLayout.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.flatButtonDisplay = !Settings.flatButtonDisplay;
-				linearLayout.setText("Linear Layout: " + (Settings.flatButtonDisplay ? "Yes" : "No"));
+				linearLayout.setText(L.string(R.string.options_ctrl_linear_layout, L.string(Settings.flatButtonDisplay ? R.string.options_yes : R.string.options_no)));
 				Settings.save(game.getFileIO());
 			} else if (back.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
@@ -148,12 +143,14 @@ public class ControlOptionsScreen extends OptionsScreen {
 			} else if (reverseDiveClimb.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.reversePitch = !Settings.reversePitch;
-				reverseDiveClimb.setText("Reverse Climb: " + (Settings.reversePitch ? "Yes" : "No"));
+				reverseDiveClimb.setText(L.string(R.string.options_ctrl_reverse_climb,
+					L.string(Settings.reversePitch ? R.string.options_yes : R.string.options_no)));
 				Settings.save(game.getFileIO());
 			} else if (radarTapZoom.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.tapRadarToChangeView = !Settings.tapRadarToChangeView;
-				radarTapZoom.setText("Change View: " + (Settings.tapRadarToChangeView ? "Tap" : "Slide"));
+				radarTapZoom.setText(L.string(R.string.options_ctrl_radar_change_view,
+					L.string(Settings.tapRadarToChangeView ? R.string.options_ctrl_radar_change_view_tap : R.string.options_ctrl_radar_change_view_slide)));
 				Settings.save(game.getFileIO());
 			}
 		}

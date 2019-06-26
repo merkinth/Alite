@@ -43,10 +43,10 @@ public class QuantityPadScreen extends AliteScreen {
 		"7", "8", "9",
 		"4", "5", "6",
 		"1", "2", "3",
-		"0", "<-", "OK"};
+		"0", "<-", L.string(R.string.pad_btn_hex_ok)};
 	private Button[] pads;
 	private final String maxAmountString;
-	private String currentAmountString = "";
+	private int currentAmount;
 	private final BuyScreen marketScreen;
 
 	public QuantityPadScreen(BuyScreen marketScreen, Alite game, String maxAmountString, int x, int y, int row, int column) {
@@ -75,10 +75,9 @@ public class QuantityPadScreen extends AliteScreen {
 		if (maxAmountString != null) {
 			dos.writeChars(maxAmountString);
 		}
-		dos.writeInt(currentAmountString == null ? 0 : currentAmountString.length());
-		if (currentAmountString != null) {
-			dos.writeChars(currentAmountString);
-		}
+		String currentAmountString = Integer.toString(currentAmount);
+		dos.writeInt(currentAmountString.length());
+		dos.writeChars(currentAmountString);
 		marketScreen.saveScreenState(dos);
 	}
 
@@ -102,7 +101,7 @@ public class QuantityPadScreen extends AliteScreen {
 			marketScreen.loadAssets();
 			marketScreen.activate();
 			QuantityPadScreen qps = new QuantityPadScreen(marketScreen, alite, maxAmount, xPos, yPos, row, col);
-			qps.currentAmountString = currentAmount;
+			qps.currentAmount = Integer.parseInt(currentAmount);
 			alite.setScreen(qps);
 		} catch (IOException e) {
 			AliteLog.e("Quantity Pad Screen Initialize", "Error in initializer.", e);
@@ -136,7 +135,8 @@ public class QuantityPadScreen extends AliteScreen {
 			b.render(g);
 		}
 		g.fillRect(50, 1018, 1670, 56, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		g.drawText("Amount to buy (up to " + maxAmountString + ")? " + currentAmountString, 50, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
+		g.drawText(L.string(R.string.trade_amount_to_buy, maxAmountString, currentAmount == 0 ? "" : Integer.toString(currentAmount)),
+			50, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
 
 	@Override
@@ -147,33 +147,27 @@ public class QuantityPadScreen extends AliteScreen {
 		int width = (BUTTON_SIZE + GAP) * 3 + 2 * OFFSET_X;
 		int height =  (BUTTON_SIZE + GAP) * 4 + 2 * OFFSET_Y;
 		if (touch.x < xPos || touch.y < yPos || touch.x > xPos + width || touch.y > yPos + height) {
-			marketScreen.setBoughtAmountString("0");
+			marketScreen.setBoughtAmount(0);
 			newScreen = marketScreen;
 		}
 		for (Button b: pads) {
 			if (b.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				String t = b.getText();
-				if ("0".equals(t)) {
-					if (!currentAmountString.isEmpty()) {
-						currentAmountString += "0";
-					}
-				} else if ("<-".equals(t)) {
-					if (!currentAmountString.isEmpty()) {
-						currentAmountString = currentAmountString.substring(0, currentAmountString.length() - 1);
-					}
-				} else if ("OK".equals(t)) {
-					marketScreen.setBoughtAmountString(currentAmountString);
+				if ("<-".equals(t)) {
+					currentAmount /= 10;
+				} else if (L.string(R.string.pad_btn_hex_ok).equals(t)) {
+					marketScreen.setBoughtAmount(currentAmount);
 					newScreen = marketScreen;
 				} else {
-					currentAmountString += t;
+					currentAmount = 10 * currentAmount + Integer.parseInt(t);
 				}
 			}
 		 }
 	}
 
 	public void clearAmount() {
-		currentAmountString = "";
+		currentAmount = 0;
 		newScreen = null;
 	}
 

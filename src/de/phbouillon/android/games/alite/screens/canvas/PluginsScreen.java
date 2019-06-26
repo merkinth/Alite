@@ -87,11 +87,11 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		int width = (AliteConfig.SCREEN_WIDTH >> 1) - 150;
 		for (Plugin plugin : plugins) {
 			TextData[] description = computeTextDisplayWidths(g, plugin.description != null && !plugin.description.trim().isEmpty() ?
-				plugin.description : "(No description)", 110, 2 * (int) Assets.titleFont.getSize(),
+				plugin.description : L.string(R.string.plugins_no_description), 110, 2 * (int) Assets.titleFont.getSize(),
 				new int[] {width, width, 1300 }, 50, ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT));
 			TextData[] removalReason = null;
 			if (Plugin.META_STATUS_REMOVED.equals(plugin.status) && plugin.removalReason != null && !plugin.removalReason.trim().isEmpty()) {
-				removalReason = computeTextDisplayWidths(g, "Removal reason: " + plugin.removalReason,
+				removalReason = computeTextDisplayWidths(g, L.string(R.string.plugins_removal_reason, plugin.removalReason),
 				110, description[description.length-1].y + 50,  new int[] { description.length == 1 ? width : 1300, 1300 },
 					50, ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT));
 			}
@@ -165,8 +165,8 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		}
 		messageResult = RESULT_NONE;
 		if (downloadState >= IDownloaderClient.STATE_COMPLETED && !isMessageDialogActive()) {
-			String message = String.format(downloadState == IDownloaderClient.STATE_COMPLETED ?
-				"Extension '%s' installed successfully." : "Downloading extension '%s' failed.", getPluginName(currentPlugin));
+			String message = L.string(downloadState == IDownloaderClient.STATE_COMPLETED ?
+				R.string.plugins_download_succeeded : R.string.plugins_download_failed, getPluginName(currentPlugin));
 			AliteLog.d("Extension download", message + " " +
 				L.string(Helpers.getDownloaderStringResourceIDFromState(downloadState)));
 			if (downloadState == IDownloaderClient.STATE_COMPLETED) {
@@ -220,7 +220,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 					SoundManager.play(Assets.click);
 					currentPlugin = plugins.get(i/3);
 					if (button.getCommand() == RESULT_NO) {
-						popupTextInput("Enter removal reason:", "", -1);
+						popupTextInput(L.string(R.string.plugins_get_removal_reason), "", -1);
 						return;
 					}
 					downloadState = IDownloaderClient.STATE_DOWNLOADING;
@@ -244,7 +244,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(Color.BLACK);
-		displayTitle("Extensions, languages");
+		displayTitle(L.string(R.string.title_plugins));
 
 		if (deltaY != 0) {
 			boolean neg = deltaY < 0;
@@ -274,23 +274,22 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 						renderProgressCircle();
 						break;
 					}
-					String infoText = "";
-					if (isDownloadable(status)) {
-						long size = plugins.get(i/3).size;
-						if (size > AliteLog.MB) {
-							infoText = String.format(L.currentLocale, "%d MB", size / AliteLog.MB);
-						} else {
-							infoText = String.format(L.currentLocale, "%d KB", size / AliteLog.KB);
-						}
-					}
 					if (isRemovable(status)) {
 						Locale.setDefault(L.currentLocale);
-						infoText += (!infoText.isEmpty() ? ", " : "") +
-							DateUtils.getRelativeTimeSpanString(plugins.get(i/3).downloadTime);
+						String infoText = DateUtils.getRelativeTimeSpanString(plugins.get(i/3).downloadTime).toString();
+						g.drawText(infoText, 1415 - g.getTextWidth(infoText, Assets.regularFont),
+							button.getY() - yPosition + (int) Assets.titleFont.getSize(),
+							ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
 					}
-					g.drawText(infoText, 1415 - g.getTextWidth(infoText, Assets.regularFont),
-						button.getY() - yPosition + (int) Assets.titleFont.getSize(),
-						ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
+
+					if (isDownloadable(status)) {
+						long size = plugins.get(i/3).size;
+						String infoText = size > AliteLog.MB ? L.string(R.string.plugins_size_mb, size / AliteLog.MB) :
+							L.string(R.string.plugins_size_kb, size / AliteLog.KB);
+						g.drawText(infoText, 1415 - g.getTextWidth(infoText, Assets.regularFont),
+							button.getY() - yPosition + 2 * (int) Assets.titleFont.getSize(),
+							ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
+					}
 					break;
 
 				case 1:
@@ -430,11 +429,11 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 			y + ((int) Assets.regularFont.getSize() >> 1) - 10,
 			ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
 
-		g.drawText(String.format(L.currentLocale, "%dMB / %dMB",
+		g.drawText(L.string(R.string.plugins_download_progress,
 			progress.mOverallProgress / AliteLog.MB, progress.mOverallTotal / AliteLog.MB),
 			x + r + 40, button.getY() - yPosition + (int) Assets.titleFont.getSize(),
 			ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
-		g.drawText(String.format(L.currentLocale, "%4.2f MB/s, %ds",
+		g.drawText(L.string(R.string.plugins_download_time,
 			progress.mCurrentSpeed / AliteLog.KB, (int) (progress.mTimeRemaining / 1000.0f)),
 			x + r + 40, button.getY() - yPosition + 2 * (int) Assets.titleFont.getSize(),
 			ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);;

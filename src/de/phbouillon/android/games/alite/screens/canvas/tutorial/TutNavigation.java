@@ -24,9 +24,7 @@ import java.io.IOException;
 
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.ScreenCodes;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.screens.canvas.GalaxyScreen;
 import de.phbouillon.android.games.alite.screens.canvas.LocalScreen;
 import de.phbouillon.android.games.alite.screens.canvas.PlanetScreen;
@@ -60,12 +58,7 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_00() {
-		final TutorialLine line = addLine(4,
-				"Wonderful morning, eh, rookie? I have a bunch of " +
-				"information for you today. So wipe the sleep from your " +
-				"face and pay attention! You have seen the Galaxy screen " +
-				"already, but today, I'll tell you more about it. First: " +
-				"Open it.");
+		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_00));
 
 		status = new StatusScreen(game);
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
@@ -78,12 +71,7 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_01() {
-		final TutorialLine line = addLine(4,
-				"The white cross you see indicates your current position. " +
-				"The red circle around it, shows how far you can travel " +
-				"with your current fuel. You can zoom in by pressing two " +
-				"fingers on the screen and move them apart. Do that until " +
-				"you can see the names of the systems appear.").setY(150);
+		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_01)).setY(150);
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			galaxy.processAllTouches();
@@ -94,7 +82,7 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_02() {
-		final TutorialLine line = addLine(4, "Now, push the \"Home\" button.");
+		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_02));
 
 		line.setUnskippable().setHeight(100).setUpdateMethod(deltaTime -> {
 			for (TouchEvent event: game.getInput().getTouchEvents()) {
@@ -109,15 +97,7 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_03() {
-		final TutorialLine line = addLine(4,
-				"See how it moved the map back to your current location? " +
-				"Helps newbies like yourself not to get lost so easily... " +
-				"Did you notice the different colors of the star systems? " +
-				"These colors indicate the economy of the system. It ranges " +
-				"from poor agricultures in grey to rich industrials in " +
-				"blue. In case you forget, however, you can switch to the " +
-				"planet screen to get more information on the selected " +
-				"planet. Do that now.").setY(150).setHeight(300);
+		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_03)).setY(150).setHeight(300);
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (galaxy != null) {
@@ -144,9 +124,7 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_04() {
-		final TutorialLine line = addLine(4,
-				"No, I told you to switch to the planet screen, wet-nose. " +
-				"Try again.");
+		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_04));
 
 		line.setHeight(100).setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
@@ -163,21 +141,11 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_05() {
-		addLine(4, "Here on the planet screen, you'll see all the relevant " +
-				"information for a planetary system: The name, its economy, " +
-				"its government, and the tech level, which tells you what " +
-				"kind of equipment you'll be able to buy at that system. " +
-				"You'll also have information on the inhabitants of that " +
-				"planet, which you should read carefully, so you can trade " +
-				"successfully and not risk insulting a feline by not " +
-				"smelling enough -- not that I think you'd have a problem " +
-				"with that particular requirement, nugget.").setY(700).setHeight(350);
+		addLine(4, L.string(R.string.tutorial_navigation_05)).setY(700).setHeight(350);
 	}
 
 	private void initLine_06() {
-		final TutorialLine line = addLine(4,
-				"Now that you have gathered information on the planet, " +
-				"switch to the local screen.").setY(150);
+		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_06)).setY(150);
 
 		line.setHeight(150).setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen screen = updateNavBar();
@@ -194,9 +162,7 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_07() {
-		final TutorialLine line = addLine(4,
-				"No, I told you to switch to the local screen, wet-nose. " +
-				"Try again.").setY(150);
+		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_07)).setY(150);
 
 		line.setHeight(150).setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
@@ -213,11 +179,7 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_08() {
-		final TutorialLine line = addLine(4,
-				"The local screen is the same as the galaxy screen but it " +
-				"shows only a small region around your current location if " +
-				"accessed. You can zoom out, though. Just hold two fingers " +
-				"on the screen and move them together. Do it now.").setY(150);
+		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_08)).setY(150);
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			local.processAllTouches();
@@ -228,23 +190,11 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_09() {
-		addLine(4, "Good. Now, you know everything about navigation. Or " +
-				"almost: Remember that the system you select is always your " +
-				"destination system. If you launch and engage hyperspace, " +
-				"you'll end up in that system -- if you're not intercepted " +
-				"by Thargoids that is.").setY(150);
+		addLine(4, L.string(R.string.tutorial_navigation_09)).setY(150);
 	}
 
 	private void initLine_10() {
-		addLine(4, "Scared, nugget? Well, you should be. Life as a pilot is " +
-				"hard, dangerous, and hardly rewarding. Still, we get to " +
-				"see rare sights, if we master control of our ship and " +
-				"survive assaults. Do you have it in you? We are soon going " +
-				"to find out: Next lesson, I'll start the flying " +
-				"instructions. Until then: Think hard if this is really " +
-				"what you want. If not, don't show up next time. Your " +
-				"secret is safe with me. I won't tell a soul about your " +
-				"fears. Trust me.").setY(150).setHeight(350).setPause(5000);
+		addLine(4, L.string(R.string.tutorial_navigation_10)).setY(150).setHeight(350).setPause(5000);
 	}
 
 	@Override

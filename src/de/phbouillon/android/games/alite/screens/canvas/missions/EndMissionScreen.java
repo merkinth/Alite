@@ -23,9 +23,7 @@ import java.io.IOException;
 
 import android.media.MediaPlayer;
 import de.phbouillon.android.framework.Graphics;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.ScreenCodes;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.missions.EndMission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
@@ -35,18 +33,6 @@ import de.phbouillon.android.games.alite.screens.canvas.TextData;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class EndMissionScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
-
-	private final String welcomeCommander = "Welcome to Raxxla, Commander.";
-
-	private final String missionDescription =
-			"You have proven yourself worthy and now you have finally come " +
-	        "to a place where you can rest and find peace. We welcome you " +
-	        "here. Take a look around and enjoy Raxxla. You are free to " +
-	        "leave at any time, of course, but most pilots stay. There just " +
-	        "isn't anything new out in the universe.";
-
-	private final String congratulations =
-			"Congratulations, Commander. Now you are truly among the Elite.";
 
 	private MissionLine welcomeLine;
 	private MissionLine missionLine;
@@ -62,9 +48,9 @@ public class EndMissionScreen extends AliteScreen {
 		mediaPlayer = new MediaPlayer();
 		try {
 			if (state == 0) {
-				welcomeLine = new MissionLine(MissionManager.DIRECTORY_SOUND_MISSION + "01.mp3", welcomeCommander);
-				missionLine = new MissionLine(null, missionDescription);
-				congratulationsLine = new MissionLine(null, congratulations);
+				welcomeLine = new MissionLine(MissionManager.DIRECTORY_SOUND_MISSION + "01.mp3", L.string(R.string.mission_elite_welcome_commander));
+				missionLine = new MissionLine(null, L.string(R.string.mission_elite_mission_description));
+				congratulationsLine = new MissionLine(null, L.string(R.string.mission_elite_congratulations));
 			} else {
 				AliteLog.e("Unknown State", "Invalid state variable has been passed to EndMissionScreen: " + state);
 			}
@@ -87,7 +73,7 @@ public class EndMissionScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Congratulations");
+		displayTitle(L.string(R.string.title_mission_elite));
 
 		if (welcomeText != null) {
 			displayText(g, welcomeText);

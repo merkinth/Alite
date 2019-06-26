@@ -50,7 +50,6 @@ import de.phbouillon.android.games.alite.model.statistics.ShipType;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.ShipIntroScreen;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
-import de.phbouillon.android.games.alite.screens.canvas.TradeScreen;
 import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.Billboard;
@@ -163,7 +162,7 @@ public class InGameManager implements Serializable {
 		skysphere = new SkySphereSpaceObject(alite, "skysphere", 8000.0f, 16, 16, skyMap);
 		ship = new CobraMkIII(alite);
 		ship.setPlayerCobra(true);
-		ship.setName("Camera");
+		ship.setId("Camera");
 
 		MathHelper.getRandomPosition(FlightScreen.PLANET_POSITION, tempVector, 115000.0f, 20000.0f).copy(systemStationPosition);
 		if (fromStation) {
@@ -314,14 +313,14 @@ public class InGameManager implements Serializable {
 		if (!((SpaceStation) getStation()).accessAllowed()) {
 			if (playSound) {
 				SoundManager.play(Assets.com_accessDeclined);
-				message.setText("Access to the station has been declined!");
+				message.setText(L.string(R.string.com_access_declined));
 			}
 			return;
 		}
 		if (dockingComputerAI.isActive()) {
 			if (playSound) {
 				SoundManager.play(Assets.com_dockingComputerDisengaged);
-				setMessage("Docking computer disengaged");
+				setMessage(L.string(R.string.com_docking_computer_disengaged));
 			}
 			if (hud != null) {
 				hud.mapDirections(false, false, false, false);
@@ -330,7 +329,7 @@ public class InGameManager implements Serializable {
 		} else {
 			if (playSound) {
 				SoundManager.play(Assets.com_dockingComputerEngaged);
-				setMessage("Docking computer engaged");
+				setMessage(L.string(R.string.com_docking_computer_engaged));
 			}
 			dockingComputerAI.engage();
 		}
@@ -339,16 +338,15 @@ public class InGameManager implements Serializable {
 	public void toggleStationHandsDocking() {
 		if (!((SpaceStation) getStation()).accessAllowed()) {
 			SoundManager.play(Assets.com_accessDeclined);
-			message.setText("Access to the station has been declined!");
+			message.setText(L.string(R.string.com_access_declined));
 			return;
 		}
 		if (feeText != null || dockingComputerAI.isActive()) {
-			// Once station hands initiated docking, there's nothing you can do
-			// to stop it again...
+			// Once station hands initiated docking, there's nothing you can do to stop it again...
 			return;
 		}
 		long dockingFee = getDockingFee();
-		feeText = TradeScreen.getOneDecimalFormatString("The fee for assisted docking is %s.%s Cr. Accept?", dockingFee);
+		feeText = L.getOneDecimalFormatString(R.string.assisted_docking, dockingFee);
 	}
 
 	private long getDockingFee() {
@@ -359,7 +357,7 @@ public class InGameManager implements Serializable {
 	private void initiateStationHandsDocking() {
 		// TODO different sound ("Transaction has been received. Lean back and enjoy the flight.")
 		SoundManager.play(Assets.com_dockingComputerEngaged);
-		setMessage("Docking computer engaged");
+		setMessage(L.string(R.string.com_docking_computer_engaged));
 		dockingComputerAI.engage();
 	}
 
@@ -552,7 +550,7 @@ public class InGameManager implements Serializable {
 
 	private synchronized void spawnMissile(SpaceObject so) {
 		Missile missile = helper.spawnMissile(so, ship);
-        message.repeatText("Incoming Missile", 2);
+        message.repeatText(L.string(R.string.com_incoming_missile), 2);
         missile.addDestructionCallback(7, new IMethodHook() {
 			private static final long serialVersionUID = -4168441227358105959L;
 
@@ -591,7 +589,7 @@ public class InGameManager implements Serializable {
 		boolean extendedSafeZone = witchSpace == null && distSq < EXT_SAFE_ZONE_RADIUS_SQ;
 		if (extendedSafeZone && spawnManager.isInTorus()) {
 			spawnManager.leaveTorus();
-			message.setText("Mass locked.");
+			message.setText(L.string(R.string.msg_mass_locked));
 		}
 		if (hud != null) {
 			hud.setExtendedSafeZone(extendedSafeZone);
@@ -629,7 +627,7 @@ public class InGameManager implements Serializable {
 
 		while (objectIterator.hasNext()) {
 			AliteObject ao = objectIterator.next();
-			if ("Planet".equals(ao.getName())) {
+			if ("Planet".equals(ao.getId())) {
 				updatePlanet(ao);
 			}
 			spawnObjects(ao);
@@ -642,7 +640,7 @@ public class InGameManager implements Serializable {
 					ao.moveForward(deltaTime);
 				}
 			}
-			if (ao.getName().equals("Missile")) {
+			if (ao.getId().equals("Missile")) {
 				helper.handleMissileUpdate((Missile) ao, deltaTime);
 				ao.getPosition().sub(ship.getPosition(), tempVector);
 				if (tempVector.lengthSq() > AliteHud.MAX_DISTANCE * AliteHud.MAX_DISTANCE) {
@@ -674,7 +672,7 @@ public class InGameManager implements Serializable {
 				}
 				dockingComputerAI.disengage();
 				SoundManager.playOnce(Assets.com_accessDeclined, 3000);
-				message.setText("Access to the station has been declined!");
+				message.setText(L.string(R.string.com_access_declined));
 			}
 		}
 	}
@@ -1056,7 +1054,7 @@ public class InGameManager implements Serializable {
 			Matrix.multiplyMM(tempMatrix[1], 0, viewMatrix, 0, go.getMatrix(), 0);
 			hud.setPlanet(tempMatrix[1][12], tempMatrix[1][13], tempMatrix[1][14]);
 		}
-		if ("Planet".equals(go.getName()) && hud != null) {
+		if ("Planet".equals(go.getId()) && hud != null) {
 			if (!playerInSafeZone) {
 				Matrix.multiplyMM(tempMatrix[1], 0, viewMatrix, 0, go.getMatrix(), 0);
 				hud.setPlanet(tempMatrix[1][12], tempMatrix[1][13], tempMatrix[1][14]);
@@ -1065,14 +1063,14 @@ public class InGameManager implements Serializable {
 				helper.checkAltitudeLowAlert();
 			}
 		}
-		if ("Sun".equals(go.getName()) && hud != null) {
+		if ("Sun".equals(go.getId()) && hud != null) {
 			float distSq = go.getPosition().distanceSq(ship.getPosition());
 			if (distSq > EXT_SAFE_ZONE_RADIUS_SQ || witchSpace != null) {
 				alite.getCobra().setCabinTemperature(0);
 			} else {
 				if (spawnManager.isInTorus()) {
 					spawnManager.leaveTorus();
-					message.setText("Mass locked.");
+					message.setText(L.string(R.string.msg_mass_locked));
 				}
 				alite.getCobra().setCabinTemperature(
 						(int) (PlayerCobra.MAX_CABIN_TEMPERATURE - PlayerCobra.MAX_CABIN_TEMPERATURE
@@ -1128,7 +1126,7 @@ public class InGameManager implements Serializable {
 					AliteLog.d("Bucket ok", "[O] Bucket near: " + bucket.near + ", Bucket far: " + bucket.far);
 				}
 				for (AliteObject go: bucket.sortedObjects) {
-					AliteLog.d("  OIB", "  Object: " + go.getName());
+					AliteLog.d("  OIB", "  Object: " + go.getId());
 				}
 			}
 			AliteLog.d("----Debugging Objects End----", "--------Debugging Objects End--------");
@@ -1198,8 +1196,8 @@ public class InGameManager implements Serializable {
 							if (targetMissile && alite.getCobra().getMissiles() > 0 || Settings.autoId && !((SpaceObject) go).isIdentified()) {
 								if (laserManager.isUnderCross((SpaceObject) go, ship, viewDirection)) {
 									if (targetMissile) {
-										AliteLog.d("Targetted", "Targetted " + go.getName());
-										setMessage("Missiled locked on "  + go.getName());
+										AliteLog.d("Targetted", "Targetted " + go.getId());
+										setMessage(L.string(R.string.msg_missile_locked, go.getName()));
 										alite.getCobra().setMissileLocked(true);
 										missileLock = (SpaceObject) go;
 										SoundManager.play(Assets.missileLocked);
@@ -1441,7 +1439,7 @@ public class InGameManager implements Serializable {
 				scrollingText = new ScrollingText(alite);
 			}
 			message = new OnScreenMessage();
-			message.repeatText(AliteConfig.GAME_NAME + " is Paused (tap screen to continue)...", 5, -1, 3);
+			message.repeatText(L.string(R.string.msg_pause_game, AliteConfig.GAME_NAME), 5, -1, 3);
 		} else {
 			scrollingText = null;
 			message.clearRepetition();
@@ -1488,7 +1486,7 @@ public class InGameManager implements Serializable {
 
 	public boolean toggleHyperspaceCountdown(boolean isIntergalactic) {
 		if (killHyperspaceJump()) {
-			message.setText("Hyperspace jump aborted.");
+			message.setText(L.string(R.string.msg_hyperspace_jump_aborted));
 			return false;
 		}
 		initialHyperspaceSystem = alite.getPlayer().getHyperspaceSystem();
@@ -1543,7 +1541,7 @@ public class InGameManager implements Serializable {
 			promoted = true;
 		}
 		if (promoted) {
-			message.setText("Right On, Commander.");
+			message.setText(L.string(R.string.msg_right_on_commander));
 		}
 	}
 
@@ -1553,8 +1551,9 @@ public class InGameManager implements Serializable {
 		computeScore(destroyedObject);
 		if (!(destroyedObject instanceof CargoCanister)) {
 			SoundManager.play(Assets.com_targetDestroyed);
-			String bountyString = "Bounty for " + destroyedObject.getName() + ": " +
-				(bounty == 0 ? "None." : TradeScreen.getOneDecimalFormatString("%d.%d Cr.", bounty));
+			String bountyString = bounty == 0 ? L.string(R.string.bounty_none, destroyedObject.getName()) :
+				L.string(R.string.bounty_amount, destroyedObject.getName(),
+					L.getOneDecimalFormatString(R.string.cash_amount_value_ccy, bounty));
 			message.setDelayedText(bountyString);
 		}
 	}
@@ -1572,15 +1571,15 @@ public class InGameManager implements Serializable {
 		} else if (Settings.difficultyLevel == 5) {
 			points <<= 1;
 		}
-		AliteLog.d("Player kill", "Destroyed " + destroyedObject.getName() + " at Difficulty " + Settings.difficultyLevel + " for " + points + " points.");
+		AliteLog.d("Player kill", "Destroyed " + destroyedObject.getId() + " at Difficulty " + Settings.difficultyLevel + " for " + points + " points.");
 		alite.getPlayer().setScore(alite.getPlayer().getScore() + points);
 		checkPromotion();
 		if (destroyedObject.getScore() > 0) {
 			alite.getPlayer().increaseKillCount(1);
 			if (alite.getPlayer().getKillCount() % 1024 == 0) {
-				message.setText("Good Shooting, Commander!");
+				message.setText(L.string(R.string.msg_good_shooting_commander));
 			} else if (alite.getPlayer().getKillCount() % 256 == 0) {
-				message.setText("Right On, Commander.");
+				message.setText(L.string(R.string.msg_right_on_commander));
 			}
 		}
 	}

@@ -22,13 +22,12 @@ import java.io.*;
 
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.Weight;
+import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ThargoidDocumentsScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
@@ -81,7 +80,7 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 			alite.getPlayer().addActiveMission(this);
 			alite.getCobra().setMissiles(4);
 			alite.getCobra().setFuel(70);
-			alite.getCobra().addSpecialCargo("Thargoid Documents", Weight.grams(482));
+			alite.getCobra().addSpecialCargo(TradeGoodStore.GOOD_THARGOID_DOCUMENTS, Weight.grams(482));
 			state = 1;
 			resetTargetName();
 		} else {
@@ -102,7 +101,7 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 	@Override
 	public void onMissionComplete() {
 		active = false;
-		alite.getCobra().removeSpecialCargo("Thargoid Documents");
+		alite.getCobra().removeSpecialCargo(TradeGoodStore.GOOD_THARGOID_DOCUMENTS);
 		alite.getCobra().removeEquipment(EquipmentStore.extraEnergyUnit);
 		alite.getCobra().addEquipment(EquipmentStore.navalEnergyUnit);
 	}
@@ -157,14 +156,13 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 	private void spawnThargoids(final ObjectSpawnManager manager) {
 		if (manager.isInTorus()) {
 			int randByte = (int) (Math.random() * 256);
-			if ((0 << 5) > randByte) {
+			if (randByte < 32) {
 				return;
-			} else {
-				manager.leaveTorus();
 			}
+			manager.leaveTorus();
 		}
 		SoundManager.play(Assets.com_conditionRed);
-		manager.getInGameManager().repeatMessage("Condition Red!", 3);
+		manager.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
 		conditionRedEvent.pause();
 		Vector3f spawnPosition = manager.getSpawnPosition();
 		int thargoidNum = alite.getPlayer().getRating().ordinal() < 3 ? 1 : Math.random() < 0.5 ? 1 : 2;
@@ -195,6 +193,6 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 
 	@Override
 	public String getObjective() {
-		return "Take the documents to " + getTargetName(targetIndex, galaxySeed) + ".";
+		return L.string(R.string.mission_thargoid_documents_obj, getTargetName(targetIndex, galaxySeed));
 	}
 }

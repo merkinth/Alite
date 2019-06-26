@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -19,19 +19,24 @@ package de.phbouillon.android.games.alite;
  */
 
 public enum ShipControl {
-	ACCELEROMETER("Accelerometer"),
-	ALTERNATIVE_ACCELEROMETER("Alternative Accelerometer"),
-	CONTROL_PAD("Control Pad"),
-	CURSOR_BLOCK("Cursor Block"),
-	CURSOR_SPLIT_BLOCK("Split Cursor Blocks");
-	
-	private String description;
-	
-	ShipControl(String description) {
-		this.description = description;
-	}
-	
+	ACCELEROMETER,
+	ALTERNATIVE_ACCELEROMETER,
+	CONTROL_PAD,
+	CURSOR_BLOCK,
+	CURSOR_SPLIT_BLOCK;
+
+	// This solution (instead of initialization from constructor) is required for
+	// avoiding ExceptionInInitializerError due to early reference from class Settings.
+	// Beside that, it is also required in case of all enums for changing the text immediately
+	// without recreating the class if language changed
 	public String getDescription() {
-		return description;
+		switch (this) {
+			case ACCELEROMETER: return L.string(R.string.ship_ctrl_acc);
+			case ALTERNATIVE_ACCELEROMETER: return L.string(R.string.ship_ctrl_alt_acc);
+			case CONTROL_PAD: return L.string(R.string.ship_ctrl_control_pad);
+			case CURSOR_BLOCK: return L.string(R.string.ship_ctrl_cursor_block);
+			case CURSOR_SPLIT_BLOCK: return L.string(R.string.ship_ctrl_cursor_split_block);
+		}
+		return "";
 	}
 }

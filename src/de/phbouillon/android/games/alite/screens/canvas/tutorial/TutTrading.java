@@ -22,11 +22,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.model.InventoryItem;
-import de.phbouillon.android.games.alite.model.Weight;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.canvas.BuyScreen;
@@ -64,10 +60,7 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_00() {
-		final TutorialLine line = addLine(2,
-				"Ah, I see you're back. Think you're ready for more " +
-				"basics? Ok, so first, open the Buy screen again. You " +
-				"remember how to do that, don't you?");
+		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_00));
 
 		status = new StatusScreen(game);
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
@@ -79,17 +72,11 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_01() {
-		addLine(2, "Here, you can see all the goods that are offered on " +
-				"the station you're docked with. The price of the good is " +
-				"given below the good and right next to the trade item, " +
-				"you can see how much of it is available. If you can't " +
-				"figure out what a symbol represents, just tap it, and a " +
-				"description will be displayed at the bottom of the screen.");
+		addLine(2, L.string(R.string.tutorial_trading_01));
 	}
 
 	private void initLine_02() {
-		final TutorialLine line = addLine(2,
-			"Oh, don't be shy, try it: Tap one trade item once. Come on.");
+		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_02));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (buy.getSelectedGood() == null) {
@@ -102,15 +89,12 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_03() {
-		addLine(2,
-				"See? That wasn't so hard after all, was it? Now, if you " +
-				"tap it again, and the item is available, you can buy some.")
+		addLine(2, L.string(R.string.tutorial_trading_03))
 		.setFinishHook(deltaTime -> buy.resetSelection()).setHeight(150);
 	}
 
 	private void initLine_04() {
-		final TutorialLine line = addLine(2,
-				"Let's try that: Tap on the symbol for food.");
+		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_04));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (buy.getSelectedGood() == null) {
@@ -129,9 +113,7 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_05() {
-		final TutorialLine line = addLine(2,
-				"No, I told you to tap on the food-icon, that's the one " +
-				"in the upper left corner, wet-nose.");
+		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_05));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (buy.getSelectedGood() == null) {
@@ -149,7 +131,7 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_06() {
-		final TutorialLine line = addLine(2, "Ok. Now tap it again.");
+		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_06));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			buy.processAllTouches();
@@ -163,16 +145,12 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_07() {
-		final TutorialLine line = addLine(2,
-				"Now you need to enter the quantity: How much do you " +
-				"want to buy. Let's not overindulge ourselves here: " +
-				"Although this is a simulation only, and nothing will " +
-				"really be added to your cargo bay, enter a 1 followed by OK.");
+		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_07));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			quantity.processAllTouches();
 			if (quantity.getNewScreen() == buy) {
-				success = "1".equals(buy.getBoughtAmount());
+				success = buy.getBoughtAmount() == 1;
 				if (success) {
 					currentLineIndex++;
 				}
@@ -191,16 +169,12 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_08() {
-		final TutorialLine line = addLine(2,
-				"I don't know if you failed basic reading, but it sure " +
-				"looks like that you fleshy-headed mutant. Type a 1, that's " +
-				"the number in the first column, third row, followed by OK; " +
-				"that's the third column, fourth row button.");
+		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_08));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			quantity.processAllTouches();
 			if (quantity.getNewScreen() == buy) {
-				success = "1".equals(buy.getBoughtAmount());
+				success = buy.getBoughtAmount() == 1;
 				line.setFinished();
 				if (!success) {
 					currentLineIndex--;
@@ -218,11 +192,7 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_09() {
-		final TutorialLine line = addLine(2,
-				"Good. You have now bought 1 ton of food and your " +
-				"account has been reduced by the price of food. Now go to " +
-				"the inventory screen and see how that ton of food is " +
-				"displayed there.");
+		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_09));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (updateNavBar() instanceof InventoryScreen) {
@@ -235,13 +205,7 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_10() {
-		final TutorialLine line = addLine(2,
-				"See? You can also see at the bottom of the screen that " +
-				"you now have less cargo space available. You start with a " +
-				"20t Cargo hold in a Cobra Mk III. I sure hope you'll " +
-				"upgrade that soon. Now, what about selling? To sell " +
-				"something, go to the inventory screen and tap the item you " +
-				"want to sell twice. Easy, right? Go ahead, do it...");
+		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_10));
 
 		line.setUnskippable().setY(500).
 			addHighlight(makeHighlight(450, 970, 850, 40)).
@@ -254,16 +218,7 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_11() {
-		addLine(2, "Yeah. See. Now you sold the food back. But what's that? " +
-				"You lost money in the process! That's the standard fee for " +
-				"selling anything at a space station. It will automatically " +
-				"be removed from your price. So you better make sure that " +
-				"you sell your goods at a higher price than you bought " +
-				"them. Don't worry, though, cub, this was only a " +
-				"simulation. We did not take anything from your account. " +
-				"Understood all that? -- I didn't think so. So go back and " +
-				"think about everything I told you today and then come back " +
-				"when you're ready for more.").setY(500).setHeight(400).
+		addLine(2, L.string(R.string.tutorial_trading_11)).setY(500).setHeight(400).
 				setPause(5000);
 	}
 

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,23 +18,20 @@ package de.phbouillon.android.games.alite.model;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
+
 public enum LegalStatus {
-	CLEAN("Clean"), 
-	OFFENDER("Offender"), 
-	FUGITIVE("Fugitive");
-	
-	private String name;
-	
-	LegalStatus(String name) {
-		this.name = name;
-	}
-	
+	CLEAN,
+	OFFENDER,
+	FUGITIVE;
+
 	public String getName() {
-		return name;
-	}
-	
-	@Override
-	public String toString() {
-		return name;
+		switch (this) {
+			case CLEAN: return L.string(R.string.legal_status_clean);
+			case OFFENDER: return L.string(R.string.legal_status_offender);
+			case FUGITIVE: return L.string(R.string.legal_status_fugitive);
+		}
+		return "";
 	}
 }

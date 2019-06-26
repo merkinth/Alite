@@ -132,8 +132,8 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 
 	private Vector3f overrideColor = new Vector3f(0, 0, 0);
 
-	public SpaceObject(Alite alite, String name, ObjectType type) {
-		super(name);
+	public SpaceObject(Alite alite, String id, ObjectType type) {
+		super(id);
 		this.alite = alite;
 		spawnCargoCanisters = true;
 		this.type = type;
@@ -874,7 +874,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 	}
 
 	public String toString() {
-		return getName();
+		return getId();
 	}
 
 	public int getCargoCanisterOverrideCount() {

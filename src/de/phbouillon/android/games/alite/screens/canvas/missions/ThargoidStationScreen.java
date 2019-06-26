@@ -24,10 +24,7 @@ import java.io.IOException;
 
 import android.media.MediaPlayer;
 import de.phbouillon.android.framework.Graphics;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.ScreenCodes;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
@@ -38,22 +35,6 @@ import de.phbouillon.android.games.alite.screens.canvas.TextData;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class ThargoidStationScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
-
-	private final String missionDescription =
-			"The Galactic Intelligence Agency reports that a nearby system " +
-			"has been invaded by Thargoid ships and that the space station " +
-			"has been captured. All available forces are being gathered to " +
-			"destroy the invading force. The space station has become the " +
-			"main Thargoid headquarters and it's from this base that the " +
-			"planetary attack is being mounted. The space station must be " +
-			"destroyed - no matter what the cost!";
-
-	private final String attentionCommander = "Attention Commander!";
-
-	private final String success =
-			"Thanks for destroying the Thargoid base. A new device was " +
-			"salvaged from one of the Thargoid ships which we have fitted " +
-			"to your ship. The device appears to jam ECM broadcasts.";
 
 	private MissionLine attCommander;
 	private MissionLine missionLine;
@@ -68,13 +49,13 @@ public class ThargoidStationScreen extends AliteScreen {
 		mediaPlayer = new MediaPlayer();
 		String path = MissionManager.DIRECTORY_SOUND_MISSION + "5/";
 		try {
-			attCommander = new MissionLine(path + "01.mp3", attentionCommander);
+			attCommander = new MissionLine(path + "01.mp3", L.string(R.string.mission_attention_commander));
 			if (state == 0) {
-				missionLine = new MissionLine(path + "02.mp3", missionDescription);
+				missionLine = new MissionLine(path + "02.mp3", L.string(R.string.mission_thargoid_station_mission_description));
 				mission.setPlayerAccepts(true);
 				mission.setTarget(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex(), 1);
 			} else if (state == 1) {
-				missionLine = new MissionLine(path + "04.mp3", success);
+				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_thargoid_station_success));
 			 	mission.onMissionComplete();
 				Player player = game.getPlayer();
 				player.removeActiveMission(mission);
@@ -105,9 +86,9 @@ public class ThargoidStationScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Mission #5 - Destroy the Alien Space Station");
+		displayTitle(L.string(R.string.title_mission_thargoid_station));
 
-		g.drawText(attentionCommander, 50, 200, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.mission_attention_commander), 50, 200, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		if (missionText != null) {
 			displayText(g, missionText);
 		}

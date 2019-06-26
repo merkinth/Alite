@@ -27,12 +27,7 @@ import android.media.MediaPlayer;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -46,34 +41,6 @@ import de.phbouillon.android.games.alite.screens.canvas.TextData;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class ThargoidDocumentsScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
-
-	private final String attentionCommander = "Attention Commander!";
-
-	private final String missionDescription =
-			"The Navy has managed to obtain rare blueprints of a Thargoid " +
-	        "battle ship giving details of the drive and weapon systems. " +
-	        "These documents need to be taken as soon as possible to the " +
-	        "main naval base in orbit around the planet shown here. The " +
-	        "enemy is unaware that we have these documents so the journey " +
-	        "should proceed without any trouble.";
-
-	private final String accept = "Do you accept this mission?";
-
-	private final String fullyServiced =
-			"The documents have been placed in your cargo hold. Your ship " +
-			"has been fully serviced and is ready for takeoff. Good luck " +
-			"Commander!";
-
-	private final String success =
-			"We are (again) forever in your debt for bringing these very " +
-			"important documents to us. As a reward we have fitted your " +
-			"ship with the latest naval energy unit which will recharge " +
-			"your energy banks at twice the normal rate. In light of the " +
-			"number of 'incidents' you get yourself involved in, you will " +
-			"probably find it rather useful. The GIA also wishes to " +
-			"apologize for the security leak to the Thargoids. They are " +
-			"carrying out intensive investigations and the culprit will " +
-			"soon be found.";
 
 	private MissionLine attCommander;
 	private MissionLine missionLine;
@@ -95,16 +62,16 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 		mediaPlayer = new MediaPlayer();
 		String path = MissionManager.DIRECTORY_SOUND_MISSION + "2/";
 		try {
-			attCommander = new MissionLine(path + "01.mp3", attentionCommander);
+			attCommander = new MissionLine(path + "01.mp3", L.string(R.string.mission_attention_commander));
 			if (state == 0) {
-				missionLine = new MissionLine(path + "02.mp3", missionDescription);
+				missionLine = new MissionLine(path + "02.mp3", L.string(R.string.mission_thargoid_documents_mission_description));
 				targetSystem = mission.findMostDistantSystem();
 				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), state);
-				acceptMission = new MissionLine(path + "03.mp3", accept);
+				acceptMission = new MissionLine(path + "03.mp3", L.string(R.string.mission_accept));
 			} else if (state == 1) {
-				missionLine = new MissionLine(path + "04.mp3", fullyServiced);
+				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_thargoid_documents_fully_serviced));
 			} else if (state == 2) {
-				missionLine = new MissionLine(path + "05.mp3", success);
+				missionLine = new MissionLine(path + "05.mp3", L.string(R.string.mission_thargoid_documents_success));
 			 	mission.onMissionComplete();
 				Player player = game.getPlayer();
 				player.removeActiveMission(mission);
@@ -161,14 +128,14 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Mission #2 - Deliver Thargoid Documents");
+		displayTitle(L.string(R.string.title_mission_thargoid_documents));
 
-		g.drawText(attentionCommander, 50, 200, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.mission_attention_commander), 50, 200, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		if (missionText != null) {
 			displayText(g, missionText);
 		}
 		if (acceptMission != null) {
-			g.drawText(accept, 50, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+			g.drawText(L.string(R.string.mission_accept), 50, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 			if (acceptButton != null) {
 				acceptButton.render(g);
 			}

@@ -28,19 +28,7 @@ import android.graphics.Rect;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.ShipControl;
-import de.phbouillon.android.games.alite.SoundManager;
-import de.phbouillon.android.games.alite.model.Equipment;
-import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.Laser;
-import de.phbouillon.android.games.alite.model.LegalStatus;
-import de.phbouillon.android.games.alite.model.PlayerCobra;
-import de.phbouillon.android.games.alite.model.generator.SystemData;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
@@ -130,8 +118,7 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_00() {
-		addTopLine("Good Morning kiddo, we'll do some real flying today, so " +
-				"you'd better pay attention...").
+		addTopLine(L.string(R.string.tutorial_basic_flying_00)).
 				setUpdateMethod(deltaTime -> {
 					flight.getInGameManager().getShip().setSpeed(0);
 					flight.getInGameManager().setPlayerControl(false);
@@ -143,15 +130,12 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_01() {
-		addTopLine("The horizontal bars on the radar tell you the direction " +
-				"in which an object is, vertical bars indicate the " +
-				"difference in altitude relative to your ship.").
-				setHeight(180);
+		addTopLine(L.string(R.string.tutorial_basic_flying_01))
+			.setHeight(180);
 	}
 
 	private void initLine_02() {
-		final TutorialLine line =
-				addTopLine("Too difficult for you, rookie? Let me show you:");
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_basic_flying_02));
 
 		line.setFinishHook(deltaTime -> {
 			yellowTarget = getBuoy("Yellow Target", new Vector3f(-8000, -11000, 17000),
@@ -176,8 +160,8 @@ public class TutBasicFlying extends TutorialScreen {
 		vec.scale(relPos.z);
 		position.add(vec);
 
-		Buoy buoy = new Buoy(alite);
-		buoy.setName(name);
+		Buoy buoy = new Buoy(game);
+		buoy.setId(name);
 		buoy.setPosition(position);
 		buoy.setHudColor(new Vector3f(color.x, color.y, color.z));
 		buoy.scale(6.0f);
@@ -186,55 +170,42 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_03() {
-		addTopLine("See those two bars? The yellow bar is a target which is " +
-				"in front of you, to your left, and above you.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_03));
 	}
 
 	private void initLine_04() {
-		addTopLine("The blue bar is a target behind you, on your right, and " +
-				"below you.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_04));
 	}
 
 	private void initLine_05() {
-		addTopLine("But wait, there's more. Did you notice the small radar " +
-				"to the right and above your main radar?").addHighlight(
-						makeHighlight(1284, 640, 128, 128));
+		addTopLine(L.string(R.string.tutorial_basic_flying_05))
+			.addHighlight(makeHighlight(1284, 640, 128, 128));
 	}
 
 	private void initLine_06() {
-		addTopLine("Inside the safe zone, the small radar shows the " +
-				"position of the space station.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_06));
 	}
 
 	private void initLine_07() {
-		addTopLine("If the dot in the radar is red, the station is in front " +
-				"of you, if it is green, it is behind you.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_07));
 	}
 
 	private void initLine_08() {
-		addTopLine("Outside the safe zone, the dot represents the planet: " +
-				"Red means the planet is in front of you, green means, the " +
-				"planet is behind you.").setHeight(180);
+		addTopLine(L.string(R.string.tutorial_basic_flying_08))
+			.setHeight(180);
 	}
 
 	private void initLine_09() {
-		addTopLine("But why don't you try to get the blue target in front " +
-				"of you. You will also see how the smaller radar will " +
-				"change.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_09));
 	}
 
 	private void initLine_10() {
-		addLine(TUTORIAL_INDEX, "I will let you control the pitch and roll of your " +
-				"Cobra. To control pitch, "
-			+ (Settings.controlMode == ShipControl.ACCELEROMETER ||
+		addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_10,
+			L.string(Settings.controlMode == ShipControl.ACCELEROMETER ||
 			   Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER ?
-				"tilt your screen towards you to go up and away from " +
-				"you to go down." :
+				R.string.tutorial_basic_flying_10a :
 			   Settings.controlMode == ShipControl.CONTROL_PAD ?
-				"tap the upper part of the control pad to go down and " +
-				"the lower part to go up." :
-				"tap the arrow pointing up to go down and the arrow " +
-				"pointing down to go up."),
+				   R.string.tutorial_basic_flying_10b : R.string.tutorial_basic_flying_10c)),
 				Settings.controlMode == ShipControl.ACCELEROMETER ||
 				Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER ? "a" :
 				Settings.controlMode == ShipControl.CONTROL_PAD ? "b" : "c").
@@ -242,16 +213,12 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_11() {
-		addLine(TUTORIAL_INDEX, "To control roll, "
-			+ (Settings.controlMode == ShipControl.ACCELEROMETER ||
+		addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_11,
+			L.string(Settings.controlMode == ShipControl.ACCELEROMETER ||
 			   Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER ?
-				"rotate the left side of your screen away from you to roll " +
-				"left and rotate it towards you to roll right." :
+				R.string.tutorial_basic_flying_11a :
 			   Settings.controlMode == ShipControl.CONTROL_PAD ?
-			    "tap the left part of the control pad to roll left and the " +
-			    "right part to roll right." :
-				"tap the arrow pointing left to roll left and the arrow " +
-				"pointing right to roll right."),
+			   R.string.tutorial_basic_flying_11b : R.string.tutorial_basic_flying_11c)),
 				Settings.controlMode == ShipControl.ACCELEROMETER ||
 				Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER ? "a" :
 				Settings.controlMode == ShipControl.CONTROL_PAD ? "b" : "c").
@@ -259,10 +226,8 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_12() {
-		final TutorialLine line = addTopLine(
-				"Now, are you ready to take command of the Cobra? Try to " +
-				"bring the blue target into the crosshairs in front of you.").
-				setMustRetainEvents();
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_basic_flying_12))
+			.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> targetToCrosshairs(line, blueTarget))
 		.setFinishHook(deltaTime -> {
@@ -295,13 +260,12 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_13() {
-		addTopLine("Not bad for a rookie. You sure took your time, you will " +
-				"have to master the controls in order to survive, wet-nose.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_13));
 	}
 
 	private void initLine_14() {
-		final TutorialLine line = addTopLine(
-				"Why don't you get the yellow target in front of you?").setMustRetainEvents();
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_basic_flying_14))
+			.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> targetToCrosshairs(line, yellowTarget))
 		.setFinishHook(deltaTime -> {
@@ -312,23 +276,20 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_15() {
-		addTopLine("Ok, I think you're getting the hang of this. Now, let's " +
-				"approach the yellow target, ok?");
+		addTopLine(L.string(R.string.tutorial_basic_flying_15));
 	}
 
 	private void initLine_16() {
-		addTopLine("To increase speed, slide your finger up on the screen. " +
-				"To reduce speed, slide it down.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_16));
 	}
 
 	private void initLine_17() {
-		addTopLine("If you tap on the target, the computer will identify " +
-				"the target for you.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_17));
 	}
 
 	private void initLine_18() {
-		final TutorialLine line = addTopLine(
-				"Go ahead, fly a little closer.").setMustRetainEvents();
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_basic_flying_18))
+			.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> approachTarget(line, yellowTarget))
 			.setFinishHook(deltaTime -> finishFlight());
@@ -364,19 +325,16 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_19() {
-		addTopLine("Good. That's close enough. Now, for a little target practice:");
+		addTopLine(L.string(R.string.tutorial_basic_flying_19));
 	}
 
 	private void initLine_20() {
-		addTopLine("We are using simulated lasers, so don't worry, you cannot harm anyone.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_20));
 	}
 
 	private void initLine_21() {
-		final TutorialLine line =
-			addLine(TUTORIAL_INDEX, "Do try to destroy the target in front of you, " +
-					"though. It will be affected by the simulated laser. To " +
-					"engage the laser, press the button on the upper left.").
-				setMustRetainEvents();
+		final TutorialLine line = addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_21))
+			.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			AliteButtons.OVERRIDE_HYPERSPACE = true;
@@ -387,7 +345,7 @@ public class TutBasicFlying extends TutorialScreen {
 			if (yellowTarget.getDestructionCallbacks().isEmpty()) {
 				yellowTarget.addDestructionCallback(5, (IMethodHook) deltaTime1 -> {
 					line.setFinished();
-					if (flight.findObjectByName("Blue Target") == null) {
+					if (flight.findObjectById("Blue Target") == null) {
 						currentLineIndex+= 5;
 					}
 				});
@@ -400,22 +358,20 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_22() {
-		addTopLine("Right on, Commander!");
+		addTopLine(L.string(R.string.tutorial_basic_flying_22));
 	}
 
 	private void initLine_23() {
-		final TutorialLine line =
-			addTopLine("Now for the remaining target: Approach the blue target.").setMustRetainEvents();
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_basic_flying_23))
+			.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> approachTarget(line, blueTarget))
 			.setFinishHook(deltaTime -> finishFlight());
 	}
 
 	private void initLine_24() {
-		final TutorialLine line =
-			addLine(TUTORIAL_INDEX, "Ok, you're close enough, now tap the missile button " +
-					"on the left once to target the missile.").
-				setMustRetainEvents();
+		final TutorialLine line = addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_24))
+				.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			AliteButtons.OVERRIDE_HYPERSPACE = true;
@@ -423,7 +379,7 @@ public class TutBasicFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_MISSILE = false;
 			AliteButtons.OVERRIDE_LASER = true;
 			startFlight();
-			if (flight.findObjectByName("Blue Target") == null) {
+			if (flight.findObjectById("Blue Target") == null) {
 				line.setFinished();
 				currentLineIndex+= 2;
 			}
@@ -437,9 +393,8 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_25() {
-		final TutorialLine line =
-			addTopLine("Get the blue target into your crosshairs, so that " +
-					"the missile indicator turns red.").setMustRetainEvents();
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_basic_flying_25))
+			.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			AliteButtons.OVERRIDE_HYPERSPACE = true;
@@ -461,9 +416,8 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_26() {
-		final TutorialLine line =
-			addLine(TUTORIAL_INDEX, "And then tap the missile button again.").
-			setHeight(180).setMustRetainEvents();
+		final TutorialLine line = addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_26))
+			.setHeight(180).setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(new IMethodHook() {
 			private void writeObject(ObjectOutputStream out) throws IOException {
@@ -525,30 +479,28 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_27() {
-		addTopLine("Good shooting, Commander!");
+		addTopLine(L.string(R.string.tutorial_basic_flying_27));
 	}
 
 	private void initLine_28() {
-		addTopLine("Now let's return to the station, shall we?");
+		addTopLine(L.string(R.string.tutorial_basic_flying_28));
 	}
 
 	private void initLine_29() {
-		addTopLine("Remember, the docking bay of a Space Station is always " +
-				"oriented towards the planet.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_29));
 	}
 
 	private void initLine_30() {
-		addTopLine("So pick a point between the planet and the station and " +
-				"approach the station from there.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_30));
 	}
 
 	private void initLine_31() {
-		final TutorialLine line = addTopLine("Let me help you: See the new " +
-				"red target? Approach it.").setMustRetainEvents();
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_basic_flying_31))
+			.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (dockingBuoy == null) {
-				dockingBuoy = (Buoy) flight.findObjectByName("Docking Buoy");
+				dockingBuoy = (Buoy) flight.findObjectById("Docking Buoy");
 				if (dockingBuoy == null) {
 					InGameManager man = flight.getInGameManager();
 					dockingBuoy = new Buoy(game);
@@ -560,7 +512,7 @@ public class TutBasicFlying extends TutorialScreen {
 
 					dockingBuoy.setPosition(position);
 					dockingBuoy.setHudColor(new Vector3f(0xef, 0x00, 0x00));
-					dockingBuoy.setName("Docking Buoy");
+					dockingBuoy.setId("Docking Buoy");
 					flight.getInGameManager().addObject(dockingBuoy);
 				}
 			}
@@ -576,9 +528,8 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_32() {
-		final TutorialLine line =
-				addTopLine("Good. Now turn around so that you face the " +
-						"station.").setMustRetainEvents();
+		final TutorialLine line = addTopLine(L.string(R.string.tutorial_basic_flying_32))
+			.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			startFlightWithButtons();
@@ -597,16 +548,12 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_33() {
-		addTopLine("And then dock: Keep the docking bay horizontal and " +
-				"approach the station carefully.");
+		addTopLine(L.string(R.string.tutorial_basic_flying_33));
 	}
 
 	private void initLine_34() {
-		final TutorialLine line =
-			addLine(TUTORIAL_INDEX, "This will be the last thing I teach you, today. If " +
-				"you manage to dock successfully, you can officially call " +
-				"yourself 'Commander'. Good luck, wet-nose.").
-				setMustRetainEvents();
+		final TutorialLine line = addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_34))
+			.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			startFlightWithButtons();
@@ -653,15 +600,15 @@ public class TutBasicFlying extends TutorialScreen {
 			tb.currentLineIndex = dis.readInt();
 			tb.resetShipPosition = dis.readBoolean();
 
-			tb.yellowTarget = (Buoy) tb.flight.findObjectByName("Yellow Target");
+			tb.yellowTarget = (Buoy) tb.flight.findObjectById("Yellow Target");
 			if (tb.yellowTarget != null) {
 				tb.yellowTarget.setSaving(false);
 			}
-			tb.blueTarget = (Buoy) tb.flight.findObjectByName("Blue Target");
+			tb.blueTarget = (Buoy) tb.flight.findObjectById("Blue Target");
 			if (tb.blueTarget != null) {
 				tb.blueTarget.setSaving(false);
 			}
-			Buoy buoy = (Buoy) tb.flight.findObjectByName("Docking Buoy");
+			Buoy buoy = (Buoy) tb.flight.findObjectById("Docking Buoy");
 			if (buoy != null) {
 				buoy.setSaving(false);
 			}

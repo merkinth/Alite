@@ -38,8 +38,8 @@ public class GalaxyGenerator {
 	private String[] planetDescription;
 
 	public GalaxyGenerator() {
-		planetNameSyllable = L.stringArray(R.array.planet_name_syllable);
-		planetDescription = L.stringArray(R.array.planet_description);
+		planetNameSyllable = L.array(R.array.planet_name_syllable);
+		planetDescription = L.array(R.array.planet_description);
 	}
 
 	GalaxyGenerator(String[] planetNameSyllable, String[] planetDescription) {
@@ -61,8 +61,8 @@ public class GalaxyGenerator {
 	}
 
 	public void rebuildGalaxy() {
-		planetNameSyllable = L.stringArray(R.array.planet_name_syllable);
-		planetDescription = L.stringArray(R.array.planet_description);
+		planetNameSyllable = L.array(R.array.planet_name_syllable);
+		planetDescription = L.array(R.array.planet_description);
 		buildGalaxy(currentGalaxy);
 	}
 

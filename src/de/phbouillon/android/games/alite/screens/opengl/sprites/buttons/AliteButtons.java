@@ -28,11 +28,7 @@ import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.impl.gl.Sprite;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.Equipment;
@@ -99,8 +95,8 @@ public class AliteButtons implements Serializable {
 	private boolean yesTouched = false;
 	private boolean noTouched = false;
 	private Timer downTime;
-	private transient int [] sweepLeftPos = new int[2];
-	private transient int [] sweepRightPos = new int[2];
+	private transient int[] sweepLeftPos;
+	private transient int[] sweepRightPos;
 
 	private final TorusBlockingTraverser torusTraverser;
 	private final EnergyBombTraverser energyBombTraverser;
@@ -115,21 +111,15 @@ public class AliteButtons implements Serializable {
 
 		textureFilename = "textures/ui4.png";
 		alite.getTextureManager().addTexture(textureFilename);
-		createButtonGroups();
-		createButtons();
-
-		sweepLeftPos[0]  = Settings.flatButtonDisplay ?  800 :  250;
-		sweepLeftPos[1]  = Settings.flatButtonDisplay ?   50 :  400;
-		sweepRightPos[0] = Settings.flatButtonDisplay ? 1020 : 1560;
-		sweepRightPos[1] = Settings.flatButtonDisplay ?   50 :  400;
+		reset();
 
 		overlay       = new Sprite(alite, 0, 0, 20, 20, 200.0f / 1024.0f, 600.0f / 1024.0f, 400.0f / 1024.0f,  800.0f / 1024.0f, textureFilename);
 		yellowOverlay = new Sprite(alite, 0, 0, 20, 20, 600.0f / 1024.0f,             0.0f, 800.0f / 1024.0f,  200.0f / 1024.0f, textureFilename);
 		redOverlay    = new Sprite(alite, 0, 0, 20, 20, 400.0f / 1024.0f, 800.0f / 1024.0f, 600.0f / 1024.0f, 1000.0f / 1024.0f, textureFilename);
-		cycleLeft     = new Sprite(alite, ct.getTextureCoordX(sweepLeftPos[0]), ct.getTextureCoordY(sweepLeftPos[1]), ct.getTextureCoordX(sweepLeftPos[0] + 100), ct.getTextureCoordY(sweepLeftPos[1] + 100), 800.0f / 1024.0f, 800.0f / 1024.0f, 900.0f / 1024.0f,  900.0f / 1024.0f, textureFilename);
-		cycleRight    = new Sprite(alite, ct.getTextureCoordX(sweepRightPos[0]), ct.getTextureCoordY(sweepRightPos[1]), ct.getTextureCoordX(sweepRightPos[0] + 100), ct.getTextureCoordY(sweepRightPos[1] + 100), 800.0f / 1024.0f, 800.0f / 1024.0f, 900.0f / 1024.0f,  900.0f / 1024.0f, textureFilename);
-		yesButton     = new Sprite(alite, ct.getTextureCoordX(500), ct.getTextureCoordY(250), ct.getTextureCoordX(700), ct.getTextureCoordY(450), 600.0f / 1024.0f, 600.0f / 1024.0f, 800.0f / 1024.0f,  800.0f / 1024.0f, textureFilename);
-		noButton      = new Sprite(alite, ct.getTextureCoordX(1220), ct.getTextureCoordY(250), ct.getTextureCoordX(1420), ct.getTextureCoordY(450), 600.0f / 1024.0f, 800.0f / 1024.0f, 800.0f / 1024.0f, 1000.0f / 1024.0f, textureFilename);
+		yesButton     = new Sprite(alite, ct.getTextureCoordX(500), ct.getTextureCoordY(250),
+			ct.getTextureCoordX(700), ct.getTextureCoordY(450), 600.0f / 1024.0f, 600.0f / 1024.0f, 800.0f / 1024.0f,  800.0f / 1024.0f, textureFilename);
+		noButton      = new Sprite(alite, ct.getTextureCoordX(1220), ct.getTextureCoordY(250),
+			ct.getTextureCoordX(1420), ct.getTextureCoordY(450), 600.0f / 1024.0f, 800.0f / 1024.0f, 800.0f / 1024.0f, 1000.0f / 1024.0f, textureFilename);
 		newScreen     = null;
 
 		torusTraverser = new TorusBlockingTraverser(inGame);
@@ -140,12 +130,13 @@ public class AliteButtons implements Serializable {
 	public void reset() {
 		createButtonGroups();
 		createButtons();
-		sweepLeftPos[0]  = Settings.flatButtonDisplay ?  800 :  250;
-		sweepLeftPos[1]  = Settings.flatButtonDisplay ?   50 :  400;
-		sweepRightPos[0] = Settings.flatButtonDisplay ? 1020 : 1560;
-		sweepRightPos[1] = Settings.flatButtonDisplay ?   50 :  400;
-		cycleLeft     = new Sprite(alite, ct.getTextureCoordX(sweepLeftPos[0]), ct.getTextureCoordY(sweepLeftPos[1]), ct.getTextureCoordX(sweepLeftPos[0] + 100), ct.getTextureCoordY(sweepLeftPos[1] + 100), 800.0f / 1024.0f, 800.0f / 1024.0f, 900.0f / 1024.0f,  900.0f / 1024.0f, textureFilename);
-		cycleRight    = new Sprite(alite, ct.getTextureCoordX(sweepRightPos[0]), ct.getTextureCoordY(sweepRightPos[1]), ct.getTextureCoordX(sweepRightPos[0] + 100), ct.getTextureCoordY(sweepRightPos[1] + 100), 800.0f / 1024.0f, 800.0f / 1024.0f, 900.0f / 1024.0f,  900.0f / 1024.0f, textureFilename);
+		setSweepPos();
+		cycleLeft  = new Sprite(alite, ct.getTextureCoordX(sweepLeftPos[0]), ct.getTextureCoordY(sweepLeftPos[1]),
+			ct.getTextureCoordX(sweepLeftPos[0] + 100), ct.getTextureCoordY(sweepLeftPos[1] + 100),
+			800.0f / 1024.0f, 800.0f / 1024.0f, 900.0f / 1024.0f,  900.0f / 1024.0f, textureFilename);
+		cycleRight = new Sprite(alite, ct.getTextureCoordX(sweepRightPos[0]), ct.getTextureCoordY(sweepRightPos[1]),
+			ct.getTextureCoordX(sweepRightPos[0] + 100), ct.getTextureCoordY(sweepRightPos[1] + 100),
+			800.0f / 1024.0f, 800.0f / 1024.0f, 900.0f / 1024.0f,  900.0f / 1024.0f, textureFilename);
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
@@ -154,16 +145,20 @@ public class AliteButtons implements Serializable {
 			in.defaultReadObject();
 			AliteLog.e("readObject", "AliteButtons.readObject I");
 			alite = Alite.get();
-			sweepLeftPos = new int[2];
-			sweepRightPos = new int[2];
-			sweepLeftPos[0]  = Settings.flatButtonDisplay ?  800 :  250;
-			sweepLeftPos[1]  = Settings.flatButtonDisplay ?   50 :  400;
-			sweepRightPos[0] = Settings.flatButtonDisplay ? 1020 : 1560;
-			sweepRightPos[1] = Settings.flatButtonDisplay ?   50 :  400;
+			setSweepPos();
 			AliteLog.e("readObject", "AliteButtons.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}
+	}
+
+	private void setSweepPos() {
+		sweepLeftPos = new int[2];
+		sweepRightPos = new int[2];
+		sweepLeftPos[0]  = Settings.flatButtonDisplay ?  800 :  250;
+		sweepLeftPos[1]  = Settings.flatButtonDisplay ?   50 :  400;
+		sweepRightPos[0] = Settings.flatButtonDisplay ? 1020 : 1560;
+		sweepRightPos[1] = Settings.flatButtonDisplay ?   50 :  400;
 	}
 
 	private void createButtons() {
@@ -284,7 +279,7 @@ public class AliteButtons implements Serializable {
 			downTime = null;
 			buttons[MISSILE].red = false;
 			buttons[MISSILE].selected = false;
-			inGame.setMessage("Target lost");
+			inGame.setMessage(L.string(R.string.msg_target_lost));
 		}
 		buttons[MISSILE].active = alite.getCobra().getMissiles() > 0;
 		buttons[MISSILE].yellow = alite.getCobra().isMissileTargetting();
@@ -703,7 +698,7 @@ public class AliteButtons implements Serializable {
 		}
 		if (inGame.isWitchSpace()) {
 			SoundManager.play(Assets.com_escapeMalfunction);
-			inGame.setMessage("Escape Capsule Malfunction");
+			inGame.setMessage(L.string(R.string.com_escape_malfunction));
 			return;
 		}
 		alite.getCobra().removeEquipment(EquipmentStore.escapeCapsule);

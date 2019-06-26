@@ -27,11 +27,7 @@ import android.opengl.Matrix;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.LegalStatus;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -100,7 +96,7 @@ public class ObjectSpawnManager implements Serializable {
 	private SystemData system;
 	private boolean timedEventsMustBeInitialized = true;
 	private int launchAreaViolations = 0;
-	private final Timer lastWarningTime = new Timer().setAutoResetWithSkipFirstCall();
+	private final Timer lastWarningTime = new Timer().setAutoResetWithImmediateAtFirstCall();
 	private final Timer lastLogTime = new Timer().setAutoReset();
 
 	private class SpawnTimer implements Serializable {
@@ -503,7 +499,7 @@ public class ObjectSpawnManager implements Serializable {
 			leaveTorus();
 		}
 		SoundManager.play(Assets.com_conditionRed);
-		inGame.repeatMessage("Condition Red!", 3);
+		inGame.repeatMessage(L.string(R.string.com_condition_red), 3);
 		if (thargoidNum > 0 && THARGOIDS_ENABLED) {
 			conditionRedTimer.event.lock();
 			Vector3f spawnPosition = getSpawnPosition(getSpawnDistance());
@@ -585,7 +581,9 @@ public class ObjectSpawnManager implements Serializable {
 		float intersectionDistance = LaserManager.computeIntersectionDistance(vector2, inGame.getShip().getPosition(), vector, 580, vector3);
 		float travelDistance = -calcSpeed * 8.5f;
 		float distShipStationSq = inGame.getShip().getPosition().distanceSq(vector);
-		AliteLog.d("Intersection check", "Intersection distance: " + intersectionDistance + ", travelDistance: " + travelDistance + ", Speed: " + calcSpeed + ", Distance: " + inGame.getShip().getPosition().distance(vector));
+		AliteLog.d("Intersection check", "Intersection distance: " + intersectionDistance +
+			", travelDistance: " + travelDistance + ", Speed: " + calcSpeed +
+			", Distance: " + inGame.getShip().getPosition().distance(vector));
 		if (intersectionDistance >= 0 && distShipStationSq < 640000) {
 			if (calcSpeed > -40.0f) {
 				handleLaunchAreaViolations();
@@ -604,21 +602,21 @@ public class ObjectSpawnManager implements Serializable {
 			return;
 		}
 		if (launchAreaViolations == 0) {
-			// TODO Play sample
-			inGame.setMessage("Hey rookie! Clear the launch area immediately.");
+			SoundManager.play(Assets.com_launch_area_violation_1st);
+			inGame.setMessage(L.string(R.string.com_launch_area_violation_1st));
 			AliteLog.d("Receive warning", "Hey rookie! Clear the launch area immediately.");
 			launchAreaViolations++;
 			if (alite.getPlayer().getLegalStatus() != LegalStatus.CLEAN) {
 				launchAreaViolations++;
 			}
 		} else if (launchAreaViolations == 1) {
-			// TODO Play sample
-			inGame.setMessage("Clear the launch area immediately, or we will open fire.");
+			SoundManager.play(Assets.com_launch_area_violation_2nd);
+			inGame.setMessage(L.string(R.string.com_launch_area_violation_2nd));
 			AliteLog.d("Receive warning", "Clear the launch area immediately, or we will open fire.");
 			launchAreaViolations++;
 		} else {
-			// TODO Play sample
-			inGame.setMessage("Space Station defensive measures activated.");
+			SoundManager.play(Assets.com_launch_area_violation_3rd);
+			inGame.setMessage(L.string(R.string.com_launch_area_violation_3rd));
 			((SpaceStation) inGame.getStation()).denyAccess();
 			alite.getPlayer().setLegalValue(alite.getPlayer().getLegalValue() + 4);
 			inGame.getShip().setUpdater(new IMethodHook() {
@@ -666,7 +664,7 @@ public class ObjectSpawnManager implements Serializable {
 						@Override
 						public void execute(float deltaTime) {
 							float zDistanceSqToShip = (ship.getPosition().z - inGame.getShip().getPosition().z) *
-								    				  (ship.getPosition().z - inGame.getShip().getPosition().z);
+													  (ship.getPosition().z - inGame.getShip().getPosition().z);
 							if (zDistanceSqToShip >= 603979776) { // (16384 + 8192) ^ 2...
 								ship.setRemove(true);
 							}
@@ -890,7 +888,7 @@ public class ObjectSpawnManager implements Serializable {
 			alite.getPlayer().setCondition(Condition.RED);
 			if (conditionOld != Condition.RED) {
 				SoundManager.play(Assets.com_conditionRed);
-				inGame.repeatMessage("Condition Red!", 3);
+				inGame.repeatMessage(L.string(R.string.com_condition_red), 3);
 			}
 	    }
 

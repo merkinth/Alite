@@ -21,10 +21,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 
@@ -62,16 +59,16 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 	private void initializeButtons() {
 		int counter = 0;
 		if (front) {
-			pads[counter++] = Button.createRegularButton(760, 210, 200, 100, "Front");
+			pads[counter++] = Button.createRegularButton(760, 210, 200, 100, L.string(R.string.laser_pos_front));
 		}
 		if (right) {
-			pads[counter++] = Button.createRegularButton(1350, 480, 200, 200, "Right");
+			pads[counter++] = Button.createRegularButton(1350, 480, 200, 200, L.string(R.string.laser_pos_right));
 		}
 		if (rear) {
-			pads[counter++] = Button.createRegularButton(760, 855, 200, 100, "Rear");
+			pads[counter++] = Button.createRegularButton(760, 855, 200, 100, L.string(R.string.laser_pos_rear));
 		}
 		if (left) {
-			pads[counter] = Button.createRegularButton(170, 480, 200, 200, "Left");
+			pads[counter] = Button.createRegularButton(170, 480, 200, 200, L.string(R.string.laser_pos_left));
 		}
 		for (Button b: pads) {
 			b.setTextColor(ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
@@ -87,8 +84,8 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 			ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
 		g.rec3d(160, 160, 1400, 800, 10,
 			ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
-		int halfWidth = g.getTextWidth("Select Position For Laser", Assets.regularFont) >> 1;
-		g.drawText("Select Position For Laser", 860 - halfWidth, 195, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
+		int halfWidth = g.getTextWidth(L.string(R.string.laser_pos_select), Assets.regularFont) >> 1;
+		g.drawText(L.string(R.string.laser_pos_select), 860 - halfWidth, 195, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 		g.drawPixmap(cobra, 380, 310);
 
 		for (Button b: pads) {
@@ -110,22 +107,22 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 			if (b.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				String t = b.getText();
-				if ("Front".equals(t)) {
+				if (L.string(R.string.laser_pos_front).equals(t)) {
 					equipmentScreen.setLaserPosition(PlayerCobra.DIR_FRONT);
 					newScreen = equipmentScreen;
 					return;
 				}
-				if ("Right".equals(t)) {
+				if (L.string(R.string.laser_pos_right).equals(t)) {
 					equipmentScreen.setLaserPosition(PlayerCobra.DIR_RIGHT);
 					newScreen = equipmentScreen;
 					return;
 				}
-				if ("Rear".equals(t)) {
+				if (L.string(R.string.laser_pos_rear).equals(t)) {
 					equipmentScreen.setLaserPosition(PlayerCobra.DIR_REAR);
 					newScreen = equipmentScreen;
 					return;
 				}
-				if ("Left".equals(t)) {
+				if (L.string(R.string.laser_pos_left).equals(t)) {
 					equipmentScreen.setLaserPosition(PlayerCobra.DIR_LEFT);
 					newScreen = equipmentScreen;
 					return;

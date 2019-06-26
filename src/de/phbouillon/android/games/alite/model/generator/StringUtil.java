@@ -1,6 +1,7 @@
 package de.phbouillon.android.games.alite.model.generator;
 
 import de.phbouillon.android.games.alite.AliteLog;
+import de.phbouillon.android.games.alite.L;
 
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
@@ -45,20 +46,20 @@ public class StringUtil {
 		while (true) {
 			i = text.indexOf(' ', i + 1);
 			if (i < 0 || i == text.length() - 1) {
-				return readableCase(text);
+				return toUpperFirstCase(text);
 			}
-			text = text.substring(0, i + 1) + readableCase(text.substring(i + 1));
+			text = text.substring(0, i + 1) + toUpperFirstCase(text.substring(i + 1));
 		}
 	}
 
-	private static String readableCase(String s) {
+	public static String toUpperFirstCase(String s) {
 		if (s == null || s.isEmpty()) {
 			return "";
 		}
 		if (s.length() == 1) {
 			return s;
 		}
-		return s.substring(0,1).toUpperCase() + s.substring(1);
+		return s.substring(0,1).toUpperCase(L.currentLocale) + s.substring(1);
 	}
 
 	public static String computeSHAString(String text) {

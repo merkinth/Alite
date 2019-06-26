@@ -24,9 +24,10 @@ import java.io.Serializable;
 import java.util.*;
 
 import de.phbouillon.android.games.alite.AliteLog;
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.model.generator.enums.Economy;
 import de.phbouillon.android.games.alite.model.generator.enums.Government;
-import de.phbouillon.android.games.alite.screens.canvas.TradeScreen;
 
 public class SystemData implements Serializable {
 	private static final long serialVersionUID = 6117084866118128888L;
@@ -80,7 +81,8 @@ public class SystemData implements Serializable {
 				AliteLog.e("Planet description initializer", "Missing id prefix in description line '" + description + "'");
 				continue;
 			}
-			descriptionMap.put(description.substring(0, idIdx).toLowerCase(), description.substring(idIdx + 1).split("\\|", 100));
+			descriptionMap.put(description.substring(0, idIdx).toLowerCase(L.currentLocale),
+				description.substring(idIdx + 1).split("\\|", 100));
 		}
 	}
 
@@ -96,10 +98,9 @@ public class SystemData implements Serializable {
 		result.productivity = 63568;
 		result.diameter = 42000;
 		result.inhabitantCode = null;
-		result.inhabitants = "Friendly Green Treeards";
-		result.name = "Raxxla";
-		result.description = "The fabled planet Raxxla is the home of all Elite pilots in the universe. " +
-			"It provides retreat and peace for them along with a portal to another universe.";
+		result.inhabitants = L.string(R.string.inhabitant_friendly_green_treeards);
+		result.name = L.string(R.string.raxxla_name);
+		result.description = L.string(R.string.raxxla_desc);
 		result.fuelPrice = 1;
 		result.planetTexture = 1;
 		result.ringsTexture = 16;
@@ -268,7 +269,7 @@ public class SystemData implements Serializable {
 	private String replaceCommand(String id) {
 		switch (id) {
 			case "planet_name":
-				return name.toLowerCase();
+				return name.toLowerCase(L.currentLocale);
 			case "random_name":
 			   SeedType localSeed = new SeedType(goatSoupSeedA, goatSoupSeedB, (char) (goatSoupSeedA ^ goatSoupSeedB));
 				return generateRandomName(localSeed);
@@ -304,7 +305,7 @@ public class SystemData implements Serializable {
 					}
 					break;
 				}
-				String referenceName = source.substring(b, index).toLowerCase();
+				String referenceName = source.substring(b, index).toLowerCase(L.currentLocale);
 				char[] pSeed = null;
 				if (mode == REFERENCE_ORDERED) {
 					if (seed == null) {
@@ -400,7 +401,7 @@ public class SystemData implements Serializable {
 		int subEnd = command.indexOf(')');
 		if (subEnd < 0) return fullString;
 
-		command = command.substring(0, subEnd).trim().toLowerCase();
+		command = command.substring(0, subEnd).trim().toLowerCase(L.currentLocale);
 		int subTo = command.indexOf(',');
 		if (subTo < 0) {
 			try {
@@ -519,15 +520,15 @@ public class SystemData implements Serializable {
 	}
 
 	public String getGnp() {
-		return TradeScreen.getOneDecimalFormatString("%d.%d MCr", productivity);
+		return L.getOneDecimalFormatString(R.string.planet_gnp_value, productivity);
 	}
 
 	public String getPopulation() {
-		return TradeScreen.getOneDecimalFormatString("%d.%d bn", population);
+		return L.getOneDecimalFormatString(R.string.planet_population_value, population);
 	}
 
 	public String getDiameter() {
-		return String.format(Locale.getDefault(), "%,d km", diameter);
+		return L.string(R.string.planet_diameter_value, diameter);
 	}
 
 	public String getDescription() {

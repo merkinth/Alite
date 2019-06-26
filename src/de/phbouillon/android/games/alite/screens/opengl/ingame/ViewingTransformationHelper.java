@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -40,7 +40,7 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjec
 public class ViewingTransformationHelper implements Serializable {
 	private static final long serialVersionUID = -4312341410231970141L;
 	private static final boolean USE_DEPTH_BUCKETS = true;
-	
+
 	private List <DistanceObjectPair> distancePairs = new ArrayList<DistanceObjectPair>();
 	class DistanceFactory implements PoolObjectFactory<DistanceObjectPair> {
 		private static final long serialVersionUID = 175831326802438855L;
@@ -48,28 +48,28 @@ public class ViewingTransformationHelper implements Serializable {
 		@Override
 		public DistanceObjectPair createObject() {
 			return new DistanceObjectPair(0.0f, null);
-		}		
-	}	
+		}
+	}
 	private transient PoolObjectFactory <DistanceObjectPair> distanceFactory = new DistanceFactory();
 	private transient Pool <DistanceObjectPair> distancePairPool = new Pool<DistanceObjectPair>(distanceFactory, 1000);
-	
+
 	class BucketFactory implements PoolObjectFactory<DepthBucket> {
 		private static final long serialVersionUID = -3330249489769269321L;
 
 		@Override
 		public DepthBucket createObject() {
 			return new DepthBucket(0, 0);
-		}		
+		}
 	}
 	private transient PoolObjectFactory <DepthBucket> bucketFactory = new BucketFactory();
 	private transient Pool <DepthBucket> bucketPool = new Pool<DepthBucket>(bucketFactory, 50);
-	
+
 	private class DistanceObjectPair implements Serializable {
 		private static final long serialVersionUID = -8375585740258957162L;
-		
+
 		float distance;
 		AliteObject object;
-		
+
 		DistanceObjectPair(float distance, AliteObject object) {
 			this.distance = distance;
 			this.object = object;
@@ -106,65 +106,65 @@ public class ViewingTransformationHelper implements Serializable {
 				case Back:   if (rhs.object.getZPositioningMode() == ZPositioning.Back)  { return Float.compare(rhs.distance, lhs.distance); } else { return -1; }
 			}
 			return Float.compare(rhs.distance, lhs.distance);
-		}		
+		}
 	}
-	
+
 	private Comparator<DistanceObjectPair> objectPairComparator = new DistanceObjectPairComparator();
-	
+
 	private final void applyRightViewDirection(final float [] viewMatrix) {
 		float temp;
-		
+
 		temp = viewMatrix[12];
 		viewMatrix[12] = viewMatrix[14];
 		viewMatrix[14] = -temp;
-    
+
 		temp = viewMatrix[0];
 		viewMatrix[0] = viewMatrix[2];
 		viewMatrix[2] = -temp;
-    
+
 		temp = viewMatrix[4];
 		viewMatrix[4] = viewMatrix[6];
 		viewMatrix[6] = -temp;
-    
+
 		temp = viewMatrix[8];
 		viewMatrix[8] = viewMatrix[10];
-		viewMatrix[10] = -temp;				    		
+		viewMatrix[10] = -temp;
 	}
-	
+
 	private final void applyRearViewDirection(final float [] viewMatrix) {
 		viewMatrix[12] = -viewMatrix[12];
 	    viewMatrix[14] = -viewMatrix[14];
-	    
+
 	    viewMatrix[0] = -viewMatrix[0];
 	    viewMatrix[2] = -viewMatrix[2];
-	    
+
 	    viewMatrix[4] = -viewMatrix[4];
 	    viewMatrix[6] = -viewMatrix[6];
-	    
+
 	    viewMatrix[8] = -viewMatrix[8];
-	    viewMatrix[10] = -viewMatrix[10];		
+	    viewMatrix[10] = -viewMatrix[10];
 	}
-	
+
 	private final void applyLeftViewDirection(final float [] viewMatrix) {
 		float temp;
-		
+
 		temp = viewMatrix[12];
         viewMatrix[12] = -viewMatrix[14];
         viewMatrix[14] = temp;
-        
+
         temp = viewMatrix[0];
         viewMatrix[0] = -viewMatrix[2];
         viewMatrix[2] = temp;
-        
+
         temp = viewMatrix[4];
         viewMatrix[4] = -viewMatrix[6];
         viewMatrix[6] = temp;
-        
+
         temp = viewMatrix[8];
         viewMatrix[8] = -viewMatrix[10];
-        viewMatrix[10] = temp;		
+        viewMatrix[10] = temp;
 	}
-	
+
 	final void applyViewDirection(int viewDirection, final float [] viewMatrix) {
 		switch (viewDirection) {
 			case 1: applyRightViewDirection(viewMatrix); break;
@@ -176,10 +176,10 @@ public class ViewingTransformationHelper implements Serializable {
 
 	private final void sortObjects(final List <? extends AliteObject> objects, final float [] viewMatrix, final float [] tempMatrix, boolean witchSpace, SpaceObject ship) {
 		for (AliteObject eo: objects) {
-			if (witchSpace && (eo.getName().equals("Planet") ||
-					           eo.getName().equals("Sun") ||
+			if (witchSpace && (eo.getId().equals("Planet") ||
+					           eo.getId().equals("Sun") ||
 					           (eo instanceof SpaceObject && ((SpaceObject) eo).getType() == ObjectType.SpaceStation) ||
-					           eo.getName().equals("Glow"))) {
+					           eo.getId().equals("Glow"))) {
 				continue;
 			}
 			Matrix.multiplyMM(tempMatrix, 0, viewMatrix, 0, eo.getMatrix(), 0);
@@ -187,23 +187,23 @@ public class ViewingTransformationHelper implements Serializable {
 			distancePair.distance = Math.abs(tempMatrix[14]);
 			distancePair.object = eo;
 			distancePairs.add(distancePair);
-		}			
+		}
 	}
-	
+
 	private final void createSingleBucket(final List <DepthBucket> sortedObjectsToDraw) {
 		DepthBucket currentBucket = bucketPool.newObject();
 		currentBucket.sortedObjects.clear();
 		currentBucket.near = 1.0f;
 		currentBucket.far = 1000000000f;
 		currentBucket.spaceObjectCount = 0;
-			
+
 		for (DistanceObjectPair p: distancePairs) {
 			currentBucket.sortedObjects.add(p.object);
 			currentBucket.spaceObjectCount += p.object instanceof SpaceObject ? 1 : 0;
 		}
 		sortedObjectsToDraw.add(currentBucket);
 	}
-	
+
 	private final void partitionDepths(final List <DepthBucket> sortedObjectsToDraw) {
 		DepthBucket currentBucket = null;
 		DepthBucket behind = bucketPool.newObject();
@@ -211,7 +211,7 @@ public class ViewingTransformationHelper implements Serializable {
 		behind.far = -1;
 		behind.spaceObjectCount = 0;
 		behind.sortedObjects.clear();
-		
+
 		for (DistanceObjectPair p: distancePairs) {
 			if (p.object != null) {
 				float dist = p.distance;
@@ -231,14 +231,14 @@ public class ViewingTransformationHelper implements Serializable {
 				if (near < 1.0f && far > 1.0f) {
 					near = 1.0f;
 				}
-				if (currentBucket == null) {					
+				if (currentBucket == null) {
 					currentBucket = bucketPool.newObject();
 					currentBucket.sortedObjects.clear();
 					currentBucket.near = near;
 					currentBucket.far = far;
 					currentBucket.spaceObjectCount = p.object instanceof SpaceObject ? 1 : 0;
-					currentBucket.sortedObjects.add(p.object);		
-				} else {					
+					currentBucket.sortedObjects.add(p.object);
+				} else {
 					if (far > currentBucket.near) {
 						currentBucket.sortedObjects.add(p.object);
 						if (p.object instanceof SpaceObject) {
@@ -257,12 +257,12 @@ public class ViewingTransformationHelper implements Serializable {
 						currentBucket.near = near;
 						currentBucket.far = newFar;
 						currentBucket.sortedObjects.clear();
-						currentBucket.sortedObjects.add(p.object);						
+						currentBucket.sortedObjects.add(p.object);
 						currentBucket.spaceObjectCount = p.object instanceof SpaceObject ? 1 : 0;
-					}					
+					}
 				}
-			} 
-		}	
+			}
+		}
 		if (currentBucket != null) {
 			sortedObjectsToDraw.add(currentBucket);
 		}
@@ -272,7 +272,7 @@ public class ViewingTransformationHelper implements Serializable {
 			bucketPool.free(behind);
 		}
 	}
-	
+
 	final void clearObjects(final List <DepthBucket> sortedObjectsToDraw) {
 		if (sortedObjectsToDraw == null) {
 			return;
@@ -282,8 +282,8 @@ public class ViewingTransformationHelper implements Serializable {
 		}
 		sortedObjectsToDraw.clear();
 	}
-	
-	final void sortObjects(final List <AliteObject> objects, final float [] viewMatrix, final float [] tempMatrix, List <LaserCylinder> lasers, final List <DepthBucket> sortedObjectsToDraw, boolean witchSpace, SpaceObject ship) {		
+
+	final void sortObjects(final List <AliteObject> objects, final float [] viewMatrix, final float [] tempMatrix, List <LaserCylinder> lasers, final List <DepthBucket> sortedObjectsToDraw, boolean witchSpace, SpaceObject ship) {
 		for (DistanceObjectPair dop: distancePairs) {
 			distancePairPool.free(dop);
 		}

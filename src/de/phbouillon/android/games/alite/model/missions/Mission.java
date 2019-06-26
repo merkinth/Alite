@@ -27,6 +27,8 @@ import java.util.List;
 
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -209,7 +211,7 @@ public abstract class Mission implements Serializable {
 			}
 			targetName = alite.getGenerator().getSystem(targetIndex).getName();
 		} else {
-			targetName = "<Unknown>";
+			targetName = L.string(R.string.mission_unknown_target);
 		}
 		return targetName;
 	}

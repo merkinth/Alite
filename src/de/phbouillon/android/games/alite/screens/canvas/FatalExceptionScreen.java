@@ -39,8 +39,6 @@ import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class FatalExceptionScreen extends AliteScreen {
-	private static final String SEND_ERROR_IN_MAIL = "Send Error in Mail";
-
 	private static final Rect scrollingRegion = new Rect(0,690, AliteConfig.SCREEN_WIDTH, AliteConfig.SCREEN_HEIGHT);
 
 	private Throwable cause;
@@ -105,20 +103,20 @@ public class FatalExceptionScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayWideTitle("Fatal Error Occurred");
-		g.drawText("Unfortunately, " + AliteConfig.GAME_NAME + " has crashed. I am sorry for the inconvenience :(",
+		displayWideTitle(L.string(R.string.title_fatal_error));
+		g.drawText(L.string(R.string.exc_error_info1,AliteConfig.GAME_NAME),
 			20, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText("Please send the error cause detailed below with button '" + SEND_ERROR_IN_MAIL + "',",
+		g.drawText(L.string(R.string.exc_error_info2, L.string(R.string.exc_btn_send_error_in_mail)),
 			20, 200, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText("it helps tracking down the problem.",
+		g.drawText(L.string(R.string.exc_error_info3),
 			20, 240, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText("Neither the subject nor the content does not contain any personal information",
+		g.drawText(L.string(R.string.exc_error_info4),
 			20, 290, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText("only the error itself and the environmental data.",
+		g.drawText(L.string(R.string.exc_error_info5),
 			20, 330, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText("The code sequence in the subject is formed from the error message,",
+		g.drawText(L.string(R.string.exc_error_info6),
 			20, 380, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText("please do not change it, it helps in recognizing the more times sent identical errors.",
+		g.drawText(L.string(R.string.exc_error_info7),
 			20, 420, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
 		if (causeText != null) {
 			for (TextData td : causeText) {
@@ -131,7 +129,7 @@ public class FatalExceptionScreen extends AliteScreen {
 				40, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		}
 		if (savedFilename != null) {
-			g.drawText("Report saved to: " + savedFilename,
+			g.drawText(L.string(R.string.exc_error_file_name, savedFilename),
 				20, 470, ColorScheme.get(ColorScheme.COLOR_WARNING_MESSAGE), Assets.regularFont);
 		}
 		sendErrorCauseInMail.render(g);
@@ -177,19 +175,16 @@ public class FatalExceptionScreen extends AliteScreen {
 	}
 
 	private void saveErrorCause() {
-		try {
-			savedFilename = "crash_reports/report-" + new SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).format(new Date()) + ".txt";
-			game.getFileIO().mkDir("crash_reports");
-			OutputStream file = game.getFileIO().writeFile(savedFilename);
+		game.getFileIO().mkDir("crash_reports");
+		savedFilename = "crash_reports/report-" + new SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).format(new Date()) + ".txt";
+		try (OutputStream file = game.getFileIO().writeFile(savedFilename)) {
 			String message = getErrorReportText();
 			file.write(message.getBytes());
-			file.close();
+			saveErrorCause.setVisible(false);
 		} catch (IOException ignored) {
-			saveErrorCause.setText("Saving Failed");
+			saveErrorCause.setText(L.string(R.string.exc_save_error));
 			savedFilename = null;
-			return;
 		}
-		saveErrorCause.setVisible(false);
 	}
 
 	private void sendErrorCauseInMail() {
@@ -201,9 +196,9 @@ public class FatalExceptionScreen extends AliteScreen {
 			emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, subject.isEmpty() ?
 				AliteConfig.GAME_NAME + " Crash Report." : subject);
 			emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, getErrorReportText());
-			game.startActivityForResult(Intent.createChooser(emailIntent, "Sending email..."), 0);
+			game.startActivityForResult(Intent.createChooser(emailIntent, L.string(R.string.exc_sending_email)), 0);
 		} catch (Throwable t) {
-			Toast.makeText(game, "Request failed try again: " + t, Toast.LENGTH_LONG).show();
+			Toast.makeText(game, L.string(R.string.exc_mail_sending_error, t), Toast.LENGTH_LONG).show();
 		}
 	}
 
@@ -259,10 +254,9 @@ public class FatalExceptionScreen extends AliteScreen {
 		}
 		plainCauseText = buffer.toString();
 		causeText = computeCRTextDisplay();
-		sendErrorCauseInMail = Button.createGradientRegularButton(620, 510, 400, 110, SEND_ERROR_IN_MAIL);
-		saveErrorCause = Button.createGradientRegularButton(1070, 510, 400, 110, "Save Error to File");
-		restartAlite = Button.createGradientRegularButton(1520, 510, 400, 110,
-			"Restart " + AliteConfig.GAME_NAME);
+		sendErrorCauseInMail = Button.createGradientRegularButton(620, 510, 400, 110, L.string(R.string.exc_btn_send_error_in_mail));
+		saveErrorCause = Button.createGradientRegularButton(1070, 510, 400, 110, L.string(R.string.exc_btn_save_error_to_file));
+		restartAlite = Button.createGradientRegularButton(1520, 510, 400, 110, L.string(R.string.exc_btn_restart, AliteConfig.GAME_NAME));
 	}
 
 	@Override

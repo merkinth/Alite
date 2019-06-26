@@ -34,6 +34,8 @@ import javax.crypto.spec.SecretKeySpec;
 import android.annotation.SuppressLint;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.model.CommanderData;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
@@ -360,11 +362,11 @@ public class FileUtils {
 		player.setJumpCounter(dis.readInt());
 		int grams = dis.readInt();
 		if (grams != 0) {
-			cobra.addSpecialCargo("Thargoid Documents", Weight.grams(grams));
+			cobra.addSpecialCargo(TradeGoodStore.GOOD_THARGOID_DOCUMENTS, Weight.grams(grams));
 		}
 		int tons = dis.readInt();
 		if (tons != 0) {
-			cobra.addSpecialCargo("Unhappy Refugees", Weight.tonnes(cobra.isEquipmentInstalled(EquipmentStore.largeCargoBay) ? 35 : 20));
+			cobra.addSpecialCargo(TradeGoodStore.GOOD_UNHAPPY_REFUGEES, Weight.tonnes(cobra.isEquipmentInstalled(EquipmentStore.largeCargoBay) ? 35 : 20));
 		}
 		int x = dis.readInt();
 		int y = dis.readInt();
@@ -529,7 +531,7 @@ public class FileUtils {
 		dos = new DataOutputStream(bos);
 		dos.writeByte(COMMANDER_FILE_FORMAT_VERSION);
 		writeString(dos, commanderName);
-		writeString(dos, player.getCurrentSystem() == null ? "Unknown" : player.getCurrentSystem().getName());
+		writeString(dos, player.getCurrentSystem() == null ? L.string(R.string.cmdr_unknown_system) : player.getCurrentSystem().getName());
 		dos.writeLong(game.getGameTime());
 		dos.writeInt(player.getScore());
 		dos.write(player.getRating().ordinal());
@@ -587,9 +589,9 @@ public class FileUtils {
 		dos.writeInt(hyperspaceSystem == 256 ? 1 : 0);
 		dos.writeInt(player.getIntergalacticJumpCounter());
 		dos.writeInt(player.getJumpCounter());
-		Weight w = cobra.getSpecialCargo("Thargoid Documents");
+		Weight w = cobra.getSpecialCargo(TradeGoodStore.GOOD_THARGOID_DOCUMENTS);
 		dos.writeInt(w == null ? 0 : (int) w.getWeightInGrams());
-		w = cobra.getSpecialCargo("Unhappy Refugees");
+		w = cobra.getSpecialCargo(TradeGoodStore.GOOD_UNHAPPY_REFUGEES);
 		dos.writeInt(w == null ? 0 : (int) w.getWeightInGrams());
 		if (player.getCurrentSystem() == null && player.getPosition() != null) {
 			dos.writeInt(player.getPosition().x);

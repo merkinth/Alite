@@ -28,9 +28,7 @@ import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.ScreenCodes;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.missions.CougarMission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
@@ -41,13 +39,6 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Coug
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class CougarScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
-
-	private final String missionDescription =
-			"Warning to all Traders: Reports have been coming in from " +
-			"Traders in this sector of an unknown hostile ship with " +
-			"awesome capabilities. Rumours suggest that this ship is " +
-			"fitted with a device which causes on-board computer systems " +
-			"to malfunction.";
 
 	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
 	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
@@ -80,7 +71,7 @@ public class CougarScreen extends AliteScreen {
 		String path = MissionManager.DIRECTORY_SOUND_MISSION + "4/";
 		try {
 			if (state == 0) {
-				missionLine = new MissionLine(path + "01.mp3", missionDescription);
+				missionLine = new MissionLine(path + "01.mp3", L.string(R.string.mission_cougar_mission_description));
 				cougar = new Cougar(game);
 				cougar.setPosition(200, 0, -700.0f);
 				mission.setPlayerAccepts(true);
@@ -170,7 +161,7 @@ public class CougarScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("Mission #4 - Destroy the Hostile Ship");
+		displayTitle(L.string(R.string.title_mission_cougar));
 
 		if (missionText != null) {
 			displayText(g, missionText);

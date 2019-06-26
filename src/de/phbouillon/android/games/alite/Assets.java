@@ -72,6 +72,10 @@ public class Assets {
 	public static Sound com_lostGalacticHyperdrive;
 	public static Sound com_lostRetroRockets;
 	public static Sound com_escapeMalfunction;
+	public static Sound com_lostCargo;
+	public static Sound com_launch_area_violation_1st;
+	public static Sound com_launch_area_violation_2nd;
+	public static Sound com_launch_area_violation_3rd;
 
 	public static Sound click;
 	public static Sound error;

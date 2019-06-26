@@ -23,13 +23,7 @@ import java.io.DataInputStream;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.Slider;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -48,12 +42,17 @@ public class AudioOptionsScreen extends OptionsScreen {
 
 	@Override
 	public void activate() {
-		musicVolume = createFloatSlider(0, 0, 1, "Music Volume", Settings.volumes[Sound.SoundType.MUSIC.getValue()]);
-		soundFxVolume = createFloatSlider(1, 0, 1, "Sound FX Volume", Settings.volumes[Sound.SoundType.SOUND_FX.getValue()]);
-		combatFxVolume = createFloatSlider(2, 0, 1, "Combat FX Volume", Settings.volumes[Sound.SoundType.COMBAT_FX.getValue()]);
-		voiceVolume = createFloatSlider(3, 0, 1, "Voice Volume", Settings.volumes[Sound.SoundType.VOICE.getValue()]);
-		vibrateLevel = createFloatSlider(4, 0, 1, "Vibrate Level", Settings.vibrateLevel);
-		back = createButton(6, "Back");
+		musicVolume = createFloatSlider(0, 0, 1,
+			L.string(R.string.options_audio_music_volume), Settings.volumes[Sound.SoundType.MUSIC.getValue()]);
+		soundFxVolume = createFloatSlider(1, 0, 1,
+			L.string(R.string.options_audio_sound_fx_volume), Settings.volumes[Sound.SoundType.SOUND_FX.getValue()]);
+		combatFxVolume = createFloatSlider(2, 0, 1,
+			L.string(R.string.options_audio_combat_fx_volume), Settings.volumes[Sound.SoundType.COMBAT_FX.getValue()]);
+		voiceVolume = createFloatSlider(3, 0, 1,
+			L.string(R.string.options_audio_voice_volume), Settings.volumes[Sound.SoundType.VOICE.getValue()]);
+		vibrateLevel = createFloatSlider(4, 0, 1,
+			L.string(R.string.options_audio_vibrate_level), Settings.vibrateLevel);
+		back = createButton(6, L.string(R.string.options_back));
 	}
 
 
@@ -62,7 +61,7 @@ public class AudioOptionsScreen extends OptionsScreen {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 
-		displayTitle("Audio Options");
+		displayTitle(L.string(R.string.title_audio_options));
 		musicVolume.render(g);
 		soundFxVolume.render(g);
 		combatFxVolume.render(g);

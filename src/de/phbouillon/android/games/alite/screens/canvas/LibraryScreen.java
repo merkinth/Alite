@@ -77,7 +77,7 @@ public class LibraryScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		searchButton = Button.createGradientRegularButton(1375, 980, 320, 100, "Search")
+		searchButton = Button.createGradientRegularButton(1375, 980, 320, 100, L.string(R.string.library_btn_search))
 			.setPixmap(searchIcon)
 			.setTextPosition(TextPosition.RIGHT);
 
@@ -193,7 +193,7 @@ public class LibraryScreen extends AliteScreen {
 				Math.abs(startY - touch.y) < 20) {
 				if (searchButton.isTouched(touch.x, touch.y)) {
 					SoundManager.play(Assets.click);
-					popupTextInput("Enter search text:", currentFilter, -1);
+					popupTextInput(L.string(R.string.library_search_text), currentFilter, -1);
 				} else if (touch.y > 79) {
 					int index = 0;
 					for (Button b: button) {
@@ -226,7 +226,7 @@ public class LibraryScreen extends AliteScreen {
 		}
 		if (filteredEntries.isEmpty()) {
 			if (!messageSet && currentFilter != null) {
-				showMessageDialog("No results found.");
+				showMessageDialog(L.string(R.string.library_no_results));
 			}
 			currentFilter = null;
 			buildTocButtons(entries.toArray(new TocEntryData[0]));
@@ -238,45 +238,45 @@ public class LibraryScreen extends AliteScreen {
 		String hash = StringUtil.computeSHAString(text);
 		if ("3a6d64c24cf8b69ccda376546467e8266667b50cfd0b984beb3651b129ed7".equals(hash) ||
 			"53b1fb446230b347c3f6406cca4b1ddbac60905ba4ab1977179f44b8fb134447".equals(hash)) { // Sara
-			showMessageDialog("Sorry, " + text + " does not work here, anymore.");
+			showMessageDialog(L.string(R.string.library_cheat_code_obsoleted1, text));
 			return true;
 		}
 		if ("d2a66247a6fad77347b676dedf6755cedbfbf8aef67cae4dc18ba53346577b5".equals(hash) ||
 			"d3d291ec78221333acf4d79084efe49cebb42fc01ce9c681315745c50e1".equals(hash)) { // Suzanne
-			showMessageDialog("No, " + text + " does not work here, either. Sorry.");
+			showMessageDialog(L.string(R.string.library_cheat_code_obsoleted2, text));
 			return true;
 		}
 		if ("5be5a31d90d073e11bd2362aa2336b7e902ea46dada1ec282ae6f4759a4d31ee".equals(hash)) { // Klaudia
 			game.activateHacker();
-			return cheater("Hacker activated.");
+			return cheater(L.string(R.string.library_cheat_code_hacker));
 		}
 		if ("6efe6cb9668dc015e79a8bf751b543de841f1e824dd4f42c59d80f39a0bd61".equals(hash)) { // Vianne
 			Settings.shieldPowerOverride = 40;
-			return cheater("Shield Power Booster activated.");
+			return cheater(L.string(R.string.library_cheat_code_shield_booster));
 		}
 		if ("67e082893e848c8706431c32dea6c3ca86c488ae24ee6b0661489cb8b3bb78a".equals(hash)) { // Christian
 			Settings.unlimitedFuel = true;
-			return cheater("Hyperdrive Booster activated.");
+			return cheater(L.string(R.string.library_cheat_code_hyperdrive_booster));
 		}
 		if ("dbadfc88144bc153a2d1bdf154681c857a237eb79d58df24e918bca6e17db5".equals(hash)) { // Alexander
 			Settings.laserPowerOverride = 15;
-			return cheater("Laser Power Booster activated.");
+			return cheater(L.string(R.string.library_cheat_code_laser_booster));
 		}
 		if ("86cc9b0303fd0b29a61b4b5a0fa78bb5c5fd64aa7346fb35267bcfe5f41".equals(hash)) {
 			Settings.laserPowerOverride = 5000;
-			return cheater("Maximum Laser Power.");
+			return cheater(L.string(R.string.library_cheat_code_max_laser));
 		}
 		if ("87ad16d301e439a57c6296968f1ebbd889d4a5cf58bd0bf1dc97d4259803af8".equals(hash)) {
 			Settings.invulnerable = true;
-			return cheater("Maximum Shield Power.");
+			return cheater(L.string(R.string.library_cheat_code_max_shield));
 		}
 		if ("3152a173cfd3efe739ba51b84937173cf3380fd6d39e49fb92623caa131b4f6".equals(hash)) { // Philipp
 			Settings.freePath = true;
-			return cheater("Clear Path Ahead.");
+			return cheater(L.string(R.string.library_cheat_code_clear_path));
 		}
 		if ("8f9adc99291f20b6f4d91c2a4b6b834477b422c8e3d78b8f481c88f619694".equals(hash)) { // Franz Josef
 			OptionsScreen.SHOW_DEBUG_MENU = true;
-			return cheater("The Master Control Program is at your service.");
+			return cheater(L.string(R.string.library_cheat_code_master_prg));
 		}
 		return false;
 	}
@@ -323,7 +323,7 @@ public class LibraryScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(Color.BLACK);
-		displayTitle("Library");
+		displayTitle(L.string(R.string.title_library));
 
 		searchButton.render(g);
 		if (deltaY != 0) {

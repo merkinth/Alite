@@ -22,11 +22,7 @@ import java.io.DataInputStream;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.ScreenCodes;
-import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.missions.ConstrictorMission;
 import de.phbouillon.android.games.alite.model.missions.CougarMission;
@@ -54,20 +50,20 @@ public class MoreDebugSettingsScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		startConstrictorMission = Button.createGradientTitleButton(50, 130, 1620, 100, "Start Constrictor Mission");
-		startThargoidDocumentsMission = Button.createGradientTitleButton(50, 250, 1620, 100, "Start Thargoid Documents Mission");
-		startSupernovaMission = Button.createGradientTitleButton(50, 370, 1620, 100, "Start Supernova Mission");
-		startCougarMission = Button.createGradientTitleButton(50, 490, 1620, 100, "Start Cougar Mission");
-		startThargoidBaseMission = Button.createGradientTitleButton(50, 610, 1620, 100, "Start Thargoid Base Mission");
-		clearMission = Button.createGradientTitleButton(50, 730, 1620, 100, "Clear Active Mission");
-		back = Button.createGradientTitleButton(50, 970, 1620, 100, "Back");
+		startConstrictorMission = Button.createGradientTitleButton(50, 130, 1620, 100, L.string(R.string.options_more_debug_start_constrictor_mission));
+		startThargoidDocumentsMission = Button.createGradientTitleButton(50, 250, 1620, 100, L.string(R.string.options_more_debug_start_thargoid_documents_mission));
+		startSupernovaMission = Button.createGradientTitleButton(50, 370, 1620, 100, L.string(R.string.options_more_debug_start_supernova_mission));
+		startCougarMission = Button.createGradientTitleButton(50, 490, 1620, 100, L.string(R.string.options_more_debug_start_cougar_mission));
+		startThargoidBaseMission = Button.createGradientTitleButton(50, 610, 1620, 100, L.string(R.string.options_more_debug_start_thargoid_base_mission));
+		clearMission = Button.createGradientTitleButton(50, 730, 1620, 100, L.string(R.string.options_more_debug_clear_mission));
+		back = Button.createGradientTitleButton(50, 970, 1620, 100, L.string(R.string.options_back));
 	}
 
 	@Override
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle("More Debug Options");
+		displayTitle(L.string(R.string.title_more_debug_options));
 
 		startConstrictorMission.render(g);
 		startThargoidDocumentsMission.render(g);
@@ -141,11 +137,11 @@ public class MoreDebugSettingsScreen extends AliteScreen {
 		if (clearMission.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			game.getPlayer().getActiveMissions().clear();
-			String completedMissions = "Completed Missions: ";
+			String completedMissions = "";
 			for (Mission m: game.getPlayer().getCompletedMissions()) {
-				completedMissions += m.getClass().getName() + "; ";
+				completedMissions += m.getClass().getSimpleName() + "; ";
 			}
-			showMessageDialog(completedMissions);
+			showMessageDialog(L.string(R.string.options_more_debug_completed_missions, completedMissions));
 			return;
 		}
 		if (back.isTouched(touch.x, touch.y)) {

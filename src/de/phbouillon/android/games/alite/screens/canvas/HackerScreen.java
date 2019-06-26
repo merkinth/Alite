@@ -446,7 +446,7 @@ public class HackerScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		done = Button.createGradientTitleButton(1720, 880, 200, 200, "Done");
+		done = Button.createGradientTitleButton(1720, 880, 200, 200, L.string(R.string.hacker_btn_done));
 		int counter = 0;
 		for (int y = 0; y < 16; y++) {
 			int yPos = (int) (140 + 80 * (y + 1) - Assets.titleFont.getSize());
@@ -701,7 +701,7 @@ public class HackerScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayWideTitle("Hacker v2.0");
+		displayWideTitle(L.string(R.string.title_hacker));
 
 		for (int i = 0; i < 16; i++) {
 			String hex = String.format("%02X", i);
