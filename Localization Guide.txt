@@ -83,91 +83,42 @@ Guide to localization
 
 5. Planet descriptions
 ----------------------
-  Planet descriptions are generated according to the words and sentence parts
-  listed in "planet_description" string array.
-  Descriptions are generated randomly for each planet but a planet always has
-  the same description.
+  Planet descriptions are defined in array planet_description prefixed by its template id.
+  Descriptions are generated randomly for each planet but a planet always has the same
+  description.
 
-  Each item has to be started with a unique identifier followed by a semicolon.
-  All texts after that even the spaces become the part of the description.
-  In an item you can define optional sentence elements separated by pipe (|)
-  one of them will be chosen randomly as a part.
-  You can refer to an item with its identifier with one of the following forms:
-  %id%, !id%, ?id%, -id%, +id%.
-  A referred item can refer to another that can refer to another and so on
-  with no limit. Note that there is no circular reference checking.
+  If planet description with the required id is not defined in array planet_description
+  message is printed out to log file and English description will be used.
 
-  Meanings of starting sign of references:
-  * % simply returns replaced form as is
-  * ! returns replaced form in which all words are capitalized
-  * ? definable condition where either the true or the false part will be returned
-      only, see later its format.
-  * - reference will be evaluated but not appended to the result. It is a
-      placeholder to preserve the original text order in the interest of the
-      localized text remain the translation of the original english one.
-      In this way the generated random numbers will refer to the same items.
-      E.g. order of word according to english grammar is %verb% %object%
-      but in your language should be %object% %verb%, you have to refer in form
-      -verb% %object% +verb%.
-  * + append to the result the previously deferred reference started by '-'.
+  There are two special references:
+  * %PLANET_NAME%      Returns the capitalized name of the current planet
+                       to which the description is being generated.
 
-  There are some special references:
-  * PLANET_NAME               Returns the name of the current planet to which
-                              the description is being generated.
+  * %RANDOM_NAME%      Returns a capitalized random name based on the
+                       same algorithm as the system name generation.
 
-  * RANDOM_NAME               Returns a random name based on the same algorithm
-                              as the system name generation.
 
-  * reference starting        Returns result of evaluation with changing
-    with a number             the random seed
+6. Using java script
+--------------------
+  You can define java script functions in section "js".
+  It can be used in strings and items of planet_description in strings.xml.
+  Calling of java script function must be between <js> and </js> marks.
 
-  * reference does not        Returns result of evaluation without changing
-    starting with a number    the random seed
+  Example for definition:
+    function planetian(s) {
+      return (/[aeiou]/.test(s.charAt(s.length-1)) ? s.substring(0, s.length-1) : s) + "ian";
+    }
 
-  You can also refer to the a sub-part of all references listed above in forms
-  %id(n)% or %id(b,e)%. I started with '%' in both cases just for simplicity
-  but it always can be any of listed above.
-  Where n is the n'th character relative to the beginning if it is larger than 0
-  or relative to the end if smaller than 1.
-  The same are true for b and e but that forms returns an [b,e] sub-string.
+  Example for usage:
+    <js>planetian("%PLANET_NAME%")</js>
 
-  For example the resulted string of reference %id% is 'Apple' then
-  the following strings will be returned:
-
-  %id(1)%:A       %id(2)%:p       %id(0)%:e        %id(-1)%:l         %id(-2)%:p
-  %id(1,2)%:Ap    %id(2,3)%:pp    %id(-1,0)%:le    %id(1,-1)%:Appl    %id(1,0)%:Apple
-
-  In case of invalid value of b it will be 1, e will be 0.
-  If n, b or e is out of bounds or e is larger than b the whole string will
-  be returned.
-
-  You can define conditions for composing expressions with correct
-  language-specific grammar. Its format is
-
-    ?id%<comma-separated values>:<true branch>:<false branch>:
-
-  Notice the starting question mark (?), and colon separator after the values
-  and both branches.
-
-  E.g: planetian: ?PLANET_NAME(0)%a,e,i,o,u:%PLANET_NAME(1,-1)%:%PLANET_NAME%:ian
-  Where unique id of the item is the 'planetian'
-  and returns a space (which is before the '?')
-  then the current planet name extended with 'ian' prefix,
-  if the last char of the planet name is none of the listed vowels (aeiou)
-  (that is the false branch)
-  or the current planet name without its last char and 'ian' prefix
-  (that is the true branch).
+  This returns the current planet name extended with 'ian' suffix,
+  if the last char of the planet name is none of the listed vowels (aeiou) or
+  the current planet name without its last char and 'ian' suffix.
   E.g: Lave -> Lavian, Usanat -> Usanatian
 
-  You can use test program to check the generated result from command line
-    %JAVA_HOME%bin\java -jar SystemDataTest.jar <path of strings.xml file> <name of output file>
 
-  Output file contains header and all planet data separated by TAB.
-  planet_name_syllable string array is required in tested strings.xml
-  even if only temporarily.
-
-
-6. Control, correction, clarification, completeness
+7. Control, correction, clarification, completeness
 ---------------------------------------------------
   Even the best is to translate all texts and text audios better to dispatch
   a not fully translated language pack file sooner than a perfect one later.
@@ -176,7 +127,7 @@ Guide to localization
   better than nothing. You can improve it continuously any time.
 
 
-7. Contact
+8. Contact
 ----------
   Always provide your name and email address to receive the comments or new
   items to translate. It would be the best if you drop an email to the Alite
@@ -191,7 +142,7 @@ Guide to localization
 [7]<Put your email address here>
 
 
-8. How to make language packs downloadable
+9. How to make language packs downloadable
 ------------------------------------------
   To share language pack you have to upload your file to the folder 'locales'
   of Alite's Google Drive on URL https://drive.google.com/drive/folders/1Zrb9svph7iANvhjhgaQuOpjPRBJjeRvm

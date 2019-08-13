@@ -21,15 +21,15 @@ package de.phbouillon.android.framework.impl;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.Configuration;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.opengl.GLES11;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLSurfaceView.Renderer;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -88,11 +88,7 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		Point result = new Point();
-		AndroidUtil.getDisplaySize(result, getWindowManager().getDefaultDisplay());
-
-		deviceWidth = result.x;
-		deviceHeight = result.y;
+		getDisplaySize();
 		glView = new GLSurfaceView(this);
 		glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
 		glView.setRenderer(this);
@@ -109,6 +105,18 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		createInputIfNecessary();
 	}
 
+	private void getDisplaySize() {
+		Display display = getWindowManager().getDefaultDisplay();
+		DisplayMetrics metrics = new DisplayMetrics();
+		if (!Settings.navButtonsVisible) {
+			display.getRealMetrics(metrics);
+		} else {
+			display.getMetrics(metrics);
+		}
+		deviceWidth = metrics.widthPixels;
+		deviceHeight = metrics.heightPixels;
+	}
+
 	protected void createInputIfNecessary() {
 		if (input == null || input.isDisposed()) {
 			boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
@@ -119,11 +127,6 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 				frameBufferHeight / (float) aspect.height(), aspect.left, aspect.top);
 			AliteLog.d("Calculating Sizes", "Sizes in OC: Width: " + deviceWidth + ", Height: " + deviceHeight + ", Aspect: " + aspect.left + ", " + aspect.top + ", " + aspect.right + ", " + aspect.bottom);
 		}
-	}
-
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
 	}
 
 	public int[] getSize() {
@@ -201,7 +204,6 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		if (screen == null) {
 			throw new IllegalArgumentException("Screen must not be null");
 		}
-		System.out.println("setScreen: " + screen);
 		this.screen.pause();
 		textureManager.clear();
 
@@ -256,15 +258,11 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		return new Rect(x1, y1, x2, y2);
 	}
 
-	@SuppressLint("NewApi")
 	@Override
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 		AliteLog.debugGlVendorData();
 		AliteLog.d("AndroidGame", "onSurfaceCreated is called on " + screen);
-		Point result = new Point();
-		AndroidUtil.getDisplaySize(result, getWindowManager().getDefaultDisplay());
-		deviceWidth = result.x;
-		deviceHeight = result.y;
+		getDisplaySize();
 
 		Rect aspect = calculateTargetRect(new Rect(0, 0, deviceWidth, deviceHeight));
 		float ratio = aspect.width() / (float) aspect.height();

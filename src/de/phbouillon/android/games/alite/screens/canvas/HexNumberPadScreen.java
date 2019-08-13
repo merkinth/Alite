@@ -26,6 +26,7 @@ import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class HexNumberPadScreen extends AliteScreen {
@@ -105,8 +106,7 @@ public class HexNumberPadScreen extends AliteScreen {
 				pads[y * 5 + x] = Button.createRegularButton(this.x + x * (BUTTON_SIZE + GAP) + OFFSET_X,
 					 this.y + y * (BUTTON_SIZE + GAP) + OFFSET_Y,
 					 BUTTON_SIZE, BUTTON_SIZE,
-					y == 3 && x > 0 || x > 2 ? buttonTexts[y * 5 + x] : String.format(L.currentLocale, "%d",
-						Integer.parseInt(buttonTexts[y * 5 + x])));
+					y == 3 && x > 0 || x > 2 ? buttonTexts[y * 5 + x] : StringUtil.format("%d", Integer.parseInt(buttonTexts[y * 5 + x])));
 			}
 		}
 	}

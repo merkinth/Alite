@@ -24,15 +24,12 @@ import de.phbouillon.android.games.alite.model.trading.TradeGood;
  */
 
 public class GalaxyGenerator {
-	// Base seed for the first galaxy
-	private static final char [] BASE_SEED = {0x5a4a, 0x0248, 0xb753};
-
 	// Current seed of this galaxy
 	private SeedType seed;
-	private char [] currentSeed;
+	private char[] currentSeed;
 
 	// All 256 systems in this galaxy
-	private SystemData [] system = new SystemData[256];
+	private SystemData[] system = new SystemData[256];
 	private int currentGalaxy = 1;
 	private String[] planetNameSyllable;
 	private String[] planetDescription;
@@ -49,14 +46,8 @@ public class GalaxyGenerator {
 
 	public void buildGalaxy(int galaxyNumber) {
 		currentGalaxy = galaxyNumber;
-		// Initialize first galaxy
-		seed = new SeedType(BASE_SEED[0], BASE_SEED[1], BASE_SEED[2]);
-
-		// Calculate seed for galaxy 'galaxyNumber'
-		for (int galaxyCount = 1; galaxyCount < galaxyNumber; galaxyCount++) {
-			nextGalaxy();
-		}
-		currentSeed = new char[] { seed.getWord(0), seed.getWord(1), seed.getWord(2) };
+		currentSeed = getSeedOf(galaxyNumber);
+		seed = new SeedType(currentSeed[0], currentSeed[1], currentSeed[2]);
 		buildGalaxy();
 	}
 
@@ -66,26 +57,25 @@ public class GalaxyGenerator {
 		buildGalaxy(currentGalaxy);
 	}
 
-	public char [] getCurrentSeed() {
+	public char[] getCurrentSeed() {
 		return currentSeed;
 	}
 
-	public char [] getNextSeed() {
-		int nextGal = getCurrentGalaxy() + 1;
-		if (nextGal > 8 || nextGal < 1) {
-			nextGal = 1;
+	public char[] getSeedOf(int galaxy) {
+		if (galaxy > 8 || galaxy < 1) {
+			galaxy = 1;
 		}
-		switch (nextGal) {
-			case 1: return new char [] {0x5A4a, 0x0248, 0xB753};
-			case 2: return new char [] {0xB494, 0x0490, 0x6FA6};
-			case 3: return new char [] {0x6929, 0x0821, 0xDE4D};
-			case 4: return new char [] {0xD252, 0x1042, 0xBD9A};
-			case 5: return new char [] {0xA5A4, 0x2084, 0x7B35};
-			case 6: return new char [] {0x4B49, 0x4009, 0xF66A};
-			case 7: return new char [] {0x9692, 0x8012, 0xEDD4};
-			case 8: return new char [] {0x2D25, 0x0124, 0xDBA9};
+		switch (galaxy) {
+			case 1: return new char[] {0x5A4a, 0x0248, 0xB753};
+			case 2: return new char[] {0xB494, 0x0490, 0x6FA6};
+			case 3: return new char[] {0x6929, 0x0821, 0xDE4D};
+			case 4: return new char[] {0xD252, 0x1042, 0xBD9A};
+			case 5: return new char[] {0xA5A4, 0x2084, 0x7B35};
+			case 6: return new char[] {0x4B49, 0x4009, 0xF66A};
+			case 7: return new char[] {0x9692, 0x8012, 0xEDD4};
+			case 8: return new char[] {0x2D25, 0x0124, 0xDBA9};
 		}
-		return new char [] {0x5A4a, 0x0248, 0x0B753};
+		return new char[] {0x5A4a, 0x0248, 0x0B753};
 	}
 
 	private int determineGalaxyNumber(int seed0, int seed1, int seed2) {
@@ -124,7 +114,7 @@ public class GalaxyGenerator {
 		currentGalaxy = galaxy;
 	}
 
-	public boolean setCurrentSeed(char [] seed) {
+	public boolean setCurrentSeed(char[] seed) {
 		if (this.seed.getWord(0) != seed[0] ||
 			this.seed.getWord(1) != seed[1] ||
 			this.seed.getWord(2) != seed[2]) {
@@ -142,14 +132,7 @@ public class GalaxyGenerator {
 		}
 	}
 
-	private void nextGalaxy() {
-		// Roll seed so that the next galaxy is created.
-		// Multiplies the seed by 2; repeating this 8 times will return
-		// the first galaxy seed again.
-		seed.multiplyByTwo();
-	}
-
-	public SystemData [] getSystems() {
+	public SystemData[] getSystems() {
 		return system;
 	}
 

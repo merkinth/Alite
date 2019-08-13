@@ -19,7 +19,6 @@ package de.phbouillon.android.games.alite;
  */
 
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.opengl.GLES11;
@@ -87,7 +86,7 @@ public class Alite extends AndroidGame {
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
-		AndroidUtil.setImmersion(getCurrentView());
+		Settings.setImmersion(getCurrentView());
 	}
 
 	@Override
@@ -111,11 +110,7 @@ public class Alite extends AndroidGame {
 		initialize();
 		clock = new Timer();
 		registerMissions();
-		switch (Settings.lockScreen) {
-			case 0: setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE); break;
-			case 1: setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); break;
-			case 2: setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE); break;
-		}
+		Settings.setOrientation(this);
 		AliteLog.d("Alite.onCreate", "onCreate end");
 	}
 
@@ -269,6 +264,7 @@ public class Alite extends AndroidGame {
 			screen.saveScreenState(new DataOutputStream(stateFile));
 			AliteLog.d("Saving state", "Saving state completed successfully.");
 		} catch (IOException e) {
+			AliteLog.d("Saving state", "Error during saving state.", e);
 			e.printStackTrace();
 		}
 	}
@@ -300,7 +296,9 @@ public class Alite extends AndroidGame {
 	}
 
 	@Override
-	public void onDestroy() {
+	public void onStop() {
+		AliteLog.e("Alite.OnStop", "Stopping Alite...");
+		getInput().dispose();
 		if (getCurrentScreen() != null && !(getCurrentScreen() instanceof FlightScreen)) {
 			try {
 				AliteLog.d("[ALITE]", "Performing autosave.");
@@ -309,21 +307,6 @@ public class Alite extends AndroidGame {
 				AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
 			}
 		}
-		AliteLog.e("Alite.OnDestroy", "Destroying Alite...");
-		while (saving) {
-			AliteLog.e("OnDestroy", "Still saving...");
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException ignored) { }
-		}
-		AliteLog.e("Alite.OnDestroy", "Destroying Alite Done.");
-		super.onDestroy();
-	}
-
-	@Override
-	public void onStop() {
-		AliteLog.e("Alite.OnStop", "Stopping Alite...");
-		getInput().dispose();
 		while (saving) {
 			AliteLog.e("OnStop", "Still saving...");
 			try {

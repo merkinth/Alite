@@ -59,7 +59,11 @@ public class StringUtil {
 		if (s.length() == 1) {
 			return s;
 		}
-		return s.substring(0,1).toUpperCase(L.currentLocale) + s.substring(1);
+		return s.substring(0,1).toUpperCase(L.getInstance().getCurrentLocale()) + s.substring(1);
+	}
+
+	public static String format(String format, Object... args) {
+		return String.format(L.getInstance().getCurrentLocale(), format, args);
 	}
 
 	public static String computeSHAString(String text) {

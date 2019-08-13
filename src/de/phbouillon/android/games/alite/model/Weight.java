@@ -25,6 +25,7 @@ import java.io.Serializable;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 public class Weight implements Comparable <Weight>, Serializable {
 	private static final long serialVersionUID = -7041624303034666651L;
@@ -100,7 +101,7 @@ public class Weight implements Comparable <Weight>, Serializable {
 
 	public String getStringWithoutUnit() {
 		if (grams < Unit.KILOGRAM.getValue()) {
-			return String.format(L.currentLocale, "%d", grams);
+			return StringUtil.format("%d", grams);
 		}
 		return L.getOneDecimalFormatString(R.string.cash_amount_only, 10 * grams /
 			(grams < Unit.TONNE.getValue() ? Unit.KILOGRAM : Unit.TONNE).getValue());

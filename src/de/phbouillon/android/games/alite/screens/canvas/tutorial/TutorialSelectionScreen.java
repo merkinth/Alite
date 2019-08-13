@@ -27,7 +27,6 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class TutorialSelectionScreen extends AliteScreen {
 	private Button introduction;
 	private Button trading;
@@ -37,7 +36,7 @@ public class TutorialSelectionScreen extends AliteScreen {
 	private Button basicFlying;
 	private Button advancedFlying;
 
-	TutorialSelectionScreen(Alite game) {
+	public TutorialSelectionScreen(Alite game) {
 		super(game);
 	}
 

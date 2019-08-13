@@ -709,7 +709,7 @@ public class LibraryPageScreen extends AliteScreen {
 		g.setClip(0, (int) (PAGE_BEGIN - Assets.regularFont.getSize() + 40), -1, 980);
 		String[] highlights = new String[0];
 		if (currentFilter != null) {
-			highlights = currentFilter.toLowerCase(L.currentLocale).split(" ");
+			highlights = currentFilter.toLowerCase(L.getInstance().getCurrentLocale()).split(" ");
 		}
 		int yOffset = 0;
 		int hardClip = -1;
@@ -728,7 +728,7 @@ public class LibraryPageScreen extends AliteScreen {
 			for (int x = 0, words = pt.words.length; x < words; x++) {
 				int color = pt.words[x].color;
 				for (String h: highlights) {
-					if (pt.words[x].text.toLowerCase(L.currentLocale).contains(h)) {
+					if (pt.words[x].text.toLowerCase(L.getInstance().getCurrentLocale()).contains(h)) {
 						color = ColorScheme.get(ColorScheme.COLOR_SELECTED_TEXT);
 					}
 				}

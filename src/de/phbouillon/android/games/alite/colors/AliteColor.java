@@ -19,6 +19,7 @@ package de.phbouillon.android.games.alite.colors;
  */
 
 import android.graphics.Color;
+import de.phbouillon.android.games.alite.AliteLog;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -83,10 +84,8 @@ public class AliteColor {
 		colorNameMap.put("darkblue", DARK_BLUE);
 		colorNameMap.put("lightredlowalpha", LIGHT_RED_LOW_ALPHA);
 		colorNameMap.put("darkredlowalpha", DARK_RED_LOW_ALPHA);
-	} catch (NoSuchFieldException e) {
-		e.printStackTrace();
-	} catch (IllegalAccessException e) {
-		e.printStackTrace();
+	} catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
+		AliteLog.e("Adding alite colors", "Error during adding alite colors", e);
 	}
-}
+	}
 }

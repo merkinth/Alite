@@ -22,18 +22,22 @@ import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
 import android.os.ParcelFileDescriptor;
-import android.support.annotation.ArrayRes;
-import android.support.annotation.PluralsRes;
-import android.support.annotation.StringRes;
 import android.util.SparseArray;
+import androidx.annotation.ArrayRes;
+import androidx.annotation.PluralsRes;
+import androidx.annotation.StringRes;
 import com.android.vending.expansion.zipfile.ZipResourceFile;
 import de.phbouillon.android.framework.FileIO;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
@@ -88,16 +92,25 @@ public class L {
 	public static final String DIRECTORY_LOCALES = "locales" + File.separator;
 	private static final String DIRECTORY_ASSETS = "assets" + File.separator;
 
-	private static Resources res;
-	private static ZipResourceFile currentLanguagePack;
-	private static SparseArray<String> currentResourceBundle;
-	private static SparseArray<String[]> currentResourceArrayBundle;
-	public static Locale currentLocale;
-	private static List<String> locales = new ArrayList<>();
-	private static int nextLocaleIndex;
-	private static boolean isDefaultLanguage;
+	private Resources res;
+	private ZipResourceFile currentLanguagePack;
+	private SparseArray<String> currentResourceBundle;
+	private SparseArray<String[]> currentResourceArrayBundle;
+	private static Locale currentLocale;
+	private List<String> locales = new ArrayList<>();
+	private int nextLocaleIndex;
+	private boolean isDefaultLanguage;
+	private ScriptEngine engine;
+	private static L instance = new L();
 
-	public static void loadLocaleList(FileIO f, String localeName) {
+	private L() {
+	}
+
+	public static L getInstance() {
+		return instance;
+	}
+
+	public void loadLocaleList(FileIO f, String localeName) {
 		nextLocaleIndex = 0;
 		File[] localeFiles = f.getFiles(DIRECTORY_LOCALES, "(.*)\\.zip");
 		locales.clear();
@@ -116,12 +129,12 @@ public class L {
 		}
 	}
 
-	public static String getNextLocale() {
+	public String getNextLocale() {
 		nextLocaleIndex = OptionsScreen.cycleFromZeroTo(nextLocaleIndex, locales.size()-1);
 		return locales.get(nextLocaleIndex);
 	}
 
-	public static void setLocale(Context context, String languagePackFileName) {
+	public void setLocale(Context context, String languagePackFileName) {
 		res = context.getResources();
 
 		AliteLog.d("Loading locale", "Loading language pack '" + languagePackFileName + "'");
@@ -158,9 +171,17 @@ public class L {
 		currentArrayResource.put("plurals_pattern", new String[] {
 			"zero$zero", "one$one", "two$two", "few$few", "many$many", "other$other" });
 		collectResourceFields(R.plurals.class.getDeclaredFields(), currentArrayResource, currentResourceArrayBundle, null);
+		engine = new ScriptEngineManager().getEngineByName("rhino");
+		if (currentResourceBundle.get(R.string.js) != null) {
+			try {
+				engine.eval(currentResourceBundle.get(R.string.js));
+			} catch (ScriptException e) {
+				AliteLog.e("ScriptEvaluation", "Error during initialization java script", e);
+			}
+		}
 	}
 
-	private static ZipResourceFile readLanguageResources(String languagePackFileName, Map<String, String> currentResource,
+	private ZipResourceFile readLanguageResources(String languagePackFileName, Map<String, String> currentResource,
 			Map<String, String[]> currentArrayResource) throws IOException, SAXException, ParserConfigurationException {
 		ZipResourceFile languagePack = new ZipResourceFile(languagePackFileName);
 		InputStream is = languagePack.getInputStream("values" + File.separator + "strings.xml");
@@ -199,19 +220,13 @@ public class L {
 		return string(resId, value / 10, value % 10);
 	}
 
-	// Remove this copy of interface after min sdk will be at least 24
+	// todo: Remove this copy of interface after min sdk will be at least 24
 	@FunctionalInterface
 	private interface IntFunction<R> {
-		/**
-		 * Applies this function to the given argument.
-		 *
-		 * @param value the function argument
-		 * @return the function result
-		 */
 		R apply(int value);
 	}
 
-	private static <T> void collectResourceFields(Field[] fields, Map<String,T> current, SparseArray<T> destination, IntFunction<T> getter) {
+	private <T> void collectResourceFields(Field[] fields, Map<String,T> current, SparseArray<T> destination, IntFunction<T> getter) {
 		for (Field field : fields) {
 			try {
 				int id = field.getInt(field);
@@ -223,13 +238,13 @@ public class L {
 					value = getter != null ? getter.apply(id) : null;
 				}
 				destination.put(id, value);
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
+			} catch (IllegalAccessException | IllegalArgumentException e) {
+				AliteLog.e("Collecting resource fields", "Error during collecting resource fields", e);
 			}
 		}
 	}
 
-	private static void setCurrentLocale(String languagePackFileName) {
+	private void setCurrentLocale(String languagePackFileName) {
 		Settings.localeFileName = languagePackFileName.substring(languagePackFileName.lastIndexOf(File.separator) + 1);
 		int languageIdx = Settings.localeFileName.indexOf('_');
 		int countryIdx = Settings.localeFileName.indexOf('_', languageIdx + 1);
@@ -240,59 +255,83 @@ public class L {
 			Settings.localeFileName.substring(languageIdx + 1, countryIdx).toUpperCase());
 	}
 
+	public Locale getCurrentLocale() {
+		return currentLocale;
+	}
+
 	public static String string(@StringRes int id, Object... formatArgs) {
-		return String.format(currentLocale, currentResourceBundle.get(id), formatArgs);
+		return getInstance().executeScript(StringUtil.format(getInstance().currentResourceBundle.get(id), formatArgs));
+	}
+
+	public String executeScript(String statement) {
+		try {
+			while (true) {
+				int b = statement.indexOf("<js>");
+				if (b < 0) {
+					return statement;
+				}
+				int e = statement.indexOf("</js>", b + 4);
+				if (e < 0) {
+					return statement;
+				}
+				String eval = (String) engine.eval(statement.substring(b + 4, e));
+				statement = statement.replace(statement.substring(b, e + 5), eval);
+			}
+		} catch (ScriptException ex) {
+			AliteLog.e("ScriptEvaluation", "Error during execution java script", ex);
+			return statement;
+		}
 	}
 
 	public static String[] array(@ArrayRes int id) {
-		return currentResourceArrayBundle.get(id);
+		return getInstance().currentResourceArrayBundle.get(id);
 	}
 
 	public static String plurals(@PluralsRes int id, int quantity, Object... formatArgs) {
-		if (isDefaultLanguage) {
-			return res.getQuantityString(id, quantity, formatArgs);
+		if (getInstance().isDefaultLanguage) {
+			return getInstance().res.getQuantityString(id, quantity, formatArgs);
 		}
-		String quantityString = res.getQuantityString(R.plurals.plurals_pattern, quantity);
-		String[] items = currentResourceArrayBundle.get(id);
+		String quantityString = getInstance().res.getQuantityString(R.plurals.plurals_pattern, quantity);
+		String[] items = getInstance().currentResourceArrayBundle.get(id);
 		int otherIdx = -1;
 		for (int i = 0; i < items.length; i++) {
 			if (items[i].startsWith(quantityString + "$")) {
-				return String.format(currentLocale, items[i].substring(quantityString.length()+1), formatArgs);
+				return StringUtil.format(items[i].substring(quantityString.length()+1), formatArgs);
 			}
-			if ("other".equals(items[i])) {
+			if (items[i].startsWith("other$")) {
 				otherIdx = i;
 			}
 		}
-		return otherIdx < 0 ? "" : String.format(currentLocale, items[otherIdx].substring("other".length() + 1), formatArgs);
+		return otherIdx < 0 ? "" : StringUtil.format(items[otherIdx].substring("other".length() + 1), formatArgs);
 	}
 
 	public static InputStream raw(String fileName) throws IOException {
-		if (currentLanguagePack == null) {
-			return res.getAssets().open(fileName);
+		if (getInstance().currentLanguagePack == null) {
+			return getInstance().res.getAssets().open(fileName);
 		}
 		return raw(DIRECTORY_ASSETS, fileName);
 	}
 
 	public static InputStream raw(String path, String fileName) throws IOException {
-		InputStream inputStream = currentLanguagePack.getInputStream(path + fileName);
-		return inputStream != null ? inputStream : res.getAssets().open(fileName);
+		InputStream inputStream = getInstance().currentLanguagePack.getInputStream(path + fileName);
+		return inputStream != null ? inputStream : getInstance().res.getAssets().open(fileName);
 	}
 
 	public static AssetFileDescriptor rawDescriptor(String fileName) throws IOException {
-		if (currentLanguagePack == null) {
-			return res.getAssets().openFd(fileName);
+		if (getInstance().currentLanguagePack == null) {
+			return getInstance().res.getAssets().openFd(fileName);
 		}
-		AssetFileDescriptor fd = currentLanguagePack.getAssetFileDescriptor(DIRECTORY_ASSETS + fileName);
+		AssetFileDescriptor fd = getInstance().currentLanguagePack.getAssetFileDescriptor(DIRECTORY_ASSETS + fileName);
 		// if compressed file
 		if (fd == null) {
 			AliteLog.d("Save temp file", "Saving '" + DIRECTORY_ASSETS + fileName + "' to temp.");
-			InputStream inputStream = currentLanguagePack.getInputStream(DIRECTORY_ASSETS + fileName);
-			return inputStream != null ? saveFile(inputStream) : res.getAssets().openFd(fileName);
+			InputStream inputStream = getInstance().currentLanguagePack.getInputStream(DIRECTORY_ASSETS + fileName);
+			return inputStream != null ? getInstance().saveFile(inputStream) : getInstance().res.getAssets().openFd(fileName);
 		}
 		return fd;
 	}
 
-	private static AssetFileDescriptor saveFile(InputStream is) throws IOException {
+	private AssetFileDescriptor saveFile(InputStream is) throws IOException {
 		File f = File.createTempFile("alite", "");
 		try(FileOutputStream fos = new FileOutputStream(f)) {
 			byte[] buffer = new byte[20*1024];

@@ -20,6 +20,9 @@ package de.phbouillon.android.games.alite;
 
 import java.io.*;
 
+import android.app.Activity;
+import android.content.pm.ActivityInfo;
+import android.view.View;
 import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.PluginManager;
 import de.phbouillon.android.framework.Sound;
@@ -90,6 +93,9 @@ public class Settings {
 	public static String localeFileName = DEFAULT_LOCALE_FILE;
 	public static int extensionUpdateMode = PluginManager.UPDATE_MODE_AUTO_UPDATE_OVER_WIFI_ONLY;
 
+	private Settings() {
+	}
+
 	public static void load(FileIO files) {
 		resetButtonPosition();
 		boolean fastDC = false;
@@ -147,6 +153,28 @@ public class Settings {
 			dockingComputerSpeed = fastDC ? 2 : 0;
 		}
 		ColorScheme.setColorScheme(files, null, colorScheme);
+	}
+
+	public static void setOrientation(Activity activity) {
+		switch (lockScreen) {
+			case 0: activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE); break;
+			case 1: activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); break;
+			case 2: activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE); break;
+		}
+	}
+
+	static void setImmersion(View view) {
+		if (view == null || navButtonsVisible) {
+			return;
+		}
+		view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE |
+			View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+			View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+			View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+			View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+			View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+			View.SYSTEM_UI_FLAG_FULLSCREEN |
+			View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 	}
 
 	public static void resetButtonPosition() {

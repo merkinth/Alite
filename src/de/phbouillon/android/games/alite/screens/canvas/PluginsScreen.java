@@ -30,6 +30,7 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.impl.PluginManagerImpl;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -275,7 +276,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 						break;
 					}
 					if (isRemovable(status)) {
-						Locale.setDefault(L.currentLocale);
+						Locale.setDefault(L.getInstance().getCurrentLocale());
 						String infoText = DateUtils.getRelativeTimeSpanString(plugins.get(i/3).downloadTime).toString();
 						g.drawText(infoText, 1415 - g.getTextWidth(infoText, Assets.regularFont),
 							button.getY() - yPosition + (int) Assets.titleFont.getSize(),
@@ -424,7 +425,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		GLES11.glLineWidth(3);
 		g.drawArc(x, y, r, ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT), (int)(3.6 * progressInPercent));
 		GLES11.glLineWidth(1);
-		String text = String.format(L.currentLocale, "%d%%", progressInPercent);
+		String text = StringUtil.format("%d%%", progressInPercent);
 		g.drawText(text, x - ((int) Assets.regularFont.getWidth(text, 1) >> 1),
 			y + ((int) Assets.regularFont.getSize() >> 1) - 10,
 			ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);

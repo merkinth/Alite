@@ -29,6 +29,7 @@
 	<p>[pb]9[/bp] Forward velocity should be maintained at maximum on
 	planetary approach. Keep it low during space station approach, and
 	minimal for final docking.</p>
+	<p>[pb]10[/bp] Tap on the Alite logo to switch between pausing and resuming the game.</p>
     </Text>
   </Content>
   <Next>nav_target</Next>

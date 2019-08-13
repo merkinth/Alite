@@ -27,6 +27,7 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class QuantityPadScreen extends AliteScreen {
@@ -116,8 +117,7 @@ public class QuantityPadScreen extends AliteScreen {
 				pads[y * 3 + x] = Button.createRegularButton(xPos + x * (BUTTON_SIZE + GAP) + OFFSET_X,
 					 yPos + y * (BUTTON_SIZE + GAP) + OFFSET_Y,
 					 BUTTON_SIZE, BUTTON_SIZE,
-					 y == 3 && x > 0 ? buttonTexts[y * 3 + x] : String.format(L.currentLocale, "%d",
-						 Integer.parseInt(buttonTexts[y * 3 + x])));
+					 y == 3 && x > 0 ? buttonTexts[y * 3 + x] : StringUtil.format("%d", Integer.parseInt(buttonTexts[y * 3 + x])));
 			}
 		}
 	}

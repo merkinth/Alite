@@ -21,6 +21,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 public class HyperspaceTimer extends TimedEvent {
 	private static final long serialVersionUID = -855725511472476223L;
@@ -30,7 +31,7 @@ public class HyperspaceTimer extends TimedEvent {
 	HyperspaceTimer(InGameManager inGame, boolean isIntergalactic) {
 		super(1000000000L);
 		countDown = isIntergalactic ? 30 : 10;
-		inGame.getMessage().setText(String.format(L.currentLocale, "%d", countDown));
+		inGame.getMessage().setText(StringUtil.format("%d", countDown));
 		addAlarmEvent(deltaTime -> {
 			countDown--;
 			SoundManager.play(Assets.click);
@@ -42,7 +43,7 @@ public class HyperspaceTimer extends TimedEvent {
 					inGame.performHyperspaceJump(isIntergalactic);
 				}
 			}
-			inGame.getMessage().setText(String.format(L.currentLocale, "%d",countDown));
+			inGame.getMessage().setText(StringUtil.format("%d",countDown));
 		});
 	}
 

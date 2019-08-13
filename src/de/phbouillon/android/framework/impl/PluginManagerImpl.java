@@ -23,6 +23,9 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import com.google.android.gms.auth.GoogleAuthException;
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.vending.expansion.downloader.DownloadProgressInfo;
 import com.google.android.vending.expansion.downloader.IDownloaderClient;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
@@ -31,14 +34,15 @@ import com.google.api.client.googleapis.media.MediaHttpDownloaderProgressListene
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.FileList;
 import de.phbouillon.android.framework.*;
 import de.phbouillon.android.games.alite.AliteLog;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -126,32 +130,42 @@ public class PluginManagerImpl implements PluginManager {
 	}
 
 	private Drive getDriveService() {
-		return new Drive.Builder(new NetHttpTransport(), new JacksonFactory(),
-			GoogleAccountCredential.usingOAuth2(context, Collections.singleton("https://www.googleapis.com/auth/drive.readonly"))
-				.setSelectedAccount(new Account(accountName, "O")))
+		GoogleAccountCredential credential = new GoogleAccountCredential(context, "oauth2:" + DriveScopes.DRIVE_READONLY)
+			.setSelectedAccount(new Account(accountName, GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE));
+		try {
+			AliteLog.d("GoogleDrive", "Token for Google Drive: " + credential.getToken());
+		} catch (UserRecoverableAuthException e) {
+			AliteLog.d("GoogleDrive", "Permission requests to Google Drive.");
+			context.startActivity(e.getIntent());
+		} catch (GoogleAuthException | IOException e) {
+			AliteLog.e("GoogleDrive", "Authorization in Google Drive failed.", e);
+		}
+		return new Drive.Builder(new NetHttpTransport(), new JacksonFactory(), credential)
 			.setApplicationName(applicationName)
 			.build();
 	}
 
 	@Override
-	public boolean updateFile(String fileId, long size, String destinationFilename) {
+	public boolean updateFile(String fileId, long size, String destinationFolder, String destinationFilename) {
 		if (updateMode == PluginManager.UPDATE_MODE_CHECK_FOR_UPDATES_ONLY ||
 			updateMode != PluginManager.UPDATE_MODE_AUTO_UPDATE_AT_ANY_TIME && !isWifiConnected()) {
 			return false;
 		}
-		return getFileFromDrive(fileId, size, destinationFilename);
+		return getFileFromDrive(fileId, size, destinationFolder, destinationFilename);
 	}
 
 	@Override
-	public void downloadFile(String fileId, long size, String destinationFilename) {
-		worker = new Worker(deltaTime -> getFileFromDrive(fileId, size, destinationFilename));
+	public void downloadFile(String fileId, long size, String destinationFolder, String destinationFilename) {
+		worker = new Worker(deltaTime -> getFileFromDrive(fileId, size, destinationFolder, destinationFilename));
 		worker.execute();
 	}
 
-	private boolean getFileFromDrive(String fileId, long size, String destinationFilename) {
+	private boolean getFileFromDrive(String fileId, long size, String destinationFolder, String destinationFilename) {
 		AliteLog.d("GoogleDrive", "Starting to download file to " + destinationFilename);
 		try {
 			Drive service = getDriveService();
+			fileIO.mkDir(destinationFolder);
+			destinationFilename = destinationFolder + File.separator + destinationFilename;
 			OutputStream outputStream = fileIO.writeFile(destinationFilename + ".tmp");
 			Drive.Files.Get get = service.files().get(fileId);
 			downloadProgressInfo = new DownloadProgressInfo(size, 0, -1, 0);
@@ -222,6 +236,6 @@ public class PluginManagerImpl implements PluginManager {
 				uiNotifier.onDownloadStateChanged(downloadState);
 			}
 		}
-	};
+	}
 
 }

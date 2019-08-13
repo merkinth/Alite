@@ -32,18 +32,56 @@ import de.phbouillon.android.games.alite.model.generator.enums.Government;
 public class SystemData implements Serializable {
 	private static final long serialVersionUID = 6117084866118128888L;
 
-	private static final char REFERENCE_NORMAL = '%';
-	private static final char REFERENCE_CAPITALIZE = '!';
-	private static final char REFERENCE_EVALUATE = '?';
-	private static final char REFERENCE_ORDERED = '-';
-	private static final char REFERENCE_USE = '+';
-	private static final String REFERENCE_PREFIXES = String.valueOf(REFERENCE_NORMAL) +
-		REFERENCE_CAPITALIZE + REFERENCE_EVALUATE + REFERENCE_ORDERED + REFERENCE_USE;
-
 	public static final SystemData RAXXLA_SYSTEM = createRaxxlaSystem();
 
+
+	private static final String[][] DESCRIPTION_TEXT_LIST = {
+		/* 0x80 */	{" fabled", " notable", " well known", " famous", " noted"},
+		/* 0x81 */	{" very", " mildly", " most", " reasonably", ""},
+		/* 0x82 */	{" ancient", "%97%", " great", " vast", " pink"},
+		/* 0x83 */	{"%9C%%9B% plantations", " mountains", "%9A%", "%a5% forests", " oceans"},
+		/* 0x84 */	{"%A6%", " mountain", " edible", " tree", " spotted"},
+		/* 0x85 */	{"%9D%", "%9E%", "%86%oid", "%A4%", "%A3%"},
+		/* 0x86 */	{" walking%8D%", " crab", " bat", " lobst", " %RANDOM_NAME%"},
+		/* 0x87 */	{" ancient", " exceptional", " eccentric", " ingrained", "%97%"},
+		/* 0x88 */	{" shyness", " silliness", " mating traditions", " loathing of%89%", " love for%89%"},
+		/* 0x89 */	{" food blenders", " tourists", " poetry", " discos", "%91%"},
+		/* 0x8A */	{" its%82%%83%", " the %PLANET_NAME_IAN%%84%%85%", " its inhabitants'%87%%88%", "%9F%", " its%90%%91%"},
+		/* 0x8B */	{" beset", " plagued", " ravaged", " cursed", " scourged"},
+		/* 0x8C */	{"%96% civil war", "%8D%%84%%85%s", "%98% disease", "%96% earthquakes", "%96% solar activity"},
+		/* 0x8D */	{" killer", " deadly", " evil", " lethal", " vicious"},
+		/* 0x8E */	{" Juice", " Brandy", " Water", " Brew", " Gargle Blasters"},
+		/* 0x8F */	{" %RANDOM_NAME%", " %PLANET_NAME_IAN%%85%", " %PLANET_NAME_IAN% %RANDOM_NAME%", " %PLANET_NAME_IAN%%99%", "%99% %RANDOM_NAME%"},
+		/* 0x90 */	{" fabulous", " exotic", " hoopy", " unusual", " exciting"},
+		/* 0x91 */	{" cuisine", " night life", " casinos", " sitcoms", "%9F%"},
+		/* 0x92 */	{"%PLANET_NAME%", "The planet %PLANET_NAME%", "The world %PLANET_NAME%", "This planet", "This world"},
+		/* 0x93 */	{"%81%%80% for%8A%", "%81%%80% for%8A% and%8A%", "%8B% by%8C%", "%81%%80% for%8A% but is%8B% by%8C%", "%94%%95%"},
+		/* 0x94 */	{" an unremarkable", " a boring", " a dull", " a tedious", " a revolting"},
+		/* 0x95 */	{" planet", " world", " place", " little planet", " dump"},
+		/* 0x96 */	{" frequent", " occasional", " unpredictable", " dreadful", " deadly"},
+		/* 0x97 */	{" funny", " weird", " unusual", " strange", " peculiar"},
+		/* 0x98 */	{" a killer", " a deadly", " an evil", " a lethal", " a vicious"},
+		/* 0x99 */	{" Killer", " Deadly", " Evil", " Lethal", " Vicious"},
+		/* 0x9A */	{" parking meters", " dust clouds", " icebergs", " rock formations", " volcanoes"},
+		/* 0x9B */	{" Plant", " Tulip", " Banana", " Corn", " Weed"},
+		/* 0x9C */	{" %RANDOM_NAME%", " %PLANET_NAME_IAN% %RANDOM_NAME%", " %PLANET_NAME_IAN%%99%", " Inhabitant", " %PLANET_NAME_IAN% %RANDOM_NAME%"},
+		/* 0x9D */	{" shrew", " beast", " bison", " snake", " wolf"},
+		/* 0x9E */	{" leopard", " cat", " monkey", " goat", " fish"},
+		/* 0x9F */	{"%8F%%8E%", " %PLANET_NAME_IAN%%A7%%A0%", " its%A8%%A9%%A0%", "%A1%%A2%", "%8F%%8E%"},
+		/* 0xA0 */	{" Meat", " Cutlet", " Steak", " Burgers", " Soup"},
+		/* 0xA1 */	{" ice", " mud", " zero-G", " vacuum", " %PLANET_NAME_IAN% ultra"},
+		/* 0xA2 */	{" hockey", " cricket", " karate", " polo", " tennis"},
+		/* 0xA3 */	{" wasp", " moth", " grub", " ant", " %RANDOM_NAME%"},
+		/* 0xA4 */	{" poet", " arts graduate", " yak", " snail", " slug"},
+		/* 0xA5 */	{" dense", " lush", " rain", " bamboo", " deciduous"},
+		/* 0xA6 */	{" green", " black", " yellow stripey", " pinky grey", " white"},
+		/* 0xA7 */	{" Shrew", " Beast", " Bison", " Snake", " Wolf"},
+		/* 0xA8 */	{" Fabulous", " Exotic", " Hoopy", " Unusual", " Exciting"},
+		/* 0xA9 */	{" Leopard", " Cat", " Monkey", " Goat", " Fish"},
+	};
+
 	private static String[] planetNameSyllable;
-	private static Map<String,String[]> descriptionMap;
+	private static Map<String,String> descriptionMap;
 
 	private int index; // 0-255
 	private int x; // 0-255
@@ -63,6 +101,7 @@ public class SystemData implements Serializable {
 	private String inhabitants;
 	private String inhabitantCode;
 	private String description;
+	private String descriptionCode;
 
 	private int planetTexture; // Index of the pre-generated planet texture
 	private int ringsTexture;  // Index of the ring texture or 0 for no rings
@@ -81,8 +120,7 @@ public class SystemData implements Serializable {
 				AliteLog.e("Planet description initializer", "Missing id prefix in description line '" + description + "'");
 				continue;
 			}
-			descriptionMap.put(description.substring(0, idIdx).toLowerCase(L.currentLocale),
-				description.substring(idIdx + 1).split("\\|", 100));
+			descriptionMap.put(description.substring(0, idIdx), description.substring(idIdx + 1));
 		}
 	}
 
@@ -129,7 +167,7 @@ public class SystemData implements Serializable {
 
 		result.inhabitantCode = InhabitantComputation.computeInhabitantCode(seed);
 		result.inhabitants = InhabitantComputation.computeInhabitantString(seed);
-		result.name = StringUtil.capitalize(result.generateRandomName(seed));
+		result.name = result.generateRandomName(seed);
 		result.computeDescriptionString();
 
 		// The fuel price is fixed for a given system and must be
@@ -212,17 +250,25 @@ public class SystemData implements Serializable {
 	}
 
 	private void computeDescriptionString() {
-		description = replaceGoatSoupString("starter", false);
+		descriptionCode = "";
+		description = computeGoatSoup("%92% is%93%.", true);
+		if (!descriptionMap.isEmpty()) {
+			String localizedDescription = descriptionMap.get(descriptionCode);
+			if (localizedDescription == null) {
+				AliteLog.e("Planet description error", "Missing description for code " + descriptionCode + ": " + description);
+				return;
+			}
+			description = L.getInstance().executeScript(computeGoatSoup(localizedDescription, false));
+		}
 	}
 
 	// Goat soup description string generation
-
-	private char generateRandomNumber(boolean set) {
+	private char generateRandomNumber() {
 		char d0 = goatSoupSeedB;
 		char d1 = goatSoupSeedA;
-		if (set) goatSoupSeedA = d0;
+		goatSoupSeedA = d0;
 		d0 += d1;
-		if (set) goatSoupSeedB = d0;
+		goatSoupSeedB = d0;
 		d0 &= 0xFF;
 		return d0;
 	}
@@ -253,33 +299,34 @@ public class SystemData implements Serializable {
 			}
 			planetName = resultStringBuilder.toString().replaceAll("\\.", "");
 		}
-		return planetName;
+		return StringUtil.capitalize(planetName);
 	}
 
-	private String replaceGoatSoupString(String id, boolean evaluate) {
-		String[] value = descriptionMap.get(id);
-		if (value == null) {
-			AliteLog.e("Missing planet description", "Invalid planet description reference '" + id + "'");
-			return "";
-		}
-		int rnd = generateRandomNumber(!evaluate && Character.isDigit(id.charAt(0))) / (255 / value.length + 1);
-		return computeGoatSoup(value[rnd]);
-	}
-
-	private String replaceCommand(String id) {
-		switch (id) {
+	private String replaceCommand(String id, boolean genCode) {
+		switch (id.toLowerCase(L.getInstance().getCurrentLocale())) {
 			case "planet_name":
-				return name.toLowerCase(L.currentLocale);
+				return StringUtil.capitalize(name);
+			case "planet_name_ian":
+				if (genCode) {
+					char lastChar = name.charAt(name.length() - 1);
+					return StringUtil.capitalize((lastChar == 'a' || lastChar == 'e' || lastChar == 'i' || lastChar == 'o' || lastChar == 'u' ?
+						name.substring(0, name.length() - 1) : name) + "ian");
+				}
+				return id;
 			case "random_name":
-			   SeedType localSeed = new SeedType(goatSoupSeedA, goatSoupSeedB, (char) (goatSoupSeedA ^ goatSoupSeedB));
+				SeedType localSeed = new SeedType(goatSoupSeedA, goatSoupSeedB, (char) (goatSoupSeedA ^ goatSoupSeedB));
 				return generateRandomName(localSeed);
-		    default:   // Whoops. Wrong op code. Issue error and continue.
-				System.err.println("Invalid command code '" + id + "' -- ignoring.");
-				return "";
+			default:
+				if (genCode) {
+					int rnd = generateRandomNumber() / 52; // [0..255] / 52 = [0..4]
+					descriptionCode += rnd;
+					return computeGoatSoup(DESCRIPTION_TEXT_LIST[Integer.parseInt(id, 16) - 0x80][rnd], true);
+				}
+				return id;
 		}
 	}
 
-	private String computeGoatSoup(String source) {
+	private String computeGoatSoup(String source, boolean genCode) {
 		if (source == null || source.isEmpty()) {
 			return "";
 		}
@@ -287,148 +334,31 @@ public class SystemData implements Serializable {
 		StringBuilder builder = new StringBuilder();
 		int index = -1;
 		int b = 0;
-		Map<String,char[]> seed = null;
 		do {
-			int commandIdx = getFirstPrefixPos(source.substring(index + 1));
+			int commandIdx = source.indexOf('%', index + 1);
 			if (commandIdx >= 0) {
-				index += commandIdx + 1;
-				char mode = source.charAt(index);
-				if (b < index) {
-					builder.append(source.substring(b, index));
+				if (b < commandIdx) {
+					builder.append(source.substring(b, commandIdx));
+					b = commandIdx;
 				}
-				b = index + 1;
-				index = source.indexOf("%", b);
+				index = source.indexOf("%", commandIdx + 1);
 				if (index < 0) {
-					index = source.length();
-					if (b - 1 < index) {
-						builder.append(source.substring(b - 1, index));
+					if (b < source.length()) {
+						builder.append(source.substring(b));
 					}
 					break;
 				}
-				String referenceName = source.substring(b, index).toLowerCase(L.currentLocale);
-				char[] pSeed = null;
-				if (mode == REFERENCE_ORDERED) {
-					if (seed == null) {
-						seed = new HashMap<>();
-					}
-					seed.put(referenceName, new char[] { goatSoupSeedA, goatSoupSeedB });
-				} else if (mode == REFERENCE_USE && seed != null) {
-					pSeed = seed.get(referenceName);
-					if (pSeed != null) {
-						seed.put("goatSoupSeed", new char[] { goatSoupSeedA, goatSoupSeedB });
-						goatSoupSeedA = pSeed[0];
-						goatSoupSeedB = pSeed[1];
-					}
-				}
-				String referenceResult = getReferenceResult(referenceName, mode);
-				// restore seed
-				if (pSeed != null) {
-					pSeed = seed.get("goatSoupSeed");
-					goatSoupSeedA = pSeed[0];
-					goatSoupSeedB = pSeed[1];
-				}
-				if (mode == REFERENCE_EVALUATE) {
-					int trueIndex = source.indexOf(":", index + 1);
-					int falseIndex = source.indexOf(":", trueIndex + 1);
-					int endIndex = source.indexOf(":", falseIndex + 1);
-					if (trueIndex >= 0 && falseIndex >= trueIndex && endIndex >= falseIndex) {
-						// comma separated values
-						if (Arrays.asList(source.substring(index + 1, trueIndex).split(",")).contains(referenceResult)) {
-							referenceResult = computeGoatSoup(source.substring(trueIndex + 1, falseIndex));
-						} else {
-							referenceResult = computeGoatSoup(source.substring(falseIndex + 1, endIndex));
-						}
-						index = endIndex;
-					}
-				}
-				if (mode != REFERENCE_ORDERED) {
-					builder.append(referenceResult);
-				}
+				builder.append(replaceCommand(source.substring(b + 1, index), genCode));
 				b = index + 1;
 			} else {
 				index = source.length();
 				if (b < index) {
-					builder.append(source.substring(b, index));
+					builder.append(source, b, index);
 				}
 			}
 		} while (index < source.length());
 
 		return builder.toString();
-	}
-
-	private String getReferenceResult(String command, char mode) {
-		int subStart = command.indexOf('(');
-		int[] subFromTo;
-		if (subStart >= 0) {
-			subFromTo = getFromTo(command.substring(subStart + 1));
-			command = command.substring(0, subStart);
-		} else {
-			subFromTo = new int[] {1,0};
-		}
-		command = descriptionMap.containsKey(command) ? replaceGoatSoupString(command,
-			mode == REFERENCE_EVALUATE) : replaceCommand(command);
-		if (mode == REFERENCE_CAPITALIZE) command = StringUtil.capitalize(command);
-
-		int len = command.length();
-		subFromTo[0] = subFromTo[0] <= 0 ? len + subFromTo[0] : subFromTo[0] - 1;
-		subFromTo[1] = subFromTo[1] <= 0 ? len + subFromTo[1] : subFromTo[1];
-		if (subFromTo[0] >= 0 && subFromTo[1] <= len && subFromTo[1] - subFromTo[0] >= 0) {
-			command = command.substring(subFromTo[0], subFromTo[1]);
-		}
-		return command;
-	}
-
-	private int getFirstPrefixPos(String source) {
-		int first = -1;
-		for (int i = 0; i < REFERENCE_PREFIXES.length(); i++) {
-			int p = source.indexOf(REFERENCE_PREFIXES.charAt(i));
-			if (p >= 0 && (first < 0 || p < first)) first = p;
-		}
-		return first;
-	}
-
-	/**
-	 * Formats (p) and (b,e) are allowed. p'th char or [b,e] substring.
-	 * Relative to the beginning must be a positive number starting with 1,
-	 * relative to the end must be 0 or negative number.
-	 * 1 is the 1st char, 2 is the 2nd, and so on.
-	 * 0 is the last char, -1 is the char before the last one and so on.
-	 * @param command for substring
-	 * @return begin and end indices for substring
-	 */
-	private int[] getFromTo(String command) {
-		int[] fullString = {1,0};
-		int subEnd = command.indexOf(')');
-		if (subEnd < 0) return fullString;
-
-		command = command.substring(0, subEnd).trim().toLowerCase(L.currentLocale);
-		int subTo = command.indexOf(',');
-		if (subTo < 0) {
-			try {
-				fullString[0] = Integer.parseInt(command);
-				if (fullString[0] > 0) {
-					fullString[1] = fullString[0];
-				} else {
-					fullString[1] = fullString[0];
-					fullString[0]--;
-				}
-			} catch (NumberFormatException ignored) { }
-			return fullString;
-		}
-
-		String index = command.substring(0, subTo).trim();
-		if (!index.isEmpty()) {
-			try {
-				fullString[0] = Integer.parseInt(index);
-			} catch (NumberFormatException ignored) { }
-		}
-		index = command.substring(subTo + 1).trim();
-		if (!index.isEmpty()) {
-			try {
-				fullString[1] = Integer.parseInt(index);
-			} catch (NumberFormatException ignored) { }
-		}
-		return fullString;
 	}
 
 	public void computeReachableSystems(SystemData [] allSystems) {

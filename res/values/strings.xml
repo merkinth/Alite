@@ -108,48 +108,9 @@
         <item>on</item>
     </string-array>
 
-    <string-array name="planet_description">
-        <item>planetian: ?PLANET_NAME(0)%a,e,i,o,u:!PLANET_NAME(1,-1)%:!PLANET_NAME%:ian</item>
-        <item>starter:%92% is%93%.</item>
-        <item>80: fabled| notable| well known| famous| noted</item>
-        <item>81: very| mildly| most| reasonably|</item>
-        <item>82: ancient|%97%| great| vast| pink</item>
-        <item>83:%9c%!9b% plantations| mountains|%9a%|%830% forests| oceans</item>
-        <item>830: dense| lush| rain| bamboo| deciduous</item>
-        <item>84:%840%| mountain| edible| tree| spotted</item>
-        <item>840: green| black| yellow stripey| pinky grey| white</item>
-        <item>85:%9D%|%9E%|%86%oid|%850%|%851%</item>
-        <item>850: poet| arts graduate| yak| snail| slug</item>
-        <item>851: wasp| moth| grub| ant| !RANDOM_NAME%</item>
-        <item>86: walking%8D%| crab| bat| lobst| !RANDOM_NAME%</item>
-        <item>87: ancient| exceptional| eccentric| ingrained|%97%</item>
-        <item>88: shyness| silliness| mating traditions| loathing of%89%| love for%89%</item>
-        <item>89: food blenders| tourists| poetry| discos|%91%</item>
-        <item>8a: its%82%%83%| the%planetian%%84%%85%| its inhabitants\'%87%%88%|%9F%| its%90%%91%</item>
-        <item>8b: beset| plagued| ravaged| cursed| scourged</item>
-        <item>8c:%96% civil war|%8D%%84%%85%s|%98% disease|%96% earthquakes|%96% solar activity</item>
-        <item>8d: killer| deadly| evil| lethal| vicious</item>
-        <item>8e: juice| brandy| water| brew| gargle blasters</item>
-        <item>8f: !RANDOM_NAME%|%planetian%%85%|%planetian% !RANDOM_NAME%|%planetian%!8D%|!8D% !RANDOM_NAME%</item>
-        <item>90: fabulous| exotic| hoopy| unusual| exciting</item>
-        <item>91: cuisine| night life| casinos| sitcoms|%9F%</item>
-        <item>92:!PLANET_NAME%|The planet !PLANET_NAME%|The world !PLANET_NAME%|This planet|This world</item>
-        <item>93:%81%%80% for%8A%|%81%%80% for%8A% and%8a%|%8B% by%8C%|%81%%80% for%8A% but is%8B% by%8C%|%94%%95%</item>
-        <item>94: an unremarkable| a boring| a dull| a tedious| a revolting</item>
-        <item>95: planet| world| place| little planet| dump</item>
-        <item>96: frequent| occasional| unpredictable| dreadful| deadly</item>
-        <item>97: funny| weird| unusual| strange| peculiar</item>
-        <item>98: a killer| a deadly| an evil| a lethal| a vicious</item>
-        <item>9a: parking meters| dust clouds| icebergs| rock formations| volcanoes</item>
-        <item>9b: plant| tulip| banana| corn| weed</item>
-        <item>9c: !RANDOM_NAME%|!planetian% !RANDOM_NAME%|!planetian%!8d%| Inhabitant|!planetian% !RANDOM_NAME%</item>
-        <item>9d: shrew| beast| bison| snake| wolf</item>
-        <item>9e: leopard| cat| monkey| goat| fish</item>
-        <item>9f:%8F%!8E%|%planetian%!9D%!9f0%| its!90%!9E%!9f0%|%9f1%%9f2%|%8F%!8E%</item>
-        <item>9f0: meat| cutlet| steak| burgers| soup</item>
-        <item>9f1: ice| mud| zero-G| vacuum|%planetian% ultra</item>
-        <item>9f2: hockey| cricket| karate| polo| tennis</item>
-    </string-array>
+    <string name="js"> </string>
+
+    <string-array name="planet_description"> </string-array>
 
     <string name="about_version">%s Version %s</string>
     <string name="about">
@@ -538,7 +499,7 @@
 
     <string name="bounty_none">Bounty for %s: None.</string>
     <string name="bounty_amount">Bounty for %s: %s.</string>
-    <string name="assisted_docking">The fee for assisted docking is %d.%d Cr. Accept?</string>
+    <string name="assisted_docking">The fee for assisted docking is %s. Accept?</string>
 
     <string name="equip_info">%s (Tap again to equip)</string>
     <string name="equip_all_lasers_mounted">All lasers (of that type) already mounted.</string>

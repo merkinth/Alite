@@ -31,6 +31,7 @@ import android.os.Build;
 import android.os.Debug;
 import android.util.Log;
 import de.phbouillon.android.framework.FileIO;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 public class AliteLog {
 	public static final int KB = 1024;
@@ -104,15 +105,15 @@ public class AliteLog {
 
 	private static String toReadableMemString(long memory) {
 		if (memory > GB) {
-			return String.format(L.currentLocale, "%3.2f GB", (float)memory / GB);
+			return StringUtil.format("%3.2f GB", (float)memory / GB);
 		}
 		if (memory > MB) {
-			return String.format(L.currentLocale, "%5.2f MB", (float)memory / MB);
+			return StringUtil.format("%5.2f MB", (float)memory / MB);
 		}
 		if (memory > KB) {
-			return String.format(L.currentLocale, "%5.2f KB", (float)memory / KB);
+			return StringUtil.format("%5.2f KB", (float)memory / KB);
 		}
-		return String.format(L.currentLocale, "%d Bytes", memory);
+		return StringUtil.format("%d Bytes", memory);
 	}
 
 	private static String dumpTrace() {

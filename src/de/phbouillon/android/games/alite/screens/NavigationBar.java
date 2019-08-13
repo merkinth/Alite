@@ -275,7 +275,7 @@ public class NavigationBar {
 				return newScreen;
 			} catch (NoSuchMethodException | IllegalArgumentException | IllegalAccessException |
 				InvocationTargetException | ClassNotFoundException | InstantiationException e) {
-				e.printStackTrace();
+				AliteLog.e("Navigation bar", "Screen cannot be opened", e);
 			}
 			return null;
 		}

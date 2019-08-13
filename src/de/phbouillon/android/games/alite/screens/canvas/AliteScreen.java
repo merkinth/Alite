@@ -322,8 +322,6 @@ public abstract class AliteScreen extends Screen {
 
 	boolean inFlightScreenChange() {
 		Screen oldScreen = game.getCurrentScreen();
-		System.out.println("oldScreen: " + oldScreen);
-		System.out.println("newScreen: " + newScreen);
 		if (oldScreen instanceof FlightScreen) {
 			// We're in flight, so do not dispose the flight screen,
 			// but the flight's information screen

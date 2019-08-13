@@ -24,7 +24,6 @@ import java.util.Locale;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.media.MediaFormat;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -52,14 +51,9 @@ public class AliteIntro extends Activity implements OnClickListener {
 	private int cyclingThroughVideoQualities = -1;
 	private FileIO fileIO;
 	private VideoView videoView;
-	private int nativeSubtitleIndex;
-	private int localizedSubtitleIndex;
-	// Store the following constant values instead of direct index of subtitle:
-	// -1: no subtitle, 0: native subtitle, 1: localized subtitle
-	// Explanation: indices of subtitles are independent from order of adding
-	// and I wanted fix order of subtitles (off -> native -> localized -> off)
-	// Subtitles must re-add after resume thus indices have to be determined again
-	private int currentSubtitle = -1;
+	// Subtitle must re-add after resume thus indices have to be determined again
+	private int subtitleIndex;
+	private boolean subtitleOn;
 
 	private String getAbsolutePath(String file) {
 		try {
@@ -146,12 +140,8 @@ public class AliteIntro extends Activity implements OnClickListener {
 			}
 		});
 		Settings.load(fileIO);
-		L.setLocale(this, fileIO.getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
-		switch (Settings.lockScreen) {
-			case 0: setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE); break;
-			case 1: setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); break;
-			case 2: setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE); break;
-		}
+		L.getInstance().setLocale(this, fileIO.getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
+		Settings.setOrientation(this);
 
 		AliteLog.d("IntroVideoQuality", "IntroVideoQuality == " + Settings.introVideoQuality);
 		if (Settings.introVideoQuality < 0) {
@@ -186,8 +176,20 @@ public class AliteIntro extends Activity implements OnClickListener {
 	private void playVideo(String introName) {
 		AliteLog.d("Intro path", "Intro path: " + introName);
 		videoView.setVideoPath(introName);
-		addNativeSubtitle();
-		addLocalizedSubtitle();
+		addSubtitle();
+	}
+
+	private void addSubtitle() {
+		if (Locale.US.getLanguage().equals(L.getInstance().getCurrentLocale().getLanguage())) {
+			addNativeSubtitle();
+			return;
+		}
+		try {
+			videoView.addSubtitleSource(L.raw(DIRECTORY_INTRO, INTRO_SUBTITLE_FILE_NAME),
+				MediaFormat.createSubtitleFormat("text/vtt", L.getInstance().getCurrentLocale().getLanguage()));
+		} catch (IOException ignored) {
+			AliteLog.d("Subtitle","Localized subtitle file not found");
+		}
 	}
 
 	private void addNativeSubtitle() {
@@ -201,18 +203,6 @@ public class AliteIntro extends Activity implements OnClickListener {
 				MediaFormat.createSubtitleFormat("text/vtt", Locale.US.getLanguage()));
 		} catch (FileNotFoundException e) {
 			AliteLog.e("Subtitle","Native subtitle opening error", e);
-		}
-	}
-
-	private void addLocalizedSubtitle() {
-		if (Locale.US.getLanguage().equals(L.currentLocale.getLanguage())) {
-			return;
-		}
-		try {
-			videoView.addSubtitleSource(L.raw(DIRECTORY_INTRO, INTRO_SUBTITLE_FILE_NAME),
-				MediaFormat.createSubtitleFormat("text/vtt", L.currentLocale.getLanguage()));
-		} catch (IOException ignored) {
-			AliteLog.d("Subtitle","Localized subtitle file not found");
 		}
 	}
 
@@ -278,22 +268,16 @@ public class AliteIntro extends Activity implements OnClickListener {
 		videoView.setOnPreparedListener(mp -> {
 			AliteLog.d("VideoView", "VideoView is prepared. Playing video.");
 			mediaPlayer = mp;
-			nativeSubtitleIndex = -1;
-			localizedSubtitleIndex = -1;
+			subtitleIndex = -1;
 			MediaPlayer.TrackInfo[] tracks = mediaPlayer.getTrackInfo();
 			for (int i=0; i < tracks.length; i++) {
 				if (tracks[i].getTrackType() == MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_SUBTITLE) {
-					if (Locale.US.getLanguage().equals(tracks[i].getLanguage())) {
-						nativeSubtitleIndex = i;
-					} else if (L.currentLocale.getLanguage().equals(tracks[i].getLanguage())) {
-						localizedSubtitleIndex = i;
-					}
+					subtitleIndex = i;
 				}
 			}
-			if (nativeSubtitleIndex >= 0 || localizedSubtitleIndex >= 0) {
+			if (subtitleIndex >= 0) {
 				findViewById(R.id.subtitle).bringToFront();
-				// Turn off the last added subtitle
-				mediaPlayer.deselectTrack(localizedSubtitleIndex >= 0 ? localizedSubtitleIndex : nativeSubtitleIndex);
+				mediaPlayer.deselectTrack(subtitleIndex);
 				selectOrDeselectTrack(true);
 			}
 			new AsyncTask<Void, Void, Void>() {
@@ -311,11 +295,11 @@ public class AliteIntro extends Activity implements OnClickListener {
 	}
 
 	private void selectOrDeselectTrack(boolean select) {
-		if (currentSubtitle >= 0) {
+		if (subtitleOn) {
 			if (select) {
-				mediaPlayer.selectTrack(currentSubtitle == 0 ? nativeSubtitleIndex : localizedSubtitleIndex);
+				mediaPlayer.selectTrack(subtitleIndex);
 			} else {
-				mediaPlayer.deselectTrack(currentSubtitle == 0 ? nativeSubtitleIndex : localizedSubtitleIndex);
+				mediaPlayer.deselectTrack(subtitleIndex);
 			}
 		}
 	}
@@ -345,7 +329,7 @@ public class AliteIntro extends Activity implements OnClickListener {
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
-		AndroidUtil.setImmersion(videoView);
+		Settings.setImmersion(videoView);
 	}
 
 	@Override
@@ -357,14 +341,11 @@ public class AliteIntro extends Activity implements OnClickListener {
 			} catch (IllegalStateException ignored) { }
 			startAlite(videoView);
 		}
-		AliteLog.d("Change subtitle", "Current subtitle: " + currentSubtitle);
-		if (mediaPlayer != null && (nativeSubtitleIndex >= 0 || localizedSubtitleIndex >= 0)) {
+		if (mediaPlayer != null && subtitleIndex >= 0) {
 			selectOrDeselectTrack(false);
-			currentSubtitle = currentSubtitle < 0 && nativeSubtitleIndex >= 0 ? 0 :
-				currentSubtitle < 0 || currentSubtitle == 0 && localizedSubtitleIndex >= 0 ? 1 : -1;
+			subtitleOn = !subtitleOn;
 			selectOrDeselectTrack(true);
-			findViewById(R.id.subtitle).setBackgroundResource(currentSubtitle < 0 ? R.drawable.subtitle :
-				currentSubtitle == 0 ? R.drawable.subtitle_nat : R.drawable.subtitle_loc);
+			findViewById(R.id.subtitle).setBackgroundResource(subtitleOn ? R.drawable.subtitle_nat : R.drawable.subtitle);
 		}
 	}
 
@@ -420,8 +401,7 @@ public class AliteIntro extends Activity implements OnClickListener {
 	}
 
 	private void continuePlaying() {
-		addNativeSubtitle();
-		addLocalizedSubtitle();
+		addSubtitle();
 		videoView.seekTo(stopPosition);
 		videoView.start();
 	}

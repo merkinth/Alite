@@ -23,7 +23,7 @@ import java.io.IOException;
 
 import android.content.Intent;
 import android.graphics.*;
-import android.support.v4.content.res.ResourcesCompat;
+import androidx.core.content.res.ResourcesCompat;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
@@ -36,6 +36,7 @@ import de.phbouillon.android.games.alite.model.LegalStatus;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.Rating;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.PluginsScreen;
 import de.phbouillon.android.games.alite.screens.opengl.AboutScreen;
@@ -73,22 +74,23 @@ public class OptionsScreen extends AliteScreen {
 
 	Slider createFloatSlider(int row, float minValue, float maxValue, String text, float currentValue) {
 		Slider s = new Slider(50, rowSize * (row + 1), 1620, buttonSize, minValue, maxValue, currentValue, text, Assets.titleFont);
-		s.setScaleTexts(String.format(L.currentLocale,  "%2.1f", minValue),
-				        String.format(L.currentLocale,  "%2.1f", maxValue),
-				        String.format(L.currentLocale,  "%2.1f", (maxValue + minValue) / 2.0f));
+		s.setScaleTexts(StringUtil.format("%2.1f", minValue),
+			StringUtil.format("%2.1f", maxValue),
+			StringUtil.format("%2.1f", (maxValue + minValue) / 2.0f));
 		return s;
 	}
 
 	@Override
 	public void activate() {
-		L.loadLocaleList(game.getFileIO(), Settings.localeFileName);
+		L.getInstance().loadLocaleList(game.getFileIO(), Settings.localeFileName);
 		gameplayOptions = createSmallButton(0, true, L.string(R.string.title_gameplay_options));
 		displayOptions  = createSmallButton(0, false, L.string(R.string.title_display_options));
 		audioOptions    = createSmallButton(1, true, L.string(R.string.title_audio_options));
 		controlOptions  = createSmallButton(1, false, L.string(R.string.title_control_options));
 
-		languages = createSmallButton(2, true, L.string(R.string.options_main_language, L.currentLocale.getDisplayLanguage(L.currentLocale)));
-		addPixmapAfterText(languages, getCountryFlag(L.currentLocale.getCountry()));
+		languages = createSmallButton(2, true, L.string(R.string.options_main_language,
+			L.getInstance().getCurrentLocale().getDisplayLanguage(L.getInstance().getCurrentLocale())));
+		addPixmapAfterText(languages, getCountryFlag(L.getInstance().getCurrentLocale().getCountry()));
 
 		int count = new PluginModel(game.getFileIO(),
 			PluginsScreen.DIRECTORY_PLUGINS + PluginsScreen.PLUGINS_META_FILE).countNewAndUpgraded();
@@ -128,7 +130,7 @@ public class OptionsScreen extends AliteScreen {
 		paint.setTypeface(ResourcesCompat.getFont(game, R.font.robotor));
 		paint.setTextSize(Assets.regularFont.getSize());
 
-		String text = String.format(L.currentLocale, "%d", count);
+		String text = StringUtil.format("%d", count);
 
 		Graphics g = game.getGraphics();
 		int width = g.getTextWidth(text, Assets.regularFont);
@@ -208,8 +210,8 @@ public class OptionsScreen extends AliteScreen {
 		}
 		if (languages.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			Settings.localeFileName = L.getNextLocale();
-			L.setLocale(game, Settings.DEFAULT_LOCALE_FILE.equals(Settings.localeFileName) ? Settings.localeFileName :
+			Settings.localeFileName = L.getInstance().getNextLocale();
+			L.getInstance().setLocale(game, Settings.DEFAULT_LOCALE_FILE.equals(Settings.localeFileName) ? Settings.localeFileName :
 				game.getFileIO().getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
 			game.changeLocale();
 			Settings.save(game.getFileIO());
@@ -283,7 +285,7 @@ public class OptionsScreen extends AliteScreen {
 			try {
 				game.saveCommander("richard");
 			} catch (IOException e) {
-				e.printStackTrace();
+				AliteLog.e("[ALITE] SaveCommander", "Error while saving commander.", e);
 			}
 		}
 

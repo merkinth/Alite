@@ -100,7 +100,7 @@ public class ConstrictorScreen extends AliteScreen {
 				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), state);
 			} else if (state == 2) {
 				missionLine = new MissionLine(path + "06.mp3", L.string(R.string.mission_constrictor_intergalactic_jump));
-				mission.setTarget(game.getGenerator().getNextSeed(), -1, state);
+				mission.setTarget(game.getGenerator().getSeedOf(game.getGenerator().getCurrentGalaxy()+1), -1, state);
 			} else if (state == 3) {
 				missionLine = new MissionLine(path + "05.mp3", L.string(R.string.mission_constrictor_hyperspace_jump));
 				targetSystem = mission.findRandomSystemInRange(75, 120);

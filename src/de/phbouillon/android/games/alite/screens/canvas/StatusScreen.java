@@ -195,7 +195,7 @@ public class StatusScreen extends AliteScreen {
 		diffInSeconds -= diffInHours * 3600;
 		int diffInMinutes = (int) (diffInSeconds / 60);
 		diffInSeconds -= diffInMinutes * 60;
-		return String.format(L.currentLocale, "%02d:%02d:%02d:%02d", diffInDays, diffInHours, diffInMinutes, diffInSeconds);
+		return StringUtil.format("%02d:%02d:%02d:%02d", diffInDays, diffInHours, diffInMinutes, diffInSeconds);
 	}
 
 	private void drawGameTime(final Graphics g) {

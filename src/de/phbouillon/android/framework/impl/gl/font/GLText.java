@@ -36,7 +36,7 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.opengl.GLES11;
 import android.opengl.GLUtils;
-import android.support.v4.content.res.ResourcesCompat;
+import androidx.core.content.res.ResourcesCompat;
 import de.phbouillon.android.framework.MemUtil;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;

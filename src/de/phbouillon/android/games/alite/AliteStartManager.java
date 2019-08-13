@@ -59,7 +59,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		@Override
 		public void execute(float deltaTime) {
 			setContentView(R.layout.activity_start_manager);
-			((TextView) findViewById(R.id.downloadTextView)).setText(String.format(L.string(R.string.obb_download_error),
+			((TextView) findViewById(R.id.downloadTextView)).setText(StringUtil.format(L.string(R.string.obb_download_error),
 				AliteConfig.GAME_NAME, AliteConfig.ALITE_WEBSITE));
 		}
 	}
@@ -144,7 +144,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		});
 		AliteLog.d("Alite Start Manager", "Alite Start Manager has been created.");
 		Settings.load(fileIO);
-		L.setLocale(this, fileIO.getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
+		L.getInstance().setLocale(this, fileIO.getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
 
 		if (AliteConfig.HAS_EXTENSION_APK) {
 			checkDownload();
@@ -264,7 +264,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		setStatus(L.string(pluginUpdateCheck ? R.string.notification_download_working :
 			Helpers.getDownloaderStringResourceIDFromState(newState)));
 		((TextView) findViewById(R.id.downloadProgressPercentTextView)).setText(
-			String.format(L.currentLocale, "%d%%", 100));
+			StringUtil.format("%d%%", 100));
 		((ProgressBar) findViewById(R.id.downloadProgressBar)).setProgress(100);
 		((TextView) findViewById(R.id.downloadTextView)).setText(L.string(pluginUpdateCheck ?
 			R.string.notification_plugin_checking : R.string.notification_download_complete));
@@ -277,7 +277,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		int progressInPercent = (int) (progress.mOverallProgress / (float) progress.mOverallTotal * 100.0f);
 
 		((TextView) findViewById(R.id.downloadProgressPercentTextView)).setText(
-			String.format(L.currentLocale, "%d%%", progressInPercent));
+			StringUtil.format("%d%%", progressInPercent));
 		((ProgressBar) findViewById(R.id.downloadProgressBar)).setProgress(progressInPercent);
 
 		((TextView) findViewById(R.id.downloadTextView)).setText(L.string(R.string.notification_downloading_info,

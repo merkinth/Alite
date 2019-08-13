@@ -45,7 +45,7 @@ public class Toc {
 			root.normalize();
 			getEntriesFromParent(root, toc.invisibleRoot);
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			e.printStackTrace();
+			AliteLog.e("Reading table of contents", "Error during reading table of contents", e);
 		}
 
 		return toc;

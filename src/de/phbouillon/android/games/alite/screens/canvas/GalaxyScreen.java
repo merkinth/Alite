@@ -131,7 +131,7 @@ public class GalaxyScreen extends AliteScreen {
 
 	private String capitalize(String t) {
 		return t == null || t.length() < 1 ? "" : t.length() < 2 ? t :
-			Character.toUpperCase(t.charAt(0)) + t.substring(1).toLowerCase(L.currentLocale);
+			Character.toUpperCase(t.charAt(0)) + t.substring(1).toLowerCase(L.getInstance().getCurrentLocale());
 	}
 
 	private void findSystem(String text) {

@@ -22,6 +22,7 @@ import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 public class Slider {
 	private static final int SLIDER_SIZE = 40;
@@ -112,7 +113,7 @@ public class Slider {
 		for (int x: tickX) {
 			g.drawLine(x, middle - scaleHeight - 3, x, middle + scaleHeight + 3, tickColor);
 		}
-		g.drawText(text + ": " + String.format(L.currentLocale, "%3.2f", currentValue),
+		g.drawText(text + ": " + StringUtil.format("%3.2f", currentValue),
 			xCoord + (width >> 1) - (g.getTextWidth(text, font) >> 1), middle - 20, textColor, font);
 		if (minText != null) {
 			int x = tickX[0] - (g.getTextWidth(minText, Assets.regularFont) >> 1);

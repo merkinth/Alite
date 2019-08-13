@@ -138,10 +138,10 @@ public class LibraryScreen extends AliteScreen {
 		for (TocEntryData entry : entries) {
 			LibraryPage libPage = entry.entry.getLinkedPage();
 			if (libPage != null) {
-				String[] highlights = currentFilter.toLowerCase(L.currentLocale).split(" ");
+				String[] highlights = currentFilter.toLowerCase(L.getInstance().getCurrentLocale()).split(" ");
 				String paragraph = libPage.getParagraphs();
 				if (paragraph != null) {
-					paragraph = paragraph.toLowerCase(L.currentLocale);
+					paragraph = paragraph.toLowerCase(L.getInstance().getCurrentLocale());
 					for (String h : highlights) {
 						if (paragraph.contains(h)) {
 							filteredEntries.add(entry);
