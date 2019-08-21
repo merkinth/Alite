@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Transporter</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_transporter"/>
 	<p>The Lakon Spaceways MC15 QuikTransport Shuttle is the most
@@ -18,7 +17,5 @@
     </Text>
     <BackgroundImage name="transporter"/>
   </Content>
-  <Next>gui_viper</Next>
-  <Previous>gui_thargon</Previous>
-</Page>
+    </Page>
 

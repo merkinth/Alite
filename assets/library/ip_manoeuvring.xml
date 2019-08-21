@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Manoeuvring</Header>
-  <Content>
+    <Content>
     <Text>
       <p>The Cobra tradeship is fast, and has a very tight turning
       circle (though less tight at full speed); it is an ideal
@@ -24,7 +23,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>ip_danger</Next>
-  <Previous>interplanet</Previous>
-</Page>
+    </Page>
 

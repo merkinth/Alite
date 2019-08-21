@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Signs of Danger</Header>
-  <Content>
+    <Content>
     <Text>
       <p>If you cannot make an interspace quick jump (torus drive) towards
       the planet, there is a ship in the vicinity. It could be dangerous.</p>
@@ -22,7 +21,5 @@
       glands surgically removed.</p>
     </Text>
   </Content>
-  <Next>ip_enemies</Next>
-  <Previous>ip_manoeuvring</Previous>
-</Page>
+    </Page>
 

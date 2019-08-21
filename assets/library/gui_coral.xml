@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Coral</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_coral"/>
 	<p>Data missing</p>
@@ -20,7 +19,5 @@
     </Text>
     <BackgroundImage name="coral"/>
   </Content>
-  <Next>gui_cottonmouth</Next>
-  <Previous>gui_cobraiii</Previous>
-</Page>
+    </Page>
 

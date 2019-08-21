@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Free Space Cargo</Header>
-  <Content>
+    <Content>
     <Text>
         <p>Trade ships are often destroyed (by natural catastrophe or enemy
         action) and their cargo left ungathered. Using a fuel scoop such
@@ -28,7 +27,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>trade_a_illegal</Next>
-  <Previous>trade_a_asteroid</Previous>
-</Page>
+    </Page>
 

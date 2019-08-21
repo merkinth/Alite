@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Thargon</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_thargon"/>
 	<p>Data missing</p>
@@ -19,7 +18,5 @@
     </Text>
     <BackgroundImage name="thargon"/>
   </Content>
-  <Next>gui_transporter</Next>
-  <Previous>gui_thargoid</Previous>
-</Page>
+    </Page>
 

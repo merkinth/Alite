@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +30,8 @@ import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.DiskScreen;
-import de.phbouillon.android.games.alite.screens.canvas.QuitScreen;
+import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
-import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 
 public class NavigationBar {
 	private int position;
@@ -250,47 +248,14 @@ public class NavigationBar {
 			AliteLog.e("NavigationBar", "Index out of bounds: " + index);
 			return null;
 		}
-		if ((index == activeIndex || pendingIndex != -1) && index != Alite.NAVIGATION_BAR_DISK) {
+		if ((index == activeIndex || pendingIndex != -1) &&
+				(index != Alite.NAVIGATION_BAR_DISK || game.getCurrentScreen() instanceof DiskScreen) &&
+				(index != Alite.NAVIGATION_BAR_OPTIONS || game.getCurrentScreen() instanceof OptionsScreen)) {
 			// Nothing to do...
 			return null;
 		}
-		if (index == Alite.NAVIGATION_BAR_DISK && game.getCurrentScreen() instanceof DiskScreen) {
-			// Nothing to do... Otherwise, if index is DiskScreen and
-			// the current screen is _not_ instance of DiskScreen, we are in
-			// a sub menu of the disk screen and want to return to the
-			// disk screen. This feels like a hack. To much explanation necessary... :(
-			return null;
-		}
-		NavigationEntry entry = targets.get(index);
-		if (entry.navigationTarget != null) {
-			SoundManager.play(Assets.click);
-			try {
-				if (index == Alite.NAVIGATION_BAR_PLANET &&
-						game.getPlayer().getCurrentSystem() == null && game.getPlayer().getHyperspaceSystem() == null) {
-					SoundManager.play(Assets.error);
-				}
-				Screen newScreen = (Screen) Class.forName(getClass().getPackage().getName() + ".canvas." + entry.navigationTarget).
-					getConstructor(Alite.class).newInstance(game);
-				pendingIndex = index;
-				return newScreen;
-			} catch (NoSuchMethodException | IllegalArgumentException | IllegalAccessException |
-				InvocationTargetException | ClassNotFoundException | InstantiationException e) {
-				AliteLog.e("Navigation bar", "Screen cannot be opened", e);
-			}
-			return null;
-		}
 
-		if (L.string(R.string.navbar_launch).equals(entry.title)) {
-			SoundManager.play(Assets.click);
-			try {
-				AliteLog.d("[ALITE]", "Performing autosave. [Launch]");
-				game.autoSave();
-			} catch (IOException e) {
-				AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
-			}
-			InGameManager.safeZoneViolated = false;
-			return new FlightScreen(game, true);
-		}
+		NavigationEntry entry = targets.get(index);
 
 		if (L.string(R.string.navbar_front).equals(entry.title)) {
 			SoundManager.play(Assets.click);
@@ -299,9 +264,21 @@ public class NavigationBar {
 			return null;
 		}
 
-		if (L.string(R.string.navbar_quit).equals(entry.title)) {
+		if (entry.navigationTarget != null) {
 			SoundManager.play(Assets.click);
-			return new QuitScreen(game);
+			try {
+				if (index == Alite.NAVIGATION_BAR_PLANET &&
+						game.getPlayer().getCurrentSystem() == null && game.getPlayer().getHyperspaceSystem() == null) {
+					SoundManager.play(Assets.error);
+				}
+				Screen newScreen = (Screen) Class.forName(getClass().getPackage().getName() + "." + entry.navigationTarget).
+					getConstructor(Alite.class).newInstance(game);
+				pendingIndex = index;
+				return newScreen;
+			} catch (NoSuchMethodException | IllegalArgumentException | IllegalAccessException |
+				InvocationTargetException | ClassNotFoundException | InstantiationException e) {
+				AliteLog.e("Navigation bar", "Screen cannot be opened", e);
+			}
 		}
 		return null;
 	}

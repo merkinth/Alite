@@ -61,7 +61,8 @@ public class DisplayOptionsScreen extends OptionsScreen {
 
 		animations      = createSmallButton(5, true, L.string(R.string.options_display_animations, L.string(Settings.animationsEnabled ? R.string.options_on : R.string.options_off)));
 		colorScheme     = createSmallButton(5, false, L.string(R.string.options_display_color_scheme, ColorScheme.getSchemeDisplayName(Settings.colorScheme)));
-		immersion       = createSmallButton(6, true, L.string(R.string.options_display_immersion, L.string(Settings.navButtonsVisible ? R.string.options_off : R.string.options_display_immersion_full)));
+		immersion       = createSmallButton(6, true, L.string(R.string.options_display_immersion,
+			L.string(Settings.navButtonsVisible ? R.string.options_display_immersion_off : R.string.options_display_immersion_full)));
 		back            = createSmallButton(6, false, L.string(R.string.options_back));
 	}
 
@@ -186,7 +187,8 @@ public class DisplayOptionsScreen extends OptionsScreen {
 			} else if (immersion.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.navButtonsVisible = !Settings.navButtonsVisible;
-				immersion.setText(L.string(R.string.options_display_immersion, L.string(Settings.navButtonsVisible ? R.string.options_off : R.string.options_display_immersion_full)));
+				immersion.setText(L.string(R.string.options_display_immersion,
+					L.string(Settings.navButtonsVisible ? R.string.options_display_immersion_off : R.string.options_display_immersion_full)));
 				Settings.save(game.getFileIO());
 			} else if (back.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);

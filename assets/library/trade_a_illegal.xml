@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Illegal Trading</Header>
-  <Content>
+    <Content>
     <Text>
         <p>Most systems will penalize either buying or selling
         of illegal trade items, notably firearms, narcotics
@@ -12,7 +11,5 @@
         their station.</p>
     </Text>
   </Content>
-  <Next>politics</Next>
-  <Previous>trade_a_cargo</Previous>
-</Page>
+    </Page>
 

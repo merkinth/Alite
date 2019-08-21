@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Leaving The Space Station</Header>
-  <Content>
+    <Content>
     <Text>
     	<p>On coding for Station Depart, by selecting [ip]Launch[/pi]
     	from the command console, the pilot is advised to accept a 10-second
@@ -16,7 +15,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>nav_basic_manoeuvres</Next>
-  <Previous>nav_coriolis</Previous>
-</Page>
+    </Page>
 

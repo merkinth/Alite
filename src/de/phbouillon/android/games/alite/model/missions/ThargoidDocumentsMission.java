@@ -39,39 +39,16 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 
 	public static final int ID = 2;
 
-	private char[] galaxySeed;
-	private int targetIndex;
-	private int state;
-
 	private TimedEvent conditionRedEvent;
 
 	public ThargoidDocumentsMission(Alite alite) {
 		super(alite, ID);
 	}
 
-	public int getState() {
-		return state;
-	}
-
 	@Override
-	protected boolean checkStart() {
-		Player player = alite.getPlayer();
-		return !started &&
-			   !player.getActiveMissions().contains(this) &&
-			   !player.getCompletedMissions().contains(this) &&
-				player.getCompletedMissions().contains(MissionManager.getInstance().get(ConstrictorMission.ID)) &&
-				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 &&
-				player.getCondition() == Condition.DOCKED;
-	}
-
-	public void setTarget(char[] galaxySeed, int target, int state) {
-		this.galaxySeed = new char[3];
-		for (int i = 0; i < 3; i++) {
-			this.galaxySeed[i] = galaxySeed[i];
-		}
-		this.targetIndex = target;
-		this.state = state;
-		resetTargetName();
+	protected boolean checkStart(Player player) {
+		return player.getCompletedMissions().contains(MissionManager.getInstance().get(ConstrictorMission.ID)) &&
+			player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64;
 	}
 
 	@Override
@@ -91,50 +68,11 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 	}
 
 	@Override
-	public void onMissionAccept() {
-	}
-
-	@Override
-	public void onMissionDecline() {
-	}
-
-	@Override
 	public void onMissionComplete() {
 		active = false;
 		alite.getCobra().removeSpecialCargo(TradeGoodStore.GOOD_THARGOID_DOCUMENTS);
 		alite.getCobra().removeEquipment(EquipmentStore.extraEnergyUnit);
 		alite.getCobra().addEquipment(EquipmentStore.navalEnergyUnit);
-	}
-
-	@Override
-	public void onMissionUpdate() {
-	}
-
-	@Override
-	public void load(DataInputStream dis) throws IOException {
-		galaxySeed = new char[3];
-		galaxySeed[0] = dis.readChar();
-		galaxySeed[1] = dis.readChar();
-		galaxySeed[2] = dis.readChar();
-		targetIndex = dis.readInt();
-		state = dis.readInt();
-		resetTargetName();
-		active = true;
-		started = true;
-	}
-
-	@Override
-	public byte[] save() throws IOException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(16);
-		DataOutputStream dos = new DataOutputStream(bos);
-		dos.writeChar(galaxySeed[0]);
-		dos.writeChar(galaxySeed[1]);
-		dos.writeChar(galaxySeed[2]);
-		dos.writeInt(targetIndex);
-		dos.writeInt(state);
-		dos.close();
-		bos.close();
-		return bos.toByteArray();
 	}
 
 	@Override
@@ -147,7 +85,7 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 		if (alite.getPlayer().getCondition() != Condition.DOCKED || state < 1 || !started || !active) {
 			return null;
 		}
-		if (state == 1 && positionMatchesTarget(galaxySeed, targetIndex)) {
+		if (state == 1 && positionMatchesTarget()) {
 			return new ThargoidDocumentsScreen(alite, 2);
 		}
 		return null;
@@ -193,6 +131,6 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 
 	@Override
 	public String getObjective() {
-		return L.string(R.string.mission_thargoid_documents_obj, getTargetName(targetIndex, galaxySeed));
+		return L.string(R.string.mission_thargoid_documents_obj, getTargetName());
 	}
 }

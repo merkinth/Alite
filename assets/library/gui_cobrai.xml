@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Cobra Mk I</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_cobramki"/>
 	<p>Combat-trader craft favoured latterly by pirates, the Mark I
@@ -26,7 +25,5 @@
     </Text>
     <BackgroundImage name="cobramki"/>
   </Content>
-  <Next>gui_cobraiii</Next>
-  <Previous>gui_bushmaster</Previous>
-</Page>
+    </Page>
 

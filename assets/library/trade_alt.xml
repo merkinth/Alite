@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Alternatives to Trading</Header>
-  <Content>
+    <Content>
     <Text>
         <p>Since the Cobra craft is equipped as a fighter as well as a
         trader, with in-built capacity for strengthening its armaments,
@@ -9,7 +8,5 @@
         profitable, but which are excessively dangerous.</p>
     </Text>
   </Content>
-  <Next>trade_a_bounty</Next>
-  <Previous>trade_advice</Previous>
-</Page>
+    </Page>
 

@@ -67,10 +67,7 @@ public class HexNumberPadScreen extends AliteScreen {
 		dos.writeInt(x);
 		dos.writeInt(y);
 		dos.writeInt(valueIndex);
-		dos.writeInt(currentValueString.length());
-		if (!currentValueString.isEmpty()) {
-			dos.writeChars(currentValueString);
-		}
+		ScreenBuilder.writeString(dos, currentValueString);
 		hackerScreen.saveScreenState(dos);
 	}
 
@@ -79,16 +76,11 @@ public class HexNumberPadScreen extends AliteScreen {
 			int xPos = dis.readInt();
 			int yPos = dis.readInt();
 			int valueIndex = dis.readInt();
-			int len = dis.readInt();
-			String currentValue = "";
-			for (int i = 0; i < len; i++) {
-				currentValue += dis.readChar();
-			}
 			HackerScreen hackerScreen = HackerScreen.readScreen(alite, dis);
 			hackerScreen.loadAssets();
 			hackerScreen.activate();
 			HexNumberPadScreen hnps = new HexNumberPadScreen(hackerScreen, alite, xPos, yPos, valueIndex);
-			hnps.currentValueString = currentValue;
+			hnps.currentValueString = ScreenBuilder.readEmptyString(dis);
 			alite.setScreen(hnps);
 		} catch (IOException e) {
 			AliteLog.e("Hex Number Pad Screen Initialize", "Error in initializer.", e);

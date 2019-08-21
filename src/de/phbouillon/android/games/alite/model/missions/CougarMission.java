@@ -18,11 +18,6 @@ package de.phbouillon.android.games.alite.model.missions;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -42,18 +37,11 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Coug
 public class CougarMission extends Mission {
 	public static final int ID = 4;
 
-	private char[] galaxySeed;
-	private int targetIndex;
-	private int state;
 	private final Vector3f tempVector = new Vector3f(0, 0, 0);
 	private boolean cougarCreated = false;
 
 	public CougarMission(Alite alite) {
 		super(alite, ID);
-	}
-
-	public int getState() {
-		return state;
 	}
 
 	class CougarCloakingUpdater implements IMethodHook {
@@ -84,21 +72,9 @@ public class CougarMission extends Mission {
 	}
 
 	@Override
-	protected boolean checkStart() {
-		Player player = alite.getPlayer();
-		return !started &&
-			   !player.getActiveMissions().contains(this) &&
-			   !player.getCompletedMissions().contains(this) &&
-			    player.getCompletedMissions().contains(MissionManager.getInstance().get(SupernovaMission.ID)) &&
-				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 &&
-				player.getCondition() == Condition.DOCKED;
-	}
-
-	public void setTarget(char[] galaxySeed, int target, int state) {
-		this.galaxySeed = new char[3];
-		System.arraycopy(galaxySeed, 0, this.galaxySeed, 0, 3);
-		this.targetIndex = target;
-		this.state = state;
+	protected boolean checkStart(Player player) {
+		return player.getCompletedMissions().contains(MissionManager.getInstance().get(SupernovaMission.ID)) &&
+			player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64;
 	}
 
 	@Override
@@ -109,46 +85,8 @@ public class CougarMission extends Mission {
 	}
 
 	@Override
-	public void onMissionAccept() {
-	}
-
-	@Override
-	public void onMissionDecline() {
-	}
-
-	@Override
 	public void onMissionComplete() {
 		active = false;
-	}
-
-	@Override
-	public void onMissionUpdate() {
-	}
-
-	@Override
-	public void load(DataInputStream dis) throws IOException {
-		galaxySeed = new char[3];
-		galaxySeed[0] = dis.readChar();
-		galaxySeed[1] = dis.readChar();
-		galaxySeed[2] = dis.readChar();
-		targetIndex = dis.readInt();
-		state = dis.readInt();
-		active = true;
-		started = true;
-	}
-
-	@Override
-	public byte[] save() throws IOException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(16);
-		DataOutputStream dos = new DataOutputStream(bos);
-		dos.writeChar(galaxySeed[0]);
-		dos.writeChar(galaxySeed[1]);
-		dos.writeChar(galaxySeed[2]);
-		dos.writeInt(targetIndex);
-		dos.writeInt(state);
-		dos.close();
-		bos.close();
-		return bos.toByteArray();
 	}
 
 	@Override
@@ -199,7 +137,7 @@ public class CougarMission extends Mission {
 
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
-		boolean result = !positionMatchesTarget(galaxySeed, targetIndex);
+		boolean result = !positionMatchesTarget();
 		if (state != 1 || !result || cougarCreated) {
 			return null;
 		}

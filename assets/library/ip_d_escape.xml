@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Escape capsule</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="escape_capsule"/>
 	<p>An escape capsule can be fitted in place of your cabin at any
@@ -35,7 +34,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>ip_noncombat</Next>
-  <Previous>ip_d_ecm</Previous>
-</Page>
+    </Page>
 

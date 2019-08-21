@@ -171,7 +171,6 @@ public class ViewingTransformationHelper implements Serializable {
 			case 2: applyRearViewDirection(viewMatrix);  break;
 			case 3: applyLeftViewDirection(viewMatrix);  break;
 		}
-		GLES11.glLoadMatrixf(viewMatrix, 0);
 	}
 
 	private final void sortObjects(final List <? extends AliteObject> objects, final float [] viewMatrix, final float [] tempMatrix, boolean witchSpace, SpaceObject ship) {

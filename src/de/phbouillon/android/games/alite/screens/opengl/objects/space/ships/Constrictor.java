@@ -152,7 +152,7 @@ public class Constrictor extends SpaceObject {
 
 				@Override
 				public void execute(float deltaTime) {
-					((ConstrictorMission) MissionManager.getInstance().get(ConstrictorMission.ID)).setState(7);
+					MissionManager.getInstance().get(ConstrictorMission.ID).setState(7);
 					MissionManager.getInstance().get(ConstrictorMission.ID).resetTargetName();
 				}
 

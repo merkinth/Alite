@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Bounty Hunters</Header>
-  <Content>
+    <Content>
     <Text>
       <p>Unless you have achieved <b>FUGITIVE</b> status, and
       especially if you are highly ranked as a combateer as well
@@ -27,7 +26,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>ip_e_pirates</Next>
-  <Previous>ip_enemies</Previous>
-</Page>
+    </Page>
 

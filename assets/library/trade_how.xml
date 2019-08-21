@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>How to trade</Header>
-  <Content>
+    <Content>
     <Text>
         <p>The [p]Buy Screen[/p] activates a list of basic trade items at
         current market prices.</p>
@@ -42,7 +41,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>trade_advice</Next>
-  <Previous>trading</Previous>
-</Page>
+    </Page>
 

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Thargoid Invasion Ships</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_thargoid"/>
 	<p>Though most of the Thargoid Space Fleet is currently engaged by
@@ -29,7 +28,5 @@
     </Text>
     <BackgroundImage name="thargoid_gui"/>
   </Content>
-  <Next>gui_thargon</Next>
-  <Previous>gui_sidewinder</Previous>
-</Page>
+    </Page>
 

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Generation Ships</Header>
-  <Content>
+    <Content>
     <Text>
       <p>Before the development of the WS Thru-Space drive, in
       all its various forms, interstellar travel occurred in large,
@@ -13,7 +12,5 @@
       interference with such a vessel is marooning.</p>
     </Text>
   </Content>
-  <Next>ip_o_dredgers</Next>
-  <Previous>ip_o_hermits</Previous>
-</Page>
+    </Page>
 

@@ -92,6 +92,7 @@ public class Settings {
     public static boolean navButtonsVisible = true;
 	public static String localeFileName = DEFAULT_LOCALE_FILE;
 	public static int extensionUpdateMode = PluginManager.UPDATE_MODE_AUTO_UPDATE_OVER_WIFI_ONLY;
+	public static int maxGalaxies = 8;
 
 	private Settings() {
 	}
@@ -149,6 +150,7 @@ public class Settings {
 			restoredCommanderCount = Integer.parseInt(in.readLine());
 			navButtonsVisible = Boolean.parseBoolean(in.readLine());
 			extensionUpdateMode = Integer.parseInt(in.readLine());
+			maxGalaxies = Integer.parseInt(in.readLine());
 		} catch (IOException | NumberFormatException ignored) {
 			dockingComputerSpeed = fastDC ? 2 : 0;
 		}
@@ -172,7 +174,6 @@ public class Settings {
 			View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
 			View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
 			View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-			View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
 			View.SYSTEM_UI_FLAG_FULLSCREEN |
 			View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 	}
@@ -230,6 +231,7 @@ public class Settings {
 			out.write(restoredCommanderCount + "\n");
 			out.write(navButtonsVisible + "\n");
 			out.write(extensionUpdateMode + "\n");
+			out.write(maxGalaxies + "\n");
 		} catch (IOException ignored) { }
 	}
 }

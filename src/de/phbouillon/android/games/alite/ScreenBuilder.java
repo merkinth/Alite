@@ -20,6 +20,7 @@ package de.phbouillon.android.games.alite;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 import de.phbouillon.android.framework.Screen;
@@ -153,6 +154,30 @@ public class ScreenBuilder {
 					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_HACKER);
 				}
 		}
+	}
+
+	public static void writeString(DataOutputStream dos, String str) throws IOException {
+		dos.writeByte(str == null ? 0 : str.length());
+		if (str != null) {
+			dos.writeChars(str);
+		}
+	}
+
+	public static String readString(DataInputStream dis) throws IOException {
+		int length = dis.readByte();
+		if (length == 0) {
+			return null;
+		}
+		String result = "";
+		for (int i=0; i < length; i++) {
+			result += dis.readChar();
+		}
+		return result;
+	}
+
+	public static String readEmptyString(DataInputStream dis) throws IOException {
+		String result = readString(dis);
+		return result == null ? "" : result;
 	}
 
 }

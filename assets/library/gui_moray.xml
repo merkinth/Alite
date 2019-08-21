@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Moray Star Boat</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_moray"/>
 	<p>Developed initially as a submarine flying-boat, Marine Trench Co.
@@ -26,7 +25,5 @@
     </Text>
     <BackgroundImage name="moray"/>
   </Content>
-  <Next>gui_mussurana</Next>
-  <Previous>gui_mamba</Previous>
-</Page>
+    </Page>
 

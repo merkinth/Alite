@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Sidewinder Scout Ship</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_sidewinder"/>
 	<p>Designed by Faulcon de Lacy and built in the Onrira Orbital
@@ -29,7 +28,5 @@
     </Text>
     <BackgroundImage name="sidewinder"/>
   </Content>
-  <Next>gui_thargoid</Next>
-  <Previous>gui_rattlesnake</Previous>
-</Page>
+    </Page>
 

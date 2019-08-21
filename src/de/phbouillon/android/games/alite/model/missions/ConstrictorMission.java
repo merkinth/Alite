@@ -18,11 +18,6 @@ package de.phbouillon.android.games.alite.model.missions;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
@@ -37,36 +32,16 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cons
 public class ConstrictorMission extends Mission {
 	public static final int ID = 1;
 
-	private char[] galaxySeed;
-	private int targetIndex;
-	private int state;
 	private boolean constrictorCreated = false;
 
 	public ConstrictorMission(Alite alite) {
 		super(alite, ID);
 	}
 
-	public int getState() {
-		return state;
-	}
-
 	@Override
-	protected boolean checkStart() {
-		Player player = alite.getPlayer();
-		return !started &&
-			   !player.getActiveMissions().contains(this) &&
-			   !player.getCompletedMissions().contains(this) &&
-				player.getIntergalacticJumpCounter() > 0 &&
-				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 &&
-				player.getCondition() == Condition.DOCKED;
-	}
-
-	public void setTarget(char[] galaxySeed, int target, int state) {
-		this.galaxySeed = new char[3];
-		System.arraycopy(galaxySeed, 0, this.galaxySeed, 0, 3);
-		this.targetIndex = target;
-		this.state = state;
-		resetTargetName();
+	protected boolean checkStart(Player player) {
+		return player.getIntergalacticJumpCounter() > 0 &&
+			player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64;
 	}
 
 	@Override
@@ -83,48 +58,9 @@ public class ConstrictorMission extends Mission {
 	}
 
 	@Override
-	public void onMissionAccept() {
-	}
-
-	@Override
-	public void onMissionDecline() {
-	}
-
-	@Override
 	public void onMissionComplete() {
 		active = false;
 		alite.getPlayer().setCash(alite.getPlayer().getCash() + 100000);
-	}
-
-	@Override
-	public void onMissionUpdate() {
-	}
-
-	@Override
-	public void load(DataInputStream dis) throws IOException {
-		galaxySeed = new char[3];
-		galaxySeed[0] = dis.readChar();
-		galaxySeed[1] = dis.readChar();
-		galaxySeed[2] = dis.readChar();
-		targetIndex = dis.readInt();
-		state = dis.readInt();
-		resetTargetName();
-		active = true;
-		started = true;
-	}
-
-	@Override
-	public byte[] save() throws IOException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(16);
-		DataOutputStream dos = new DataOutputStream(bos);
-		dos.writeChar(galaxySeed[0]);
-		dos.writeChar(galaxySeed[1]);
-		dos.writeChar(galaxySeed[2]);
-		dos.writeInt(targetIndex);
-		dos.writeInt(state);
-		dos.close();
-		bos.close();
-		return bos.toByteArray();
 	}
 
 	@Override
@@ -137,19 +73,19 @@ public class ConstrictorMission extends Mission {
 		if (alite.getPlayer().getCondition() != Condition.DOCKED || state < 1 || !started || !active) {
 			return null;
 		}
-		if (state == 1 && positionMatchesTarget(galaxySeed, targetIndex)) {
+		if (state == 1 && positionMatchesTarget()) {
 			return new ConstrictorScreen(alite, 2);
 		}
-		if (state >= 2 && state <= 5 && positionMatchesTarget(galaxySeed, targetIndex)) {
+		if (state >= 2 && state <= 5 && positionMatchesTarget()) {
 			return new ConstrictorScreen(alite, 3);
 		}
-		if (state == 6 && positionMatchesTarget(galaxySeed, targetIndex)) {
+		if (state == 6 && positionMatchesTarget()) {
 			// Player arrived at target, but _did not destroy_ the Constrictor...
 			// Try again...
 			state--;
 			return new ConstrictorScreen(alite, 3);
 		}
-		if (state == 7 && positionMatchesTarget(galaxySeed, targetIndex)) {
+		if (state == 7 && positionMatchesTarget()) {
 			return new ConstrictorScreen(alite, 4);
 		}
 		return null;
@@ -157,7 +93,7 @@ public class ConstrictorMission extends Mission {
 
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
-		boolean result = positionMatchesTarget(galaxySeed, targetIndex);
+		boolean result = positionMatchesTarget();
 		if (state != 6 || !result || constrictorCreated) {
 			return null;
 		}
@@ -195,12 +131,9 @@ public class ConstrictorMission extends Mission {
 			return L.string(R.string.mission_constrictor_obj_jump);
 		}
 		if (state >= 1 && state <= 6) {
-			return L.string(R.string.mission_constrictor_obj_fly, getTargetName(targetIndex, galaxySeed));
+			return L.string(R.string.mission_constrictor_obj_fly, getTargetName());
 		}
 		return "";
 	}
 
-	public void setState(int s) {
-		state = s;
-	}
 }

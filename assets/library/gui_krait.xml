@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Krait</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_krait"/>
 	<p>Small, reliable one-man fighter, common until the standardised
@@ -23,7 +22,5 @@
     </Text>
     <BackgroundImage name="krait_gui"/>
   </Content>
-  <Next>gui_lora</Next>
-  <Previous>gui_indigo</Previous>
-</Page>
+    </Page>
 

@@ -29,6 +29,7 @@ import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
+import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
@@ -70,8 +71,8 @@ public class TutBasicFlying extends TutorialScreen {
 		game.getCobra().clearEquipment();
 		game.getGenerator().buildGalaxy(1);
 		game.getGenerator().setCurrentGalaxy(1);
-		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(7)); // Lave
-		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(129)); // Zaonce
+		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
+		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
 		game.getPlayer().setLegalValue(0);
 		game.getCobra().setFuel(70);
 		Settings.resetButtonPosition();
@@ -573,8 +574,8 @@ public class TutBasicFlying extends TutorialScreen {
 		game.getCobra().clearEquipment();
 		game.getGenerator().buildGalaxy(1);
 		game.getGenerator().setCurrentGalaxy(1);
-		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(7)); // Lave
-		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(129)); // Zaonce
+		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
+		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
 		game.getCobra().setFuel(70);
 		game.getCobra().setMissiles(4);
 

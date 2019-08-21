@@ -3,7 +3,7 @@ package de.phbouillon.android.games.alite;
 public class AliteConfig {
 	public static final boolean HAS_EXTENSION_APK = true;
 	public static final int EXTENSION_FILE_VERSION = 2201;
-	static final long EXTENSION_FILE_LENGTH = 339846721L;
+	static final long EXTENSION_FILE_LENGTH = 338555457L;
 
 	public static final String GAME_NAME = "Alite 2020";
 	private static final String PRG_VERSION = "1.5.8";

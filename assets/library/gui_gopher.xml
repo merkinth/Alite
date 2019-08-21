@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Gopher</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_gopher"/>
 	<p>Data missing</p>
@@ -20,7 +19,5 @@
     </Text>
     <BackgroundImage name="gopher"/>
   </Content>
-  <Next>gui_harlequin</Next>
-  <Previous>gui_gecko</Previous>
-</Page>
+    </Page>
 

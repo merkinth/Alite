@@ -335,21 +335,21 @@ public class Alite extends AndroidGame {
 	private void createNavigationBar() {
 		// if navigation target is defined package root of screens is screens.canvas
 		navigationBar = new NavigationBar(this);
-		NAVIGATION_BAR_LAUNCH = navigationBar.add(L.string(R.string.navbar_launch), Assets.launchIcon, null);
-		NAVIGATION_BAR_STATUS = navigationBar.add(L.string(R.string.navbar_status), Assets.statusIcon, "StatusScreen");
-		NAVIGATION_BAR_BUY = navigationBar.add(L.string(R.string.navbar_buy), Assets.buyIcon, "BuyScreen");
-		NAVIGATION_BAR_INVENTORY = navigationBar.add(L.string(R.string.navbar_inventory), Assets.inventoryIcon, "InventoryScreen");
-		NAVIGATION_BAR_EQUIP = navigationBar.add(L.string(R.string.navbar_equip), Assets.equipIcon, "EquipmentScreen");
-		NAVIGATION_BAR_GALAXY = navigationBar.add(L.string(R.string.navbar_galaxy), Assets.galaxyIcon, "GalaxyScreen");
-		NAVIGATION_BAR_LOCAL = navigationBar.add(L.string(R.string.navbar_local), Assets.localIcon, "LocalScreen");
-		NAVIGATION_BAR_PLANET = navigationBar.add(L.string(R.string.navbar_planet), Assets.planetIcon, "PlanetScreen");
-		NAVIGATION_BAR_DISK = navigationBar.add(L.string(R.string.navbar_disk), Assets.diskIcon, "DiskScreen");
-		NAVIGATION_BAR_OPTIONS = navigationBar.add(L.string(R.string.navbar_options), Assets.optionsIcon, "options.OptionsScreen");
-		NAVIGATION_BAR_LIBRARY = navigationBar.add(L.string(R.string.navbar_library), Assets.libraryIcon, "LibraryScreen");
-		NAVIGATION_BAR_ACADEMY = navigationBar.add(L.string(R.string.navbar_academy), Assets.academyIcon, "tutorial.TutorialSelectionScreen");
-		NAVIGATION_BAR_HACKER = navigationBar.add(L.string(R.string.navbar_hacker), Assets.hackerIcon, "HackerScreen");
+		NAVIGATION_BAR_LAUNCH = navigationBar.add(L.string(R.string.navbar_launch), Assets.launchIcon, "opengl.ingame.FlightScreen");
+		NAVIGATION_BAR_STATUS = navigationBar.add(L.string(R.string.navbar_status), Assets.statusIcon, "canvas.StatusScreen");
+		NAVIGATION_BAR_BUY = navigationBar.add(L.string(R.string.navbar_buy), Assets.buyIcon, "canvas.BuyScreen");
+		NAVIGATION_BAR_INVENTORY = navigationBar.add(L.string(R.string.navbar_inventory), Assets.inventoryIcon, "canvas.InventoryScreen");
+		NAVIGATION_BAR_EQUIP = navigationBar.add(L.string(R.string.navbar_equip), Assets.equipIcon, "canvas.EquipmentScreen");
+		NAVIGATION_BAR_GALAXY = navigationBar.add(L.string(R.string.navbar_galaxy), Assets.galaxyIcon, "canvas.GalaxyScreen");
+		NAVIGATION_BAR_LOCAL = navigationBar.add(L.string(R.string.navbar_local), Assets.localIcon, "canvas.LocalScreen");
+		NAVIGATION_BAR_PLANET = navigationBar.add(L.string(R.string.navbar_planet), Assets.planetIcon, "canvas.PlanetScreen");
+		NAVIGATION_BAR_DISK = navigationBar.add(L.string(R.string.navbar_disk), Assets.diskIcon, "canvas.DiskScreen");
+		NAVIGATION_BAR_OPTIONS = navigationBar.add(L.string(R.string.navbar_options), Assets.optionsIcon, "canvas.options.OptionsScreen");
+		NAVIGATION_BAR_LIBRARY = navigationBar.add(L.string(R.string.navbar_library), Assets.libraryIcon, "canvas.LibraryScreen");
+		NAVIGATION_BAR_ACADEMY = navigationBar.add(L.string(R.string.navbar_academy), Assets.academyIcon, "canvas.tutorial.TutorialSelectionScreen");
+		NAVIGATION_BAR_HACKER = navigationBar.add(L.string(R.string.navbar_hacker), Assets.hackerIcon, "canvas.HackerScreen");
 		navigationBar.setVisible(NAVIGATION_BAR_HACKER, false);
-		NAVIGATION_BAR_QUIT = navigationBar.add(L.string(R.string.navbar_quit), Assets.quitIcon, null);
+		NAVIGATION_BAR_QUIT = navigationBar.add(L.string(R.string.navbar_quit), Assets.quitIcon, "canvas.QuitScreen");
 		navigationBar.setActiveIndex(NAVIGATION_BAR_OPTIONS);
 	}
 

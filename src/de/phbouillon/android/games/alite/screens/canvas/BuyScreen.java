@@ -36,7 +36,6 @@ import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.model.Unit;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class BuyScreen extends TradeScreen {
 	private static final int[] availColors = new int[] {Color.RED, 0xFFFF3E00, 0xFFFF7D00,
 		0xFFFFBD00, Color.YELLOW, 0xFFFFFF3B, 0xFFFFFF7D, 0xFFFFFFBF, Color.WHITE };
@@ -75,14 +74,7 @@ public class BuyScreen extends TradeScreen {
 	static BuyScreen readScreen(Alite alite, final DataInputStream dis) {
 		BuyScreen bs = new BuyScreen(alite);
 		try {
-			byte selectionLength = dis.readByte();
-			if (selectionLength > 0) {
-				bs.pendingSelection = "";
-				while (selectionLength > 0) {
-					bs.pendingSelection += dis.readChar();
-					selectionLength--;
-				}
-			}
+			bs.pendingSelection = ScreenBuilder.readString(dis);
 		} catch (IOException e) {
 			AliteLog.e("Buy Screen Initialize", "Error in initializer.", e);
 			return null;
@@ -101,10 +93,7 @@ public class BuyScreen extends TradeScreen {
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
-		dos.writeByte(selection == null ? 0 : selection.getName().length());
-		if (selection != null) {
-			dos.writeChars(selection.getName());
-		}
+		ScreenBuilder.writeString(dos, selection == null ? null : selection.getName());
 	}
 
 	@Override

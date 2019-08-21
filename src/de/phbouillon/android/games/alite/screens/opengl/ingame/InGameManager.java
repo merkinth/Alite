@@ -81,6 +81,7 @@ public class InGameManager implements Serializable {
 
 	public static boolean     OVERRIDE_SPEED = false;
 	public static boolean     playerInSafeZone = false;
+	boolean extendedSafeZone;
 	public static boolean     safeZoneViolated = false;
 
 	private transient AliteScreen       postDockingScreen = null;
@@ -583,16 +584,10 @@ public class InGameManager implements Serializable {
 			alite.getCobra().setAltitude(PlayerCobra.MAX_ALTITUDE * (distSq / EXT_SAFE_ZONE_RADIUS_SQ));
 		}
 		playerInSafeZone = witchSpace == null && distSq < SAFE_ZONE_RADIUS_SQ;
-		if (hud != null) {
-			hud.setSafeZone(playerInSafeZone);
-		}
-		boolean extendedSafeZone = witchSpace == null && distSq < EXT_SAFE_ZONE_RADIUS_SQ;
+		extendedSafeZone = witchSpace == null && distSq < EXT_SAFE_ZONE_RADIUS_SQ;
 		if (extendedSafeZone && spawnManager.isInTorus()) {
 			spawnManager.leaveTorus();
 			message.setText(L.string(R.string.msg_mass_locked));
-		}
-		if (hud != null) {
-			hud.setExtendedSafeZone(extendedSafeZone);
 		}
 	}
 
@@ -609,9 +604,6 @@ public class InGameManager implements Serializable {
 		helper.checkShipObjectCollision(allObjects);
 		laserManager.update(deltaTime, ship, allObjects);
 		Iterator <AliteObject> objectIterator = allObjects.iterator();
-		if (hud != null) {
-			buttons.update();
-		}
 		helper.checkProximity(allObjects);
 		if (dockingComputerAI != null && dockingComputerAI.isActive()) {
 			if (!dockingComputerAI.isOnFinalApproach()) {
@@ -978,15 +970,19 @@ public class InGameManager implements Serializable {
 
 		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_POSITION, lightPosition, 0);
 
+		calcViewTransformation(deltaTime);
+		GLES11.glLoadMatrixf(viewMatrix, 0);
+	}
+
+	private void calcViewTransformation(float deltaTime) {
 		if (!paused) {
 			ship.applyDeltaRotation((float) Math.toDegrees(deltaYawRollPitch.z * deltaTime),
-									(float) Math.toDegrees(deltaYawRollPitch.x * deltaTime),
-									(float) Math.toDegrees(deltaYawRollPitch.y * deltaTime));
+				(float) Math.toDegrees(deltaYawRollPitch.x * deltaTime),
+				(float) Math.toDegrees(deltaYawRollPitch.y * deltaTime));
 		}
 
 		ship.orthoNormalize();
 		Matrix.invertM(viewMatrix, 0, ship.getMatrix(), 0);
-		GLES11.glLoadMatrixf(viewMatrix, 0);
 	}
 
 	private void renderHud() {
@@ -1119,7 +1115,7 @@ public class InGameManager implements Serializable {
 
 		if (DEBUG_OBJECT_DRAW_ORDER) {
 			AliteLog.d("----Debugging Objects----", "--------Debugging Objects--------");
-			for (DepthBucket bucket: objects) {
+			for (DepthBucket bucket: sortedObjectsToDraw) {
 				if (bucket.near <= 0 || bucket.far <= 0) {
 					AliteLog.d("Bucket error", "[E] Bucket near: " + bucket.near + ", Bucket far: " + bucket.far);
 				} else {
@@ -1131,7 +1127,7 @@ public class InGameManager implements Serializable {
 			}
 			AliteLog.d("----Debugging Objects End----", "--------Debugging Objects End--------");
 		}
-		for (DepthBucket bucket: objects) {
+		for (DepthBucket bucket: sortedObjectsToDraw) {
 			if (bucket.near > 0 && bucket.far > 0) {
 				GLES11.glPushMatrix();
 				GLES11.glMatrixMode(GLES11.GL_PROJECTION);
@@ -1281,12 +1277,14 @@ public class InGameManager implements Serializable {
 			}
 			MathHelper.copyMatrix(tempMatrix[0], viewMatrix);
 			viewingTransformationHelper.applyViewDirection(viewDirection, viewMatrix);
+			GLES11.glLoadMatrixf(viewMatrix, 0);
 		}
 		MathHelper.copyMatrix(viewMatrix, tempMatrix[0]);
 
-		viewingTransformationHelper.sortObjects(objects, viewMatrix, tempMatrix[2], laserManager.activeLasers, sortedObjectsToDraw, witchSpace != null, ship);
+		viewingTransformationHelper.sortObjects(objects, viewMatrix, tempMatrix[2], laserManager.activeLasers,
+			sortedObjectsToDraw, witchSpace != null, ship);
 		try {
-			renderAllObjects(deltaTime, sortedObjectsToDraw);
+			renderAllObjects(deltaTime);
 		} catch (ConcurrentModificationException ignored) {
 			// This can happen if the game state is being paused while the current
 			// screen is being rendered. Ignoring it is a bit of a hack, but gets
@@ -1341,6 +1339,52 @@ public class InGameManager implements Serializable {
 		}
 	}
 
+	void calcAllObjects(final float deltaTime, final List<AliteObject> objects) {
+		if (destroyed) {
+			return;
+		}
+		if (laserManager == null) {
+			return;
+		}
+		calcViewTransformation(deltaTime);
+		viewingTransformationHelper.clearObjects(sortedObjectsToDraw);
+		hudIndex = 0;
+		planetWasSet = false;
+		if (viewDirection != PlayerCobra.DIR_FRONT) {
+			viewingTransformationHelper.applyViewDirection(viewDirection, viewMatrix);
+		}
+		MathHelper.copyMatrix(viewMatrix, tempMatrix[0]);
+
+		viewingTransformationHelper.sortObjects(objects, viewMatrix, tempMatrix[2], laserManager.activeLasers,
+			sortedObjectsToDraw, witchSpace != null, ship);
+		try {
+			for (DepthBucket bucket: sortedObjectsToDraw) {
+				for (AliteObject go: bucket.sortedObjects) {
+					if (go instanceof SpaceObject && ((SpaceObject) go).isCloaked()) {
+						continue;
+					}
+					if (!isPlayerAlive() && go instanceof SpaceObject && ((SpaceObject) go).getType() == ObjectType.SpaceStation) {
+						// If the player rams the space station, the station gets in the way of the game over sequence.
+						// So we don't draw it.
+						continue;
+					}
+					MathHelper.copyMatrix(tempMatrix[0], viewMatrix);
+					if (go instanceof Geometry) {
+						if (go instanceof Billboard) {
+							((Billboard) go).update(ship);
+						}
+						Matrix.multiplyMM(tempMatrix[2], 0, viewMatrix, 0, go.getMatrix(), 0);
+						((Geometry) go).setDisplayMatrix(tempMatrix[2]);
+					}
+				}
+			}
+		} catch (ConcurrentModificationException ignored) {
+			// This can happen if the game state is being paused while the current
+			// screen is being rendered. Ignoring it is a bit of a hack, but gets
+			// rid of the issue...
+		}
+	}
+
 	public void destroy() {
 		destroyed = true;
 		if (message != null) {
@@ -1390,12 +1434,8 @@ public class InGameManager implements Serializable {
 		return witchSpace != null && witchSpace.isHyperdriveMalfunction();
 	}
 
-	public boolean isInSafeZone() {
-		return hud != null && hud.isInSafeZone();
-	}
-
 	public boolean isInExtendedSafeZone() {
-		return hud != null && hud.isInExtendedSafeZone();
+		return extendedSafeZone;
 	}
 
 	int getNumberOfObjects(ObjectType type) {

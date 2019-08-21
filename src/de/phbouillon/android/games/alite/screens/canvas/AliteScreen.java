@@ -75,6 +75,7 @@ public abstract class AliteScreen extends Screen {
 
 	private static final int DIALOG_MODAL = 128;
 	private static final int DIALOG_VISIBLE = 256;
+	private static final int DIALOG_RENDERING = 512; // to avoid calling disposing dialog during rendering
 
 	protected static final int RESULT_NONE = 0;
 	protected static final int RESULT_YES = 1;
@@ -210,9 +211,10 @@ public abstract class AliteScreen extends Screen {
 	}
 
 	private void renderMessage() {
-		if (!isMessageDialogActive()) {
+		if (!isMessageDialogActive() || (dialogState & DIALOG_RENDERING) != 0) {
 			return;
 		}
+		dialogState |= DIALOG_RENDERING;
 		Rect r = getDialogRect();
 		int width = r.right - r.left + 1;
 		int height = r.bottom - r.top + 1;
@@ -240,6 +242,7 @@ public abstract class AliteScreen extends Screen {
 			}
 			ok.render(g);
 			dialogState|= DIALOG_VISIBLE;
+			dialogState &= ~DIALOG_RENDERING;
 			return;
 		}
 
@@ -269,6 +272,7 @@ public abstract class AliteScreen extends Screen {
 				r.top + 20, width - 2 * buttonSize - buttonGap - BORDER_GAP);
 		}
 
+		dialogState &= ~DIALOG_RENDERING;
 		dialogState|= DIALOG_VISIBLE;
 	}
 
@@ -379,6 +383,9 @@ public abstract class AliteScreen extends Screen {
 	}
 
 	private void dialogEventsProcessed(TouchEvent touch, int result) {
+		if ((dialogState & DIALOG_RENDERING) != 0) {
+			return;
+		}
 		message = null;
 		ok = null;
 		yes = null;

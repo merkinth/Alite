@@ -318,8 +318,9 @@ public class FileUtils {
 		cobra.reset();
 		player.setName(loadPlayerName(dis));
 		generator.buildGalaxy(readByte(dis));
-		char[] seed = new char[] {dis.readChar(), dis.readChar(), dis.readChar()};
-		generator.buildGalaxy(seed[0], seed[1], seed[2]);
+		dis.readChar(); // seed 0
+		dis.readChar(); // seed 1
+		dis.readChar(); // seed 2
 		player.setCurrentSystem(generator.getSystem(readByte(dis)));
 		player.setHyperspaceSystem(generator.getSystem(readByte(dis)));
 		if (player.getCurrentSystem() == null) {
@@ -349,7 +350,7 @@ public class FileUtils {
 		cobra.setRetroRocketsUseCount(dis.readInt());
 		int currentSystem = dis.readInt();
 		int hyperspaceSystem = dis.readInt();
-		if (generator.getCurrentGalaxyFromSeed() == 8 && player.getRating() == Rating.ELITE) {
+		if (generator.getCurrentGalaxy() == 8 && player.getRating() == Rating.ELITE) {
 			if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == 0 && currentSystem == 1) {
 				player.setCurrentSystem(SystemData.RAXXLA_SYSTEM);
 			}
@@ -471,8 +472,8 @@ public class FileUtils {
 			AliteLog.e("[ALITE] loadCommander", "Old version. Cmdr data lacks unpunished data for inventory", e);
 		}
 
-		AliteLog.d("[ALITE] loadCommander", String.format("Loaded Commander '%s', galaxyNumber: %d, seed: %04x %04x %04x",
-			player.getName(), generator.getCurrentGalaxy(), (int) generator.getCurrentSeed()[0], (int) generator.getCurrentSeed()[1], (int) generator.getCurrentSeed()[2]));
+		AliteLog.d("[ALITE] loadCommander", String.format("Loaded Commander '%s', galaxyNumber: %d",
+			player.getName(), generator.getCurrentGalaxy()));
 	}
 
 	private String loadPlayerName(DataInputStream dis) throws IOException {
@@ -562,10 +563,9 @@ public class FileUtils {
 		dos.writeByte(COMMANDER_FILE_FORMAT_VERSION);
 		writeString(dos, player.getName());
 		dos.writeByte(generator.getCurrentGalaxy());
-		char[] seed = generator.getCurrentSeed();
-		dos.writeChar(seed[0]);
-		dos.writeChar(seed[1]);
-		dos.writeChar(seed[2]);
+		dos.writeChar(0); // seed 0
+		dos.writeChar(0); // seed 1
+		dos.writeChar(0); // seed 2
 		int currentSystem = player.getCurrentSystem() == null ? 0 : player.getCurrentSystem().getIndex();
 		int hyperspaceSystem = player.getHyperspaceSystem() == null ? 0 : player.getHyperspaceSystem().getIndex();
 		dos.writeByte(currentSystem == 256 ? 0 : currentSystem);

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Mamba</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_mamba"/>
 	<p>Fighter which grew out of custom-built craft primarily designed
@@ -23,7 +22,5 @@
     </Text>
     <BackgroundImage name="mamba"/>
   </Content>
-  <Next>gui_moray</Next>
-  <Previous>gui_lyre</Previous>
-</Page>
+    </Page>
 

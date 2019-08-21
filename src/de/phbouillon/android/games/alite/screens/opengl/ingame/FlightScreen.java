@@ -103,6 +103,17 @@ public class FlightScreen extends GlScreen implements Serializable {
 	private Vector3f v1 = new Vector3f(0, 0, 0);
 	private Vector3f v2 = new Vector3f(0, 0, 0);
 
+	public FlightScreen(Alite game) {
+		this(game, true);
+		try {
+			AliteLog.d("[ALITE]", "Performing autosave. [Launch]");
+			game.autoSave();
+		} catch (IOException e) {
+			AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
+		}
+		InGameManager.safeZoneViolated = false;
+	}
+
 	public FlightScreen(Alite game, boolean fromStation) {
 		this.game = game;
 		AliteLog.e("Flight Screen Constructor", "FSC -- fromStation == " + fromStation);
@@ -338,7 +349,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 		if (fromStation) {
 			spaceStation.setIdentified();
 		} else {
-			if (game.getPlayer().getCurrentSystem() != null && game.getPlayer().getCurrentSystem().getIndex() == 256) {
+			if (game.getPlayer().getCurrentSystem() == SystemData.RAXXLA_SYSTEM) {
 				initializeGameOverParade();
 			}
 		}
@@ -547,6 +558,9 @@ public class FlightScreen extends GlScreen implements Serializable {
 			}
 			if (informationScreen != null) {
 				informationScreen.present(deltaTime);
+				if (inGame != null) {
+					inGame.calcAllObjects(deltaTime, allObjects);
+				}
 			} else {
 				if (inGame != null) {
 					inGame.render(deltaTime, allObjects);

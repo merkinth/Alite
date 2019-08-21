@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Python</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_python"/>
 	<p>One of the larger trading vessels manufactured in Inera Orbit
@@ -26,7 +25,5 @@
     </Text>
     <BackgroundImage name="python"/>
   </Content>
-  <Next>gui_rattlesnake</Next>
-  <Previous>gui_shuttle</Previous>
-</Page>
+    </Page>
 

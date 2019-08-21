@@ -762,6 +762,7 @@
 
     <string name="options_display_immersion">Immersion: %s</string>
     <string name="options_display_immersion_full">Full</string>
+    <string name="options_display_immersion_off">Off</string>
 
     <string name="options_gameplay_difficulty_level">Difficulty Level: %s</string>
     <string name="options_gameplay_difficulty_sedate">Sedate</string>

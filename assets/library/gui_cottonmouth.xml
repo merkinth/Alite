@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Cottonmouth</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_cottonmouth"/>
 	<p>Data missing</p>
@@ -20,7 +19,5 @@
     </Text>
     <BackgroundImage name="cottonmouth"/>
   </Content>
-  <Next>gui_dugite</Next>
-  <Previous>gui_coral</Previous>
-</Page>
+    </Page>
 

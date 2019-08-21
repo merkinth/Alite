@@ -43,8 +43,6 @@ import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
 public class HackerScreen extends AliteScreen {
-	private static final int GALAXY_SEED = 17;
-
 	private HackerState state;
 	private int yPosition = 0;
 	private int startY;
@@ -149,23 +147,6 @@ public class HackerScreen extends AliteScreen {
 
 		void setGalaxyNumber(int galaxyNumber) {
 			values[16] = (byte) (galaxyNumber & 0xFF);
-		}
-
-		char[] getGalaxySeed() {
-			char[] result = new char[3];
-			result[0] = (char) ((values[HackerScreen.GALAXY_SEED] << 8) + (values[HackerScreen.GALAXY_SEED + 1] & 0xFF));
-			result[1] = (char) ((values[HackerScreen.GALAXY_SEED + 2] << 8) + (values[HackerScreen.GALAXY_SEED + 3] & 0xFF));
-			result[2] = (char) ((values[HackerScreen.GALAXY_SEED + 4] << 8) + (values[HackerScreen.GALAXY_SEED + 5] & 0xFF));
-			return result;
-		}
-
-		void setGalaxySeed(char[] galaxySeed) {
-			values[HackerScreen.GALAXY_SEED] = (byte) (galaxySeed[0] >> 8);
-			values[HackerScreen.GALAXY_SEED + 1] = (byte) (galaxySeed[0] & 0xFF);
-			values[HackerScreen.GALAXY_SEED + 2] = (byte) (galaxySeed[1] >> 8);
-			values[HackerScreen.GALAXY_SEED + 3] = (byte) (galaxySeed[1] & 0xFF);
-			values[HackerScreen.GALAXY_SEED + 4] = (byte) (galaxySeed[2] >> 8);
-			values[HackerScreen.GALAXY_SEED + 5] = (byte) (galaxySeed[2] & 0xFF);
 		}
 
 		int getCurrentSystem() {
@@ -503,7 +484,6 @@ public class HackerScreen extends AliteScreen {
 
 		state.setCommanderName(player.getName());
 		state.setGalaxyNumber(generator.getCurrentGalaxy());
-		state.setGalaxySeed(generator.getCurrentSeed());
 		state.setCurrentSystem(player.getCurrentSystem() == null ? 0 : player.getCurrentSystem().getIndex());
 		state.setHyperspaceSystem(player.getHyperspaceSystem() == null ? 0 : player.getHyperspaceSystem().getIndex());
 		state.setFuel(cobra.getFuel());
@@ -578,8 +558,7 @@ public class HackerScreen extends AliteScreen {
 
 		player.setName(state.getCommanderName());
 		generator.setCurrentGalaxy(state.getGalaxyNumber());
-		boolean newGalaxy = generator.setCurrentSeed(state.getGalaxySeed());
-		if (player.getCurrentSystem() == null || state.getCurrentSystem() != player.getCurrentSystem().getIndex() || newGalaxy) {
+		if (player.getCurrentSystem() == null || state.getCurrentSystem() != player.getCurrentSystem().getIndex()) {
 			player.setCurrentSystem(generator.getSystem(state.getCurrentSystem()));
 		}
 		player.setHyperspaceSystem(generator.getSystem(state.getHyperspaceSystem()));

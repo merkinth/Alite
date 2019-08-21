@@ -26,6 +26,7 @@ import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.missions.EndMission;
+import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
@@ -44,7 +45,7 @@ public class EndMissionScreen extends AliteScreen {
 
 	public EndMissionScreen(Alite game, int state) {
 		super(game);
-		EndMission mission = (EndMission) MissionManager.getInstance().get(EndMission.ID);
+		Mission mission = MissionManager.getInstance().get(EndMission.ID);
 		mediaPlayer = new MediaPlayer();
 		try {
 			if (state == 0) {

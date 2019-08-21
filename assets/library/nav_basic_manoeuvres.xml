@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Basic Manoeuvres</Header>
-  <Content>
+    <Content>
     <Text>
 	<p>The Cobra trade ship needs practice to fly well, though it is
 	highly manoeuvrable, very fast, and a good combat vessel. It
@@ -53,7 +52,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>nav_console</Next>
-  <Previous>nav_leaving</Previous>
-</Page>
+    </Page>
 

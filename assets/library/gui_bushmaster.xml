@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Bushmaster</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_bushmaster"/>
 	<p>The Bushmaster is the only known ship built by Lizards.
@@ -25,7 +24,5 @@
     </Text>
     <BackgroundImage name="bushmaster"/>
   </Content>
-  <Next>gui_cobrai</Next>
-  <Previous>gui_boa</Previous>
-</Page>
+    </Page>
 

@@ -197,10 +197,10 @@ public class PlanetScreen extends AliteScreen {
 	private void computeAlienImage(final Graphics g, SystemData system) {
 		String inhabitant = system.getInhabitants().toLowerCase() + " ";
 		String basePath = "alien_icons/" + getRace(inhabitant) + getType(inhabitant);
-		if (system.getIndex() == 256 || g.existsAssetsFile(basePath + "base.png")) {
+		if (system == SystemData.RAXXLA_SYSTEM || g.existsAssetsFile(basePath + "base.png")) {
 			if (inhabitantGenerationStep == 0) {
 				if (inhabitantBottomLayer == null) {
-					if (system.getIndex() == 256) {
+					if (system == SystemData.RAXXLA_SYSTEM) {
 						aig_temp1 = g.newPixmap("alien_icons/treeard.png");
 					} else {
 						aig_temp1 = g.newPixmap(basePath + "base.png");
@@ -209,7 +209,7 @@ public class PlanetScreen extends AliteScreen {
 				}
 			} else if (inhabitantGenerationStep == 1) {
 				if (inhabitantTopLayer == null) {
-					if (system.getIndex() == 256) {
+					if (system == SystemData.RAXXLA_SYSTEM) {
 						aig_temp2 = g.newPixmap("alien_icons/treeard.png");
 					} else {
 						aig_temp2 = g.newPixmap(basePath + "details.png");

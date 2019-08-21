@@ -508,7 +508,7 @@ class InGameHelper implements Serializable {
 			alite.getPlayer().setCondition(Condition.RED);
 			return;
 		}
-		if (inGame.isInSafeZone()) {
+		if (InGameManager.playerInSafeZone) {
 			if (alite.getPlayer().getLegalStatus() == LegalStatus.CLEAN) {
 				alite.getPlayer().setCondition(Condition.GREEN);
 			} else {

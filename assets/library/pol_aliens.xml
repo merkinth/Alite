@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Alien Races</Header>
-  <Content>
+    <Content>
     <Text>
         <p>Of the 2040 officially registered planets in the GalCop, about
         half support human colonies only, that is to say, human presence
@@ -61,7 +60,5 @@
         </table>
     </Text>
   </Content>
-  <Next>shipguide</Next>
-  <Previous>pol_t_anar</Previous>
-</Page>
+    </Page>
 

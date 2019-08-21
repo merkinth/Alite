@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Cobra Mk III</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_cobramkiii"/>
 	<p>Larger, more popular version of the Cobra Mk I (the Mk II only
@@ -27,7 +26,5 @@
     </Text>
     <BackgroundImage name="cobramkiii"/>
   </Content>
-  <Next>gui_coral</Next>
-  <Previous>gui_cobrai</Previous>
-</Page>
+    </Page>
 

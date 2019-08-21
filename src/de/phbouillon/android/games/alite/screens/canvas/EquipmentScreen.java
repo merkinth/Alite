@@ -38,7 +38,6 @@ import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class EquipmentScreen extends TradeScreen {
 	private int mountLaserPosition = -1;
 	private int selectionIndex = -1;
@@ -93,23 +92,13 @@ public class EquipmentScreen extends TradeScreen {
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
-		dos.writeByte(selection == null ? 0 : selection.getName().length());
-		if (selection != null) {
-			dos.writeChars(selection.getName());
-		}
+		ScreenBuilder.writeString(dos, selection == null ? null : selection.getName());
 	}
 
 	public static boolean initialize(Alite alite, final DataInputStream dis) {
 		EquipmentScreen es = new EquipmentScreen(alite);
 		try {
-			byte selectionLength = dis.readByte();
-			if (selectionLength > 0) {
-				es.pendingSelection = "";
-				while (selectionLength > 0) {
-					es.pendingSelection += dis.readChar();
-					selectionLength--;
-				}
-			}
+			es.pendingSelection = ScreenBuilder.readString(dis);
 		} catch (IOException e) {
 			AliteLog.e("Equipment Screen Initialize", "Error in initializer.", e);
 			return false;
@@ -201,18 +190,18 @@ public class EquipmentScreen extends TradeScreen {
 		}
 
 		newScreen = new LaserPositionSelectionScreen(this, game, front, right, rear, left, row, column);
-    	return 0;
+		return 0;
 	}
 
-    @Override
+	@Override
 	protected void performTrade(int row, int column) {
-    	Equipment equipment = game.getCobra().getEquipment(row * COLUMNS + column);
+		Equipment equipment = game.getCobra().getEquipment(row * COLUMNS + column);
 		Player player = game.getPlayer();
-    	for (Mission mission: player.getActiveMissions()) {
-    		if (mission.performTrade(this, equipment)) {
-    			return;
-    		}
-    	}
+		for (Mission mission: player.getActiveMissions()) {
+			if (mission.performTrade(this, equipment)) {
+				return;
+			}
+		}
 		PlayerCobra cobra = player.getCobra();
 		int price = equipment.getCost();
 		int where = -1;
@@ -226,7 +215,7 @@ public class EquipmentScreen extends TradeScreen {
 				return;
 			}
 			if (mountLaserPosition == -2) {
-			    // Do nothing: User canceled.
+				// Do nothing: User canceled.
 				mountLaserPosition = -1;
 				return;
 			}
@@ -266,56 +255,66 @@ public class EquipmentScreen extends TradeScreen {
 			cashLeft = getCashLeftString();
 
 			SoundManager.play(Assets.kaChing);
-		} else {
-			if (equipment.getCost() == -1) {
-				// Fuel
-				price = player.getCurrentSystem() == null ? 10 : player.getCurrentSystem().getFuelPrice();
-				int fuelToBuy = PlayerCobra.MAXIMUM_FUEL - cobra.getFuel();
-				int priceToPay = fuelToBuy * price / 10;
-				if (priceToPay > player.getCash()) {
-					showMessageDialog(L.string(R.string.trade_not_enough_money));
-					SoundManager.play(Assets.error);
-					return;
-				}
-				player.setCash(player.getCash() - priceToPay);
-				player.getCobra().setFuel(PlayerCobra.MAXIMUM_FUEL);
-				disposeSelectedEquipmentAnimation();
-				selection = null;
-				cashLeft = getCashLeftString();
-				SoundManager.play(Assets.kaChing);
-				equippedEquipment = EquipmentStore.fuel;
+			performAutoSave();
+			return;
+		}
+
+		if (equipment.getCost() == -1) {
+			// Fuel
+			price = player.getCurrentSystem() == null ? 10 : player.getCurrentSystem().getFuelPrice();
+			int fuelToBuy = PlayerCobra.MAXIMUM_FUEL - cobra.getFuel();
+			int priceToPay = fuelToBuy * price / 10;
+			if (priceToPay > player.getCash()) {
+				showMessageDialog(L.string(R.string.trade_not_enough_money));
+				SoundManager.play(Assets.error);
 				return;
 			}
-			if (equipment == EquipmentStore.missiles) {
-				if (cobra.getMissiles() == PlayerCobra.MAXIMUM_MISSILES) {
-					showMessageDialog(L.string(R.string.equip_max_missiles_reached, PlayerCobra.MAXIMUM_MISSILES));
-					SoundManager.play(Assets.error);
-					return;
-				}
-				player.setCash(player.getCash() - price);
-				cobra.setMissiles(cobra.getMissiles() + 1);
-				disposeSelectedEquipmentAnimation();
-				selection = null;
-				cashLeft = getCashLeftString();
-				SoundManager.play(Assets.kaChing);
-				equippedEquipment = EquipmentStore.missiles;
-				return;
-			}
-			player.setCash(player.getCash() - price);
-			cobra.addEquipment(equipment);
-			if (equipment == EquipmentStore.retroRockets) {
-				cobra.setRetroRocketsUseCount(4 + (int) (Math.random() * 3));
-			}
-			SoundManager.play(Assets.kaChing);
+			player.setCash(player.getCash() - priceToPay);
+			player.getCobra().setFuel(PlayerCobra.MAXIMUM_FUEL);
 			disposeSelectedEquipmentAnimation();
 			selection = null;
 			cashLeft = getCashLeftString();
-			equippedEquipment = equipment;
-    		try {
-				game.autoSave();
-			} catch (IOException e) {
-				AliteLog.e("Auto saving failed", e.getMessage(), e);
+			SoundManager.play(Assets.kaChing);
+			equippedEquipment = EquipmentStore.fuel;
+			performAutoSave();
+			return;
+		}
+
+		if (equipment == EquipmentStore.missiles) {
+			if (cobra.getMissiles() == PlayerCobra.MAXIMUM_MISSILES) {
+				showMessageDialog(L.string(R.string.equip_max_missiles_reached, PlayerCobra.MAXIMUM_MISSILES));
+				SoundManager.play(Assets.error);
+				return;
 			}
+			player.setCash(player.getCash() - price);
+			cobra.setMissiles(cobra.getMissiles() + 1);
+			disposeSelectedEquipmentAnimation();
+			selection = null;
+			cashLeft = getCashLeftString();
+			SoundManager.play(Assets.kaChing);
+			equippedEquipment = EquipmentStore.missiles;
+			performAutoSave();
+			return;
+		}
+
+		player.setCash(player.getCash() - price);
+		cobra.addEquipment(equipment);
+		if (equipment == EquipmentStore.retroRockets) {
+			cobra.setRetroRocketsUseCount(4 + (int) (Math.random() * 3));
+		}
+		SoundManager.play(Assets.kaChing);
+		disposeSelectedEquipmentAnimation();
+		selection = null;
+		cashLeft = getCashLeftString();
+		equippedEquipment = equipment;
+		performAutoSave();
+	}
+
+	private void performAutoSave() {
+		try {
+			game.autoSave();
+		} catch (IOException e) {
+			AliteLog.e("Auto saving failed", e.getMessage(), e);
 		}
 	}
 
@@ -327,8 +326,8 @@ public class EquipmentScreen extends TradeScreen {
 	}
 
 	public Equipment getEquippedEquipment() {
-    	return equippedEquipment;
-    }
+		return equippedEquipment;
+	}
 
 	@Override
 	public void processTouch(TouchEvent touch) {
@@ -384,22 +383,22 @@ public class EquipmentScreen extends TradeScreen {
 		postScreenChange();
 	}
 
-    private void loadEquipmentAnimation(final Graphics g, int offset, String path) {
-      for (int i = 1; i <= 15; i++) {
-        equipment[offset][i] = g.newPixmap(path + "/" + i + ".png");
-      }
-    }
+	private void loadEquipmentAnimation(final Graphics g, int offset, String path) {
+	  for (int i = 1; i <= 15; i++) {
+		equipment[offset][i] = g.newPixmap(path + "/" + i + ".png");
+	  }
+	}
 
-    private void disposeEquipmentAnimation(int offset) {
-    	for (int i = 1; i <= 15; i++) {
-    		if (equipment[offset][i] != null) {
-    			equipment[offset][i].dispose();
-    		}
-    		equipment[offset][i] = null;
-    	}
-    }
+	private void disposeEquipmentAnimation(int offset) {
+		for (int i = 1; i <= 15; i++) {
+			if (equipment[offset][i] != null) {
+				equipment[offset][i].dispose();
+			}
+			equipment[offset][i] = null;
+		}
+	}
 
-    private void readEquipmentStill(final Graphics g, int offset, String path) {
+	private void readEquipmentStill(final Graphics g, int offset, String path) {
 		equipment[offset] = new Pixmap[16];
 		equipment[offset][0] = g.newPixmap(path + ".png");
 	}

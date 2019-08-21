@@ -31,6 +31,7 @@ import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
+import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.missions.ThargoidDocumentsMission;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
@@ -52,13 +53,13 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 	private Pixmap acceptIcon;
 	private Pixmap declineIcon;
 	private SystemData targetSystem = null;
-	private final ThargoidDocumentsMission mission;
+	private final Mission mission;
 	private final int givenState;
 
 	public ThargoidDocumentsScreen(Alite game, int state) {
 		super(game);
 		givenState = state;
-		mission = (ThargoidDocumentsMission) MissionManager.getInstance().get(ThargoidDocumentsMission.ID);
+		mission = MissionManager.getInstance().get(ThargoidDocumentsMission.ID);
 		mediaPlayer = new MediaPlayer();
 		String path = MissionManager.DIRECTORY_SOUND_MISSION + "2/";
 		try {
@@ -66,7 +67,7 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 			if (state == 0) {
 				missionLine = new MissionLine(path + "02.mp3", L.string(R.string.mission_thargoid_documents_mission_description));
 				targetSystem = mission.findMostDistantSystem();
-				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), state);
+				mission.setTarget(game.getGenerator().getCurrentGalaxy(), targetSystem.getIndex(), state);
 				acceptMission = new MissionLine(path + "03.mp3", L.string(R.string.mission_accept));
 			} else if (state == 1) {
 				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_thargoid_documents_fully_serviced));

@@ -36,6 +36,7 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.ConstrictorMission;
+import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.GalaxyScreen;
@@ -78,13 +79,13 @@ public class ConstrictorScreen extends AliteScreen {
 	private Pixmap acceptIcon;
 	private Pixmap declineIcon;
 	private SystemData targetSystem = null;
-	private final ConstrictorMission mission;
+	private final Mission mission;
 	private final int givenState;
 
 	public ConstrictorScreen(Alite game, int state) {
 		super(game);
 		givenState = state;
-		mission = (ConstrictorMission) MissionManager.getInstance().get(ConstrictorMission.ID);
+		mission = MissionManager.getInstance().get(ConstrictorMission.ID);
 		mediaPlayer = new MediaPlayer();
 		String path = MissionManager.DIRECTORY_SOUND_MISSION + "1/";
 		try {
@@ -97,14 +98,14 @@ public class ConstrictorScreen extends AliteScreen {
 			} else if (state == 1) {
 				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_constrictor_report_to_base));
 				targetSystem = mission.findMostDistantSystem();
-				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), state);
+				mission.setTarget(game.getGenerator().getCurrentGalaxy(), targetSystem.getIndex(), state);
 			} else if (state == 2) {
 				missionLine = new MissionLine(path + "06.mp3", L.string(R.string.mission_constrictor_intergalactic_jump));
-				mission.setTarget(game.getGenerator().getSeedOf(game.getGenerator().getCurrentGalaxy()+1), -1, state);
+				mission.setTarget(game.getGenerator().getNextGalaxy(), -1, state);
 			} else if (state == 3) {
 				missionLine = new MissionLine(path + "05.mp3", L.string(R.string.mission_constrictor_hyperspace_jump));
 				targetSystem = mission.findRandomSystemInRange(75, 120);
-				mission.setTarget(game.getGenerator().getCurrentSeed(), targetSystem.getIndex(), mission.getState() + 1);
+				mission.setTarget(game.getGenerator().getCurrentGalaxy(), targetSystem.getIndex(), mission.getState() + 1);
 			} else if (state == 4) {
 				missionLine = new MissionLine(path + "07.mp3", L.string(R.string.mission_constrictor_success));
 				mission.onMissionComplete();
@@ -352,7 +353,7 @@ public class ConstrictorScreen extends AliteScreen {
 			if (state == 3) {
 				cs.targetSystem = alite.getGenerator().getSystems()[dis.readInt()];
 				// Mission (model) state has been increased in constructor; now reduce it again...
-				cs.mission.setTarget(alite.getGenerator().getCurrentSeed(), cs.targetSystem.getIndex(), cs.mission.getState() - 1);
+				cs.mission.setTarget(alite.getGenerator().getCurrentGalaxy(), cs.targetSystem.getIndex(), cs.mission.getState() - 1);
 			}
 			alite.setScreen(cs);
 		} catch (IOException e) {

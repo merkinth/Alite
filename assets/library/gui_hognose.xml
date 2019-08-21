@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Hognose</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_hognose"/>
 	<p>Data missing</p>
@@ -20,7 +19,5 @@
     </Text>
     <BackgroundImage name="hognose"/>
   </Content>
-  <Next>gui_indigo</Next>
-  <Previous>gui_boomslang</Previous>
-</Page>
+    </Page>
 

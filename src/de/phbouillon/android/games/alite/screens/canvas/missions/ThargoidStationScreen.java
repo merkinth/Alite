@@ -27,6 +27,7 @@ import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
+import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.missions.ThargoidStationMission;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
@@ -45,7 +46,7 @@ public class ThargoidStationScreen extends AliteScreen {
 	public ThargoidStationScreen(Alite game, int state) {
 		super(game);
 		givenState = state;
-		ThargoidStationMission mission = (ThargoidStationMission) MissionManager.getInstance().get(ThargoidStationMission.ID);
+		Mission mission = MissionManager.getInstance().get(ThargoidStationMission.ID);
 		mediaPlayer = new MediaPlayer();
 		String path = MissionManager.DIRECTORY_SOUND_MISSION + "5/";
 		try {
@@ -53,7 +54,7 @@ public class ThargoidStationScreen extends AliteScreen {
 			if (state == 0) {
 				missionLine = new MissionLine(path + "02.mp3", L.string(R.string.mission_thargoid_station_mission_description));
 				mission.setPlayerAccepts(true);
-				mission.setTarget(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex(), 1);
+				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 1);
 			} else if (state == 1) {
 				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_thargoid_station_success));
 			 	mission.onMissionComplete();

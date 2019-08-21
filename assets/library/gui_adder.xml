@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Adder</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_adder"/>
 	<p>Manufactured by Outworld Workshops, a rogue breakaway company
@@ -25,7 +24,5 @@
     </Text>
     <BackgroundImage name="adder"/>
   </Content>
-  <Next>gui_anaconda</Next>
-  <Previous>shipguide</Previous>
-</Page>
+    </Page>
 

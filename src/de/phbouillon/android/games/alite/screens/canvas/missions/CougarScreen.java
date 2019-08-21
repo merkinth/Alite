@@ -31,6 +31,7 @@ import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.missions.CougarMission;
+import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
@@ -66,7 +67,7 @@ public class CougarScreen extends AliteScreen {
 	public CougarScreen(Alite game, int state) {
 		super(game);
 		givenState = state;
-		CougarMission mission = (CougarMission) MissionManager.getInstance().get(CougarMission.ID);
+		Mission mission = MissionManager.getInstance().get(CougarMission.ID);
 		mediaPlayer = new MediaPlayer();
 		String path = MissionManager.DIRECTORY_SOUND_MISSION + "4/";
 		try {
@@ -75,7 +76,7 @@ public class CougarScreen extends AliteScreen {
 				cougar = new Cougar(game);
 				cougar.setPosition(200, 0, -700.0f);
 				mission.setPlayerAccepts(true);
-				mission.setTarget(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex(), 1);
+				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 1);
 			} else {
 				AliteLog.e("Unknown State", "Invalid state variable has been passed to CougarScreen: " + state);
 			}

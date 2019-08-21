@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Retro rockets</Header>
-  <Content>
+    <Content>
     <Text>
         <p>It has befuddled scientists over the last decades how a seemingly
         simple problem can be so hard. Taking all the inertia of a ship and
@@ -25,7 +24,5 @@
     	comets around Zamaes, usually yielding clean output.</p>
     </Text>
   </Content>
-  <Next>trading</Next>
-  <Previous>ip_n_asteroid</Previous>
-</Page>
+    </Page>
 

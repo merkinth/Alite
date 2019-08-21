@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Thargoid invasion ships and thargons</Header>
-  <Content>
+    <Content>
     <Text>
       <p>The Thargoids are humankind&apos;s deadly enemy, and
-      throughout the 8 galaxies there are at least 50 war zones
+      throughout the galaxies there are at least 50 war zones
       between humanity and Thargoid. This highly technologically
       advanced insectoid race is also at war with 17 other
       space-going life-forms.</p>
@@ -46,7 +45,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>ip_others</Next>
-  <Previous>ip_e_police</Previous>
-</Page>
+    </Page>
 

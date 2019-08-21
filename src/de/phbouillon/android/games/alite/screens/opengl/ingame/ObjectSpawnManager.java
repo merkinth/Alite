@@ -197,7 +197,7 @@ public class ObjectSpawnManager implements Serializable {
 		if (Alite.get().getPlayer() == null) {
 			Alite.get().initialize();
 		}
-		if (alite.getPlayer().getCurrentSystem() != null && alite.getPlayer().getCurrentSystem().getIndex() == 256) {
+		if (alite.getPlayer().getCurrentSystem() == SystemData.RAXXLA_SYSTEM) {
 			return;
 		}
 		if (conditionRedTimer.event != null) {
@@ -475,7 +475,7 @@ public class ObjectSpawnManager implements Serializable {
 		if (!inGame.isPlayerAlive()) {
 			return;
 		}
-		if (inGame.isInSafeZone()) {
+		if (InGameManager.playerInSafeZone) {
 			return;
 		}
 		int thargoidNum = checkSpawnThargoid();
@@ -542,7 +542,7 @@ public class ObjectSpawnManager implements Serializable {
 	}
 
 	private boolean isLaunchFromStationSafe(boolean trader) {
-		if (!inGame.isInSafeZone()) {
+		if (!InGameManager.playerInSafeZone) {
 			return false;
 		}
 		if (launchTime != null && !launchTime.hasPassedSeconds(LAUNCH_BREAK_TIMER)) {
@@ -647,7 +647,7 @@ public class ObjectSpawnManager implements Serializable {
 		if (inGame.getNumberOfObjects(ObjectType.Trader) >= maxNumberOfTradeShips || !TRADERS_ENABLED || Settings.disableTraders) {
 			return;
 		}
-		if (inGame.isInSafeZone()) {
+		if (InGameManager.playerInSafeZone) {
 			if (!isLaunchFromStationSafe(true)) {
 				return;
 			}
@@ -741,7 +741,7 @@ public class ObjectSpawnManager implements Serializable {
 		if (inGame.getNumberOfObjects(ObjectType.Asteroid) >= maxNumberOfAsteroids || !ASTEROIDS_ENABLED) {
 			return;
 		}
-		if (inGame.isInSafeZone()) {
+		if (InGameManager.playerInSafeZone) {
 			// Do not spawn asteroids in safe zone; debatable...
 			return;
 		}
@@ -796,7 +796,7 @@ public class ObjectSpawnManager implements Serializable {
 
 	private void spawnShuttleOrTransporter() {
 		shuttleOrTransportTimer.event.updateDelay((long) ((600.0f + 300.0f * Math.random()) / 16.7f * 1000000000L / (float) alite.getTimeFactor()));
-		if (inGame.getWitchSpace() != null || !inGame.isInSafeZone()) {
+		if (inGame.getWitchSpace() != null || !InGameManager.playerInSafeZone) {
 			return;
 		}
 		if (!SHUTTLES_ENABLED) {

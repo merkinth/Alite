@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Docking computer</Header>
-  <Content>
+    <Content>
     <Text>
     	<InlineImage name="docking"/>
     	<p>This is available from all Tech level 9 planets; docking
@@ -22,7 +21,5 @@
     	maoeuvre.</p>
     </Text>
   </Content>
-  <Next>ip_n_intergal</Next>
-  <Previous>ip_n_cargo</Previous>
-</Page>
+    </Page>
 

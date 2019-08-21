@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Missiles</Header>
-  <Content>
+    <Content>
     <Text>
     	<p>Missiles are always available, whatever the nature of your destination
     	world, though no more than four may be carried at any one time. They are
@@ -43,7 +42,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>ip_w_energybombs</Next>
-  <Previous>ip_w_lasers</Previous>
-</Page>
+    </Page>
 

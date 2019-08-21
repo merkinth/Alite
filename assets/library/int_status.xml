@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>The Status Page</Header>
-  <Content>
+    <Content>
     <Text>
       <p>The [ip]Present System[/pi] refers to the planetary system
       which your ship is currently in; while the [ip]Hyperspace
@@ -44,7 +43,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>int_rating</Next>
-  <Previous>int_interior</Previous>
-</Page>
+    </Page>
 

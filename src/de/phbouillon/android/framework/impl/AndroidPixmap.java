@@ -62,12 +62,12 @@ public class AndroidPixmap implements Pixmap {
 
 	@Override
 	public int getWidth() {
-		return width;
+		return (int) (width / AndroidGame.scaleFactor);
 	}
 
 	@Override
 	public int getHeight() {
-		return height;
+		return (int) (height / AndroidGame.scaleFactor);
 	}
 
 	@Override

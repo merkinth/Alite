@@ -21,6 +21,8 @@ package de.phbouillon.android.games.alite.model.library;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -35,7 +37,10 @@ import de.phbouillon.android.games.alite.AliteLog;
 public class Toc {
 	public static final String DIRECTORY_LIBRARY = "library" + File.separator;
 
-	private final TocEntry invisibleRoot;
+	private final List<TocEntry> entries = new ArrayList<>();
+
+	private Toc() {
+	}
 
 	public static Toc read(InputStream is) {
 		Toc toc = new Toc();
@@ -43,7 +48,7 @@ public class Toc {
 		try {
 			Element root = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is).getDocumentElement();
 			root.normalize();
-			getEntriesFromParent(root, toc.invisibleRoot);
+			toc.getEntriesFromParent(root, 0);
 		} catch (ParserConfigurationException | SAXException | IOException e) {
 			AliteLog.e("Reading table of contents", "Error during reading table of contents", e);
 		}
@@ -51,32 +56,23 @@ public class Toc {
 		return toc;
 	}
 
-	private static void getEntriesFromParent(Element parent, TocEntry parentEntry) {
+	private void getEntriesFromParent(Element parent, int level) {
 		NodeList children = parent.getChildNodes();
 		if (children != null && children.getLength() > 0) {
 			for (int i = 0, n = children.getLength(); i < n; i++) {
 				if (children.item(i) instanceof Element) {
 					Element e = (Element) children.item(i);
 					if (e.getNodeName().equals("tocEntry")) {
-						TocEntry newEntry = parseTocEntryNode(e, parentEntry);
-						parentEntry.addChild(newEntry);
-						getEntriesFromParent(e, newEntry);
+						TocEntry newEntry = parseTocEntryNode(e, level);
+						entries.add(newEntry);
+						getEntriesFromParent(e, level + 1);
 					}
 				}
 			}
 		}
 	}
 
-	private static String getString(Element element) {
-		NodeList subList = element.getChildNodes();
-        if (subList != null && subList.getLength() > 0) {
-        	return subList.item(0).getNodeValue();
-        }
-
-        return null;
-    }
-
-	private static TocEntry parseTocEntryNode(Element tocEntryNode, TocEntry parent) {
+	private static TocEntry parseTocEntryNode(Element tocEntryNode, int level) {
 		LibraryPage linkedPage = null;
 		String fileName = tocEntryNode.getAttribute("file");
 		try {
@@ -86,14 +82,41 @@ public class Toc {
 		}
 		String name = getString(tocEntryNode);
 		name = name == null ? "" : name.replaceAll("\\s+", " ").trim();
-		return new TocEntry(name, linkedPage, parent);
+		return new TocEntry(name, linkedPage, level);
 	}
 
-	public TocEntry [] getEntries() {
-		return invisibleRoot.getChildren();
+	private static String getString(Element element) {
+		NodeList subList = element.getChildNodes();
+		if (subList != null && subList.getLength() > 0) {
+			return subList.item(0).getNodeValue();
+		}
+
+		return null;
 	}
 
-	private Toc() {
-		invisibleRoot = new TocEntry("root", null, null);
+	public List<TocEntry> getEntries(String filter) {
+		return filter != null ? filterEntries(filter) : entries;
 	}
+
+	private List<TocEntry> filterEntries(String filter) {
+		List<TocEntry> filteredEntries = new ArrayList<>();
+		for (TocEntry entry : entries) {
+			LibraryPage libPage = entry.getLinkedPage();
+			if (libPage != null) {
+				String[] highlights = filter.toLowerCase(L.getInstance().getCurrentLocale()).split(" ");
+				String paragraph = libPage.getParagraphs();
+				if (paragraph != null) {
+					paragraph = paragraph.toLowerCase(L.getInstance().getCurrentLocale());
+					for (String h : highlights) {
+						if (paragraph.contains(h)) {
+							filteredEntries.add(entry);
+							break;
+						}
+					}
+				}
+			}
+		}
+		return filteredEntries;
+	}
+
 }

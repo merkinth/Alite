@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Harlequin</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_harlequin"/>
 	<p>Data missing</p>
@@ -20,7 +19,5 @@
     </Text>
     <BackgroundImage name="harlequin"/>
   </Content>
-  <Next>gui_boomslang</Next>
-  <Previous>gui_gopher</Previous>
-</Page>
+    </Page>
 

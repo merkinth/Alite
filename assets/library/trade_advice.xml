@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Advice to Traders</Header>
-  <Content>
+    <Content>
     <Text>
         <p>The Cobra trade ship can be fitted with four lasers, four
         missiles and one energy bomb. This should be sufficient to make
@@ -46,7 +45,5 @@
         <p>[b]IF THE PROFIT ISN&apos;T WORTH IT, TRADE IT SOMEWHERE ELSE.[/b]</p>
     </Text>
   </Content>
-  <Next>trade_alt</Next>
-  <Previous>trade_how</Previous>
-</Page>
+    </Page>
 

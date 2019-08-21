@@ -36,6 +36,7 @@ import com.google.android.vending.expansion.downloader.*;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.PluginManager;
+import de.phbouillon.android.framework.PluginModel;
 import de.phbouillon.android.framework.impl.PluginManagerImpl;
 import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.io.AliteDownloaderService;
@@ -164,6 +165,8 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 	private void upgradePlugins() {
 		if (Settings.extensionUpdateMode == PluginManager.UPDATE_MODE_NO_UPDATE) {
 			AliteLog.d("Alite Start Manager", "Updating plugins is disabled");
+			new PluginModel(fileIO, PluginsScreen.DIRECTORY_PLUGINS + PluginsScreen.PLUGINS_META_FILE).
+				checkPluginFiles(null, new String[] { L.DIRECTORY_LOCALES, PluginsScreen.DIRECTORY_PLUGINS });
 			startGame();
 			return;
 		}

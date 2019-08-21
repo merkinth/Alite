@@ -327,8 +327,10 @@ public class AndroidGraphics implements Graphics {
 		x = transX(x);
 		y = transY(y);
 
-		srcX = (int) (srcX * scaleFactor);
-		srcY = (int) (srcY * scaleFactor);
+		srcX = Math.round(srcX * scaleFactor);
+		srcY = Math.round(srcY * scaleFactor);
+		srcWidth = Math.round(srcWidth * scaleFactor);
+		srcHeight = Math.round(srcHeight * scaleFactor);
 
 		pixmap.setTextureCoordinates(srcX, srcY, srcX + srcWidth - 1, srcY + srcHeight - 1);
 		pixmap.setCoordinates(x, y, x + srcWidth - 1, y + srcHeight - 1);

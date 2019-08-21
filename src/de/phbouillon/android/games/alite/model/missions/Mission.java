@@ -18,10 +18,7 @@ package de.phbouillon.android.games.alite.model.missions;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +26,9 @@ import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
+import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.Equipment;
+import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
@@ -45,15 +44,26 @@ public abstract class Mission implements Serializable {
 	protected boolean active = false;
 	protected boolean started = false;
 	protected transient Alite alite;
+	private int galaxy;
+	private int targetIndex;
+	int state;
 	private final int id;
 	private String targetName = null;
 
-	protected abstract boolean checkStart();
+	protected abstract boolean checkStart(Player player);
 	protected abstract void acceptMission(boolean accept);
-	public abstract void onMissionAccept();
-	public abstract void onMissionDecline();
+
+	public void onMissionAccept() {
+	}
+
+	public void onMissionDecline() {
+	}
+
 	public abstract void onMissionComplete();
-	public abstract void onMissionUpdate();
+
+	public void onMissionUpdate() {
+	}
+
 	public abstract AliteScreen getMissionScreen();
 
 	public boolean willStartOnDock() {
@@ -70,7 +80,12 @@ public abstract class Mission implements Serializable {
 	}
 
 	public boolean missionStarts() {
-		if (checkStart()) {
+		Player player = alite.getPlayer();
+		if (!started &&
+				!player.getActiveMissions().contains(this) &&
+				!player.getCompletedMissions().contains(this) &&
+				player.getCondition() == Condition.DOCKED &&
+				checkStart(player)) {
 			active = true;
 			started = true;
 			return true;
@@ -100,8 +115,25 @@ public abstract class Mission implements Serializable {
 		}
 	}
 
-	public abstract void load(DataInputStream dis) throws IOException;
-	public abstract byte [] save() throws IOException;
+	public void load(DataInputStream dis) throws IOException {
+		galaxy = dis.readByte();
+		targetIndex = dis.readInt();
+		state = dis.readInt();
+		targetName = null;
+		active = true;
+		started = true;
+	}
+
+	public byte [] save() throws IOException {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(16);
+		DataOutputStream dos = new DataOutputStream(bos);
+		dos.writeByte(galaxy);
+		dos.writeInt(targetIndex);
+		dos.writeInt(state);
+		dos.close();
+		bos.close();
+		return bos.toByteArray();
+	}
 
 	public final SystemData findMostDistantSystem() {
 		int maxDist = -1;
@@ -132,11 +164,9 @@ public abstract class Mission implements Serializable {
 		return candidates.get((int) (Math.random() * candidates.size()));
 	}
 
-	boolean positionMatchesTarget(char[] seed, int targetIndex) {
-		for (int i = 0; i < 3; i++) {
-			if (alite.getGenerator().getCurrentSeed()[i] != seed[i]) {
-				return false;
-			}
+	boolean positionMatchesTarget() {
+		if (alite.getGenerator().getCurrentGalaxy() != galaxy) {
+			return false;
 		}
 		return alite.getPlayer().getCurrentSystem() != null &&
 			(targetIndex == -1 || targetIndex == alite.getPlayer().getCurrentSystem().getIndex());
@@ -192,27 +222,40 @@ public abstract class Mission implements Serializable {
 		started = false;
 	}
 
+	public void setTarget(int galaxy, int targetIndex, int state) {
+		this.galaxy = galaxy;
+		this.targetIndex = targetIndex;
+		this.state = state;
+		targetName = null;
+	}
+
 	public void resetTargetName() {
 		targetName = null;
 	}
 
-	String getTargetName(int targetIndex, char[] galaxySeed) {
+	String getTargetName() {
 		if (targetName != null) {
 			return targetName;
 		}
 		if (targetIndex != -1) {
-			for (int i = 0; i < 3; i++) {
-				if (alite.getGenerator().getCurrentSeed()[i] != galaxySeed[i]) {
-					GalaxyGenerator gen = new GalaxyGenerator();
-					gen.buildGalaxy(galaxySeed[0], galaxySeed[1], galaxySeed[2]);
-					targetName = gen.getSystem(targetIndex).getName();
-					return targetName;
-				}
+			if (alite.getGenerator().getCurrentGalaxy() != galaxy) {
+				GalaxyGenerator gen = new GalaxyGenerator();
+				gen.buildGalaxy(galaxy);
+				targetName = gen.getSystem(targetIndex).getName();
+				return targetName;
 			}
 			targetName = alite.getGenerator().getSystem(targetIndex).getName();
 		} else {
 			targetName = L.string(R.string.mission_unknown_target);
 		}
 		return targetName;
+	}
+
+	public int getState() {
+		return state;
+	}
+
+	public void setState(int state) {
+		this.state = state;
 	}
 }

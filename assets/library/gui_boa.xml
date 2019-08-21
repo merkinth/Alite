@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Boa Class Cruiser</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_boa"/>
 	<p>Although marginally smaller than the Python, which it superseded,
@@ -27,7 +26,5 @@
     </Text>
     <BackgroundImage name="boaclasscruiser"/>
   </Content>
-  <Next>gui_bushmaster</Next>
-  <Previous>gui_asp</Previous>
-</Page>
+    </Page>
 

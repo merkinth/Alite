@@ -34,6 +34,7 @@ import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.screens.opengl.ICoordinateTransformer;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 
 public class AliteHud extends Sprite implements Serializable {
 	private static final long serialVersionUID      = -1218984695547293867L;
@@ -74,8 +75,6 @@ public class AliteHud extends Sprite implements Serializable {
 	private transient Alite alite;
 	private int viewDirection = 0;
 	private int currentLaserIndex = 0;
-	private boolean safeZone = false;
-	private boolean extendedSafeZone = false;
 
 	static final String TEXTURE_FILE = "textures/radar_final.png";
 
@@ -139,22 +138,6 @@ public class AliteHud extends Sprite implements Serializable {
 		SpriteData spriteData = alite.getTextureManager().getSprite(TEXTURE_FILE, name);
 		return new Sprite(alite, ct.getTextureCoordX(x), ct.getTextureCoordY(y), ct.getTextureCoordX(x + spriteData.origWidth), ct.getTextureCoordY(y + spriteData.origHeight),
 				   spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, TEXTURE_FILE);
-	}
-
-	public void setSafeZone(boolean b) {
-		safeZone = b;
-	}
-
-	public boolean isInSafeZone() {
-		return safeZone;
-	}
-
-	public void setExtendedSafeZone(boolean b) {
-		extendedSafeZone = b;
-	}
-
-	public boolean isInExtendedSafeZone() {
-		return extendedSafeZone;
 	}
 
 	private void computeLaser() {
@@ -380,7 +363,7 @@ public class AliteHud extends Sprite implements Serializable {
 		infoGauges.render();
 		GLES11.glColor4f(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha);
 		aliteText.justRender();
-		if (safeZone) {
+		if (InGameManager.playerInSafeZone) {
 			safeIcon.justRender();
 		}
 		if (ecmActive != null && !ecmActive.hasPassedSeconds(6)) {

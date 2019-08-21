@@ -34,6 +34,7 @@ import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
+import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.screens.canvas.options.ControlOptionsScreen;
@@ -58,6 +59,7 @@ public class StatusScreen extends AliteScreen {
 	public void activate() {
 		setUpForDisplay(game.getGraphics().getVisibleArea());
 		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
+		game.getNavigationBar().resetPending();
 		for (Mission m: MissionManager.getInstance().getMissions()) {
 			if (m.missionStarts()) {
 				forwardingScreen = m.getMissionScreen();
@@ -71,15 +73,13 @@ public class StatusScreen extends AliteScreen {
 				}
 			}
 		}
-		if (!Settings.hasBeenPlayedBefore) {
+		if (!Settings.hasBeenPlayedBefore && game.getGenerator().getCurrentGalaxy() == 1) {
 			Player player = game.getPlayer();
-			if (game.getGenerator().getCurrentGalaxyFromSeed() == 1) {
-				if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == 7) {
-					showModalQuestionDialog(L.string(R.string.intro_new_player, AliteConfig.GAME_NAME));
-					requireAnswer = true;
-					Settings.hasBeenPlayedBefore = true;
-					Settings.save(game.getFileIO());
-				}
+			if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == SystemData.LAVE_SYSTEM_INDEX) {
+				showModalQuestionDialog(L.string(R.string.intro_new_player, AliteConfig.GAME_NAME));
+				requireAnswer = true;
+				Settings.hasBeenPlayedBefore = true;
+				Settings.save(game.getFileIO());
 			}
 		}
 	}

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Shields and energy banks</Header>
-  <Content>
+    <Content>
     <Text>
 	<p>Your ship comes equipped with fore and aft shields and energy
 	banks. The shields protect your ship from aggressive fire, and will
@@ -25,7 +24,5 @@
 	shields overlap, and cause a stress zone.</p>
     </Text>
   </Content>
-  <Next>ip_d_ecm</Next>
-  <Previous>ip_d_safety</Previous>
-</Page>
+    </Page>
 

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Lyre</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_lyre"/>
 	<p>Data missing</p>
@@ -20,7 +19,5 @@
     </Text>
     <BackgroundImage name="lyre"/>
   </Content>
-  <Next>gui_mamba</Next>
-  <Previous>gui_lora</Previous>
-</Page>
+    </Page>
 

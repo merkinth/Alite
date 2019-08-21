@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Dugite</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_dugite"/>
 	<p>Data missing</p>
@@ -20,7 +19,5 @@
     </Text>
     <BackgroundImage name="dugite"/>
   </Content>
-  <Next>gui_ferdelance</Next>
-  <Previous>gui_cottonmouth</Previous>
-</Page>
+    </Page>
 

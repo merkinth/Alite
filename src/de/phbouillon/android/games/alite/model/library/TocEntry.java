@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model.library;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,40 +18,27 @@ package de.phbouillon.android.games.alite.model.library;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class TocEntry {
-	private List <TocEntry> children;
-	private TocEntry parent;
-	
+	private int level;
+
 	private String name;
 	private LibraryPage linkedPage;
-	
-	public TocEntry(final String name, final LibraryPage linkedPage, final TocEntry parent) {
+
+	public TocEntry(final String name, final LibraryPage linkedPage, final int level) {
 		this.name = name;
 		this.linkedPage = linkedPage;
-		this.parent = parent;
-		this.children = new ArrayList<TocEntry>();
+		this.level = level;
 	}
-	
-	void addChild(TocEntry child) {
-		this.children.add(child);
-	}
-	
-	public TocEntry [] getChildren() {
-		return children.toArray(new TocEntry[0]);
-	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
-	public TocEntry getParent() {
-		return parent;
-	}
-	
+
 	public LibraryPage getLinkedPage() {
 		return linkedPage;
+	}
+
+	public int getLevel() {
+		return level;
 	}
 }

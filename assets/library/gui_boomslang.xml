@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Harken</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_boomslang"/>
 	<p>Designed by a rich scientist on Gearzaen, the Harken is
@@ -24,7 +23,5 @@
     </Text>
     <BackgroundImage name="boomslang"/>
   </Content>
-  <Next>gui_hognose</Next>
-  <Previous>gui_harlequin</Previous>
-</Page>
+    </Page>
 

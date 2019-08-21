@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Combat Console</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="ipconsole"/>
 	<p>[pb]1[/bp] Defensive shields take power from two energy bank
@@ -23,7 +22,5 @@
 	or to the sides. The vertical bars show this clearly.</p>
     </Text>
   </Content>
-  <Next>ip_weaponry</Next>
-  <Previous>ip_o_dredgers</Previous>
-</Page>
+    </Page>
 

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Yellowbelly</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_yellowbelly"/>
 	<p>Data missing</p>
@@ -20,6 +19,5 @@
     </Text>
     <BackgroundImage name="yellowbelly"/>
   </Content>
-  <Previous>gui_wolf</Previous>
-</Page>
+  </Page>
 

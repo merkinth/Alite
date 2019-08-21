@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Intergalactic Trading</Header>
-  <Content>
+    <Content>
     <Text>
         <p>The Cobra Mk. III, designed primarily as a trading ship, combines
         combat efficiency and manoeuvrability with substantial cargo space
@@ -49,7 +48,5 @@
     	so trading them is risky.</p>
     </Text>
   </Content>
-  <Next>trade_how</Next>
-  <Previous>ip_n_retrorockets</Previous>
-</Page>
+    </Page>
 

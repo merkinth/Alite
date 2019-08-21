@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import android.graphics.Color;
@@ -44,7 +43,8 @@ import de.phbouillon.android.games.alite.model.library.TocEntry;
 public class LibraryPageScreen extends AliteScreen {
 	private static final int PAGE_BEGIN = 120;
 
-	private final TocEntry tocEntry;
+	private final List<TocEntry> entries;
+	private int entryIndex;
 	private int yPosition = 0;
 	private int startY;
 	private int startX;
@@ -155,74 +155,68 @@ public class LibraryPageScreen extends AliteScreen {
 		}
 	}
 
-	LibraryPageScreen(Alite game, TocEntry entry, String currentFilter) {
+	LibraryPageScreen(Alite game, List<TocEntry> entries, int entryIndex, String currentFilter) {
 		super(game);
-		tocEntry = entry;
+		this.entries = entries;
+		this.entryIndex = entryIndex;
 		this.currentFilter = currentFilter;
 	}
 
 	@Override
 	public void activate() {
 		Graphics g = game.getGraphics();
-		if (tocEntry.getLinkedPage() != null) {
-			computePageText(game.getGraphics(), tocEntry.getLinkedPage().getParagraphs());
-			if (tocEntry.getLinkedPage().getNextPage() != null) {
-				next = Button.createGradientRegularButton(1200, 960, 500, 120, null)
-					.setTextData(computeCenteredTextDisplay(g, L.string(R.string.library_btn_next) + tocEntry.getLinkedPage().getNextPage().getHeader(),
-					0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
-			}
-			if (tocEntry.getLinkedPage().getPrevPage() != null) {
-				prev = Button.createGradientRegularButton(45, 960, 500, 120, null)
-					.setTextData(computeCenteredTextDisplay(g, L.string(R.string.library_btn_prev) + tocEntry.getLinkedPage().getPrevPage().getHeader(),
-					0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
-			}
-			ItemDescriptor bgImageDesc = tocEntry.getLinkedPage().getBackgroundImage();
-			if (bgImageDesc != null) {
-				Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY + bgImageDesc.getFileName() + ".png");
-				backgroundImage = Button.createPictureButton(AliteConfig.SCREEN_WIDTH - pixmap.getWidth(), 955 - pixmap.getHeight(),
-					pixmap.getWidth(), pixmap.getHeight(), pixmap, 0.6f);
-			}
-
-			int counter = 0;
-			for (ItemDescriptor id: tocEntry.getLinkedPage().getImages()) {
-				try {
-					Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY + id.getFileName() + ".png", 500, 250);
-					Button b = Button.createGradientPictureButton(1100, PAGE_BEGIN + counter * 275,
-						500 + 2 * Button.BORDER_SIZE, 250 + 2 * Button.BORDER_SIZE, pixmap);
-					images.add(b);
-					counter++;
-				} catch (RuntimeException e) {
-					// Catching the exception here, without adding pixmap or button, will throw the
-					// indexing off (ItemDescriptors are referenced by the bitmap position in the bitmap
-					// array list), so this will cause problems -- but once the library is completely in
-					// place, this should not be an issue. Just keep in mind during testing.
-					AliteLog.e("[ALITE] LibraryPageScreen", "Image " + id.getFileName() + " not found. Skipping.");
-				}
-			}
-		}
 		toc = Button.createGradientRegularButton(624, 960, 500, 120, null)
 			.setTextData(computeCenteredTextDisplay(g, L.string(R.string.library_btn_toc), 0, 50,
-			500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
+				500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
+		LibraryPage page = entries.get(entryIndex).getLinkedPage();
+		if (page == null) {
+			return;
+		}
+		computePageText(game.getGraphics(), page.getParagraphs());
+		if (entryIndex < entries.size() - 1) {
+			next = Button.createGradientRegularButton(1200, 960, 500, 120, null)
+				.setTextData(computeCenteredTextDisplay(g, L.string(R.string.library_btn_next) +
+					entries.get(entryIndex + 1).getName(),
+				0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
+		}
+		if (entryIndex > 0) {
+			prev = Button.createGradientRegularButton(45, 960, 500, 120, null)
+				.setTextData(computeCenteredTextDisplay(g, L.string(R.string.library_btn_prev) +
+					entries.get(entryIndex - 1).getName(),
+				0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
+		}
+		ItemDescriptor bgImageDesc = page.getBackgroundImage();
+		if (bgImageDesc != null) {
+			Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY + bgImageDesc.getFileName() + ".png");
+			backgroundImage = Button.createPictureButton(AliteConfig.DESKTOP_WIDTH - pixmap.getWidth(), 955 - pixmap.getHeight(),
+				pixmap.getWidth(), pixmap.getHeight(), pixmap, 0.6f);
+		}
+
+		int counter = 0;
+		for (ItemDescriptor id: page.getImages()) {
+			try {
+				Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY + id.getFileName() + ".png", 500, 250);
+				Button b = Button.createGradientPictureButton(1100, PAGE_BEGIN + counter * 275,
+					500 + 2 * Button.BORDER_SIZE, 250 + 2 * Button.BORDER_SIZE, pixmap);
+				images.add(b);
+				counter++;
+			} catch (RuntimeException e) {
+				// Catching the exception here, without adding pixmap or button, will throw the
+				// indexing off (ItemDescriptors are referenced by the bitmap position in the bitmap
+				// array list), so this will cause problems -- but once the library is completely in
+				// place, this should not be an issue. Just keep in mind during testing.
+				AliteLog.e("[ALITE] LibraryPageScreen", "Image " + id.getFileName() + " not found. Skipping.");
+			}
+		}
 	}
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		try {
-			TocEntry[] entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries();
 			int entryNo = dis.readInt();
-			TocEntry entry = findTocEntryForIndex(entries, entryNo, 0);
-			if (entry == null) {
-				entry = entries[0];
-			}
-			int len = dis.readInt();
-			String filter = null;
-			if (len > 0) {
-				filter = "";
-				for (int i = 0; i < len; i++) {
-					filter += dis.readChar();
-				}
-			}
 			AliteLog.d("Entry Number", "Read Entry Number: " + entryNo);
-			LibraryPageScreen lps = new LibraryPageScreen(alite, entry, filter);
+			String currentFilter = ScreenBuilder.readString(dis);
+			List<TocEntry> entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
+			LibraryPageScreen lps = new LibraryPageScreen(alite, entries, entryNo >= entries.size() ? 0 : entryNo, currentFilter);
 			lps.yPosition = dis.readInt();
 			alite.setScreen(lps);
 		} catch (IOException e) {
@@ -232,54 +226,10 @@ public class LibraryPageScreen extends AliteScreen {
 		return true;
 	}
 
-	private int findTocEntryIndex(TocEntry[] entries, String name, int counter) {
-		for (int i = 0; i < entries.length; i++) {
-			if (entries[i].getName().equals(name)) {
-				AliteLog.d("Found", "Found -- i = " + i);
-				return i + counter;
-			}
-			TocEntry[] children = entries[i].getChildren();
-			if (children.length > 0) {
-				int result = findTocEntryIndex(children, name, counter + i + 1);
-				if (result >= 0) {
-					return result;
-				}
-				counter += children.length;
-			}
-		}
-		return -1;
-	}
-
-	private static TocEntry findTocEntryForIndex(TocEntry[] entries, int index, int counter) {
-		for (int i = 0; i < entries.length; i++) {
-			if (i + counter == index) {
-				AliteLog.d("Found", "Found -- i = " + i);
-				return entries[i];
-			}
-			TocEntry[] children = entries[i].getChildren();
-			if (children.length > 0) {
-				TocEntry result = findTocEntryForIndex(children, index, counter + i + 1);
-				if (result != null) {
-					return result;
-				}
-				counter += children.length;
-			}
-		}
-		return null;
-	}
-
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
-		TocEntry[] entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries();
-		int index = findTocEntryIndex(entries, tocEntry.getName(), 0);
-		if (index < 0) {
-			index = 0;
-		}
-		dos.writeInt(index);
-		dos.writeInt(currentFilter == null ? 0 : currentFilter.length());
-		if (currentFilter != null) {
-			dos.writeChars(currentFilter);
-		}
+		dos.writeInt(entryIndex);
+		ScreenBuilder.writeString(dos, currentFilter);
 		dos.writeInt(yPosition);
 
 	}
@@ -472,7 +422,7 @@ public class LibraryPageScreen extends AliteScreen {
 			StyledText[] words = s.words.toArray(new StyledText[0]);
 			if (words.length == 1 && words[0].pixmap != null) {
 				pageText.add(new PageText(words[0].pixmap));
-				inlineImageHeight += words[0].pixmap.getHeight() / AndroidGame.scaleFactor;
+				inlineImageHeight += words[0].pixmap.getHeight();
 				continue;
 			}
 			int spaces = words.length - 1;
@@ -493,7 +443,7 @@ public class LibraryPageScreen extends AliteScreen {
 				pos[currentWord++] = xPos;
 				if (w.pixmap != null) {
 					pageText.add(new PageText(w.pixmap));
-					inlineImageHeight += w.pixmap.getHeight() / AndroidGame.scaleFactor;
+					inlineImageHeight += w.pixmap.getHeight();
 					continue;
 				}
 				xPos += g.getTextWidth(w.text, w.font);
@@ -510,7 +460,7 @@ public class LibraryPageScreen extends AliteScreen {
 	}
 
 	private void computePageText(Graphics g, String text) {
-		int fieldWidth = tocEntry.getLinkedPage().getImages().length == 0 ? 1620 : 1000;
+		int fieldWidth = entries.get(entryIndex).getLinkedPage().getImages().isEmpty() ? 1620 : 1000;
 		int x = 50;
 		int inlineImageHeight = 0;
 
@@ -638,18 +588,16 @@ public class LibraryPageScreen extends AliteScreen {
 					Button b = images.get(i);
 					if (b.isTouched(touch.x, touch.y)) {
 						Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY +
-							tocEntry.getLinkedPage().getImages()[i].getFileName() + ".png");
-						fullScreenImage(pixmap, tocEntry.getLinkedPage().getImages()[i].getText());
+							entries.get(entryIndex).getLinkedPage().getImages().get(i).getFileName() + ".png");
+						fullScreenImage(pixmap, entries.get(entryIndex).getLinkedPage().getImages().get(i).getText());
 					}
 				}
 				if (next != null && next.isTouched(touch.x, touch.y)) {
-					LibraryPage linkedPage = tocEntry.getLinkedPage().getNextPage();
-					newScreen = new LibraryPageScreen(game, new TocEntry(linkedPage.getHeader(), linkedPage, null), currentFilter);
+					newScreen = new LibraryPageScreen(game, entries, entryIndex + 1, currentFilter);
 					SoundManager.play(Assets.click);
 				}
 				if (prev != null && prev.isTouched(touch.x, touch.y)) {
-					LibraryPage linkedPage = tocEntry.getLinkedPage().getPrevPage();
-					newScreen = new LibraryPageScreen(game, new TocEntry(linkedPage.getHeader(), linkedPage, null), currentFilter);
+					newScreen = new LibraryPageScreen(game, entries, entryIndex - 1, currentFilter);
 					SoundManager.play(Assets.click);
 				}
 				if (toc.isTouched(touch.x, touch.y)) {
@@ -666,7 +614,7 @@ public class LibraryPageScreen extends AliteScreen {
 	private void fullScreenImage(Pixmap pixmap, String imageText) {
 		this.imageText = imageText;
 		largeImage = Button.createGradientPictureButton(50, 100, 1650, 920, pixmap)
-			.setPixmapOffset((int) (1650 - pixmap.getWidth() / AndroidGame.scaleFactor) >> 1, 0)
+			.setPixmapOffset(1650 - pixmap.getWidth() >> 1, 0)
 			.setTextData(computeTextDisplay(game.getGraphics(), imageText, 0, 920 - 180,
 				1650 - 2 * Button.BORDER_SIZE, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT)));
 		SoundManager.play(Assets.alert);
@@ -675,9 +623,8 @@ public class LibraryPageScreen extends AliteScreen {
 	@Override
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
-		displayTitle(tocEntry.getName());
 		g.clear(Color.BLACK);
-		displayTitle(tocEntry.getName());
+		displayTitle(entries.get(entryIndex).getName());
 
 		if (deltaY != 0) {
 			deltaY += deltaY > 0 ? -1 : 1;
@@ -719,10 +666,10 @@ public class LibraryPageScreen extends AliteScreen {
 				int picYPos = PAGE_BEGIN - yPosition + row * 45 + 10 + yOffset;
 				if (picYPos < PAGE_BEGIN) {
 					picYPos = PAGE_BEGIN;
-					hardClip = (int) (PAGE_BEGIN - Assets.regularFont.getSize() + 40 + pt.pixmap.getHeight() / AndroidGame.scaleFactor);
+					hardClip = (int) (PAGE_BEGIN - Assets.regularFont.getSize() + 40 + pt.pixmap.getHeight());
 				}
 				g.drawPixmap(pt.pixmap, 50, picYPos);
-				yOffset += pt.pixmap.getHeight() / AndroidGame.scaleFactor + 45;
+				yOffset += pt.pixmap.getHeight() + 45;
 				continue;
 			}
 			for (int x = 0, words = pt.words.length; x < words; x++) {

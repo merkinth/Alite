@@ -72,13 +72,8 @@ public class QuantityPadScreen extends AliteScreen {
 		dos.writeInt(yPos);
 		dos.writeInt(row);
 		dos.writeInt(column);
-		dos.writeInt(maxAmountString == null ? 0 : maxAmountString.length());
-		if (maxAmountString != null) {
-			dos.writeChars(maxAmountString);
-		}
-		String currentAmountString = Integer.toString(currentAmount);
-		dos.writeInt(currentAmountString.length());
-		dos.writeChars(currentAmountString);
+		ScreenBuilder.writeString(dos, maxAmountString);
+		ScreenBuilder.writeString(dos, Integer.toString(currentAmount));
 		marketScreen.saveScreenState(dos);
 	}
 
@@ -88,21 +83,11 @@ public class QuantityPadScreen extends AliteScreen {
 			int yPos = dis.readInt();
 			int row = dis.readInt();
 			int col = dis.readInt();
-			int len = dis.readInt();
-			String maxAmount = "";
-			for (int i = 0; i < len; i++) {
-				maxAmount += dis.readChar();
-			}
-			len = dis.readInt();
-			String currentAmount = "";
-			for (int i = 0; i < len; i++) {
-				currentAmount += dis.readChar();
-			}
 			BuyScreen marketScreen = BuyScreen.readScreen(alite, dis);
 			marketScreen.loadAssets();
 			marketScreen.activate();
-			QuantityPadScreen qps = new QuantityPadScreen(marketScreen, alite, maxAmount, xPos, yPos, row, col);
-			qps.currentAmount = Integer.parseInt(currentAmount);
+			QuantityPadScreen qps = new QuantityPadScreen(marketScreen, alite, ScreenBuilder.readEmptyString(dis), xPos, yPos, row, col);
+			qps.currentAmount = Integer.parseInt(ScreenBuilder.readEmptyString(dis));
 			alite.setScreen(qps);
 		} catch (IOException e) {
 			AliteLog.e("Quantity Pad Screen Initialize", "Error in initializer.", e);

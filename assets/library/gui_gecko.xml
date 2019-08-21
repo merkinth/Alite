@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Gecko</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_gecko"/>
 	<p>Patented by Robert Bream, but not manufactured until Ace and
@@ -26,7 +25,5 @@
     </Text>
     <BackgroundImage name="gecko"/>
   </Content>
-  <Next>gui_gopher</Next>
-  <Previous>gui_ferdelance</Previous>
-</Page>
+    </Page>
 

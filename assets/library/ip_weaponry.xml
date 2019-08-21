@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Aggressive Weaponry</Header>
-  <Content>
+    <Content>
     <Text>
     	<table>[pb]Item[/bp],[r][pb]Tech Level[/bp],[r][pb]Price/Cr[/bp];
     	       Fuel,Always,Varies;
@@ -24,7 +23,5 @@
     	hardware are on sale.</p>
     </Text>
   </Content>
-  <Next>ip_w_lasers</Next>
-  <Previous>ip_console</Previous>
-</Page>
+    </Page>
 

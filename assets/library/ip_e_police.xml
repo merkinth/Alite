@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Police</Header>
-  <Content>
+    <Content>
     <Text>
       <p>In a Co-operative of Worlds as complex as the 2040
       planets of the GalCop, the police can be as menacing as
@@ -36,7 +35,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>ip_e_thargoids</Next>
-  <Previous>ip_e_pirates</Previous>
-</Page>
+    </Page>
 

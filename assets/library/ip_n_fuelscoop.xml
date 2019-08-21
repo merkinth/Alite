@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Fuel Scoops</Header>
-  <Content>
+    <Content>
     <Text>
     	<p>Fuel Scoops may be fitted to the hull at a planet of Tech level
     	5 or higher. These enable a ship to obtain free hyperspace fuel by
@@ -28,7 +27,5 @@
     	into their ReQax convertors.</p>
     </Text>
   </Content>
-  <Next>ip_n_cargo</Next>
-  <Previous>ip_n_fuel</Previous>
-</Page>
+    </Page>
 

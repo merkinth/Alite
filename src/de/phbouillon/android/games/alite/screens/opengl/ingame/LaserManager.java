@@ -361,7 +361,7 @@ public class LaserManager implements Serializable {
 						lc.removeInNFrames(4);
 					}
 					SoundManager.play(Assets.laserHit);
-					if (((SpaceObject) eo).getType() != ObjectType.SpaceStation || ALIEN_SPACE_STATION.equals(eo.getId())) {
+					if (((SpaceObject) eo).getType() != ObjectType.SpaceStation || ThargoidStationMission.ALIEN_SPACE_STATION.equals(eo.getId())) {
 						// Space Stations are invulnerable --- in general ;)
 						if (Settings.laserPowerOverride != 0) {
 							alite.getPlayer().setCheater(true);

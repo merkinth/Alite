@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Asteroid Mining</Header>
-  <Content>
+    <Content>
     <Text>
         <p>There is money in rock, but to make the most of it a Cobra
         ship must be fitted with a fuel scoop and a MinReduc 15 Mining
@@ -19,7 +18,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>trade_a_cargo</Next>
-  <Previous>trade_a_piracy</Previous>
-</Page>
+    </Page>
 

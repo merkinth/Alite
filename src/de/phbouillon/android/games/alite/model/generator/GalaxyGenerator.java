@@ -3,6 +3,7 @@ package de.phbouillon.android.games.alite.model.generator;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
+import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 
 /* Alite - Discover the Universe on your Favorite Android Device
@@ -26,7 +27,6 @@ import de.phbouillon.android.games.alite.model.trading.TradeGood;
 public class GalaxyGenerator {
 	// Current seed of this galaxy
 	private SeedType seed;
-	private char[] currentSeed;
 
 	// All 256 systems in this galaxy
 	private SystemData[] system = new SystemData[256];
@@ -46,7 +46,7 @@ public class GalaxyGenerator {
 
 	public void buildGalaxy(int galaxyNumber) {
 		currentGalaxy = galaxyNumber;
-		currentSeed = getSeedOf(galaxyNumber);
+		char[] currentSeed = getSeedOf(galaxyNumber);
 		seed = new SeedType(currentSeed[0], currentSeed[1], currentSeed[2]);
 		buildGalaxy();
 	}
@@ -57,53 +57,26 @@ public class GalaxyGenerator {
 		buildGalaxy(currentGalaxy);
 	}
 
-	public char[] getCurrentSeed() {
-		return currentSeed;
-	}
-
-	public char[] getSeedOf(int galaxy) {
-		if (galaxy > 8 || galaxy < 1) {
+	private char[] getSeedOf(int galaxy) {
+		if (galaxy > Settings.maxGalaxies || galaxy < 1) {
 			galaxy = 1;
 		}
-		switch (galaxy) {
-			case 1: return new char[] {0x5A4a, 0x0248, 0xB753};
-			case 2: return new char[] {0xB494, 0x0490, 0x6FA6};
-			case 3: return new char[] {0x6929, 0x0821, 0xDE4D};
-			case 4: return new char[] {0xD252, 0x1042, 0xBD9A};
-			case 5: return new char[] {0xA5A4, 0x2084, 0x7B35};
-			case 6: return new char[] {0x4B49, 0x4009, 0xF66A};
-			case 7: return new char[] {0x9692, 0x8012, 0xEDD4};
-			case 8: return new char[] {0x2D25, 0x0124, 0xDBA9};
+		return getBaseSeed(galaxy - 1);
+	}
+
+	private char[] getBaseSeed(int baseId) {
+		// 0 - 7
+		switch (baseId) {
+			case 0: return new char[] {0x5A4a, 0x0248, 0xB753};
+			case 1: return new char[] {0xB494, 0x0490, 0x6FA6};
+			case 2: return new char[] {0x6929, 0x0821, 0xDE4D};
+			case 3: return new char[] {0xD252, 0x1042, 0xBD9A};
+			case 4: return new char[] {0xA5A4, 0x2084, 0x7B35};
+			case 5: return new char[] {0x4B49, 0x4009, 0xF66A};
+			case 6: return new char[] {0x9692, 0x8012, 0xEDD4};
+			case 7: return new char[] {0x2D25, 0x0124, 0xDBA9};
 		}
 		return new char[] {0x5A4a, 0x0248, 0x0B753};
-	}
-
-	private int determineGalaxyNumber(int seed0, int seed1, int seed2) {
-		if (seed0 == 0x5A4A && seed1 == 0x0248 && seed2 == 0xB753) { return 1; }
-		if (seed0 == 0xB494 && seed1 == 0x0490 && seed2 == 0x6FA6) { return 2; }
-		if (seed0 == 0x6929 && seed1 == 0x0821 && seed2 == 0xDE4D) { return 3; }
-		if (seed0 == 0xD252 && seed1 == 0x1042 && seed2 == 0xBD9A) { return 4; }
-		if (seed0 == 0xA5A4 && seed1 == 0x2084 && seed2 == 0x7B35) { return 5; }
-		if (seed0 == 0x4B49 && seed1 == 0x4009 && seed2 == 0xF66A) { return 6; }
-		if (seed0 == 0x9692 && seed1 == 0x8012 && seed2 == 0xEDD4) { return 7; }
-		if (seed0 == 0x2D25 && seed1 == 0x0124 && seed2 == 0xDBA9) { return 8; }
-		return -1;
-	}
-
-	public void buildGalaxy(int seed0, int seed1, int seed2) {
-		// Initialize first galaxy
-		seed = new SeedType((char) seed0, (char) seed1, (char) seed2);
-		currentSeed = new char[] {(char) seed0, (char) seed1, (char) seed2};
-
-		int galaxy = determineGalaxyNumber(seed0, seed1, seed2);
-		if (galaxy != -1) {
-			currentGalaxy = galaxy;
-		}
-		buildGalaxy();
-	}
-
-	public int getCurrentGalaxyFromSeed() {
-		return determineGalaxyNumber(currentSeed[0], currentSeed[1], currentSeed[2]);
 	}
 
 	public int getCurrentGalaxy() {
@@ -114,14 +87,11 @@ public class GalaxyGenerator {
 		currentGalaxy = galaxy;
 	}
 
-	public boolean setCurrentSeed(char[] seed) {
-		if (this.seed.getWord(0) != seed[0] ||
-			this.seed.getWord(1) != seed[1] ||
-			this.seed.getWord(2) != seed[2]) {
-			buildGalaxy(seed[0], seed[1], seed[2]);
-			return true;
+	public int getNextGalaxy() {
+		if (currentGalaxy >= Settings.maxGalaxies || currentGalaxy < 1) {
+			return 1;
 		}
-		return false;
+		return currentGalaxy + 1;
 	}
 
 	private void buildGalaxy() {
@@ -147,9 +117,9 @@ public class GalaxyGenerator {
 	public int findGalaxyOfPlanet(String name) {
 		int oldGalaxy = currentGalaxy;
 
-		int i = oldGalaxy - 1;
+		int i = oldGalaxy;
 		for (int j = 0; j < 7; j++) {
-			i = (i + 1) % 8 + 1;
+			i = i % Settings.maxGalaxies + 1;
 			AliteLog.d("Analyzing Galaxy", "Analyzing Galaxy " + i);
 			buildGalaxy(i);
 			for (SystemData s: system) {
@@ -158,7 +128,6 @@ public class GalaxyGenerator {
 					return i;
 				}
 			}
-			i--;
 		}
 		buildGalaxy(oldGalaxy);
 		return -1;

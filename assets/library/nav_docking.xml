@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Docking Procedure</Header>
-  <Content>
+    <Content>
     <Text>
       <p>Docking with a Coriolis space station is never easy, unless the
       ship is equipped with an automatic docking computer. The Navy Training
@@ -49,7 +48,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>interplanet</Next>
-  <Previous>nav_intergal</Previous>
-</Page>
+    </Page>
 

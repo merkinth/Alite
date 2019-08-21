@@ -18,34 +18,22 @@ package de.phbouillon.android.games.alite.model.library;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import de.phbouillon.android.games.alite.L;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import de.phbouillon.android.games.alite.AliteLog;
 
 public class LibraryPage {
-	private String previous;
-	private String next;
-	private LibraryPage previousPage;
-	private LibraryPage nextPage;
-
-	private String header;
 	private List <String> paragraphs;
 	private List <ItemDescriptor> objects;
 	private List <ItemDescriptor> images;
 	private ItemDescriptor backgroundImage;
-
-	private static String getHeader(Element root) {
-		return root.getElementsByTagName("Header").item(0).getTextContent();
-	}
 
 	private static Element getPageText(Element root) {
 		return (Element) ((Element) root.getElementsByTagName("Content").item(0)).
@@ -117,35 +105,16 @@ public class LibraryPage {
 		return itemDescriptors.isEmpty() ? null : itemDescriptors.get(0);
 	}
 
-	private static String getNext(Element root) {
-		NodeList next = root.getElementsByTagName("Next");
-		if (next != null && next.getLength() > 0) {
-			return next.item(0).getTextContent();
-		}
-		return null;
-	}
-
-	private static String getPrevious(Element root) {
-		NodeList previous = root.getElementsByTagName("Previous");
-		if (previous != null && previous.getLength() > 0) {
-			return previous.item(0).getTextContent();
-		}
-		return null;
-	}
-
 	public static LibraryPage load(String fileName, InputStream is) {
 		LibraryPage result = new LibraryPage();
 
 		try {
 			Element root = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is).getDocumentElement();
 			root.normalize();
-			result.header            = getHeader(root);
 			result.paragraphs        = getParagraphsFromText(getPageText(root));
 			result.objects           = getObjects(root);
 			result.images            = getImages(root);
 			result.backgroundImage   = getBackgroundImage(root);
-			result.previous          = getPrevious(root);
-			result.next              = getNext(root);
 		} catch (Throwable t) {
 			AliteLog.e("Error reading Library Page " + fileName, "An error occurred while parsing page " + fileName + ".", t);
 		}
@@ -168,9 +137,6 @@ public class LibraryPage {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 
-		builder.append("Header: ");
-		builder.append(header == null ? "-" : header);
-		builder.append("\n");
 		builder.append("Content:\n");
 		builder.append(paragraphs == null || paragraphs.isEmpty() ? "-" : getParagraphs());
 		if (objects != null && !objects.isEmpty()) {
@@ -193,41 +159,11 @@ public class LibraryPage {
 			builder.append("backgroundImage:\n");
 			builder.append("  Name: " + backgroundImage.getFileName() + "\n\n");
 		}
-		builder.append("Previous page: " + (previous == null ? "-" : previous) + "\n");
-		builder.append("Next page: " + (next == null ? "-" : next) + "\n");
-
 		return builder.toString();
 	}
 
-	private static LibraryPage parsePageRef(String fileNameAbbrev) {
-		try {
-			return LibraryPage.load(fileNameAbbrev, L.raw(Toc.DIRECTORY_LIBRARY + fileNameAbbrev + ".xml"));
-		} catch (IOException ignored) {
-			AliteLog.e("[ALITE] LibraryPage", "Error reading library node " + fileNameAbbrev + ".");
-		}
-		return null;
-	}
-
-	public LibraryPage getNextPage() {
-		if (nextPage == null && next != null) {
-			nextPage = parsePageRef(next);
-		}
-		return nextPage;
-	}
-
-	public LibraryPage getPrevPage() {
-		if (previousPage == null && previous != null) {
-			previousPage = parsePageRef(previous);
-		}
-		return previousPage;
-	}
-
-	public String getHeader() {
-		return header == null ? "" : header;
-	}
-
-	public ItemDescriptor [] getImages() {
-		return images.toArray(new ItemDescriptor[0]);
+	public List<ItemDescriptor> getImages() {
+		return images;
 	}
 
 	public ItemDescriptor getBackgroundImage() {

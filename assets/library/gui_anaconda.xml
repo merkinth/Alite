@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Anaconda</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_anaconda"/>
 	<p>The largest known freighter with a cargo bay designed by Beerbaum
@@ -30,7 +29,5 @@
     </Text>
     <BackgroundImage name="anaconda"/>
   </Content>
-  <Next>gui_asp</Next>
-  <Previous>gui_adder</Previous>
-</Page>
+    </Page>
 

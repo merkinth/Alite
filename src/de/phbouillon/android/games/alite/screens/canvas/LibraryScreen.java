@@ -39,9 +39,8 @@ import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class LibraryScreen extends AliteScreen {
-	private final List <Button> button = new ArrayList<>();
-	private final List <TocEntryData> entries = new ArrayList<>();
-	private final List <TocEntryData> filteredEntries = new ArrayList<>();
+	private final List<Button> button = new ArrayList<>();
+	private List<TocEntry> entries;
 	private Pixmap buttonBackground;
 	private Pixmap buttonBackgroundPushed;
 	private Pixmap searchIcon;
@@ -53,16 +52,6 @@ public class LibraryScreen extends AliteScreen {
 	private int maxY;
 	private float deltaY = 0.0f;
 	private String currentFilter;
-
-	private class TocEntryData {
-		TocEntry entry;
-		int level;
-
-		TocEntryData(TocEntry entry, int level) {
-			this.entry = entry;
-			this.level = level;
-		}
-	}
 
 	// public constructor(Alite) is required for navigation bar
 	public LibraryScreen(Alite game) {
@@ -82,17 +71,26 @@ public class LibraryScreen extends AliteScreen {
 			.setTextPosition(TextPosition.RIGHT);
 
 		try {
-			button.clear();
-			entries.clear();
-			filteredEntries.clear();
-			buildTocButtons(Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(), 0);
-			if (currentFilter != null) {
-				filter();
-			}
+			entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
+			filter();
+			buildTocButtons(entries);
 			setMaxY();
 		} catch (IOException e) {
 			AliteLog.e("[ALITE] Library", "Error reading Library TOC file.", e);
 		}
+	}
+
+	private boolean filter() throws IOException {
+		if (currentFilter == null) {
+			return false;
+		}
+		entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
+		if (entries.isEmpty()) {
+			currentFilter = null;
+			entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
+			return true;
+		}
+		return false;
 	}
 
 	private void setMaxY() {
@@ -105,15 +103,7 @@ public class LibraryScreen extends AliteScreen {
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
 		try {
-			int len = dis.readInt();
-			String filter = null;
-			if (len > 0) {
-				filter = "";
-				for (int i = 0; i < len; i++) {
-					filter += dis.readChar();
-				}
-			}
-			LibraryScreen ls = new LibraryScreen(alite, filter);
+			LibraryScreen ls = new LibraryScreen(alite, ScreenBuilder.readString(dis));
 			ls.yPosition = dis.readInt();
 			alite.setScreen(ls);
 		} catch (IOException e) {
@@ -125,35 +115,8 @@ public class LibraryScreen extends AliteScreen {
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
-		dos.writeInt(currentFilter == null ? 0 : currentFilter.length());
-		if (currentFilter != null) {
-			dos.writeChars(currentFilter);
-		}
+		ScreenBuilder.writeString(dos, currentFilter);
 		dos.writeInt(yPosition);
-	}
-
-	private void filter() {
-		filteredEntries.clear();
-		button.clear();
-		for (TocEntryData entry : entries) {
-			LibraryPage libPage = entry.entry.getLinkedPage();
-			if (libPage != null) {
-				String[] highlights = currentFilter.toLowerCase(L.getInstance().getCurrentLocale()).split(" ");
-				String paragraph = libPage.getParagraphs();
-				if (paragraph != null) {
-					paragraph = paragraph.toLowerCase(L.getInstance().getCurrentLocale());
-					for (String h : highlights) {
-						if (paragraph.contains(h)) {
-							filteredEntries.add(entry);
-							break;
-						}
-					}
-				}
-			}
-		}
-		if (!filteredEntries.isEmpty()) {
-			buildTocButtons(filteredEntries.toArray(new TocEntryData[0]));
-		}
 	}
 
 	@Override
@@ -198,8 +161,7 @@ public class LibraryScreen extends AliteScreen {
 					int index = 0;
 					for (Button b: button) {
 						if (b.isTouched(touch.x, touch.y)) {
-							newScreen = new LibraryPageScreen(game, currentFilter == null ?
-								entries.get(index).entry : filteredEntries.get(index).entry, currentFilter);
+							newScreen = new LibraryPageScreen(game, entries, index, currentFilter);
 							SoundManager.play(Assets.click);
 						}
 						index++;
@@ -214,23 +176,23 @@ public class LibraryScreen extends AliteScreen {
 
 	private void find(String text) {
 		boolean messageSet = checkCheat(text);
-		filteredEntries.clear();
 		yPosition = 0;
 		deltaY = 0;
-		button.clear();
-		if (!text.trim().isEmpty()) {
-			currentFilter = text;
-			filter();
-		} else {
-			currentFilter = null;
-		}
-		if (filteredEntries.isEmpty()) {
-			if (!messageSet && currentFilter != null) {
-				showMessageDialog(L.string(R.string.library_no_results));
+		try {
+			if (!text.trim().isEmpty()) {
+				currentFilter = text;
+				boolean fullToc = filter();
+				if (!messageSet && fullToc) {
+					showMessageDialog(L.string(R.string.library_no_results));
+				}
+			} else {
+				currentFilter = null;
+				entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
 			}
-			currentFilter = null;
-			buildTocButtons(entries.toArray(new TocEntryData[0]));
+		} catch (IOException e) {
+			AliteLog.e("[ALITE] Library", "Error reading Library TOC file.", e);
 		}
+		buildTocButtons(entries);
 		setMaxY();
 	}
 
@@ -287,32 +249,19 @@ public class LibraryScreen extends AliteScreen {
 		return true;
 	}
 
-	private void buildTocButtons(TocEntry[] entries, int level) {
+	private void buildTocButtons(List<TocEntry> entries) {
+		button.clear();
 		if (entries == null) {
 			return;
 		}
 		for (TocEntry entry: entries) {
-			Button b = Button.createPictureButton(20 + level * 100, 80 + button.size() * 140,
-				1680 - level * 100, 120, buttonBackground)
-				.setPushedBackground(buttonBackgroundPushed);
-			if (level != 0) {
-				b.setButtonEnd(50);
-			}
-			button.add(b);
-			this.entries.add(new TocEntryData(entry, level));
-			buildTocButtons(entry.getChildren(), level + 1);
-		}
-	}
-
-	private void buildTocButtons(TocEntryData[] entries) {
-		if (entries == null) {
-			return;
-		}
-		for (TocEntryData entry: entries) {
-			Button b = Button.createPictureButton(20 + entry.level * 100, 80 + button.size() * 140,
-				1680 - entry.level * 100, 120, buttonBackground)
-				.setPushedBackground(buttonBackgroundPushed);
-			if (entry.level != 0) {
+			Button b = Button.createPictureButton(20 + entry.getLevel() * 100, 80 + button.size() * 140,
+				1680 - entry.getLevel() * 100, 120, buttonBackground)
+				.setPushedBackground(buttonBackgroundPushed)
+				.setTextData(computeTextDisplay(game.getGraphics(), entry.getName(), 30,
+				30 + (120 - (int) Assets.regularFont.getSize() >> 1),
+				1680, 0, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
+			if (entry.getLevel() != 0) {
 				b.setButtonEnd(50);
 			}
 			button.add(b);
@@ -342,14 +291,8 @@ public class LibraryScreen extends AliteScreen {
 		}
 
 		g.setClip(0, 100, -1, 1000);
-		for (int i = 0, n = button.size(); i < n; i++) {
-			TocEntryData ted = currentFilter == null ? entries.get(i) : filteredEntries.get(i);
-			button.get(i)
-				.setYOffset(-yPosition)
-				.setTextData(computeTextDisplay(g, ted.entry.getName(), 30,
-					30 + (120 - (int) Assets.regularFont.getSize() >> 1),
-					1680, 0, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)))
-				.render(g);
+		for (Button value : button) {
+			value.setYOffset(-yPosition).render(g);
 		}
 		g.setClip(-1, -1, -1, -1);
 	}

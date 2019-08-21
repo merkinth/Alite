@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Interior of a Cobra Mk III</Header>
-  <Content>
+    <Content>
     <Text>
       <p>The Cobra is essentially a single-pilot trade-ship, but has
       been designed to support a second person, provided
@@ -42,7 +41,5 @@
       for emergency use.</p>
     </Text>
   </Content>
-  <Next>int_status</Next>
-  <Previous>intro</Previous>
-</Page>
+    </Page>
 

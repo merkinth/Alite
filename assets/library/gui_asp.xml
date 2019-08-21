@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Asp Mk II</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_aspmkii"/>
 	<p>Galactic Navy vessel designed and manufactured in government
@@ -30,7 +29,5 @@
     </Text>
     <BackgroundImage name="aspmkii"/>
   </Content>
-  <Next>gui_boa</Next>
-  <Previous>gui_anaconda</Previous>
-</Page>
+    </Page>
 

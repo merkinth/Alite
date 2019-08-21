@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Safety Zone</Header>
-  <Content>
+    <Content>
     <Text>
 	<p>The Orbit space around any Coriolis Space Station is safe. The
 	Station&apos;s own defences will come to your immediate assistance.
@@ -9,7 +8,5 @@
 	astrogation console.</p>
     </Text>
   </Content>
-  <Next>ip_d_shields</Next>
-  <Previous>ip_defensive</Previous>
-</Page>
+    </Page>
 

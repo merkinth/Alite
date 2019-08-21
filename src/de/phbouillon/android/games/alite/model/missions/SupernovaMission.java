@@ -43,9 +43,6 @@ public class SupernovaMission extends Mission implements Serializable {
 
 	public static final int ID = 3;
 
-	private char [] galaxySeed;
-	private int supernovaSystemIndex;
-	private int state;
 	private final TimedEvent preStartEvent;
 	private Timer timer;
 
@@ -65,23 +62,10 @@ public class SupernovaMission extends Mission implements Serializable {
 		});
 	}
 
-	public int getState() {
-		return state;
-	}
-
-	public void setState(int state) {
-		this.state = state;
-	}
-
 	@Override
-	protected boolean checkStart() {
-		Player player = alite.getPlayer();
-		return !started &&
-			   !player.getActiveMissions().contains(this) &&
-			   !player.getCompletedMissions().contains(this) &&
-				player.getCompletedMissions().contains(MissionManager.getInstance().get(ThargoidDocumentsMission.ID)) &&
-				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64 &&
-				player.getCondition() == Condition.DOCKED;
+	protected boolean checkStart(Player player) {
+		return player.getCompletedMissions().contains(MissionManager.getInstance().get(ThargoidDocumentsMission.ID)) &&
+			player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64;
 	}
 
 	@Override
@@ -100,12 +84,6 @@ public class SupernovaMission extends Mission implements Serializable {
 		return preStartEvent;
 	}
 
-	public void setSupernovaSystem(char [] galaxySeed, int target) {
-		this.galaxySeed = new char[3];
-		System.arraycopy(galaxySeed, 0, this.galaxySeed, 0, 3);
-		supernovaSystemIndex = target;
-	}
-
 	@Override
 	protected void acceptMission(boolean accept) {
 		alite.getPlayer().addActiveMission(this);
@@ -116,48 +94,10 @@ public class SupernovaMission extends Mission implements Serializable {
 	}
 
 	@Override
-	public void onMissionAccept() {
-	}
-
-	@Override
-	public void onMissionDecline() {
-	}
-
-	@Override
 	public void onMissionComplete() {
 		active = false;
 		alite.getCobra().removeSpecialCargo(TradeGoodStore.GOOD_UNHAPPY_REFUGEES);
 		alite.getCobra().addTradeGood(TradeGoodStore.get().gemStones(), Weight.kilograms(1), 0);
-	}
-
-	@Override
-	public void onMissionUpdate() {
-	}
-
-	@Override
-	public void load(DataInputStream dis) throws IOException {
-		galaxySeed = new char[3];
-		galaxySeed[0] = dis.readChar();
-		galaxySeed[1] = dis.readChar();
-		galaxySeed[2] = dis.readChar();
-		supernovaSystemIndex = dis.readInt();
-		state = dis.readInt();
-		active = true;
-		started = true;
-	}
-
-	@Override
-	public byte [] save() throws IOException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(16);
-		DataOutputStream dos = new DataOutputStream(bos);
-		dos.writeChar(galaxySeed[0]);
-		dos.writeChar(galaxySeed[1]);
-		dos.writeChar(galaxySeed[2]);
-		dos.writeInt(supernovaSystemIndex);
-		dos.writeInt(state);
-		dos.close();
-		bos.close();
-		return bos.toByteArray();
 	}
 
 	@Override
@@ -170,10 +110,10 @@ public class SupernovaMission extends Mission implements Serializable {
 		if (alite.getPlayer().getCondition() != Condition.DOCKED || state < 1 || !started || !active) {
 			return null;
 		}
-		if (state == 1 && !positionMatchesTarget(galaxySeed, supernovaSystemIndex)) {
+		if (state == 1 && !positionMatchesTarget()) {
 			return new SupernovaScreen(alite, 3);
 		}
-		if (state == 2 && !positionMatchesTarget(galaxySeed, supernovaSystemIndex)) {
+		if (state == 2 && !positionMatchesTarget()) {
 			active = false;
 			alite.getPlayer().removeActiveMission(this);
 			alite.getPlayer().addCompletedMission(this);
@@ -197,7 +137,7 @@ public class SupernovaMission extends Mission implements Serializable {
 
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
-		boolean result = positionMatchesTarget(galaxySeed, supernovaSystemIndex);
+		boolean result = positionMatchesTarget();
 		if (state != 1 && state != 2 || !result) {
 			return null;
 		}

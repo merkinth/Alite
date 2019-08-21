@@ -176,7 +176,7 @@ public class Dodec extends SpaceObject implements SpaceStation {
 
 	@Override
 	public void executeHit(SpaceObject player) {
-		if (ALIEN_SPACE_STATION.equals(getId())) {
+		if (ThargoidStationMission.ALIEN_SPACE_STATION.equals(getId())) {
 			return;
 		}
 		alite.getPlayer().setLegalValue(alite.getPlayer().getLegalValue() + 10);

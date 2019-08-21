@@ -29,6 +29,7 @@ import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
+import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.missions.SupernovaMission;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
@@ -48,13 +49,13 @@ public class SupernovaScreen extends AliteScreen {
 	private Button declineButton;
 	private Pixmap acceptIcon;
 	private Pixmap declineIcon;
-	private final SupernovaMission mission;
+	private final Mission mission;
 	private final int givenState;
 
 	public SupernovaScreen(Alite game, int state) {
 		super(game);
 		givenState = state;
-		mission = (SupernovaMission) MissionManager.getInstance().get(SupernovaMission.ID);
+		mission = MissionManager.getInstance().get(SupernovaMission.ID);
 		mediaPlayer = new MediaPlayer();
 		String path = MissionManager.DIRECTORY_SOUND_MISSION + "3/";
 		try {
@@ -64,10 +65,10 @@ public class SupernovaScreen extends AliteScreen {
 				acceptMission = new MissionLine(path + "06.mp3", L.string(R.string.mission_supernova_accept));
 			} else if (state == 1) {
 				missionLine = new MissionLine(path + "05.mp3", L.string(R.string.mission_supernova_mission_decline));
-				mission.setSupernovaSystem(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex());
+				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 1);
 			} else if (state == 2) {
 				missionLine = new MissionLine(path + "03.mp3", L.string(R.string.mission_supernova_drop_us_off));
-				mission.setSupernovaSystem(game.getGenerator().getCurrentSeed(), game.getPlayer().getCurrentSystem().getIndex());
+				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 2);
 			} else if (state == 3) {
 				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_supernova_success));
 				mission.onMissionComplete();

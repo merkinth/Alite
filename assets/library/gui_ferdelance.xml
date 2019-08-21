@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Fer-de-Lance</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_ferdelance"/>
 	<p>A Zorgon Petterson Group (Zee Pee Gee) designed vessel favoured
@@ -29,7 +28,5 @@
     </Text>
     <BackgroundImage name="ferdelance"/>
   </Content>
-  <Next>gui_gecko</Next>
-  <Previous>gui_dugite</Previous>
-</Page>
+    </Page>
 

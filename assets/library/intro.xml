@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Introductory Data</Header>
-  <Content>
+    <Content>
     <Text>
       <p>Welcome aboard this Cobra Mk III trading and combat
       craft. The ship has been supplied to you by Faulcon
@@ -60,6 +59,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>int_interior</Next>
-</Page>
+  </Page>
 

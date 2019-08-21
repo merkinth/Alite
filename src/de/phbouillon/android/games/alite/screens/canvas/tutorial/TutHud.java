@@ -27,6 +27,7 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
+import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state,
@@ -99,8 +100,8 @@ public class TutHud extends TutorialScreen {
 		game.getCobra().setLaser(PlayerCobra.DIR_LEFT, null);
 		game.getGenerator().buildGalaxy(1);
 		game.getGenerator().setCurrentGalaxy(1);
-		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(7)); // Lave
-		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(129)); // Zaonce
+		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
+		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
 		game.getCobra().setFuel(70);
 	}
 

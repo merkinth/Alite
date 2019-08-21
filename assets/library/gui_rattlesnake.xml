@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Rattlesnake</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_rattlesnake"/>
 	<p>Data missing</p>
@@ -20,7 +19,5 @@
     </Text>
     <BackgroundImage name="rattlesnake"/>
   </Content>
-  <Next>gui_sidewinder</Next>
-  <Previous>gui_python</Previous>
-</Page>
+    </Page>
 

@@ -290,7 +290,7 @@ public class AliteButtons implements Serializable {
 		if (buttons[DOCKING_COMPUTER] == null) {
 			return;
 		}
-		if (alite.getCobra().isEquipmentInstalled(EquipmentStore.dockingComputer) && inGame.isInSafeZone()) {
+		if (alite.getCobra().isEquipmentInstalled(EquipmentStore.dockingComputer) && InGameManager.playerInSafeZone) {
 			buttons[DOCKING_COMPUTER].active = true;
 			buttons[DOCKING_COMPUTER].yellow = inGame.isDockingComputerActive();
 		} else {
@@ -348,9 +348,7 @@ public class AliteButtons implements Serializable {
 		}
 		if ((buttons[DOCKING_COMPUTER] == null || !buttons[DOCKING_COMPUTER].active) &&
 				(buttons[TORUS_DRIVE] == null || !buttons[TORUS_DRIVE].active) &&
-				alite.getPlayer().getCondition() != Condition.RED &&
-				inGame.getHud() != null && !inGame.isInSafeZone()) {
-			// Check for Hud to compensate for brief flickering if come back from Information screen
+				alite.getPlayer().getCondition() != Condition.RED && !InGameManager.playerInSafeZone) {
 			buttons[TIME_DRIVE].active = true;
 			buttons[TIME_DRIVE].yellow = isTimeDriveEngaged();
 		} else {
@@ -419,7 +417,7 @@ public class AliteButtons implements Serializable {
 		}
 	}
 
-	public void update() {
+	private void update() {
 		updateFireButton();
 		updateMissileButton();
 		updateDockingComputerButton();
@@ -439,6 +437,7 @@ public class AliteButtons implements Serializable {
 	}
 
 	public void render() {
+		update();
 		alite.getGraphics().setColor(AliteColor.argb(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha));
 		for (ButtonGroup bg: buttonGroup) {
 			if (bg.active) {

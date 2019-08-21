@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Corporate States</Header>
-  <Content>
+    <Content>
     <Text>
         <p>Like [b]ENGEMA[/b] and [b]ZAATXE[/b], these are well-ordered
         worlds, which have usually developed from settlers who practised a
@@ -22,7 +21,5 @@
         far across the galaxy.</p>
     </Text>
   </Content>
-  <Next>pol_t_dict</Next>
-  <Previous>politics</Previous>
-</Page>
+    </Page>
 

@@ -487,7 +487,7 @@ public class GalaxyScreen extends AliteScreen {
 
 	private void initializeSystems() {
 		Player player = game.getPlayer();
-		int raxlaa = player.getRating() == Rating.ELITE && game.getGenerator().getCurrentGalaxyFromSeed() == 8 ? 1 : 0;
+		int raxlaa = player.getRating() == Rating.ELITE && game.getGenerator().getCurrentGalaxy() == 8 ? 1 : 0;
 
 		SystemData[] systems = game.getGenerator().getSystems();
 		systemData = new MappedSystemData[systems.length + raxlaa];

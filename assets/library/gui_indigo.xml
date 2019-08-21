@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Indigo</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_indigo"/>
 	<p>Data missing</p>
@@ -20,7 +19,5 @@
     </Text>
     <BackgroundImage name="indigo"/>
   </Content>
-  <Next>gui_krait</Next>
-  <Previous>gui_hognose</Previous>
-</Page>
+    </Page>
 

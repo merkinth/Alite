@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Bounty Hunting</Header>
-  <Content>
+    <Content>
     <Text>
         <p>Galactic banks, which insure the larger trading convoys, will pay
         a large bounty for each pirate ship destroyed. A ship&apos;s
@@ -16,7 +15,5 @@
         a quick escape.</p>
     </Text>
   </Content>
-  <Next>trade_a_piracy</Next>
-  <Previous>trade_alt</Previous>
-</Page>
+    </Page>
 

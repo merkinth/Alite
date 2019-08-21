@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Lancehead</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_lora"/>
 	<p>The Lancehead was originally designed by Skunkworx as the ultimate royal escort craft.
@@ -26,7 +25,5 @@
     </Text>
     <BackgroundImage name="lora"/>
   </Content>
-  <Next>gui_lyre</Next>
-  <Previous>gui_krait</Previous>
-</Page>
+    </Page>
 

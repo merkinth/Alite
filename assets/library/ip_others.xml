@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Other Space Types</Header>
-  <Content>
+    <Content>
     <Text>
       <p>Not all vessels a pilot encounters throughout his life are
       enemies. Some encounters may open up a chance for profitable
@@ -9,7 +8,5 @@
       success.</p>
     </Text>
   </Content>
-  <Next>ip_o_hermits</Next>
-  <Previous>ip_e_thargoids</Previous>
-</Page>
+    </Page>
 

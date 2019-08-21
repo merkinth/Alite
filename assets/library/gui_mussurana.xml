@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Mussurana</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_mussurana"/>
 	<p>Data missing</p>
@@ -20,7 +19,5 @@
     </Text>
     <BackgroundImage name="mussurana"/>
   </Content>
-  <Next>gui_shuttle</Next>
-  <Previous>gui_moray</Previous>
-</Page>
+    </Page>
 

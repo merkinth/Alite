@@ -33,6 +33,8 @@ public class SystemData implements Serializable {
 	private static final long serialVersionUID = 6117084866118128888L;
 
 	public static final SystemData RAXXLA_SYSTEM = createRaxxlaSystem();
+	public static final int LAVE_SYSTEM_INDEX = 7;
+	public static final int ZAONCE_SYSTEM_INDEX = 129;
 
 
 	private static final String[][] DESCRIPTION_TEXT_LIST = {

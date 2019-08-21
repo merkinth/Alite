@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Piracy</Header>
-  <Content>
+    <Content>
     <Text>
-        <p>Piracy is widespread throughout the 8 galaxies, and many pirates
+        <p>Piracy is widespread throughout the galaxies, and many pirates
         are not hardened criminals at all, but failed traders who have
         turned to this way of life in desperation. To survive as a pirate,
         looting freighter convoys and small ships, requires a high degree
@@ -15,7 +14,5 @@
         ships can be scooped up and traded.</p>
     </Text>
   </Content>
-  <Next>trade_a_asteroid</Next>
-  <Previous>trade_a_bounty</Previous>
-</Page>
+    </Page>
 

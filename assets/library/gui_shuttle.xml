@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Orbit Shuttle</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_shuttle"/>
 	<p>These unarmed and often unmanned craft are built under license in
@@ -25,7 +24,5 @@
     </Text>
     <BackgroundImage name="shuttle"/>
   </Content>
-  <Next>gui_python</Next>
-  <Previous>gui_mussurana</Previous>
-</Page>
+    </Page>
 

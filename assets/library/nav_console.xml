@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Console Readings</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="console"/>
 	<p>[pb]1[/bp] Fuel level. Indicates how far your Cobra can travel
@@ -32,7 +31,5 @@
 	<p>[pb]10[/bp] Tap on the Alite logo to switch between pausing and resuming the game.</p>
     </Text>
   </Content>
-  <Next>nav_target</Next>
-  <Previous>nav_basic_manoeuvres</Previous>
-</Page>
+    </Page>
 

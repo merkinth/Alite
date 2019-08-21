@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Intergalactic hyperdrive</Header>
-  <Content>
+    <Content>
     <Text>
     	<InlineImage name="intergal"/>
     	<p>The intergalactic hyperdrive is obtainable only from planets at
@@ -13,7 +12,5 @@
     	drives.</p>
     </Text>
   </Content>
-  <Next>ip_n_asteroid</Next>
-  <Previous>ip_n_docking</Previous>
-</Page>
+    </Page>
 

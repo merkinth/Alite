@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Dictatorships</Header>
-  <Content>
+    <Content>
     <Text>
         <p>Dictatorships such as the worlds [b]LAVE[/b] and [b]ENZAER[/b],
         are only moderately safe to trade with, but are well worth the risk
@@ -22,7 +21,5 @@
         the voice of the People has been raised in protest.</p>
     </Text>
   </Content>
-  <Next>pol_t_anar</Next>
-  <Previous>pol_t_corp</Previous>
-</Page>
+    </Page>
 

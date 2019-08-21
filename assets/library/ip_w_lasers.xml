@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Lasers</Header>
-  <Content>
+    <Content>
     <Text>
     	<p>Pulse lasers are initially housed only in the front of the ship,
     	and so no sights appear across rear or side views until such time as
@@ -43,7 +42,5 @@
     	comes with x4SUSAT sights.</p>
     </Text>
   </Content>
-  <Next>ip_w_missiles</Next>
-  <Previous>ip_weaponry</Previous>
-</Page>
+    </Page>
 

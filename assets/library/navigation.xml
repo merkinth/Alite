@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Navigation and Flying</Header>
-  <Content>
+    <Content>
     <Text>
       <p>The Galactic Co-operative is only one - although the
       largest - of several planetary federations, and maintains
-      trade and diplomatic links with over 2000 planets spread
-      throughout 8 galaxies. The political profile of a planet is
+      trade and diplomatic links with thousands of planets spread
+      throughout the galaxies. The political profile of a planet is
       an important navigational consideration as many are in a
       state of anarchy and are unsafe to visit in poorly
       equipped ships. Important too is its economic profile, as
@@ -25,7 +24,7 @@
       (traveling to dangerous planets or trading in contraband
       goods), the faster you may equip your ship but the
       quicker you will be killed. You will discover that life in the
-      8 galaxies is a question of fine balance. Although it may
+      galaxies is a question of fine balance. Although it may
       seem, at first, that indiscriminate carnage is a soft option
       (kills improve your rating, after all), as your skills and
       experience of living in space mature, you will quickly
@@ -36,11 +35,11 @@
 
       <p>Here you are introduced to all the controls which will
       eventually be useful to you in developing a route
-      through the 8 galaxies.</p>
+      through the galaxies.</p>
     </Text>
     <Image name="galchart">
       <Text>
-        There are 8 galaxies (of
+        There are at least 8 galaxies (of
         which this is one), and
         over 250 recognized
         planets in each galaxy. So
@@ -53,7 +52,5 @@
       </Text>
     </Image>
   </Content>
-  <Next>nav_controls</Next>
-  <Previous>int_rating</Previous>
-</Page>
+    </Page>
 

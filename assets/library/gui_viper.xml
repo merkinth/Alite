@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Page>
-  <Header>Viper (Police Ship)</Header>
-  <Content>
+    <Content>
     <Text>
         <InlineImage name="sc_viper"/>
 	<p>Small, highly manoeuvrable short range &apos;hunter-killer&apos;,
@@ -27,7 +26,5 @@
     </Text>
     <BackgroundImage name="viper_gui"/>
   </Content>
-  <Next>gui_wolf</Next>
-  <Previous>gui_transporter</Previous>
-</Page>
+    </Page>
 
