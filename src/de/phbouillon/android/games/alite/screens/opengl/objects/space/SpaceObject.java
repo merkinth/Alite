@@ -165,14 +165,14 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "SpaceObject.readObject");
+			AliteLog.d("readObject", "SpaceObject.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "SpaceObject.readObject I");
 			alite = Alite.get();
 			exhaust = new ArrayList<>();
 			init();
 			scaleBoundingBox(scale);
-			AliteLog.e("readObject", "SpaceObject.readObject II");
+			AliteLog.d("readObject", "SpaceObject.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}
@@ -400,7 +400,7 @@ public abstract class SpaceObject extends AliteObject implements Geometry, Seria
 					   ")");
 			}
 			else {
-				AliteLog.e("AIS",
+				AliteLog.d("AIS",
 					   "PRXMTY: " + this + " (" + getPosition().x + ":" + getPosition().y + ":" + getPosition().z + ":" + getBoundingSphereRadius() +
 					   ":" + pP.x + ":" + pP.y + ":" + pP.z + ":" + pvX.x + ":" + pvX.y + ":" + pvX.z + ":" + pvY.x + ":" + pvY.y + ":" + pvY.z + ":" + pvZ.x + ":" + pvZ.y + ":" + pvZ.z +
 					   ") " + other +

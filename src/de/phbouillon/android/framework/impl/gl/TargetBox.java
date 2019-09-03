@@ -70,12 +70,12 @@ public class TargetBox implements Serializable {
 
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "TargetBox.readObject");
+			AliteLog.d("readObject", "TargetBox.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "TargetBox.readObject I");
 			this.alite = Alite.get();
 			initialize();
-			AliteLog.e("readObject", "TargetBox.readObject II");
+			AliteLog.d("readObject", "TargetBox.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}

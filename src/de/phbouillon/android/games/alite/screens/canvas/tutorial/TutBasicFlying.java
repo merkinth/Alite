@@ -44,12 +44,16 @@ import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteBut
 public class TutBasicFlying extends TutorialScreen {
 
 	private static final int TUTORIAL_INDEX = 6;
+	private static final String YELLOW_TARGET_ID = "Yellow Target";
+	private static final String BLUE_TARGET_ID = "Blue Target";
+	private static final String BUOY_ID = "Buoy";
+	private static final String DOCKING_BUOY_ID = "Docking Buoy";
 
 	private FlightScreen flight;
 	private boolean resetShipPosition = true;
-	private Buoy yellowTarget;
-	private Buoy blueTarget;
-	private Buoy dockingBuoy;
+	private SpaceObject yellowTarget;
+	private SpaceObject blueTarget;
+	private SpaceObject dockingBuoy;
 
 	TutBasicFlying(final Alite alite) {
 		this(alite, null);
@@ -238,7 +242,7 @@ public class TutBasicFlying extends TutorialScreen {
 		});
 	}
 
-	private void targetToCrosshairs(TutorialLine line, Buoy target) {
+	private void targetToCrosshairs(TutorialLine line, SpaceObject target) {
 		setButtons(true);
 		InGameManager.OVERRIDE_SPEED = true;
 		if (!flight.getInGameManager().isPlayerControl()) {
@@ -296,7 +300,7 @@ public class TutBasicFlying extends TutorialScreen {
 			.setFinishHook(deltaTime -> finishFlight());
 	}
 
-	private void approachTarget(TutorialLine line, Buoy target) {
+	private void approachTarget(TutorialLine line, SpaceObject target) {
 		startFlightWithButtons();
 		if (target.getPosition().distanceSq(flight.getInGameManager().getShip().getPosition()) < 360000000L) {
 			SoundManager.play(Assets.identify);
@@ -346,7 +350,7 @@ public class TutBasicFlying extends TutorialScreen {
 			if (yellowTarget.getDestructionCallbacks().isEmpty()) {
 				yellowTarget.addDestructionCallback(5, (IMethodHook) deltaTime1 -> {
 					line.setFinished();
-					if (flight.findObjectById("Blue Target") == null) {
+					if (flight.findObjectById(BLUE_TARGET_ID) == null) {
 						currentLineIndex+= 5;
 					}
 				});
@@ -380,17 +384,23 @@ public class TutBasicFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_MISSILE = false;
 			AliteButtons.OVERRIDE_LASER = true;
 			startFlight();
-			if (flight.findObjectById("Blue Target") == null) {
+			// collided with the target
+			if (flight.findObjectById(BLUE_TARGET_ID) == null) {
 				line.setFinished();
 				currentLineIndex+= 2;
 			}
 			if (game.getCobra().isMissileTargetting()) {
 				line.setFinished();
-			} else if (game.getCobra().isMissileLocked()) {
+			} else if (isBlueTargetLocked()) {
 				line.setFinished();
 				currentLineIndex++;
 			}
 		}).setFinishHook(deltaTime -> finishFlight());
+	}
+
+	private boolean isBlueTargetLocked() {
+		SpaceObject missileLock = flight.getInGameManager().getMissileLock();
+		return missileLock != null && BLUE_TARGET_ID.equals(missileLock.getId());
 	}
 
 	private void initLine_25() {
@@ -403,9 +413,16 @@ public class TutBasicFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_MISSILE = false;
 			AliteButtons.OVERRIDE_LASER = true;
 			startFlight();
-			if (flight.getInGameManager().getLaserManager().isUnderCross(blueTarget,
-					flight.getInGameManager().getShip(),
-					flight.getInGameManager().getViewDirection())) {
+			// collided with the target
+			if (flight.findObjectById(BLUE_TARGET_ID) == null) {
+				line.setFinished();
+				currentLineIndex++;
+			}
+			if (game.getCobra().getMissiles() == 0) {
+				line.setFinished();
+				currentLineIndex+= 2;
+			}
+			if (isBlueTargetLocked()) {
 				SoundManager.play(Assets.identify);
 				line.setFinished();
 			}
@@ -423,9 +440,9 @@ public class TutBasicFlying extends TutorialScreen {
 		line.setUnskippable().setUpdateMethod(new IMethodHook() {
 			private void writeObject(ObjectOutputStream out) throws IOException {
 				try {
-					AliteLog.e("Writing", "Writing");
+					AliteLog.d("Writing", "Writing");
 					out.defaultWriteObject();
-					AliteLog.e("DONEWriting", "DONE Writing");
+					AliteLog.d("DONEWriting", "DONE Writing");
 				} catch(IOException e) {
 					AliteLog.e("PersistenceException", "WriteObject!!", e);
 					throw e;
@@ -451,9 +468,9 @@ public class TutBasicFlying extends TutorialScreen {
 
 					private void writeObject(ObjectOutputStream out) throws IOException {
 						try {
-							AliteLog.e("Destruction Callback", "Destruction Callback");
+							AliteLog.d("Destruction Callback", "Destruction Callback");
 							out.defaultWriteObject();
-							AliteLog.e("DONEWriting", "DONE Writing Destruction Callback");
+							AliteLog.d("DONEWriting", "DONE Writing Destruction Callback");
 						} catch(IOException e) {
 							AliteLog.e("PersistenceException", "WriteObject Destruction Callback!!", e);
 							throw e;
@@ -501,7 +518,7 @@ public class TutBasicFlying extends TutorialScreen {
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (dockingBuoy == null) {
-				dockingBuoy = (Buoy) flight.findObjectById("Docking Buoy");
+				dockingBuoy = (SpaceObject)flight.findObjectById(DOCKING_BUOY_ID);
 				if (dockingBuoy == null) {
 					InGameManager man = flight.getInGameManager();
 					dockingBuoy = new Buoy(game);
@@ -601,15 +618,15 @@ public class TutBasicFlying extends TutorialScreen {
 			tb.currentLineIndex = dis.readInt();
 			tb.resetShipPosition = dis.readBoolean();
 
-			tb.yellowTarget = (Buoy) tb.flight.findObjectById("Yellow Target");
+			tb.yellowTarget = (SpaceObject) tb.flight.findObjectById(YELLOW_TARGET_ID);
 			if (tb.yellowTarget != null) {
 				tb.yellowTarget.setSaving(false);
 			}
-			tb.blueTarget = (Buoy) tb.flight.findObjectById("Blue Target");
+			tb.blueTarget = (SpaceObject) tb.flight.findObjectById(BLUE_TARGET_ID);
 			if (tb.blueTarget != null) {
 				tb.blueTarget.setSaving(false);
 			}
-			Buoy buoy = (Buoy) tb.flight.findObjectById("Docking Buoy");
+			SpaceObject buoy = (SpaceObject) tb.flight.findObjectById(DOCKING_BUOY_ID);
 			if (buoy != null) {
 				buoy.setSaving(false);
 			}

@@ -36,7 +36,6 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
-import de.phbouillon.android.games.alite.R;
 
 // ??              - Adder Mk II          - Gopher
 //                 - Mosquito Trader      - Indigo
@@ -59,8 +58,6 @@ public class AboutScreen extends GlScreen {
 	private static final int WAIT_CYCLE_IN_50_MICROS = 60; // 3s
 
 	private final Rect visibleArea;
-	private final int windowWidth;
-	private final int windowHeight;
 	private Sprite background;
 	private Sprite aliteLogo;
 	private final Timer timer = new Timer().setAutoReset();
@@ -110,13 +107,11 @@ public class AboutScreen extends GlScreen {
 	public AboutScreen(Alite game) {
 		this.game = game;
 		visibleArea = game.getGraphics().getVisibleArea();
-		background = new Sprite(game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom,
+		background = new Sprite(0, 0, AliteConfig.SCREEN_WIDTH, AliteConfig.SCREEN_HEIGHT,
 			0.0f, 0.0f, 1.0f, 1.0f, "textures/star_map_title.png");
-		aliteLogo  = new Sprite(game, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom,
+		aliteLogo  = new Sprite(0, 0, AliteConfig.SCREEN_WIDTH, AliteConfig.SCREEN_HEIGHT,
 			0.0f, 0.0f, 1615.0f / 2048.0f, AliteConfig.SCREEN_HEIGHT / 2048.0f, "title_logo.png");
-		aliteLogo.scale(0.96f, visibleArea.left, visibleArea.top, visibleArea.right, visibleArea.bottom);
-		windowWidth = visibleArea.width();
-		windowHeight = visibleArea.height();
+		aliteLogo.scale(0.96f, 0, 0, AliteConfig.SCREEN_WIDTH, AliteConfig.SCREEN_HEIGHT);
 		endCreditsMusic = game.getAudio().newMusic(LoadingScreen.DIRECTORY_MUSIC + "end_credits.mp3");
 		texts = new ArrayList<>();
 		for (String s: L.string(R.string.about, AliteConfig.GAME_NAME).split("\n")) {
@@ -179,7 +174,7 @@ public class AboutScreen extends GlScreen {
 	}
 
 	private void initializeGl() {
-		float ratio = windowWidth / (float) windowHeight;
+		float ratio = visibleArea.width() / (float) visibleArea.height();
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GlUtils.setViewport(visibleArea);
 		GLES11.glLoadIdentity();
@@ -276,6 +271,8 @@ public class AboutScreen extends GlScreen {
 		background.render();
 		GLES11.glColor4f(globalAlpha * alpha, globalAlpha * alpha, globalAlpha * alpha, globalAlpha * alpha);
 		aliteLogo.render();
+		game.getGraphics().drawText(L.string(R.string.about_version, AliteConfig.GAME_NAME, AliteConfig.VERSION_STRING), 0, 1030,
+			AliteColor.argb(globalAlpha, globalAlpha, globalAlpha, globalAlpha), Assets.regularFont, 1.0f);
 		if (y < 1200) {
 			int i = 0;
 			for (TextData text: texts) {
@@ -292,8 +289,6 @@ public class AboutScreen extends GlScreen {
 				}
 			}
 		}
-		game.getGraphics().drawText(L.string(R.string.about_version, AliteConfig.GAME_NAME, AliteConfig.VERSION_STRING), 0, 1030,
-			AliteColor.argb(globalAlpha, globalAlpha, globalAlpha, globalAlpha), Assets.regularFont, 1.0f);
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glPopMatrix();

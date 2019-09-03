@@ -397,7 +397,7 @@
     <string name="economy_mainly_agricultural">Mainly Agricultural</string>
     <string name="economy_rich_agricultural">Rich Agricultural</string>
     <string name="economy_average_agricultural">Average Agricultural</string>
-    <string name="economy_poor_agriculturall">Poor Agricultural</string>
+    <string name="economy_poor_agricultural">Poor Agricultural</string>
 
     <string name="mission_attention_commander">Attention Commander!</string>
     <string name="mission_unknown_target">&lt;Unknown&gt;</string>
@@ -655,6 +655,7 @@
 
     <string name="quit_confirm">Do you really want to quit %s?</string>
 
+    <string name="intro_error">Couldn\'t playback intro, cause: %s %s.</string>
     <string name="intro_btn_tap_to_start">Tap to start</string>
     <string name="intro_new_player">You seem to be new to %s, Commander. Would you like to visit the Training Academy now?</string>
     <string name="intro_new_player_info">If you want to visit the Academy later, you can find it at the bottom of the Command Console.
@@ -941,6 +942,10 @@
     <string name="tutorial_hud_34">Of course, you can\'t sell or buy anything while in space. You need to dock first.</string>
     <string name="tutorial_hud_35">The lower button on the right takes you to hyperspace and you will get out at your selected destination -- unless you are hijacked by Thargoids, that is.</string>
     <string name="tutorial_hud_36">Some pretty heavy stuff, hm? I bet you have a lot to think about. So let me dock this ship for you now and you can then rest a little and come back when you\'re ready for more...</string>
+
+    <string name="tutorial_basic_flying_yellow_target">Yellow Target</string>
+    <string name="tutorial_basic_flying_blue_target">Blue Target</string>
+    <string name="tutorial_basic_flying_docking_buoy">Docking Buoy</string>
 
     <string name="tutorial_basic_flying_00">Good Morning kiddo, we\'ll do some real flying today, so you\'d better pay attention...</string>
     <string name="tutorial_basic_flying_01">The horizontal bars on the radar tell you the direction in which an object is, vertical bars indicate the difference in altitude relative to your ship.</string>

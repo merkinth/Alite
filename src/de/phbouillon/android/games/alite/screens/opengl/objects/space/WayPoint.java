@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects.space;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -34,22 +34,22 @@ public class WayPoint implements Serializable {
 	public final Vector3f upVector = new Vector3f(0, 0, 0);
 	public final Vector3f position = new Vector3f(0, 0, 0);
 	public boolean orientFirst = false;
-		
-	private static transient PoolObjectFactory <WayPoint> waypointFactory = new WayPointFactory();	
+
+	private static transient PoolObjectFactory <WayPoint> waypointFactory = new WayPointFactory();
 	private static transient Pool <WayPoint> pool = new Pool<WayPoint>(waypointFactory, 100);
 
-	WayPoint() {		
+	WayPoint() {
 	}
-		
+
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "WayPoint.readObject");
+			AliteLog.d("readObject", "WayPoint.readObject");
 			in.defaultReadObject();
-			AliteLog.e("readObject", "WayPoint.readObject I");
+			AliteLog.d("readObject", "WayPoint.readObject I");
 			waypointFactory = new WayPointFactory();
 			pool = new Pool<WayPoint>(waypointFactory, 100);
 			pool.reset();
-			AliteLog.e("readObject", "WayPoint.readObject II");
+			AliteLog.d("readObject", "WayPoint.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}
@@ -58,35 +58,35 @@ public class WayPoint implements Serializable {
 	public static WayPoint newWayPoint() {
 		return newWayPoint(0, 0, 0, 0, 0, 0);
 	}
-	
+
 	public static WayPoint newWayPoint(Vector3f position, Vector3f up) {
 		return newWayPoint(position.x, position.y, position.z, up.x, up.y, up.z);
 	}
-	
+
 	public static WayPoint newWayPoint(float x, float y, float z, float ux, float uy, float uz) {
 		WayPoint result = pool.newObject();
-		
+
 		result.position.x = x;
 		result.position.y = y;
 		result.position.z = z;
-		
+
 		result.upVector.x = ux;
 		result.upVector.y = uy;
 		result.upVector.z = uz;
-		
+
 		result.orientFirst = false;
-				
+
 		return result;
 	}
-	
+
 	public void reached() {
 		pool.free(this);
 	}
-		
+
 	public float distanceSq(GraphicObject go) {
 		return position.distanceSq(go.getPosition());
 	}
-	
+
 	public String toString() {
 		return position.toString();
 	}

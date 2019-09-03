@@ -29,9 +29,11 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.VideoView;
 import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.impl.AndroidFileIO;
@@ -48,7 +50,6 @@ public class AliteIntro extends Activity implements OnClickListener {
 	private boolean isResumed;
 	private int stopPosition;
 	private boolean aliteStarted;
-	private int cyclingThroughVideoQualities = -1;
 	private FileIO fileIO;
 	private VideoView videoView;
 	// Subtitle must re-add after resume thus indices have to be determined again
@@ -63,7 +64,7 @@ public class AliteIntro extends Activity implements OnClickListener {
 				}
 				String path = ObbExpansionsManager.getInstance().getMainRoot();
 				if (path == null) {
-					AliteLog.e("AliteIntro playback", "OBB not yet mounted. Trying again in 200ms");
+					AliteLog.d("AliteIntro playback", "OBB not yet mounted. Trying again in 200ms");
 					Thread.sleep(200);
 					continue;
 				}
@@ -72,53 +73,6 @@ public class AliteIntro extends Activity implements OnClickListener {
 			}
 		} catch (InterruptedException ignored) { }
 		throw new RuntimeException("Mount OBB Error");
-	}
-
-	private String determineIntroName(int quality) {
-		String name = AliteConfig.HAS_EXTENSION_APK ? determineIntroFilename(quality) : determineIntroId(quality);
-		if (name == null) {
-			return null;
-		}
-		return AliteConfig.HAS_EXTENSION_APK ? getAbsolutePath(DIRECTORY_INTRO + INTRO_FILE_NAME + name) :
-			"android.resource://de.phbouillon.android.games.alite/" + name;
-	}
-
-	private String determineIntroId(int quality) {
-		switch (quality) {
-			case 0: AliteLog.d("Video Playback", "Using video resolution 1920x1080");
-			        return String.valueOf(AliteConfig.ALITE_INTRO_B1920);
-			case 1: AliteLog.d("Video Playback", "Using video resolution 1280x720");
-				    return String.valueOf(AliteConfig.ALITE_INTRO_B1280);
-			case 2:	AliteLog.d("Video Playback", "Using video resolution 640x360");
-					return String.valueOf(AliteConfig.ALITE_INTRO_B640);
-			case 3: AliteLog.d("Video Playback", "Using video resolution 320x180");
-					return String.valueOf(AliteConfig.ALITE_INTRO_B320);
-			case 4: AliteLog.d("Video Playback", "Failsafe mode 1: 288");
-					return String.valueOf(AliteConfig.ALITE_INTRO_288);
-			case 5: AliteLog.d("Video Playback", "Failsafe mode 2: 240");
-					return String.valueOf(AliteConfig.ALITE_INTRO_B240);
-			default: AliteLog.d("Video Playback", "No mode found. Giving up :(.");
-					 return null;
-		}
-	}
-
-	private String determineIntroFilename(int quality) {
-		switch (quality) {
-			case 0: AliteLog.d("Video Playback", "Using video resolution 1920x1080");
-			        return "_b1920.mp4";
-			case 1: AliteLog.d("Video Playback", "Using video resolution 1280x720");
-				    return "_b1280.mp4";
-			case 2:	AliteLog.d("Video Playback", "Using video resolution 640x360");
-					return "_b640.mp4";
-			case 3: AliteLog.d("Video Playback", "Using video resolution 320x180");
-					return "_b320.mp4";
-			case 4: AliteLog.d("Video Playback", "Failsafe mode 1: 288");
-					return "_288.3gp";
-			case 5: AliteLog.d("Video Playback", "Failsafe mode 2: 240");
-					return "_b240.mp4";
-			default: AliteLog.d("Video Playback", "No mode found. Giving up :(.");
-					 return null;
-		}
 	}
 
 	@Override
@@ -143,12 +97,6 @@ public class AliteIntro extends Activity implements OnClickListener {
 		L.getInstance().setLocale(this, fileIO.getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
 		Settings.setOrientation(this);
 
-		AliteLog.d("IntroVideoQuality", "IntroVideoQuality == " + Settings.introVideoQuality);
-		if (Settings.introVideoQuality < 0) {
-			// Device is not capable of playing intro video :(. Skip to game.
-			startAlite(null);
-			return;
-		}
 		if (savedInstanceState != null) {
 			stopPosition = savedInstanceState.getInt("position");
 		}
@@ -158,25 +106,28 @@ public class AliteIntro extends Activity implements OnClickListener {
 			initializeVideoView();
 		}
 
-		AliteLog.d("IntroVideoQuality", "IntroVideoQuality = " + Settings.introVideoQuality);
-		if (Settings.introVideoQuality == 255) {
-			cyclingThroughVideoQualities = 0;
-		}
-		AliteLog.d("cyclingThroughVideoQualities", "cyclingThroughVideoQualities = " + cyclingThroughVideoQualities);
-		String introName = determineIntroName(Settings.introVideoQuality == 255 ? 0 : Settings.introVideoQuality);
-		if (introName == null) {
-			startAlite(videoView);
-		}
-		playVideo(introName);
+		videoView.setVideoPath(getIntroName());
+		addSubtitle();
+
 		videoView.setMediaController(null);
 		videoView.requestFocus();
 		AliteLog.d("AliteIntro.onCreate", "onCreate end");
 	}
 
-	private void playVideo(String introName) {
-		AliteLog.d("Intro path", "Intro path: " + introName);
-		videoView.setVideoPath(introName);
-		addSubtitle();
+	private String getIntroName() {
+		AliteLog.d("Video Playback", "Using video resolution 1920x1080");
+		try {
+			return AliteConfig.HAS_EXTENSION_APK ? saveFile() :
+				"android.resource://de.phbouillon.android.games.alite/" + AliteConfig.ALITE_INTRO_B1920;
+		} catch (IOException ignored) {
+			return null;
+		}
+	}
+
+	private String saveFile() throws IOException {
+		File f = L.saveFile(new FileInputStream(getAbsolutePath(DIRECTORY_INTRO + INTRO_FILE_NAME + "_b1920.mp4")));
+		f.deleteOnExit();
+		return f.getPath();
 	}
 
 	private void addSubtitle() {
@@ -225,26 +176,8 @@ public class AliteIntro extends Activity implements OnClickListener {
 		final OnCompletionListener onCompletionListener = mp -> startAlite(videoView);
 		videoView.setOnCompletionListener(onCompletionListener);
 
-		AliteLog.e("Creating Error Listener", "EL created");
+		AliteLog.d("Creating Error Listener", "EL created");
 		videoView.setOnErrorListener((mp, what, extra) -> {
-			AliteLog.d("cyclingThroughVideoQualities [1]", "cyclingThroughVideoQualities = " + cyclingThroughVideoQualities);
-			if (cyclingThroughVideoQualities != -1) {
-				cyclingThroughVideoQualities++;
-				String introName = determineIntroName(cyclingThroughVideoQualities);
-				if (introName != null) {
-					if (mp != null) {
-						mp.reset();
-					}
-					needsToPlay = true;
-					playVideo(introName);
-					return true;
-				}
-				cyclingThroughVideoQualities = -1;
-				Settings.introVideoQuality = -1;
-				Settings.save(fileIO);
-				startAlite(videoView);
-			}
-
 			String cause = "Undocumented cause: " + what;
 			switch (what) {
 				case MediaPlayer.MEDIA_ERROR_UNKNOWN: cause = "Unknown cause."; break;
@@ -261,7 +194,11 @@ public class AliteIntro extends Activity implements OnClickListener {
 				case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK: details = "Not valid for progressive playback."; break;
 			}
 			AliteLog.d("Intro Playback Error", "Couldn't playback intro. " + cause + " " + details);
-			onCompletionListener.onCompletion(mp);
+			TextView errorText = new TextView(this);
+			errorText.setGravity(Gravity.CENTER);
+			errorText.setText(L.string(R.string.intro_error, cause, details));
+			errorText.setOnClickListener(this);
+			layout.addView(errorText);
 			return true;
 		});
 
@@ -341,6 +278,9 @@ public class AliteIntro extends Activity implements OnClickListener {
 			} catch (IllegalStateException ignored) { }
 			startAlite(videoView);
 		}
+		if (v instanceof TextView) {
+			startAlite(null);
+		}
 		if (mediaPlayer != null && subtitleIndex >= 0) {
 			selectOrDeselectTrack(false);
 			subtitleOn = !subtitleOn;
@@ -355,16 +295,8 @@ public class AliteIntro extends Activity implements OnClickListener {
 			return;
 		}
 		aliteStarted = true;
-		AliteLog.d("startAlite", "startAlite flag changed");
 		boolean result = fileIO.deleteFile(AliteStartManager.ALITE_STATE_FILE);
 		AliteLog.d("Deleting state file", "Delete result: " + result);
-		AliteLog.d("startAlite", "updating settings");
-		if (cyclingThroughVideoQualities != -1) {
-			Settings.introVideoQuality = cyclingThroughVideoQualities;
-			Settings.save(new AndroidFileIO(this));
-		}
-
-		AliteLog.d("startAlite", "Killing video view");
 		if (videoView != null) {
 			videoView.stopPlayback();
 			videoView.pause();

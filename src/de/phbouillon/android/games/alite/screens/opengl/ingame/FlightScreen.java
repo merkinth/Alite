@@ -42,7 +42,6 @@ import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
-import de.phbouillon.android.games.alite.screens.opengl.DefaultCoordinateTransformer;
 import de.phbouillon.android.games.alite.screens.opengl.IAdditionalGLParameterSetter;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.PlanetSpaceObject;
@@ -116,7 +115,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 
 	public FlightScreen(Alite game, boolean fromStation) {
 		this.game = game;
-		AliteLog.e("Flight Screen Constructor", "FSC -- fromStation == " + fromStation);
+		AliteLog.d("Flight Screen Constructor", "FSC -- fromStation == " + fromStation);
 		SHIP_ENTRY_POSITION.z = Settings.enterInSafeZone ? 685000.0f : 400000.0f;
 		this.fromStation = fromStation;
 		AliteButtons.OVERRIDE_HYPERSPACE = false;
@@ -137,7 +136,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 	public static FlightScreen createScreen(Alite alite, final DataInputStream dis) throws IOException, ClassNotFoundException {
 		alite.loadCommander(dis);
 		ObjectInputStream ois = new ObjectInputStream(dis);
-		AliteLog.e("Initializing Flight Screen", "---------------------------------------------------------------");
+		AliteLog.d("Initializing Flight Screen", "---------------------------------------------------------------");
 		FlightScreen fs = (FlightScreen) ois.readObject();
 		fs.needsActivation = false;
 		fs.resetSpaceStation = false;
@@ -148,7 +147,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 		try {
 			FlightScreen fs = createScreen(alite, dis);
 			alite.setScreen(fs);
-			AliteLog.e("Flight Screen created from state", "---------------------------------------------------------------");
+			AliteLog.d("Flight Screen created from state", "---------------------------------------------------------------");
 			return true;
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
@@ -160,12 +159,12 @@ public class FlightScreen extends GlScreen implements Serializable {
 
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "FlightScreen.readObject");
+			AliteLog.d("readObject", "FlightScreen.readObject");
 			in.defaultReadObject();
-			AliteLog.e("readObject", "FlightScreen.readObject I");
+			AliteLog.d("readObject", "FlightScreen.readObject I");
 			game = Alite.get();
 			setPause(true);
-			AliteLog.e("readObject", "FlightScreen.readObject II");
+			AliteLog.d("readObject", "FlightScreen.readObject II");
 			isSaving = false;
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);

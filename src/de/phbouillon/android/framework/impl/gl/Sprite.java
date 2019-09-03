@@ -2,7 +2,7 @@ package de.phbouillon.android.framework.impl.gl;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.nio.FloatBuffer;
 
 import android.opengl.GLES11;
+import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Rect;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -32,34 +33,21 @@ import de.phbouillon.android.games.alite.AliteLog;
 public class Sprite implements Serializable {
 	private static final long serialVersionUID = -8424677289585617300L;
 
-	protected transient FloatBuffer vertexBuffer;
-	protected transient FloatBuffer texCoordBuffer;
-	protected transient Alite alite;
+	private transient FloatBuffer vertexBuffer;
+	private transient FloatBuffer texCoordBuffer;
 
-	protected Rect position;
-	protected Rect textureCoords;
-	protected Rect originalPosition;
-	protected final String textureFilename;
-	
-	public Sprite(final Alite alite, float left, float top, float right,
-			float bottom, float tLeft, float tTop, float tRight, float tBottom,
-			final String textureFilename) {
-		this.alite = alite;
+	private Rect position;
+	private Rect textureCoords;
+	private final String textureFilename;
+
+	public Sprite(float left, float top, float right, float bottom, float tLeft, float tTop, float tRight,
+			float tBottom, final String textureFilename) {
 		vertexBuffer = GlUtils.allocateFloatBuffer(4 * 8);
 		texCoordBuffer = GlUtils.allocateFloatBuffer(4 * 8);
-		
-		position = new Rect(left, top, right, bottom);
-		originalPosition = new Rect(left, top, right, bottom);
+
+		position = new Rect();
 		textureCoords = new Rect(tLeft, tTop, tRight, tBottom);
-		
-		vertexBuffer.put(left);
-		vertexBuffer.put(top);
-		vertexBuffer.put(left);
-		vertexBuffer.put(bottom);
-		vertexBuffer.put(right);
-		vertexBuffer.put(top);
-		vertexBuffer.put(right);
-		vertexBuffer.put(bottom);
+		setPosition(left, top, right, bottom);
 
 		texCoordBuffer.put(tLeft);
 		texCoordBuffer.put(tTop);
@@ -70,38 +58,35 @@ public class Sprite implements Serializable {
 		texCoordBuffer.put(tRight);
 		texCoordBuffer.put(tBottom);
 
-		vertexBuffer.position(0);
 		texCoordBuffer.position(0);
 
 		this.textureFilename = textureFilename;
-		alite.getTextureManager().addTexture(textureFilename);
+		Alite.get().getTextureManager().addTexture(textureFilename);
 	}
-	
+
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "Sprite.readObject");
+			AliteLog.d("readObject", "Sprite.readObject");
 			in.defaultReadObject();
-			AliteLog.e("readObject", "Sprite.readObject I");
-			this.alite     = Alite.get();
+			AliteLog.d("readObject", "Sprite.readObject I");
 			vertexBuffer = GlUtils.allocateFloatBuffer(4 * 8);
 			texCoordBuffer = GlUtils.allocateFloatBuffer(4 * 8);
 			setTextureCoords(textureCoords.left, textureCoords.top, textureCoords.right, textureCoords.bottom);
 			setPosition(position);
-			AliteLog.e("readObject", "Sprite.readObject II");
+			AliteLog.d("readObject", "Sprite.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}
 	}
 
-	private void writeObject(ObjectOutputStream out)
-            throws IOException {
+	private void writeObject(ObjectOutputStream out) throws IOException {
 		try {
 			out.defaultWriteObject();
 		} catch(IOException e) {
 			AliteLog.e("PersistenceException", "Sprite " + textureFilename, e);
-			throw(e);
+			throw e;
 		}
-    }
+	}
 
 	public void setTextureCoords(float tLeft, float tTop, float tRight, float tBottom) {
 		texCoordBuffer.clear();
@@ -115,11 +100,11 @@ public class Sprite implements Serializable {
 		texCoordBuffer.put(tBottom);
 		texCoordBuffer.position(0);
 	}
-	
+
 	public void setPosition(Rect rect) {
 		setPosition(rect.left, rect.top, rect.right, rect.bottom);
 	}
-	
+
 	public void scale(float scale, float left, float top, float right, float bottom) {
 		float cx = (right - left) / 2.0f + left;
 		float cy = (bottom - top) / 2.0f + top;
@@ -131,57 +116,46 @@ public class Sprite implements Serializable {
 		float newBottom = cy + height;
 		setPosition(newLeft, newTop, newRight, newBottom);
 	}
-	
+
 	public void setPosition(float left, float top, float right, float bottom) {
 		vertexBuffer.clear();
-		vertexBuffer.put(left);
-		vertexBuffer.put(top);
-		vertexBuffer.put(left);
-		vertexBuffer.put(bottom);
-		vertexBuffer.put(right);
-		vertexBuffer.put(top);
-		vertexBuffer.put(right);
-		vertexBuffer.put(bottom);
+		Graphics g = Alite.get().getGraphics();
+		vertexBuffer.put(g.transX((int) left));
+		vertexBuffer.put(g.transY((int) top));
+		vertexBuffer.put(g.transX((int) left));
+		vertexBuffer.put(g.transY((int) bottom));
+		vertexBuffer.put(g.transX((int) right));
+		vertexBuffer.put(g.transY((int) top));
+		vertexBuffer.put(g.transX((int) right));
+		vertexBuffer.put(g.transY((int) bottom));
 		vertexBuffer.position(0);
 		position.left = left;
 		position.top = top;
 		position.right = right;
 		position.bottom = bottom;
 	}
-	
-	public void move(int dx, int dy) {
-		setPosition(position.left + dx, position.top + dy, position.right + dx, position.bottom + dy);
-	}
-	
-	public void resetPosition() {
-		setPosition(originalPosition);
-	}
-	
+
 	public Rect getPosition() {
 		return position;
 	}
-	
-	public Rect getOriginalPosition() {
-		return originalPosition;
-	}
-	
+
 	protected void setUp() {
 		GLES11.glDisable(GLES11.GL_LIGHTING);
 		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
-		
+
 		GLES11.glVertexPointer(2, GLES11.GL_FLOAT, 0, vertexBuffer);
 		GLES11.glTexCoordPointer(2, GLES11.GL_FLOAT, 0, texCoordBuffer);
 
-		alite.getTextureManager().setTexture(textureFilename);
-		
+		Alite.get().getTextureManager().setTexture(textureFilename);
+
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
 		GLES11.glEnable(GLES11.GL_BLEND);
 		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	public void render() {
-	  setUp();
+		setUp();
 		GLES11.glDrawArrays(GLES11.GL_TRIANGLE_STRIP, 0, 4);
 		cleanUp();
 	}
@@ -190,16 +164,16 @@ public class Sprite implements Serializable {
 		GLES11.glVertexPointer(2, GLES11.GL_FLOAT, 0, vertexBuffer);
 		GLES11.glTexCoordPointer(2, GLES11.GL_FLOAT, 0, texCoordBuffer);
 
-		alite.getTextureManager().setTexture(textureFilename);
+		Alite.get().getTextureManager().setTexture(textureFilename);
 		GLES11.glDrawArrays(GLES11.GL_TRIANGLE_STRIP, 0, 4);
 	}
-	
+
 	public void justRender() {
 		GLES11.glVertexPointer(2, GLES11.GL_FLOAT, 0, vertexBuffer);
 		GLES11.glTexCoordPointer(2, GLES11.GL_FLOAT, 0, texCoordBuffer);
 		GLES11.glDrawArrays(GLES11.GL_TRIANGLE_STRIP, 0, 4);
 	}
-	
+
 	protected void cleanUp() {
 		GLES11.glDisable(GLES11.GL_BLEND);
 		GLES11.glEnable(GLES11.GL_CULL_FACE);
@@ -211,6 +185,6 @@ public class Sprite implements Serializable {
 	}
 
 	public void destroy() {
-		alite.getTextureManager().freeTexture(textureFilename);
-	}	
+		Alite.get().getTextureManager().freeTexture(textureFilename);
+	}
 }

@@ -72,13 +72,13 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 			for (File obb : oldOBBs) {
 				if (!fileName.equals(obb.getName())) {
 					obb.delete();
-					AliteLog.e("Delete old OBB", "Old OBB '" + obb.getName() + "' deleted.");
+					AliteLog.d("Delete old OBB", "Old OBB '" + obb.getName() + "' deleted.");
 				}
 			}
 		}
 
 		File fileForNewFile = new File(Helpers.generateSaveFileName(this, fileName));
-	    AliteLog.e("Check for OBB", "OBB exists? " + fileForNewFile.getAbsolutePath());
+	    AliteLog.d("Check for OBB", "OBB exists? " + fileForNewFile.getAbsolutePath());
 	    return Helpers.doesFileExist(this, fileName, AliteConfig.EXTENSION_FILE_LENGTH, false);
 	}
 
@@ -129,9 +129,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		if (fileIO == null) {
 			fileIO = new AndroidFileIO(this);
 		}
-		if (!AliteLog.isInitialized()) {
-			AliteLog.initialize(fileIO);
-		}
+		AliteLog.initialize(fileIO);
 		AliteLog.d("AliteStartManager.onCreate", "onCreate begin");
 		final Thread.UncaughtExceptionHandler oldHandler = Thread.getDefaultUncaughtExceptionHandler();
 		Thread.setDefaultUncaughtExceptionHandler((paramThread, paramThrowable) -> {

@@ -84,7 +84,7 @@ public class Sphere implements Serializable {
 
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "Sphere.readObject");
+			AliteLog.d("readObject", "Sphere.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "Sphere.readObject I");
 			this.alite = Alite.get();
@@ -100,7 +100,7 @@ public class Sphere implements Serializable {
 				normalBuffer = null;
 			}			
 			plotSpherePoints(slices, stacks, radius, inside);
-			AliteLog.e("readObject", "Sphere.readObject II");
+			AliteLog.d("readObject", "Sphere.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}

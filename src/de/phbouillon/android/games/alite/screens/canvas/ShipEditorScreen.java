@@ -334,7 +334,7 @@ public class ShipEditorScreen extends AliteScreen {
 				}
 			}
 			if (nextShip.isTouched(touch.x, touch.y)) {
-				AliteLog.e("Exhaust Configuration", currentShip.getId() + ": Number of exhausts: " + numberOfExhausts + " Params: " + exp);
+				AliteLog.d("Exhaust Configuration", currentShip.getId() + ": Number of exhausts: " + numberOfExhausts + " Params: " + exp);
 				exp.xOffset = 50;
 				exp.yOffset = 0;
 				exp.zOffset = 0;

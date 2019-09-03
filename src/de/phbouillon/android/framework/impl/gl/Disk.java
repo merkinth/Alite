@@ -77,7 +77,7 @@ public class Disk implements Serializable {
 	
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "Disk.readObject");
+			AliteLog.d("readObject", "Disk.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "Disk.readObject II");
 			this.alite     = Alite.get();
@@ -93,7 +93,7 @@ public class Disk implements Serializable {
 				alite.getTextureManager().addTexture(textureFilename);
 			}
 			glDrawMode = GLES11.GL_TRIANGLE_STRIP;
-			AliteLog.e("readObject", "Disk.readObject III");
+			AliteLog.d("readObject", "Disk.readObject III");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}

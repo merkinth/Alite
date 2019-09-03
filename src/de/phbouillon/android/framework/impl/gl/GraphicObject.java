@@ -123,11 +123,9 @@ public class GraphicObject implements Serializable {
 
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "GraphicObject.readObject");
+			AliteLog.d("readObject", "GraphicObject.readObject");
 			in.defaultReadObject();
-			AliteLog.e("readObject", "GraphicObject.readObject I");
-			AliteLog.d("Read object", toDebugString());
-			AliteLog.e("readObject", "GraphicObject.readObject II");
+			AliteLog.d("readObject", "GraphicObject.readObject I: " + toDebugString());
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}

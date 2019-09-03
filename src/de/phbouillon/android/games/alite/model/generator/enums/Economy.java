@@ -47,7 +47,7 @@ public enum Economy {
 			case MAINLY_AGRICULTURAL: return L.string(R.string.economy_mainly_agricultural);
 			case RICH_AGRICULTURAL: return L.string(R.string.economy_rich_agricultural);
 			case AVERAGE_AGRICULTURAL: return L.string(R.string.economy_average_agricultural);
-			case POOR_AGRICULTURAL: return L.string(R.string.economy_poor_agriculturall);
+			case POOR_AGRICULTURAL: return L.string(R.string.economy_poor_agricultural);
 		}
 		return "";
 	}

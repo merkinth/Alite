@@ -492,7 +492,7 @@ public class LibraryPageScreen extends AliteScreen {
 				if (table.length() > tableIndex + 3) {
 					nextWord = table.substring(tableIndex + 3).trim();
 				}
-				AliteLog.e("Table", "Table == " + tableString);
+				AliteLog.d("Table", "Table == " + tableString);
 				formatTable(g, tableString, fieldWidth);
 			} else if (word.startsWith("[T:")) {
 				if (sentence.width > 0) {
@@ -506,7 +506,7 @@ public class LibraryPageScreen extends AliteScreen {
 				if (word.length() > tableIndex + 3) {
 					nextWord = word.substring(tableIndex + 3).trim();
 				}
-				AliteLog.e("Table", "Table == " + table);
+				AliteLog.d("Table", "Table == " + table);
 				formatTable(g, table, fieldWidth);
 			} else {
 				sentence = formatWord(word, sentence, sentences, fieldWidth, g);

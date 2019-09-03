@@ -18,35 +18,30 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.ShipControl;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 
 public class ControlPad implements Serializable {
 	private static final long serialVersionUID = -3050741925963060286L;
-	private final int CPX = Settings.controlPosition == 0 ? (Settings.flatButtonDisplay ? 50 : 150) : Settings.flatButtonDisplay ? 1524 : 1424;
+	private final int CPX = Settings.controlPosition == 0 ? Settings.flatButtonDisplay ? 50 : 150 : Settings.flatButtonDisplay ? 1524 : 1424;
 	private final int CPY = Settings.flatButtonDisplay ? 300 : 680;
 	private final int WIDTH = 350;
 	private final int HEIGHT = 350;
 
 	private final Sprite [] controlPad = new Sprite[9];
-	private transient Alite alite;
 
 	private int fingerDown = 0;
 	private int activeIndex = 0;
 	private float accelY = 0.0f;
 	private float accelZ = 0.0f;
 
-	ControlPad(final Alite alite) {
-		this.alite = alite;
+	ControlPad() {
 		controlPad[0] = genSprite("cpn", CPX, CPY, WIDTH, HEIGHT);
 		controlPad[1] = genSprite("cpu", CPX, CPY, WIDTH, HEIGHT);
 		controlPad[2] = genSprite("cpru", CPX, CPY, WIDTH, HEIGHT);
@@ -58,33 +53,20 @@ public class ControlPad implements Serializable {
 		controlPad[8] = genSprite("cplu", CPX, CPY, WIDTH, HEIGHT);
 	}
 
-	private void readObject(ObjectInputStream in) throws IOException {
-		try {
-			AliteLog.e("readObject", "ControlPad.readObject");
-			in.defaultReadObject();
-			AliteLog.e("readObject", "ControlPad.readObject I");
-			this.alite     = Alite.get();
-			AliteLog.e("readObject", "ControlPad.readObject II");
-		} catch (ClassNotFoundException e) {
-			AliteLog.e("Class not found", e.getMessage(), e);
-		}
+	private Sprite genSprite(String name, int x, int y, int width, int height) {
+		SpriteData spriteData = Alite.get().getTextureManager().getSprite(AliteHud.TEXTURE_FILE, name);
+		return new Sprite(x, y, x + width - 1, y + height - 1,
+			spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, AliteHud.TEXTURE_FILE);
 	}
 
-	Sprite genSprite(String name, int x, int y, int width, int height) {
-		SpriteData spriteData = alite.getTextureManager().getSprite(AliteHud.TEXTURE_FILE, name);
-		return new Sprite(alite, AliteHud.ct.getTextureCoordX(x), AliteHud.ct.getTextureCoordY(y),
-				                 AliteHud.ct.getTextureCoordX(x + width - 1), AliteHud.ct.getTextureCoordY(y + height - 1),
-				   spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, AliteHud.TEXTURE_FILE);
-	}
-
-	public void fingerDown(int pointer) {
+	private void fingerDown(int pointer) {
 		int val = 1 << pointer;
 		if ((fingerDown & val) == 0) {
 			fingerDown += val;
 		}
 	}
 
-	public boolean fingerUp(int pointer) {
+	private boolean fingerUp(int pointer) {
 		int val = 1 << pointer;
 		if ((fingerDown & val) != 0) {
 			fingerDown -= val;
@@ -166,7 +148,7 @@ public class ControlPad implements Serializable {
 	private boolean handleControlPad(TouchEvent event) {
 		boolean result = false;
 
-		if (event.x >= CPX && event.y >= CPY && event.x <= (CPX + WIDTH) && event.y <= (CPY + HEIGHT)) {
+		if (event.x >= CPX && event.y >= CPY && event.x <= CPX + WIDTH && event.y <= CPY + HEIGHT) {
 			if (event.type == TouchEvent.TOUCH_DOWN) {
 				fingerDown(event.pointer);
 				calculateActiveIndex(event.x - CPX, event.y - CPY);
@@ -188,7 +170,7 @@ public class ControlPad implements Serializable {
 		return result;
 	}
 
-	public boolean handleUI(TouchEvent event) {
+	boolean handleUI(TouchEvent event) {
 		boolean result = false;
 		if (Settings.controlMode == ShipControl.CONTROL_PAD) {
 			return handleControlPad(event);
@@ -226,8 +208,8 @@ public class ControlPad implements Serializable {
 
 	void render() {
 		float a = Settings.alpha * Settings.controlAlpha;
-		alite.getGraphics().setColor(AliteColor.argb(a, a, a, a));
+		Alite.get().getGraphics().setColor(AliteColor.argb(a, a, a, a));
 		controlPad[activeIndex].justRender();
-		alite.getGraphics().setColor(AliteColor.argb(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha));
+		Alite.get().getGraphics().setColor(AliteColor.argb(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha));
 	}
 }

@@ -29,8 +29,6 @@ import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.screens.canvas.DiskScreen;
-import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 public class NavigationBar {
@@ -248,9 +246,7 @@ public class NavigationBar {
 			AliteLog.e("NavigationBar", "Index out of bounds: " + index);
 			return null;
 		}
-		if ((index == activeIndex || pendingIndex != -1) &&
-				(index != Alite.NAVIGATION_BAR_DISK || game.getCurrentScreen() instanceof DiskScreen) &&
-				(index != Alite.NAVIGATION_BAR_OPTIONS || game.getCurrentScreen() instanceof OptionsScreen)) {
+		if (index == activeIndex || pendingIndex != -1)  {
 			// Nothing to do...
 			return null;
 		}

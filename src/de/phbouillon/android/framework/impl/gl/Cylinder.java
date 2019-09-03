@@ -109,7 +109,7 @@ public class Cylinder implements Serializable {
 	
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "Cylinder.readObject");
+			AliteLog.d("readObject", "Cylinder.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "Cylinder.readObject II");
 			this.alite        = Alite.get();
@@ -132,7 +132,7 @@ public class Cylinder implements Serializable {
 			if (textureFilename != null) {
 				alite.getTextureManager().addTexture(textureFilename);
 			}
-			AliteLog.e("readObject", "Cylinder.readObject III");
+			AliteLog.d("readObject", "Cylinder.readObject III");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}

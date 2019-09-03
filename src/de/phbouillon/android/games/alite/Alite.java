@@ -214,7 +214,7 @@ public class Alite extends AndroidGame {
 		} else {
 			player.setCurrentSystem(player.getHyperspaceSystem());
 		}
-		player.getCobra().setFuel(player.getCobra().getFuel() - distance);
+		player.getCobra().setFuel(player.getCobra().getFuel() - (distance == 0 ? 1 : distance));
 		FlightScreen fs = new FlightScreen(this, false);
 		if (willEnterWitchSpace) {
 			fs.enterWitchSpace();
@@ -264,7 +264,7 @@ public class Alite extends AndroidGame {
 			screen.saveScreenState(new DataOutputStream(stateFile));
 			AliteLog.d("Saving state", "Saving state completed successfully.");
 		} catch (IOException e) {
-			AliteLog.d("Saving state", "Error during saving state.", e);
+			AliteLog.e("Saving state", "Error during saving state.", e);
 			e.printStackTrace();
 		}
 	}
@@ -297,7 +297,7 @@ public class Alite extends AndroidGame {
 
 	@Override
 	public void onStop() {
-		AliteLog.e("Alite.OnStop", "Stopping Alite...");
+		AliteLog.d("Alite.OnStop", "Stopping Alite...");
 		getInput().dispose();
 		if (getCurrentScreen() != null && !(getCurrentScreen() instanceof FlightScreen)) {
 			try {
@@ -308,7 +308,7 @@ public class Alite extends AndroidGame {
 			}
 		}
 		while (saving) {
-			AliteLog.e("OnStop", "Still saving...");
+			AliteLog.d("OnStop", "Still saving...");
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException ignored) { }

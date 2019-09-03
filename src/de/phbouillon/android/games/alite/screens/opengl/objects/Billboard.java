@@ -128,12 +128,12 @@ public class Billboard extends AliteObject implements Geometry {
 	
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "Billboard.readObject");
+			AliteLog.d("readObject", "Billboard.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "Billboard.readObject I");
 			this.alite = Alite.get();
 			init();
-			AliteLog.e("readObject", "Billboard.readObject II");
+			AliteLog.d("readObject", "Billboard.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}

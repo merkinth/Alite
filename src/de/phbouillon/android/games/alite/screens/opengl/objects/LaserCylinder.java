@@ -84,7 +84,7 @@ public class LaserCylinder extends AliteObject implements Serializable {
 			
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "LaserCylinder.readObject");
+			AliteLog.d("readObject", "LaserCylinder.readObject");
 			in.defaultReadObject();
 			AliteLog.e("readObject", "LaserCylinder.readObject I");			
 			diskBuffer1    = GlUtils.allocateFloatBuffer(4 * 3 * 10);
@@ -101,7 +101,7 @@ public class LaserCylinder extends AliteObject implements Serializable {
 			plotDiskPoints(diskBuffer1, normalBuffer[0], texCoordBuffer[0], radius, radius, 0, 0, -halfLength, false);
 			plotCylinderPoints(radius, radius, radius, radius, halfLength * 2, 0, 0, -halfLength);
 			plotDiskPoints(diskBuffer2, normalBuffer[2], texCoordBuffer[2], radius, radius, 0, 0, halfLength, true);
-			AliteLog.e("readObject", "LaserCylinder.readObject II");
+			AliteLog.d("readObject", "LaserCylinder.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}

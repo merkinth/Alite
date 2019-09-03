@@ -42,8 +42,9 @@ public class CatalogScreen extends AliteScreen {
 	private Pixmap buttonBackground;
 	private Pixmap buttonBackgroundPushed;
 	private Pixmap buttonBackgroundSelected;
-	private Button more;
-	private Button back;
+	private Button btnListForward;
+	private Button btnListBackward;
+	private Button btnBack;
 	Button deleteButton;
 	int currentPage = 0;
 	boolean confirmDelete = false;
@@ -59,8 +60,9 @@ public class CatalogScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		File[] commanders = game.getCommanderFiles();
-		back = Button.createGradientRegularButton(1400, 950, 100, 100, "<");
-		more = Button.createGradientRegularButton(1550, 950, 100, 100, ">");
+		btnListBackward = Button.createGradientRegularButton(1400, 950, 100, 100, "<");
+		btnListForward = Button.createGradientRegularButton(1550, 950, 100, 100, ">");
+		btnBack = Button.createGradientRegularButton(1100, 950, 250, 100, L.string(R.string.options_back));
 
 		button.clear();
 		commanderData.clear();
@@ -163,11 +165,16 @@ public class CatalogScreen extends AliteScreen {
 		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-		if (more.isTouched(touch.x, touch.y)) {
+		if (btnBack.isTouched(touch.x, touch.y)) {
+			SoundManager.play(Assets.click);
+			newScreen = new DiskScreen(game);
+			return;
+		}
+		if (btnListForward.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			currentPage++;
 		}
-		if (back.isTouched(touch.x, touch.y)) {
+		if (btnListBackward.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			currentPage--;
 		}
@@ -269,8 +276,9 @@ public class CatalogScreen extends AliteScreen {
 				285 + (i % 5) * 140, color, Assets.regularFont);
 			g.drawText(data.getRating().getName(), 1300, 285 + (i % 5) * 140, color, Assets.regularFont);
 		}
-		back.render(g);
-		more.render(g);
+		btnListBackward.render(g);
+		btnListForward.render(g);
+		btnBack.render(g);
 		if (deleteButton != null) {
 			deleteButton.render(g);
 		}
@@ -279,8 +287,8 @@ public class CatalogScreen extends AliteScreen {
 	@Override
 	public void update(float deltaTime) {
 		super.update(deltaTime);
-		back.setVisible(currentPage > 0);
-		more.setVisible(currentPage < (button.size() - 1) / 5);
+		btnListBackward.setVisible(currentPage > 0);
+		btnListForward.setVisible(currentPage < (button.size() - 1) / 5);
 		if (deleteButton != null) {
 			deleteButton.setVisible(!selectedCommanderData.isEmpty());
 		}

@@ -31,10 +31,10 @@ import de.phbouillon.android.framework.impl.PluginManagerImpl;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
+import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +46,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 	public static final String PLUGINS_META_FILE = "alite_plugins.json";
 
 	private final List<Button> buttons = new ArrayList<>();
+	private Button btnBack;
 	private PluginModel pluginModel;
 	private List<Plugin> plugins;
 	private Plugin currentPlugin;
@@ -78,6 +79,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		pluginModel = new PluginModel(game.getFileIO(), DIRECTORY_PLUGINS + PLUGINS_META_FILE);
 		plugins = pluginModel.getOrderedListOfPlugins();
 		buildPluginButtons();
+		btnBack = Button.createGradientRegularButton(1400, 950, 250, 100, L.string(R.string.options_back));
 		setMaxY();
 	}
 
@@ -215,6 +217,13 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 					Math.abs(startY - touch.y) >= 20 || touch.y <= 79) {
 				return;
 			}
+
+			if (btnBack.isTouched(touch.x, touch.y)) {
+				SoundManager.play(Assets.click);
+				newScreen = new OptionsScreen(game);
+				return;
+			}
+
 			for (int i = 0; i < buttons.size(); i++) {
 				Button button = buttons.get(i);
 				if (button.isTouched(touch.x, touch.y) && button.getCommand() != 0) {
@@ -228,8 +237,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 					progress = new DownloadProgressInfo(1, 0, -1, 0);
 					new PluginManagerImpl(game.getApplicationContext(), game.getFileIO(), AliteConfig.ALITE_MAIL,
 						AliteConfig.ROOT_DRIVE_FOLDER, AliteConfig.GAME_NAME, this).
-						downloadFile(currentPlugin.fileId, currentPlugin.size,
-							currentPlugin.folder + File.separator + currentPlugin.filename);
+						downloadFile(currentPlugin.fileId, currentPlugin.size, currentPlugin.folder, currentPlugin.filename);
 					return;
 				}
 			}
@@ -246,6 +254,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		Graphics g = game.getGraphics();
 		g.clear(Color.BLACK);
 		displayTitle(L.string(R.string.title_plugins));
+		btnBack.render(g);
 
 		if (deltaY != 0) {
 			boolean neg = deltaY < 0;
@@ -437,7 +446,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		g.drawText(L.string(R.string.plugins_download_time,
 			progress.mCurrentSpeed / AliteLog.KB, (int) (progress.mTimeRemaining / 1000.0f)),
 			x + r + 40, button.getY() - yPosition + 2 * (int) Assets.titleFont.getSize(),
-			ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);;
+			ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
 	}
 
 }

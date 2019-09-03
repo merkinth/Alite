@@ -18,8 +18,6 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 
 import de.phbouillon.android.framework.IMethodHook;
@@ -29,34 +27,20 @@ import de.phbouillon.android.games.alite.model.Rating;
 public class WitchSpaceRender implements Serializable {
 	private static final long serialVersionUID = -1502376043768839904L;
 
-	private transient Alite alite;
 	private final InGameManager inGame;
 	private int witchSpaceKillCounter = 0;
 	private TimedEvent driveRepairedMessage = null;
 	private boolean hyperdriveMalfunction = false;
 	private boolean witchSpace = false;
 
-	WitchSpaceRender(Alite alite, InGameManager inGame) {
-		this.alite = alite;
+	WitchSpaceRender(InGameManager inGame) {
 		this.inGame = inGame;
-	}
-
-	private void readObject(ObjectInputStream in) throws IOException {
-		try {
-			AliteLog.e("readObject", "WitchSpaceRender.readObject");
-			in.defaultReadObject();
-			AliteLog.e("readObject", "WitchSpaceRender.readObject I");
-			this.alite = Alite.get();
-			AliteLog.e("readObject", "WitchSpaceRender.readObject II");
-		} catch (ClassNotFoundException e) {
-			AliteLog.e("Class not found", e.getMessage(), e);
-		}
 	}
 
 	void increaseWitchSpaceKillCounter() {
 		witchSpaceKillCounter++;
 		if (driveRepairedMessage != null || !hyperdriveMalfunction ||
-				witchSpaceKillCounter < Math.min(8, alite.getPlayer().getRating().ordinal() + 1)) {
+				witchSpaceKillCounter < Math.min(8, Alite.get().getPlayer().getRating().ordinal() + 1)) {
 			return;
 		}
 		driveRepairedMessage = new TimedEvent((long) ((Math.random() * 5 + 3) * 1000000000L));
@@ -84,14 +68,14 @@ public class WitchSpaceRender implements Serializable {
 	void enterWitchSpace() {
 		witchSpace = true;
 		witchSpaceKillCounter = 0;
-		alite.getPlayer().setHyperspaceSystem(null);
+		Alite.get().getPlayer().setHyperspaceSystem(null);
 		hyperdriveMalfunction = true;
 		if (inGame.getHud() != null) {
 			inGame.getHud().setWitchSpace(true);
 		}
 		inGame.getMessage().repeatText(L.string(R.string.com_hyperdrive_malfunction), 1, 4, 1);
 		SoundManager.play(Assets.com_hyperdriveMalfunction);
-		int maxAttackersNumber = alite.getPlayer().getRating().ordinal() - Rating.AVERAGE.ordinal();
+		int maxAttackersNumber = Alite.get().getPlayer().getRating().ordinal() - Rating.AVERAGE.ordinal();
 		if (maxAttackersNumber < 1) {
 			maxAttackersNumber = 1;
 		} else if (maxAttackersNumber > 4) {

@@ -23,6 +23,7 @@ import de.phbouillon.android.games.alite.AliteLog;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class AliteColor {
 
@@ -43,6 +44,8 @@ public class AliteColor {
 	static final int LIGHT_RED_LOW_ALPHA   = 0x55AA0000;
 	static final int DARK_RED_LOW_ALPHA    = 0x55770000;
 
+	private static final HashMap<String, Integer> colorNameMap;
+
 	// Color.argb since API 26
 	public static int argb(float alpha, float red, float green, float blue) {
 		return (int) (alpha * 255.0f + 0.5f) << 24 |
@@ -62,11 +65,52 @@ public class AliteColor {
 			(float) Math.min(1, Color.blue(color) / 255.0 + percent));
 	}
 
+	// Copied from class Color
+	public static int parseColor(String colorString) {
+		if (colorString.charAt(0) == '#') {
+			// Use a long to avoid rollovers on #ffXXXXXX
+			long color = Long.parseLong(colorString.substring(1), 16);
+			if (colorString.length() == 7) {
+				// Set the alpha value
+				color |= 0x00000000ff000000;
+			} else if (colorString.length() != 9) {
+				throw new IllegalArgumentException("Unknown color");
+			}
+			return (int)color;
+		}
+		Integer color = colorNameMap.get(colorString.toLowerCase(Locale.ROOT));
+		if (color != null) {
+			return color;
+		}
+		throw new IllegalArgumentException("Unknown color");
+	}
+
 	static {
-	try {
-		Field f = Color.class.getDeclaredField("sColorNameMap");
-		f.setAccessible(true);
-		HashMap<String, Integer> colorNameMap = (HashMap)f.get(new Color());
+		colorNameMap = new HashMap<>();
+		// Copied from class Color
+		colorNameMap.put("black", Color.BLACK);
+		colorNameMap.put("darkgray", Color.DKGRAY);
+		colorNameMap.put("gray", Color.GRAY);
+		colorNameMap.put("lightgray", Color.LTGRAY);
+		colorNameMap.put("white", Color.WHITE);
+		colorNameMap.put("red", Color.RED);
+		colorNameMap.put("green", Color.GREEN);
+		colorNameMap.put("blue", Color.BLUE);
+		colorNameMap.put("yellow", Color.YELLOW);
+		colorNameMap.put("cyan", Color.CYAN);
+		colorNameMap.put("magenta", Color.MAGENTA);
+		colorNameMap.put("aqua", 0xFF00FFFF);
+		colorNameMap.put("fuchsia", 0xFFFF00FF);
+		colorNameMap.put("darkgrey", Color.DKGRAY);
+		colorNameMap.put("grey", Color.GRAY);
+		colorNameMap.put("lightgrey", Color.LTGRAY);
+		colorNameMap.put("lime", 0xFF00FF00);
+		colorNameMap.put("maroon", 0xFF800000);
+		colorNameMap.put("navy", 0xFF000080);
+		colorNameMap.put("olive", 0xFF808000);
+		colorNameMap.put("purple", 0xFF800080);
+		colorNameMap.put("silver", 0xFFC0C0C0);
+		colorNameMap.put("teal", 0xFF008080);
 		// Add further pre-defined color constants
 		colorNameMap.put("transparent", Color.TRANSPARENT);
 		colorNameMap.put("grayishblue", GRAYISH_BLUE);
@@ -84,8 +128,5 @@ public class AliteColor {
 		colorNameMap.put("darkblue", DARK_BLUE);
 		colorNameMap.put("lightredlowalpha", LIGHT_RED_LOW_ALPHA);
 		colorNameMap.put("darkredlowalpha", DARK_RED_LOW_ALPHA);
-	} catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
-		AliteLog.e("Adding alite colors", "Error during adding alite colors", e);
-	}
 	}
 }

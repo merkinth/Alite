@@ -45,25 +45,22 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 
 	private boolean active = false;
 	private InGameManager inGame;
-	private transient Alite alite;
 	private final Vector3f v1 = new Vector3f(0, 0, 0);
 	private final DockingComputerAlignmentUpdater dcaUpdater;
 	private boolean onFinalApproach;
 
-	DockingComputerAI(Alite alite, InGameManager inGame) {
+	DockingComputerAI(InGameManager inGame) {
 		this.inGame = inGame;
-		this.alite = alite;
 		dcaUpdater = new DockingComputerAlignmentUpdater(inGame);
 		onFinalApproach = false;
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "DockingComputerAI.readObject");
+			AliteLog.d("readObject", "DockingComputerAI.readObject");
 			in.defaultReadObject();
-			AliteLog.e("readObject", "DockingComputerAI.readObject I");
-			alite = Alite.get();
-			AliteLog.e("readObject", "DockingComputerAI.readObject II");
+			AliteLog.d("readObject", "DockingComputerAI.readObject I");
+			AliteLog.d("readObject", "DockingComputerAI.readObject II");
 			if (isActive()) {
 				loadBlueDanube();
 				// Do not start music playback here: The game is in paused state, so play music
@@ -76,7 +73,7 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 
 	private void loadBlueDanube() {
 		if (Assets.danube == null) {
-			Assets.danube = alite.getAudio().newMusic(LoadingScreen.DIRECTORY_MUSIC + "blue_danube.ogg");
+			Assets.danube = Alite.get().getAudio().newMusic(LoadingScreen.DIRECTORY_MUSIC + "blue_danube.ogg");
 		}
 	}
 
@@ -152,7 +149,7 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		dcaUpdater.orientationFound = false;
 		AliteLog.d("DC Speed", "DC Speed = " + Settings.dockingComputerSpeed);
 		if (Settings.dockingComputerSpeed == 1) {
-			alite.setTimeFactor(PlayerCobra.SPEED_UP_FACTOR);
+			Alite.get().setTimeFactor(PlayerCobra.SPEED_UP_FACTOR);
 		}
 		loadBlueDanube();
 		if (Assets.danube == null) {
@@ -267,6 +264,7 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		}
 
 		AliteLog.d("Docking Check SUCCESS", "Successfully docked.");
+		Alite alite = Alite.get();
 		alite.getCobra().setLaserTemperature(0);
 		alite.getCobra().setMissileLocked(false);
 		alite.getCobra().setMissileTargetting(false);

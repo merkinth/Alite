@@ -160,9 +160,9 @@ public class ObjectSpawnManager implements Serializable {
 
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "ObjectSpawnManager.readObject");
+			AliteLog.d("readObject", "ObjectSpawnManager.readObject");
 			in.defaultReadObject();
-			AliteLog.e("readObject", "ObjectSpawnManager.readObject I");
+			AliteLog.d("readObject", "ObjectSpawnManager.readObject I");
 			alite = Alite.get();
 			conditionRedTimer = new SpawnTimer();
 			traderTimer = new SpawnTimer();

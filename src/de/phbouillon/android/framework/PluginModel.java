@@ -132,7 +132,7 @@ public class PluginModel {
 
 
 	/**
-	 * Set meta info of non existing local files based on server info
+	 * Refresh meta info based on server info
 	 * File names must be unique among all folders since file name is used for compare without folder name.
 	 */
 	private void checkServerFiles() {
@@ -140,10 +140,8 @@ public class PluginModel {
 			return;
 		}
 		for (Plugin s : serverFiles.values()) {
-			if (localFiles.containsKey(s.filename)) {
-				continue;
-			}
-			updateMetaInfo(s.fileId, s.folder, s.filename, s.size, s.modifiedTime, s.description == null ? "" : s.description, false);
+			updateMetaInfo(s.fileId, s.folder, s.filename, s.size, s.modifiedTime,
+				s.description == null ? "" : s.description, localFiles.containsKey(s.filename));
 		}
 	}
 
@@ -173,13 +171,16 @@ public class PluginModel {
 	 * Set description and in case of success the modified time, as well.
 	 */
 	private void upgradeFileIfNeeded(PluginManager pluginManager, Plugin serverFile, File localFile) {
+		Plugin file = metaInfo.get(serverFile.filename);
 		if (serverFile.modifiedTime <= localFile.lastModified()) {
+			if (file != null) {
+				file.description = serverFile.description;
+			}
 			return;
 		}
 		boolean upgradeSucceeded = pluginManager.updateFile(serverFile.fileId,
 			serverFile.size, getLastSubPath(localFile.getParent()), localFile.getName());
 		String newStatus = upgradeSucceeded ? Plugin.META_STATUS_UPGRADED : Plugin.META_STATUS_OUTDATED;
-		Plugin file = metaInfo.get(serverFile.filename);
 		if (file == null) {
 			metaInfo.put(serverFile.filename, new Plugin(serverFile.fileId, serverFile.folder, serverFile.filename,
 				serverFile.size, upgradeSucceeded ? serverFile.modifiedTime : localFile.lastModified(),
@@ -276,7 +277,10 @@ public class PluginModel {
 	public int countNewAndUpgraded() {
 		int count = 0;
 		for (Plugin m : metaInfo.values()) {
-			if (m.status.equals(Plugin.META_STATUS_NEW) || m.status.equals(Plugin.META_STATUS_UPGRADED)) count++;
+			if (m.status.equals(Plugin.META_STATUS_NEW) || m.status.equals(Plugin.META_STATUS_UPGRADED) ||
+					m.status.equals(Plugin.META_STATUS_OUTDATED)) {
+				count++;
+			}
 		}
 		return count;
 	}

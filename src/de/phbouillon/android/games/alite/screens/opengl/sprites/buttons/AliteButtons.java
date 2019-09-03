@@ -38,8 +38,6 @@ import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 import de.phbouillon.android.games.alite.screens.canvas.tutorial.TutorialScreen;
-import de.phbouillon.android.games.alite.screens.opengl.DefaultCoordinateTransformer;
-import de.phbouillon.android.games.alite.screens.opengl.ICoordinateTransformer;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
@@ -80,7 +78,6 @@ public class AliteButtons implements Serializable {
 	private Sprite noButton;
 
 	private final String textureFilename;
-	private final ICoordinateTransformer ct;
 	protected transient Alite alite;
 	protected final GraphicObject ship;
 	private Screen newScreen;
@@ -113,13 +110,16 @@ public class AliteButtons implements Serializable {
 		alite.getTextureManager().addTexture(textureFilename);
 		reset();
 
-		overlay       = new Sprite(alite, 0, 0, 20, 20, 200.0f / 1024.0f, 600.0f / 1024.0f, 400.0f / 1024.0f,  800.0f / 1024.0f, textureFilename);
-		yellowOverlay = new Sprite(alite, 0, 0, 20, 20, 600.0f / 1024.0f,             0.0f, 800.0f / 1024.0f,  200.0f / 1024.0f, textureFilename);
-		redOverlay    = new Sprite(alite, 0, 0, 20, 20, 400.0f / 1024.0f, 800.0f / 1024.0f, 600.0f / 1024.0f, 1000.0f / 1024.0f, textureFilename);
-		yesButton     = new Sprite(alite, ct.getTextureCoordX(500), ct.getTextureCoordY(250),
-			ct.getTextureCoordX(700), ct.getTextureCoordY(450), 600.0f / 1024.0f, 600.0f / 1024.0f, 800.0f / 1024.0f,  800.0f / 1024.0f, textureFilename);
-		noButton      = new Sprite(alite, ct.getTextureCoordX(1220), ct.getTextureCoordY(250),
-			ct.getTextureCoordX(1420), ct.getTextureCoordY(450), 600.0f / 1024.0f, 800.0f / 1024.0f, 800.0f / 1024.0f, 1000.0f / 1024.0f, textureFilename);
+		overlay       = new Sprite(0, 0, 20, 20,
+			200.0f / 1024.0f, 600.0f / 1024.0f, 400.0f / 1024.0f,  800.0f / 1024.0f, textureFilename);
+		yellowOverlay = new Sprite(0, 0, 20, 20,
+			600.0f / 1024.0f, 0.0f, 800.0f / 1024.0f,  200.0f / 1024.0f, textureFilename);
+		redOverlay    = new Sprite(0, 0, 20, 20,
+			400.0f / 1024.0f, 800.0f / 1024.0f, 600.0f / 1024.0f, 1000.0f / 1024.0f, textureFilename);
+		yesButton     = new Sprite(500, 250, 700, 450,
+			600.0f / 1024.0f, 600.0f / 1024.0f, 800.0f / 1024.0f,  800.0f / 1024.0f, textureFilename);
+		noButton      = new Sprite(1220, 250, 1420, 450,
+			600.0f / 1024.0f, 800.0f / 1024.0f, 800.0f / 1024.0f, 1000.0f / 1024.0f, textureFilename);
 		newScreen     = null;
 
 		torusTraverser = new TorusBlockingTraverser(inGame);
@@ -131,22 +131,20 @@ public class AliteButtons implements Serializable {
 		createButtonGroups();
 		createButtons();
 		setSweepPos();
-		cycleLeft  = new Sprite(alite, ct.getTextureCoordX(sweepLeftPos[0]), ct.getTextureCoordY(sweepLeftPos[1]),
-			ct.getTextureCoordX(sweepLeftPos[0] + 100), ct.getTextureCoordY(sweepLeftPos[1] + 100),
+		cycleLeft  = new Sprite(sweepLeftPos[0], sweepLeftPos[1], sweepLeftPos[0] + 100, sweepLeftPos[1] + 100,
 			800.0f / 1024.0f, 800.0f / 1024.0f, 900.0f / 1024.0f,  900.0f / 1024.0f, textureFilename);
-		cycleRight = new Sprite(alite, ct.getTextureCoordX(sweepRightPos[0]), ct.getTextureCoordY(sweepRightPos[1]),
-			ct.getTextureCoordX(sweepRightPos[0] + 100), ct.getTextureCoordY(sweepRightPos[1] + 100),
+		cycleRight = new Sprite(sweepRightPos[0], sweepRightPos[1], sweepRightPos[0] + 100, sweepRightPos[1] + 100,
 			800.0f / 1024.0f, 800.0f / 1024.0f, 900.0f / 1024.0f,  900.0f / 1024.0f, textureFilename);
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "AliteButtons.readObject");
+			AliteLog.d("readObject", "AliteButtons.readObject");
 			in.defaultReadObject();
-			AliteLog.e("readObject", "AliteButtons.readObject I");
+			AliteLog.d("readObject", "AliteButtons.readObject I");
 			alite = Alite.get();
 			setSweepPos();
-			AliteLog.e("readObject", "AliteButtons.readObject II");
+			AliteLog.d("readObject", "AliteButtons.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}
@@ -233,9 +231,8 @@ public class AliteButtons implements Serializable {
 		}
 
 
-		ButtonData result = new ButtonData(new Sprite(alite, ct.getTextureCoordX(xt * 150.0f),
-			ct.getTextureCoordY(yt * 150.0f), ct.getTextureCoordX(xt * 150.0f + 200.0f),
-			ct.getTextureCoordY(yt * 150.0f + 200.0f), x * 200.0f / 1024.0f, y * 200.0f / 1024.0f,
+		ButtonData result = new ButtonData(new Sprite(xt * 150.0f, yt * 150.0f, xt * 150.0f + 200.0f,
+			yt * 150.0f + 200.0f, x * 200.0f / 1024.0f, y * 200.0f / 1024.0f,
 			(x + 1.0f) * 200.0f / 1024.0f, (y + 1.0f) * 200.0f / 1024.0f, textureFilename),
 			xt * 150.0f + 100.0f, yt * 150.0f + 100.0f, name);
 		buttonGroup[groupIndex].addButton(result);

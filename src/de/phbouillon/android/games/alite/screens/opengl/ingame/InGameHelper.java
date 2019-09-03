@@ -19,7 +19,6 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  */
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.List;
 
@@ -37,7 +36,6 @@ import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.ObjectUtils;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceStation;
@@ -55,7 +53,6 @@ class InGameHelper implements Serializable {
 	static final float STATION_VESSEL_PROXIMITY_DISTANCE_SQ = 8000000.0f;
 	private static final float PROXIMITY_WARNING_RADIUS_FACTOR = 18.0f;
 
-	private transient Alite alite;
 	private final InGameManager inGame;
 	private final Vector3f tempVector;
 	private float fuelScoopFuel = 0.0f;
@@ -69,18 +66,6 @@ class InGameHelper implements Serializable {
 		this.inGame = inGame;
 		this.tempVector = new Vector3f(0, 0, 0);
 		this.attackTraverser = new AttackTraverser(alite);
-	}
-
-	private void readObject(ObjectInputStream in) throws IOException {
-		try {
-			AliteLog.e("readObject", "InGameHelper.readObject");
-			in.defaultReadObject();
-			AliteLog.e("readObject", "InGameHelper.readObject I");
-			alite = Alite.get();
-			AliteLog.e("readObject", "InGameHelper.readObject II");
-		} catch (ClassNotFoundException e) {
-			AliteLog.e("Class not found", e.getMessage(), e);
-		}
 	}
 
 	void setScoopCallback(ScoopCallback callback) {
@@ -98,7 +83,7 @@ class InGameHelper implements Serializable {
 
 	void checkShipStationProximity() {
 		SpaceObject ship = inGame.getShip();
-		SpaceObject station = (SpaceObject) inGame.getStation();
+		SpaceObject station = inGame.getStation();
 		if (ship == null || station == null) {
 			return;
 		}
@@ -106,7 +91,7 @@ class InGameHelper implements Serializable {
 		if (distanceSq <= STATION_PROXIMITY_DISTANCE_SQ) {
 			if (ship.getProximity() != station) {
 				ship.setProximity(station);
-				AliteLog.e("Proximity", "Setting ship/station proximity");
+				AliteLog.d("Proximity", "Setting ship/station proximity");
 			}
 		} else {
 			if (ship.getProximity() == station) {
@@ -226,6 +211,7 @@ class InGameHelper implements Serializable {
 		if (!inGame.isPlayerAlive()) {
 			return;
 		}
+		Alite alite  = Alite.get();
 		alite.getPlayer().setCondition(Condition.DOCKED);
 		SoundManager.stopAll();
 		inGame.getMessage().clearRepetition();
@@ -350,6 +336,7 @@ class InGameHelper implements Serializable {
 			if (target.getType() == ObjectType.SpaceStation ||
 			    target.getType() == ObjectType.Shuttle ||
 			    target.getType() == ObjectType.Trader) {
+				Alite alite  = Alite.get();
 				int legalValue = alite.getPlayer().getLegalValue();
 				if (InGameManager.playerInSafeZone) {
 					InGameManager.safeZoneViolated = true;
@@ -436,6 +423,7 @@ class InGameHelper implements Serializable {
 		if (!inGame.isPlayerAlive()) {
 			return;
 		}
+		Alite alite  = Alite.get();
 		float altitude = alite.getCobra().getAltitude();
 		if (altitude < 6 && !SoundManager.isPlaying(Assets.altitudeLow)) {
 			SoundManager.repeat(Assets.altitudeLow);
@@ -455,6 +443,7 @@ class InGameHelper implements Serializable {
 		if (!inGame.isPlayerAlive()) {
 			return;
 		}
+		Alite alite  = Alite.get();
 		int cabinTemperature = alite.getCobra().getCabinTemperature();
 		if (cabinTemperature > 24) {
 			if (!hasCabinTemperatureSound()) {
@@ -501,6 +490,7 @@ class InGameHelper implements Serializable {
 		if (!inGame.isPlayerAlive()) {
 			return;
 		}
+		Alite alite  = Alite.get();
 		if (alite.getCobra().getEnergy() < PlayerCobra.MAX_ENERGY_BANK ||
 			alite.getCobra().getCabinTemperature() > 24	||
 			alite.getCobra().getAltitude() < 6 ||

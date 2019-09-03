@@ -115,15 +115,15 @@ public class LaserManager implements Serializable {
 
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "LaserManager.readObject");
+			AliteLog.d("readObject", "LaserManager.readObject");
 			in.defaultReadObject();
-			AliteLog.e("readObject", "LaserManager.readObject I");
+			AliteLog.d("readObject", "LaserManager.readObject I");
 			alite = Alite.get();
 			laserFactory = new LaserCylinderFactory();
 			laserPool = new Pool<>(laserFactory, MAX_LASERS);
 			laserPool.reset();
 			alite.setLaserManager(this);
-			AliteLog.e("readObject", "LaserManager.readObject II");
+			AliteLog.d("readObject", "LaserManager.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}

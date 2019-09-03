@@ -33,17 +33,29 @@ import android.util.Log;
 import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
-public class AliteLog {
+public class AliteLog implements Loggable {
 	public static final int KB = 1024;
 	public static final int MB = 1024 * KB;
 	private static final int GB = 1024 * MB;
 
-	private static FileIO fileIO;
-	private static String logFilename;
-	private static boolean first = true;
-	private static long started;
+	private static Loggable instance;
+
+	private FileIO fileIO;
+	private String logFilename;
+	private boolean first = true;
+	private long started;
+
+	public AliteLog(FileIO fileIO, String logFilename) {
+		this.fileIO = fileIO;
+		this.logFilename = logFilename;
+	}
 
 	public static void d(String title, String message) {
+		instance.debug(title, message);
+	}
+
+	@Override
+	public void debug(String title, String message) {
 		if (!Settings.suppressOnlineLog) {
 			Log.d(title, message);
 		}
@@ -53,17 +65,12 @@ public class AliteLog {
 		internalWrite("[Debug]", title, message, null);
 	}
 
-	public static void d(String title, String message, Throwable cause) {
-		if (!Settings.suppressOnlineLog) {
-			Log.d(title, message, cause);
-		}
-		if (Settings.memDebug && Settings.onlineMemDebug) {
-			Log.d("Mem Dump", getMemoryData());
-		}
-		internalWrite("[Debug]", title, message, cause);
+	public static void w(String title, String message) {
+		instance.warning(title, message);
 	}
 
-	public static void w(String title, String message) {
+	@Override
+	public void warning(String title, String message) {
 		if (!Settings.suppressOnlineLog) {
 			Log.w(title, message);
 		}
@@ -73,17 +80,12 @@ public class AliteLog {
 		internalWrite("[Warning]", title, message, null);
 	}
 
-	public static void w(String title, String message, Throwable cause) {
-		if (!Settings.suppressOnlineLog) {
-			Log.w(title, message, cause);
-		}
-		if (Settings.memDebug && Settings.onlineMemDebug) {
-			Log.w("Mem Dump", getMemoryData());
-		}
-		internalWrite("[Warning]", title, message, cause);
+	public static void e(String title, String message) {
+		instance.error(title, message);
 	}
 
-	public static void e(String title, String message) {
+	@Override
+	public void error(String title, String message) {
 		if (!Settings.suppressOnlineLog) {
 			Log.e(title, message);
 		}
@@ -94,6 +96,11 @@ public class AliteLog {
 	}
 
 	public static void e(String title, String message, Throwable cause) {
+		instance.error(title, message, cause);
+	}
+
+	@Override
+	public void error(String title, String message, Throwable cause) {
 		if (!Settings.suppressOnlineLog) {
 			Log.e(title, message, cause);
 		}
@@ -103,7 +110,7 @@ public class AliteLog {
 		internalWrite("[Error]", title, message, cause);
 	}
 
-	private static String toReadableMemString(long memory) {
+	private String toReadableMemString(long memory) {
 		if (memory > GB) {
 			return StringUtil.format("%3.2f GB", (float)memory / GB);
 		}
@@ -116,7 +123,7 @@ public class AliteLog {
 		return StringUtil.format("%d Bytes", memory);
 	}
 
-	private static String dumpTrace() {
+	public static void dumpStack(String title, String message) {
 		StringWriter stringWriter = new StringWriter();
 		PrintWriter writer = new PrintWriter(stringWriter);
 		new Throwable("stack dump").printStackTrace(writer);
@@ -126,21 +133,11 @@ public class AliteLog {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return stringWriter.toString();
+		instance.debug(title, message + " - " + stringWriter);
 	}
 
-	public static void dumpStack(String title, String message) {
-		String stackTrace = dumpTrace();
-		if (!Settings.suppressOnlineLog) {
-			Log.e(title, message + " - " + stackTrace);
-		}
-		if (Settings.memDebug && Settings.onlineMemDebug) {
-			Log.d("Mem Dump", getMemoryData());
-		}
-		internalWrite("[Debug]", title, message + " - " + stackTrace, null);
-	}
-
-	public static String getMemoryData() {
+	@Override
+	public String getMemoryData() {
 		return "FRM: " + toReadableMemString(Runtime.getRuntime().freeMemory()) +
 			   ", MRM: " + toReadableMemString(Runtime.getRuntime().maxMemory()) +
 			   ", TRM: " + toReadableMemString(Runtime.getRuntime().totalMemory()) +
@@ -149,7 +146,8 @@ public class AliteLog {
 			   ", TNM: " + toReadableMemString(Debug.getNativeHeapSize()) + "\n";
 	}
 
-	public static String getDeviceInfo() {
+	@Override
+	public String getDeviceInfo() {
 		return "Android version: " + Build.VERSION.RELEASE + "\n" +
                "Device: " + Build.DEVICE + "\n" +
 	           "Product: " + Build.PRODUCT + "\n" +
@@ -160,11 +158,11 @@ public class AliteLog {
 
 	}
 
-	private static void outputDeviceInfo(OutputStream logFile) throws IOException {
+	private void outputDeviceInfo(OutputStream logFile) throws IOException {
 		logFile.write(getDeviceInfo().getBytes());
 	}
 
-	private static void internalWrite(String tag, String title, String message, Throwable cause) {
+	private void internalWrite(String tag, String title, String message, Throwable cause) {
 		if (!Settings.logToFile || fileIO == null) {
 			return;
 		}
@@ -201,11 +199,16 @@ public class AliteLog {
 
 	}
 
+	@Override
+	public String getGlVendorData(int name) {
+		return GLES11.glGetString(name);
+	}
+
 	public static void debugGlVendorData() {
-		String vendor = GLES11.glGetString(GLES11.GL_VENDOR);
-		String renderer = GLES11.glGetString(GLES11.GL_RENDERER);
-		String version = GLES11.glGetString(GLES11.GL_VERSION);
-		String extensions = GLES11.glGetString(GLES11.GL_EXTENSIONS);
+		String vendor = instance.getGlVendorData(GLES11.GL_VENDOR);
+		String renderer = instance.getGlVendorData(GLES11.GL_RENDERER);
+		String version = instance.getGlVendorData(GLES11.GL_VERSION);
+		String extensions = instance.getGlVendorData(GLES11.GL_EXTENSIONS);
 		d("GL Vendor Data", "Vendor:   " + vendor);
 		d("GL Vendor Data", "Renderer: " + renderer);
 		d("GL Vendor Data", "Version:  " + version);
@@ -217,12 +220,17 @@ public class AliteLog {
 	}
 
 	public static void initialize(FileIO fileIO) {
-		logFilename = "logs/AliteLog-" + new SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).format(new Date()) + ".txt";
-		AliteLog.fileIO = fileIO;
+		if (instance == null) {
+			instance = new AliteLog(fileIO, "logs/AliteLog-" +
+				new SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).format(new Date()) + ".txt");
+		}
 	}
 
-	static boolean isInitialized() {
-		return AliteLog.fileIO != null;
+	public static Loggable getInstance() {
+		return instance;
 	}
 
+	public static void setInstance(Loggable instance) {
+		AliteLog.instance = instance;
+	}
 }

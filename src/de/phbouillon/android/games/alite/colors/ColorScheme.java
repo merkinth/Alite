@@ -295,7 +295,7 @@ public class ColorScheme {
 				while (i.hasNext()) {
 					colorItem = i.next();
 					color = colorItems.getString(colorItem);
-					colorNameMap.put(colorItem.toLowerCase(), Color.parseColor(color));
+					colorNameMap.put(colorItem.toLowerCase(), AliteColor.parseColor(color));
 				}
 			}
 

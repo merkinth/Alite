@@ -304,7 +304,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 				}
 			}
 			if (adder.getDestructionCallbacks().isEmpty()) {
-				AliteLog.e("Adder DC is empty", "Adder DC is empty");
+				AliteLog.d("Adder DC is empty", "Adder DC is empty");
 				adder.addDestructionCallback(4, deltaTime1 -> line.setFinished());
 			}
 			setScoopNotifier(line);

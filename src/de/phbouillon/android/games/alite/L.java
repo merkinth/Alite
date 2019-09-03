@@ -326,12 +326,20 @@ public class L {
 		if (fd == null) {
 			AliteLog.d("Save temp file", "Saving '" + DIRECTORY_ASSETS + fileName + "' to temp.");
 			InputStream inputStream = getInstance().currentLanguagePack.getInputStream(DIRECTORY_ASSETS + fileName);
-			return inputStream != null ? getInstance().saveFile(inputStream) : getInstance().res.getAssets().openFd(fileName);
+			return inputStream != null ? getInstance().getDescriptorOfSavedFile(inputStream) : getInstance().res.getAssets().openFd(fileName);
 		}
 		return fd;
 	}
 
-	private AssetFileDescriptor saveFile(InputStream is) throws IOException {
+	private AssetFileDescriptor getDescriptorOfSavedFile(InputStream is) throws IOException {
+		File f = saveFile(is);
+		AssetFileDescriptor fd = new AssetFileDescriptor(ParcelFileDescriptor.open(f,
+			ParcelFileDescriptor.MODE_READ_ONLY), 0, f.length());
+		f.delete();
+		return fd;
+	}
+
+	static File saveFile(InputStream is) throws IOException {
 		File f = File.createTempFile("alite", "");
 		try(FileOutputStream fos = new FileOutputStream(f)) {
 			byte[] buffer = new byte[20*1024];
@@ -343,10 +351,7 @@ public class L {
 				}
 			} while (length != -1);
 		}
-		AssetFileDescriptor fd = new AssetFileDescriptor(ParcelFileDescriptor.open(f,
-			ParcelFileDescriptor.MODE_READ_ONLY), 0, f.length());
-		f.delete();
-		return fd;
+		return f;
 	}
 
 

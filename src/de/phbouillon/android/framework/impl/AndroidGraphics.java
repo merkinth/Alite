@@ -68,11 +68,13 @@ public class AndroidGraphics implements Graphics {
 		return visibleArea;
 	}
 
-	private int transX(int x) {
+	@Override
+	public int transX(int x) {
 		return (int) (scaleFactor * x + visibleArea.left);
 	}
 
-	private int transY(int y) {
+	@Override
+	public int transY(int y) {
 		return (int) (scaleFactor * y + visibleArea.top);
 	}
 

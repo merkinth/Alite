@@ -18,58 +18,46 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Rect;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 
 public class CursorKeys implements Serializable {
 	private static final long serialVersionUID = 2357990555586247354L;
 
-	private final int WIDTH;
-	private final int HEIGHT;
-	private final int GAP;
-	private final int CPX;
-	private final int CPX2;
-	private final int CPY;
-	private final int CPY2;
-
 	private final Sprite [] cursorKeys = new Sprite[8];
 	private final Rect [] buttonCoordinates = new Rect[4];
 	private final int [] downPointer = new int[4];
-	private transient Alite alite;
 
 	private float accelY = 0.0f;
 	private float accelZ = 0.0f;
 
-	CursorKeys(final Alite alite, boolean split) {
-		this.alite = alite;
-
-		WIDTH = 192;
-		HEIGHT = 192;
-		GAP = 16;
+	CursorKeys(boolean split) {
+		int WIDTH = 192;
+		int HEIGHT = 192;
+		int GAP = 16;
+		int CPX;
+		int CPX2;
+		int CPY;
+		int CPY2;
 		if (split) {
 			int x1 = Settings.flatButtonDisplay ? 20 : 120;
 			int x2 = Settings.flatButtonDisplay ? Settings.controlPosition == 1 ? 1900 - WIDTH : 1494 : 1394;
 			CPX = Settings.controlPosition == 0 ? x1 : x2;
 			CPX2 = Settings.controlPosition == 1 ? x1 : x2;
-			CPY  = Settings.flatButtonDisplay ? 350 : 740;
-			CPY2 = CPY + HEIGHT + GAP;
+			CPY = Settings.flatButtonDisplay ? 350 : 740;
 			buttonCoordinates[0] = new Rect(CPX + (Settings.flatButtonDisplay ? 0 : WIDTH >> 1), CPY - (HEIGHT >> 1), WIDTH, HEIGHT);
 			buttonCoordinates[1] = new Rect(CPX2 + WIDTH + GAP, CPY, WIDTH, HEIGHT);
 			buttonCoordinates[2] = new Rect(CPX + (Settings.flatButtonDisplay ? 0 : WIDTH >> 1), CPY - (HEIGHT >> 1) + GAP + HEIGHT, WIDTH, HEIGHT);
 			buttonCoordinates[3] = new Rect(CPX2, CPY, WIDTH, HEIGHT);
 		} else {
 			CPX = Settings.controlPosition == 0 ? 30 : 1304;
-			CPX2 = Settings.controlPosition == 1 ? 30 : 1304;
-			CPY  = Settings.flatButtonDisplay ? 270 : 670;
+			CPY = Settings.flatButtonDisplay ? 270 : 670;
 			CPY2 = CPY + HEIGHT + GAP;
 			buttonCoordinates[0] = new Rect(CPX + WIDTH + GAP, CPY, WIDTH, HEIGHT);
 			buttonCoordinates[1] = new Rect(CPX + ((WIDTH + GAP) << 1), CPY2, WIDTH, HEIGHT);
@@ -86,24 +74,11 @@ public class CursorKeys implements Serializable {
 		cursorKeys[7] = genSprite("clh", buttonCoordinates[3]);
 	}
 
-	private void readObject(ObjectInputStream in) throws IOException {
-		try {
-			AliteLog.e("readObject", "CursorKeys.readObject");
-			in.defaultReadObject();
-			AliteLog.e("readObject", "CursorKeys.readObject I");
-			this.alite     = Alite.get();
-			AliteLog.e("readObject", "CursorKeys.readObject II");
-		} catch (ClassNotFoundException e) {
-			AliteLog.e("Class not found", e.getMessage(), e);
-		}
-	}
-
 	private Sprite genSprite(String name, Rect r) {
 		// Careful: Rect is used as (x, y) - (width, height) here... So right and bottom are really width and height!
-		SpriteData spriteData = alite.getTextureManager().getSprite(AliteHud.TEXTURE_FILE, name);
-		return new Sprite(alite, AliteHud.ct.getTextureCoordX(r.left), AliteHud.ct.getTextureCoordY(r.top),
-				                 AliteHud.ct.getTextureCoordX(r.left + r.right - 1), AliteHud.ct.getTextureCoordY(r.top + r.bottom - 1),
-				   spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, AliteHud.TEXTURE_FILE);
+		SpriteData spriteData = Alite.get().getTextureManager().getSprite(AliteHud.TEXTURE_FILE, name);
+		return new Sprite(r.left, r.top, r.left + r.right - 1, r.top + r.bottom - 1,
+			spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, AliteHud.TEXTURE_FILE);
 	}
 
 	public float getZ() {
@@ -212,10 +187,10 @@ public class CursorKeys implements Serializable {
 
 	void render() {
 		float a = Settings.alpha * Settings.controlAlpha;
-		alite.getGraphics().setColor(AliteColor.argb(a, a, a, a));
+		Alite.get().getGraphics().setColor(AliteColor.argb(a, a, a, a));
 		for (int i = 0; i < 4; i++) {
 			cursorKeys[downPointer[i] > 0 ? i + 4 : i].justRender();
 		}
-		alite.getGraphics().setColor(AliteColor.argb(Settings.alpha, 0.2f * Settings.alpha, Settings.alpha, Settings.alpha));
+		Alite.get().getGraphics().setColor(AliteColor.argb(Settings.alpha, 0.2f * Settings.alpha, Settings.alpha, Settings.alpha));
 	}
 }

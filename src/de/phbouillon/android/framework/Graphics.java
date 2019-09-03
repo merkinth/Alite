@@ -42,6 +42,9 @@ public interface Graphics {
 	void setColor(int color, float alpha);
 	void setColor(int color);
 
+	int transX(int x);
+	int transY(int y);
+
 	void drawLine(int x, int y, int x2, int y2, int color);
 	void drawRect(int x, int y, int width, int height, int color);
 	void fillRect(int x, int y, int width, int height, int color);

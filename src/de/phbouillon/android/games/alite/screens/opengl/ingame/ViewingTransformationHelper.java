@@ -78,9 +78,9 @@ public class ViewingTransformationHelper implements Serializable {
 
 	private void readObject(ObjectInputStream in) throws IOException {
 		try {
-			AliteLog.e("readObject", "ViewingTransformationHelper.readObject");
+			AliteLog.d("readObject", "ViewingTransformationHelper.readObject");
 			in.defaultReadObject();
-			AliteLog.e("readObject", "ViewingTransformationHelper.readObject I");
+			AliteLog.d("readObject", "ViewingTransformationHelper.readObject I");
 			distanceFactory = new DistanceFactory();
 			distancePairPool = new Pool<DistanceObjectPair>(distanceFactory, 1000);
 			distancePairPool.reset();
@@ -89,7 +89,7 @@ public class ViewingTransformationHelper implements Serializable {
 			bucketPool.reset();
 			objectPairComparator = new DistanceObjectPairComparator();
 			distancePairs.clear();
-			AliteLog.e("readObject", "ViewingTransformationHelper.readObject II");
+			AliteLog.d("readObject", "ViewingTransformationHelper.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}

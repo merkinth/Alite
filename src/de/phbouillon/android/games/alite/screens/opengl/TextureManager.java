@@ -191,10 +191,10 @@ public class TextureManager {
 	}
 
 	public synchronized void clear() {
-		AliteLog.d("Clearing all Textures Mem Dump (PRE)", AliteLog.getMemoryData());
+		AliteLog.d("Clearing all Textures Mem Dump (PRE)", AliteLog.getInstance().getMemoryData());
 		freeAllTextures();
 		textures.clear();
-		AliteLog.d("Clearing all Textures Mem Dump (POST)", AliteLog.getMemoryData());
+		AliteLog.d("Clearing all Textures Mem Dump (POST)", AliteLog.getInstance().getMemoryData());
 	}
 
 	private void parseTextures(String fileName, InputStream textureAtlas, float width, float height) throws IOException {
@@ -246,7 +246,7 @@ public class TextureManager {
 	}
 
 	private void loadTexture(String fileName, int index) {
-		AliteLog.e("Loading Texture: " + fileName, fileName + " Creating bitmap....");
+		AliteLog.d("Loading Texture: " + fileName, fileName + " Creating bitmap....");
 		Bitmap bitmap = newBitmap(fileName);
 		if (bitmap == null) {
 			AliteLog.e("Loading Texture: " + fileName, "Creating bitmap failed!");

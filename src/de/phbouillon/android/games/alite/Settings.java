@@ -165,7 +165,7 @@ public class Settings {
 		}
 	}
 
-	static void setImmersion(View view) {
+	public static void setImmersion(View view) {
 		if (view == null || navButtonsVisible) {
 			return;
 		}

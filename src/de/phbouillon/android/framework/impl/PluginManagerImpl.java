@@ -18,17 +18,13 @@ package de.phbouillon.android.framework.impl;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import android.accounts.Account;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import com.google.android.gms.auth.GoogleAuthException;
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.vending.expansion.downloader.DownloadProgressInfo;
 import com.google.android.vending.expansion.downloader.IDownloaderClient;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.media.MediaHttpDownloader;
 import com.google.api.client.googleapis.media.MediaHttpDownloaderProgressListener;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -39,10 +35,9 @@ import com.google.api.services.drive.model.FileList;
 import de.phbouillon.android.framework.*;
 import de.phbouillon.android.games.alite.AliteLog;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -111,7 +106,7 @@ public class PluginManagerImpl implements PluginManager {
 			do {
 				try {
 					FileList files = request.execute();
-					AliteLog.d("GoogleDrive", "Count of plugin files on server = " + files.size());
+					AliteLog.d("GoogleDrive", "Count of plugin files on server = " + files.getFiles().size());
 					for (com.google.api.services.drive.model.File f : files.getFiles()) {
 						result.put(f.getName(), new Plugin(f.getId(), f.getParents().isEmpty() ? "" : folders.get(f.getParents().get(0)),
 							f.getName(), f.getSize(), f.getModifiedTime().getValue(), f.getDescription(), "", "", 0));
@@ -129,18 +124,10 @@ public class PluginManagerImpl implements PluginManager {
 		return null;
 	}
 
-	private Drive getDriveService() {
-		GoogleAccountCredential credential = new GoogleAccountCredential(context, "oauth2:" + DriveScopes.DRIVE_READONLY)
-			.setSelectedAccount(new Account(accountName, GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE));
-		try {
-			AliteLog.d("GoogleDrive", "Token for Google Drive: " + credential.getToken());
-		} catch (UserRecoverableAuthException e) {
-			AliteLog.d("GoogleDrive", "Permission requests to Google Drive.");
-			context.startActivity(e.getIntent());
-		} catch (GoogleAuthException | IOException e) {
-			AliteLog.e("GoogleDrive", "Authorization in Google Drive failed.", e);
-		}
-		return new Drive.Builder(new NetHttpTransport(), new JacksonFactory(), credential)
+	private Drive getDriveService() throws IOException {
+		GoogleCredential credential = GoogleCredential.fromStream(context.getAssets().open("Alite2020.json"))
+			.createScoped(Collections.singleton(DriveScopes.DRIVE_READONLY));
+		return new Drive.Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance(), credential)
 			.setApplicationName(applicationName)
 			.build();
 	}

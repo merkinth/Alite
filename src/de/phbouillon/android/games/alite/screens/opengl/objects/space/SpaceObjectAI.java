@@ -816,7 +816,7 @@ public final class SpaceObjectAI implements Serializable {
 				case FOLLOW_CURVE: sl = "FC"; break;
 				default:           sl = "DE"; break;
 				}
-				AliteLog.e("AIS", "SOPATH: Player " + sl + " (" + so.getPosition().x + ":" + so.getPosition().y + ":" + so.getPosition().z +
+				AliteLog.d("AIS", "SOPATH: Player " + sl + " (" + so.getPosition().x + ":" + so.getPosition().y + ":" + so.getPosition().z +
 					   ":" + so.getForwardVector().x + ":" + so.getForwardVector().y + ":" + so.getForwardVector().z +
 					   ":" + so.getUpVector().x + ":" + so.getUpVector().y + ":" + so.getUpVector().z +
 					   ":" + so.getRightVector().x + ":" + so.getRightVector().y + ":" + so.getRightVector().z +

@@ -205,9 +205,9 @@ public class FatalExceptionScreen extends AliteScreen {
 	private String getErrorReportText() {
 		return "The following crash occurred in " + AliteConfig.GAME_NAME +
 			" (" + AliteConfig.VERSION_STRING + "):\n\n" + plainCauseText +
-			"\n\nDevice details:\n" + AliteLog.getDeviceInfo() +
+			"\n\nDevice details:\n" + AliteLog.getInstance().getDeviceInfo() +
 			"\n\nGL Details:\n" + getGlDetails() +
-			"\n\nMemory data:\n" + AliteLog.getMemoryData() +
+			"\n\nMemory data:\n" + AliteLog.getInstance().getMemoryData() +
 			"\n\nCurrent date/time: " + new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss", Locale.US).format(new Date());
 	}
 

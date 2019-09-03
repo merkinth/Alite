@@ -177,7 +177,7 @@ public class InGameManager implements Serializable {
 			ship.setPosition(FlightScreen.SHIP_ENTRY_POSITION);
 		}
 		if (initStarDust && Settings.particleDensity > 0) {
-			starDust = new StarDust(alite, ship.getPosition());
+			starDust = new StarDust(ship.getPosition());
 		}
 		buttons = hud != null ? new AliteButtons(alite, ship, this) : null;
 		laserManager = new LaserManager(alite, this);
@@ -1418,7 +1418,7 @@ public class InGameManager implements Serializable {
 	}
 
 	void enterWitchSpace() {
-		witchSpace = new WitchSpaceRender(alite, this);
+		witchSpace = new WitchSpaceRender(this);
 		witchSpace.enterWitchSpace();
 	}
 

@@ -21,6 +21,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.Typeface;
@@ -150,9 +151,9 @@ public abstract class AliteScreen extends Screen {
 		displayTitle(title, AliteConfig.SCREEN_WIDTH);
 	}
 
-	private void addInputLayout(int x, int y, int width) {
+	private void addInputLayout(int x, int y, int width, int height) {
 		game.runOnUiThread(() -> {
-			LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(width - 20 - x, 100);
+			LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(width - 20 - x, height);
 			layoutParams.setMargins(x, y, 0, 0);
 			editText = new EditText(game);
 			game.addContentView(editText,layoutParams);
@@ -268,8 +269,8 @@ public abstract class AliteScreen extends Screen {
 		// during the presenting process. To avoid null pointer exception calling addInputLayout is placed
 		// to the end of this method.
 		if (popupWindow && (dialogState & DIALOG_VISIBLE) == 0) {
-			addInputLayout(r.left + 40 + g.getTextWidth(message, Assets.titleFont),
-				r.top + 20, width - 2 * buttonSize - buttonGap - BORDER_GAP);
+			addInputLayout(g.transX(r.left + 40 + g.getTextWidth(message, Assets.titleFont)),
+				g.transY(r.top + 20), g.transX(width - 2 * buttonSize - buttonGap - BORDER_GAP), g.transY(100));
 		}
 
 		dialogState &= ~DIALOG_RENDERING;
@@ -401,6 +402,7 @@ public abstract class AliteScreen extends Screen {
 				inputText = editText.getText().toString();
 				((InputMethodManager) game.getSystemService(Context.INPUT_METHOD_SERVICE)).
 					hideSoftInputFromWindow(editText.getWindowToken(), 0);
+				Settings.setImmersion(((Activity)editText.getContext()).getWindow().getDecorView());
 				((ViewGroup) editText.getParent()).removeView(editText);
 				editText = null;
 				messageResult = result;
