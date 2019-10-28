@@ -29,8 +29,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http"
-                      android:host="alite.mobi" />
+                <data android:scheme="https"
+                      android:host="alite2020.iftopic.com" />
             </intent-filter>
         </activity>
         <activity android:name="AliteIntro"

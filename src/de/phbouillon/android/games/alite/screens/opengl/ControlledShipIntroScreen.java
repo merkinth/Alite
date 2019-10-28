@@ -31,37 +31,10 @@ import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Adder;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Anaconda;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.AspMkII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Asteroid1;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Asteroid2;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.BoaClassCruiser;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkI;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Constrictor;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Coriolis;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Dodec;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.EscapeCapsule;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.FerDeLance;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Gecko;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Icosaeder;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Krait;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Mamba;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Missile;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.MorayStarBoat;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.OrbitShuttle;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Python;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Sidewinder;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargoid;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargon;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Transporter;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Viper;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.WolfMkII;
-import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteHud;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 @SuppressWarnings("serial")
@@ -69,7 +42,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 	enum DisplayMode {
 		ZOOM_IN,
 		CONTROL,
-		ZOOM_OUT;
+		ZOOM_OUT
 	}
 
 	private static final float START_Z = -10000.0f;
@@ -79,7 +52,6 @@ public class ControlledShipIntroScreen extends GlScreen {
 	private final List <AliteObject> allObjects = new ArrayList<>();
 	private final InGameManager inGame;
 	private final Timer timer = new Timer().setAutoReset();
-	private int currentShipIndex = 0;
 
 	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
 	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
@@ -94,11 +66,12 @@ public class ControlledShipIntroScreen extends GlScreen {
 	private DisplayMode displayMode = DisplayMode.ZOOM_IN;
 	private float[] matrix = null;
 	private Alite game;
+	private SpaceObject currentShip;
 
 	public ControlledShipIntroScreen(Alite game) {
 		this.game = game;
 		AliteLog.d("Ship Intro Screen", "Constructor. Now loading background image... glError: " + GLES11.glGetError());
-		inGame = new InGameManager(game, null, "textures/purple_screen.png", lightPosition, false, false);
+		inGame = new InGameManager(null, "textures/purple_screen.png", lightPosition, false, false);
 		AliteLog.d("Ship Intro Screen", "Constructor done. Background image should have been loaded. glError: " + GLES11.glGetError());
 	}
 
@@ -111,9 +84,8 @@ public class ControlledShipIntroScreen extends GlScreen {
 		initializeGl(visibleArea);
 
 		AliteLog.d("Ship Intro Screen", "On Activation. After init. glError: " + GLES11.glGetError());
-		AliteHud.ct = new DefaultCoordinateTransformer(game);
 		allObjects.clear();
-		SpaceObject cobra = new CargoCanister(game);
+		SpaceObject cobra = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.CargoPod);
 		cobra.setPosition(0.0f, 0.0f, START_Z);
 		inGame.getShip().setPosition(0.0f, 0.0f, 0.0f);
 		allObjects.add(cobra);
@@ -196,7 +168,8 @@ public class ControlledShipIntroScreen extends GlScreen {
 			newZ = START_Z;
 			((SpaceObject) allObjects.get(0)).dispose();
 			allObjects.clear();
-			allObjects.add(getNextShip());
+			currentShip = SpaceObjectFactory.getInstance().getNextObject(currentShip, 1, false);
+			allObjects.add(currentShip);
 			if (matrix != null) {
 				allObjects.get(0).setMatrix(matrix);
 			}
@@ -254,44 +227,6 @@ public class ControlledShipIntroScreen extends GlScreen {
 				}
 			}
 		}
-	}
-
-	private SpaceObject getNextShip() {
-		currentShipIndex++;
-		if (currentShipIndex == 28) {
-			currentShipIndex = 0;
-		}
-		switch (currentShipIndex) {
-			case  0: return new CobraMkIII(game);
-			case  1: return new Krait(game);
-			case  2: return new Thargoid(game);
-			case  3: return new BoaClassCruiser(game);
-			case  4: return new Gecko(game);
-			case  5: return new MorayStarBoat(game);
-			case  6: return new Adder(game);
-			case  7: return new Mamba(game);
-			case  8: return new Viper(game);
-			case  9: return new FerDeLance(game);
-			case 10: return new CobraMkI(game);
-			case 11: return new Python(game);
-			case 12: return new Anaconda(game);
-			case 13: return new AspMkII(game);
-			case 14: return new Sidewinder(game);
-			case 15: return new WolfMkII(game);
-			case 16: return new OrbitShuttle(game);
-			case 17: return new Transporter(game);
-			case 18: return new Thargon(game);
-			case 19: return new Constrictor(game);
-			case 20: return new Asteroid1(game);
-			case 21: return new Asteroid2(game);
-			case 22: return new Coriolis(game);
-			case 23: return new Dodec(game);
-			case 24: return new Icosaeder(game);
-			case 25: return new CargoCanister(game);
-			case 26: return new EscapeCapsule(game);
-			case 27: return new Missile(game);
-		}
-		return new CobraMkIII(game);
 	}
 
 	@Override

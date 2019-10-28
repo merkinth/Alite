@@ -50,4 +50,27 @@ public class MathHelper {
 	public static void copyMatrix(float [] src, float [] dest) {
 		System.arraycopy(src, 0, dest, 0, 16);
 	}
+
+	public static void getRandomRotationAngles(Vector3f targetDelta) {
+		targetDelta.x = getRandomRotationAngle();
+		targetDelta.y = getRandomRotationAngle();
+		targetDelta.z = getRandomRotationAngle();
+	}
+
+	private static float getRandomRotationAngle() {
+		return Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
+	}
+
+	public static void updateAxes(Vector3f currentDelta, Vector3f targetDelta) {
+		if (Math.abs(currentDelta.x - targetDelta.x) > 0.0001) {
+			currentDelta.x += (targetDelta.x - currentDelta.x) / 8.0f;
+		}
+		if (Math.abs(currentDelta.y - targetDelta.y) > 0.0001) {
+			currentDelta.y += (targetDelta.y - currentDelta.y) / 8.0f;
+		}
+		if (Math.abs(currentDelta.z - targetDelta.z) > 0.0001) {
+			currentDelta.z += (targetDelta.z - currentDelta.z) / 8.0f;
+		}
+	}
+
 }

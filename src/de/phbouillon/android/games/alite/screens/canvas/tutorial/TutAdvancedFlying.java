@@ -35,7 +35,7 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ScoopCallback;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Adder;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteButtons;
 
 //This screen never needs to be serialized, as it is not part of the InGame state,
@@ -48,7 +48,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 	private HyperspaceScreen hyperspace;
 	private TutAdvancedFlying switchScreen = null;
 	private final Timer timer = new Timer().setAutoResetWithSkipFirstCall();
-	private Adder adder = null;
+	private SpaceObject adder = null;
 	private boolean scooped;
 
 	TutAdvancedFlying(final Alite alite, int lineIndex) {
@@ -290,14 +290,14 @@ public class TutAdvancedFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_TORUS = true;
 			setPlayerControlOn();
 			if (adder == null) {
-				adder = (Adder) flight.findObjectById("Adder");
+				adder = (SpaceObject) flight.findObjectById("Adder");
 				if (adder == null) {
 					SoundManager.play(Assets.com_conditionRed);
 					flight.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
 					Vector3f spawnPosition = flight.getInGameManager().getSpawnManager().getSpawnPosition();
-					adder = new Adder(game);
-					adder.setAggression(4);
-					adder.setMissileCount(0);
+					adder = SpaceObjectFactory.getInstance().getObjectById("adder");
+					adder.setProperty(SpaceObject.Property.aggression_level, 4L);
+					adder.setProperty(SpaceObject.Property.missiles, 0L);
 					adder.setCargoCanisterCount(2);
 					flight.getInGameManager().getSpawnManager().spawnEnemyAndAttackPlayer(adder, 0, spawnPosition);
 					adder.addDestructionCallback(3, deltaTime1 -> line.setFinished());
@@ -459,7 +459,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 			TutAdvancedFlying ta = new TutAdvancedFlying(alite, dis.readInt(), fs);
 			ta.hyperspace = hs;
 			ta.timer.setTimer(dis.readLong());
-			ta.adder = (Adder) ta.flight.findObjectById("Adder");
+			ta.adder = (SpaceObject) ta.flight.findObjectById("Adder");
 			if (ta.adder != null) {
 				ta.adder.setSaving(false);
 			}

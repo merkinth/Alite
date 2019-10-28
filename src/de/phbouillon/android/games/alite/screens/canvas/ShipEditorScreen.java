@@ -18,78 +18,25 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import android.graphics.Rect;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.Button;
-import de.phbouillon.android.games.alite.Slider;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.EngineExhaust;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Adder;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Anaconda;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.AspMkII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.BoaClassCruiser;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Boomslang;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Bushmaster;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkI;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Constrictor;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Coral;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cottonmouth;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cougar;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Dugite;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.EscapeCapsule;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.FerDeLance;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Gecko;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Gopher;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Harlequin;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Hognose2;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Indigo;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Krait;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Lora;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Lyre;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Mamba;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Missile;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.MorayStarBoat;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Mussurana;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.OrbitShuttle;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Python;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Rattlesnake;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Sidewinder;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargoid;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargon;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.TieFighter;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Transporter;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Viper;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.WolfMkII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Yellowbelly;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.List;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class ShipEditorScreen extends AliteScreen {
-	public static final int STRETCH_X = 7;
-	public static final int STRETCH_Y = 7;
-
-	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
-	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
-	private final float[] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
-	private final float[] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
-
-	private final float[] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
 
 	private SpaceObject currentShip;
 
@@ -137,8 +84,9 @@ public class ShipEditorScreen extends AliteScreen {
 
 	public ShipEditorScreen(Alite game) {
 		super(game);
-		currentShip = new CobraMkIII(game);
-		currentShip.getExhausts().clear();
+		currentShip = SpaceObjectFactory.getInstance().getObjectById("cobra_mk_iii");
+		List<EngineExhaust> exhausts = currentShip.getExhausts();
+		exhausts.clear();
 		exp.xOffset = 50;
 		exp.yOffset = 0;
 		exp.zOffset = 0;
@@ -150,54 +98,11 @@ public class ShipEditorScreen extends AliteScreen {
 		exp.b1 = 0.8f;
 		exp.a1 = 0.7f;
 
-		currentShip.addExhaust(new EngineExhaust(currentShip, 13.0f, 13.0f, 300.0f, -50.0f, 0, 0));
-		currentShip.addExhaust(new EngineExhaust(currentShip, 13.0f, 13.0f, 300.0f,  50.0f, 0, 0));
+		exhausts.add(new EngineExhaust(13.0f, 13.0f, 300.0f, -50.0f, 0, 0));
+		exhausts.add(new EngineExhaust(13.0f, 13.0f, 300.0f,  50.0f, 0, 0));
 		currentShip.setPosition(0, 0, -700.0f);
 		currentShip.setAIState(AIState.IDLE, (Object[]) null);
 		currentShip.setSpeed(-currentShip.getMaxSpeed());
-	}
-
-	private void initGl() {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		int windowWidth = visibleArea.width();
-		int windowHeight = visibleArea.height();
-
-		float ratio = windowWidth / (float) windowHeight;
-		GlUtils.setViewport(visibleArea);
-		GLES11.glDisable(GLES11.GL_FOG);
-		GLES11.glPointSize(1.0f);
-        GLES11.glLineWidth(1.0f);
-
-        GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
-        GLES11.glDisable(GLES11.GL_BLEND);
-
-		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, ratio, 1.0f, 900000.0f);
-		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-		GLES11.glLoadIdentity();
-
-		GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		GLES11.glShadeModel(GLES11.GL_SMOOTH);
-
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_AMBIENT, lightAmbient, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_DIFFUSE, lightDiffuse, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_SPECULAR, lightSpecular, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_POSITION, lightPosition, 0);
-		GLES11.glEnable(GLES11.GL_LIGHT1);
-
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_AMBIENT, sunLightAmbient, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_DIFFUSE, sunLightDiffuse, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_SPECULAR, sunLightSpecular, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_POSITION, sunLightPosition, 0);
-		GLES11.glEnable(GLES11.GL_LIGHT2);
-
-		GLES11.glEnable(GLES11.GL_LIGHTING);
-
-		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT);
-		GLES11.glHint(GLES11.GL_PERSPECTIVE_CORRECTION_HINT, GLES11.GL_NICEST);
-		GLES11.glHint(GLES11.GL_POLYGON_SMOOTH_HINT, GLES11.GL_NICEST);
-		GLES11.glEnable(GLES11.GL_CULL_FACE);
 	}
 
 	@Override
@@ -329,7 +234,7 @@ public class ShipEditorScreen extends AliteScreen {
 				numberOfExhausts = -numberOfExhausts + 3;
 				currentShip.getExhausts().clear();
 				for (int i = 0; i < numberOfExhausts; i++) {
-					currentShip.addExhaust(new EngineExhaust(currentShip, exp.radiusX, exp.radiusY, exp.maxLength, i == 0 ? -exp.xOffset : exp.xOffset, exp.yOffset, exp.zOffset));
+					currentShip.getExhausts().add(new EngineExhaust(exp.radiusX, exp.radiusY, exp.maxLength, i == 0 ? -exp.xOffset : exp.xOffset, exp.yOffset, exp.zOffset));
 					currentShip.getExhausts().get(i).setColor(exp.r1, exp.g1, exp.b1, exp.a1);
 				}
 			}
@@ -346,12 +251,12 @@ public class ShipEditorScreen extends AliteScreen {
 				exp.b1 = 0.8f;
 				exp.a1 = 0.7f;
 				numberOfExhausts = 2;
-				getNextShip();
+				currentShip = SpaceObjectFactory.getInstance().getNextObject(currentShip, 1, true);
 				currentShip.getExhausts().clear();
 				currentShip.setSpeed(-currentShip.getMaxSpeed());
 				currentShip.setPosition(0, 0, -700.0f);
 				for (int i = 0; i < numberOfExhausts; i++) {
-					currentShip.addExhaust(new EngineExhaust(currentShip, exp.radiusX, exp.radiusY, exp.maxLength, i == 0 ? -exp.xOffset : exp.xOffset, exp.yOffset, exp.zOffset));
+					currentShip.getExhausts().add(new EngineExhaust(exp.radiusX, exp.radiusY, exp.maxLength, i == 0 ? -exp.xOffset : exp.xOffset, exp.yOffset, exp.zOffset));
 					currentShip.getExhausts().get(i).setColor(exp.r1, exp.g1, exp.b1, exp.a1);
 				}
 			}
@@ -486,47 +391,6 @@ public class ShipEditorScreen extends AliteScreen {
 	@Override
 	public int getScreenCode() {
 		return 0;
-	}
-
-	private void getNextShip() {
-		if (currentShip instanceof Adder) currentShip = new Anaconda(game);
-		else if (currentShip instanceof Anaconda) currentShip = new AspMkII(game);
-		else if (currentShip instanceof AspMkII) currentShip = new BoaClassCruiser(game);
-		else if (currentShip instanceof BoaClassCruiser) currentShip = new Boomslang(game);
-		else if (currentShip instanceof Boomslang) currentShip = new CobraMkI(game);
-		else if (currentShip instanceof CobraMkI) currentShip = new CobraMkIII(game);
-		else if (currentShip instanceof CobraMkIII) currentShip = new Constrictor(game);
-		else if (currentShip instanceof Constrictor) currentShip = new Cottonmouth(game);
-		else if (currentShip instanceof Cottonmouth) currentShip = new Cougar(game);
-		else if (currentShip instanceof Cougar) currentShip = new EscapeCapsule(game);
-		else if (currentShip instanceof EscapeCapsule) currentShip = new FerDeLance(game);
-		else if (currentShip instanceof FerDeLance) currentShip = new Gecko(game);
-		else if (currentShip instanceof Gecko) currentShip = new Hognose2(game);
-		else if (currentShip instanceof Hognose2) currentShip = new Krait(game);
-		else if (currentShip instanceof Krait) currentShip = new Lora(game);
-		else if (currentShip instanceof Lora) currentShip = new Mamba(game);
-		else if (currentShip instanceof Mamba) currentShip = new Missile(game);
-		else if (currentShip instanceof Missile) currentShip = new MorayStarBoat(game);
-		else if (currentShip instanceof MorayStarBoat) currentShip = new OrbitShuttle(game);
-		else if (currentShip instanceof OrbitShuttle) currentShip = new Python(game);
-		else if (currentShip instanceof Python) currentShip = new Sidewinder(game);
-		else if (currentShip instanceof Sidewinder) currentShip = new Thargoid(game);
-		else if (currentShip instanceof Thargoid) currentShip = new Thargon(game);
-		else if (currentShip instanceof Thargon) currentShip = new Transporter(game);
-		else if (currentShip instanceof Transporter) currentShip = new Viper(game);
-		else if (currentShip instanceof Viper) currentShip = new WolfMkII(game);
-		else if (currentShip instanceof WolfMkII) currentShip = new Gopher(game);
-		else if (currentShip instanceof Gopher) currentShip = new Coral(game);
-		else if (currentShip instanceof Coral) currentShip = new Bushmaster(game);
-		else if (currentShip instanceof Bushmaster) currentShip = new Rattlesnake(game);
-		else if (currentShip instanceof Rattlesnake) currentShip = new Mussurana(game);
-		else if (currentShip instanceof Mussurana) currentShip = new Dugite(game);
-		else if (currentShip instanceof Dugite) currentShip = new Yellowbelly(game);
-		else if (currentShip instanceof Yellowbelly) currentShip = new Indigo(game);
-		else if (currentShip instanceof Indigo) currentShip = new Harlequin(game);
-		else if (currentShip instanceof Harlequin) currentShip = new TieFighter(game);
-		else if (currentShip instanceof TieFighter) currentShip = new Lyre(game);
-		else if (currentShip instanceof Lyre) currentShip = new Adder(game);
 	}
 
 	@Override

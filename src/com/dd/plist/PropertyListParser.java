@@ -138,7 +138,7 @@ public class PropertyListParser {
      * @return An array containing all bytes that were read from the input stream.
      * @throws java.io.IOException When an IO error while reading from the input stream.
      */
-    protected static byte[] readAll(InputStream in) throws IOException {
+    public static byte[] readAll(InputStream in) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         byte[] buf = new byte[READ_BUFFER_LENGTH];
         int read;

@@ -18,6 +18,7 @@ package de.phbouillon.android.games.alite.model;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import android.graphics.Color;
 import de.phbouillon.android.games.alite.R;
 
 public class EquipmentStore {
@@ -27,16 +28,16 @@ public class EquipmentStore {
 	public static final Equipment missiles = new Equipment(1,R.string.equip_missiles, 300, R.string.equip_short_missiles, false);
 	public static final Equipment largeCargoBay = new Equipment(2, R.string.equip_large_cargo_bay, 4000, R.string.equip_short_large_cargo_bay, false);
 	public static final Equipment ecmSystem = new Equipment(3, R.string.equip_ecm_system, 6000, R.string.equip_short_ecm_system, true);
-	public static final Laser pulseLaser = new Laser(4, R.string.equip_pulse_laser, 4000, R.string.equip_short_pulse_laser, 0, 598802395L, 5, 0x7fffff00L, false, "textures/laser_yellow.png");
-	public static final Laser beamLaser = new Laser(5, R.string.equip_beam_laser, 10000, R.string.equip_short_beam_laser, 1, 359281437L, 9, 0x7f0000ffL, true, "textures/laser_blue.png");
+	public static final Laser pulseLaser = new Laser(4, R.string.equip_pulse_laser, 4000, R.string.equip_short_pulse_laser, 0, 598802395L, 5, Color.YELLOW, false);
+	public static final Laser beamLaser = new Laser(5, R.string.equip_beam_laser, 10000, R.string.equip_short_beam_laser, 1, 359281437L, 9, Color.BLUE, true);
 	public static final Equipment fuelScoop = new Equipment(6, R.string.equip_fuel_scoop, 5250, R.string.equip_short_fuel_scoop, true);
 	public static final Equipment escapeCapsule = new Equipment(7, R.string.equip_escape_capsule, 10000, R.string.equip_short_escape_capsule, true);
 	public static final Equipment energyBomb = new Equipment(8, R.string.equip_energy_bomb, 9000, R.string.equip_short_energy_bomb, true);
 	public static final Equipment extraEnergyUnit = new Equipment(9, R.string.equip_extra_energy_unit, 15000, R.string.equip_short_extra_energy_unit, true);
 	public static final Equipment dockingComputer = new Equipment(10, R.string.equip_docking_computer, 15000, R.string.equip_short_docking_computer, true);
 	public static final Equipment galacticHyperdrive = new Equipment(11, R.string.equip_galactic_hyperdrive, 50000, R.string.equip_short_galactic_hyperdrive, true);
-	public static final Laser miningLaser = new Laser(12, R.string.equip_mining_laser, 8000, R.string.equip_short_mining_laser, 2, 479041916L, 7, 0x7f00ff00L, false, "textures/laser_green.png");
-	public static final Laser militaryLaser = new Laser(13, R.string.equip_military_laser, 60000, R.string.equip_short_military_laser, 3, 179640718L, 11, 0x7fff00ffL, true, "textures/laser_purple.png");
+	public static final Laser miningLaser = new Laser(12, R.string.equip_mining_laser, 8000, R.string.equip_short_mining_laser, 2, 479041916L, 7, Color.GREEN, false);
+	public static final Laser militaryLaser = new Laser(13, R.string.equip_military_laser, 60000, R.string.equip_short_military_laser, 3, 179640718L, 11, Color.MAGENTA, true);
 	public static final Equipment retroRockets = new Equipment(14, R.string.equip_retro_rockets, 80000, R.string.equip_short_retro_rockets, true);
 
 	public static final Equipment navalEnergyUnit = new Equipment(15, R.string.equip_naval_energy_unit, 15000, R.string.equip_short_naval_energy_unit, false);

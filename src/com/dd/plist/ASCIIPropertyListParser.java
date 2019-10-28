@@ -26,11 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.StringCharacterIterator;
 import java.util.LinkedList;
@@ -95,45 +91,45 @@ public class ASCIIPropertyListParser {
         return parser.parse();
     }
 
-    public static final char WHITESPACE_SPACE = ' ';
-    public static final char WHITESPACE_TAB = '\t';
-    public static final char WHITESPACE_NEWLINE = '\n';
-    public static final char WHITESPACE_CARRIAGE_RETURN = '\r';
+    private static final char WHITESPACE_SPACE = ' ';
+    private static final char WHITESPACE_TAB = '\t';
+    private static final char WHITESPACE_NEWLINE = '\n';
+    private static final char WHITESPACE_CARRIAGE_RETURN = '\r';
 
-    public static final char ARRAY_BEGIN_TOKEN = '(';
-    public static final char ARRAY_END_TOKEN = ')';
-    public static final char ARRAY_ITEM_DELIMITER_TOKEN = ',';
+    static final char ARRAY_BEGIN_TOKEN = '(';
+    static final char ARRAY_END_TOKEN = ')';
+    static final char ARRAY_ITEM_DELIMITER_TOKEN = ',';
 
-    public static final char DICTIONARY_BEGIN_TOKEN = '{';
-    public static final char DICTIONARY_END_TOKEN = '}';
-    public static final char DICTIONARY_ASSIGN_TOKEN = '=';
-    public static final char DICTIONARY_ITEM_DELIMITER_TOKEN = ';';
+    static final char DICTIONARY_BEGIN_TOKEN = '{';
+    static final char DICTIONARY_END_TOKEN = '}';
+    private static final char DICTIONARY_ASSIGN_TOKEN = '=';
+    static final char DICTIONARY_ITEM_DELIMITER_TOKEN = ';';
 
-    public static final char QUOTEDSTRING_BEGIN_TOKEN = '"';
-    public static final char QUOTEDSTRING_END_TOKEN = '"';
-    public static final char QUOTEDSTRING_ESCAPE_TOKEN = '\\';
+    private static final char QUOTEDSTRING_BEGIN_TOKEN = '"';
+    private static final char QUOTEDSTRING_END_TOKEN = '"';
+    private static final char QUOTEDSTRING_ESCAPE_TOKEN = '\\';
 
-    public static final char DATA_BEGIN_TOKEN = '<';
-    public static final char DATA_END_TOKEN = '>';
+    static final char DATA_BEGIN_TOKEN = '<';
+    static final char DATA_END_TOKEN = '>';
 
-    public static final char DATA_GSOBJECT_BEGIN_TOKEN = '*';
-    public static final char DATA_GSDATE_BEGIN_TOKEN = 'D';
-    public static final char DATA_GSBOOL_BEGIN_TOKEN = 'B';
-    public static final char DATA_GSBOOL_TRUE_TOKEN = 'Y';
-    public static final char DATA_GSBOOL_FALSE_TOKEN = 'N';
-    public static final char DATA_GSINT_BEGIN_TOKEN = 'I';
-    public static final char DATA_GSREAL_BEGIN_TOKEN = 'R';
+    private static final char DATA_GSOBJECT_BEGIN_TOKEN = '*';
+    private static final char DATA_GSDATE_BEGIN_TOKEN = 'D';
+    private static final char DATA_GSBOOL_BEGIN_TOKEN = 'B';
+    private static final char DATA_GSBOOL_TRUE_TOKEN = 'Y';
+    private static final char DATA_GSBOOL_FALSE_TOKEN = 'N';
+    private static final char DATA_GSINT_BEGIN_TOKEN = 'I';
+    private static final char DATA_GSREAL_BEGIN_TOKEN = 'R';
 
-    public static final char DATE_DATE_FIELD_DELIMITER = '-';
-    public static final char DATE_TIME_FIELD_DELIMITER = ':';
-    public static final char DATE_GS_DATE_TIME_DELIMITER = ' ';
-    public static final char DATE_APPLE_DATE_TIME_DELIMITER = 'T';
-    public static final char DATE_APPLE_END_TOKEN = 'Z';
+    private static final char DATE_DATE_FIELD_DELIMITER = '-';
+//    public static final char DATE_TIME_FIELD_DELIMITER = ':';
+//    public static final char DATE_GS_DATE_TIME_DELIMITER = ' ';
+//    public static final char DATE_APPLE_DATE_TIME_DELIMITER = 'T';
+//    public static final char DATE_APPLE_END_TOKEN = 'Z';
 
-    public static final char COMMENT_BEGIN_TOKEN = '/';
-    public static final char MULTILINE_COMMENT_SECOND_TOKEN = '*';
-    public static final char SINGLELINE_COMMENT_SECOND_TOKEN = '/';
-    public static final char MULTILINE_COMMENT_END_TOKEN = '/';
+    private static final char COMMENT_BEGIN_TOKEN = '/';
+    private static final char MULTILINE_COMMENT_SECOND_TOKEN = '*';
+    private static final char SINGLELINE_COMMENT_SECOND_TOKEN = '/';
+    private static final char MULTILINE_COMMENT_END_TOKEN = '/';
 
     /**
      * Property list source data
@@ -182,12 +178,12 @@ public class ASCIIPropertyListParser {
      * @return Whether one of the symbols can be accepted or not.
      */
     private boolean accept(char... acceptableSymbols) {
-        boolean symbolPresent = false;
         for (char c : acceptableSymbols) {
-            if (data[index] == c)
-                symbolPresent = true;
+            if (data[index] == c) {
+                return true;
+            }
         }
-        return symbolPresent;
+        return false;
     }
 
     /**
@@ -337,7 +333,7 @@ public class ASCIIPropertyListParser {
         expect(DICTIONARY_BEGIN_TOKEN, ARRAY_BEGIN_TOKEN, COMMENT_BEGIN_TOKEN);
         try {
             return parseObject();
-        } catch (ArrayIndexOutOfBoundsException ex) {
+        } catch (ArrayIndexOutOfBoundsException ignored) {
             throw new ParseException("Reached end of input unexpectedly.", index);
         }
     }
@@ -366,22 +362,23 @@ public class ASCIIPropertyListParser {
                 if (quotedString.length() == 20 && quotedString.charAt(4) == DATE_DATE_FIELD_DELIMITER) {
                     try {
                         return new NSDate(quotedString);
-                    } catch (Exception ex) {
+                    } catch (ParseException ignored) {
                         //not a date? --> return string
-                        return new NSString(quotedString);
                     }
-                } else {
-                    return new NSString(quotedString);
                 }
+                return new NSString(quotedString);
             }
             default: {
                 //0-9
                 if (data[index] > 0x2F && data[index] < 0x3A) {
                     //could be a date or just a string
                     return parseDateString();
-                } else {
-                    //non-numerical -> string or boolean
-                    String parsedString = parseString();
+                }
+                //non-numerical -> string or boolean
+                String parsedString = parseString();
+                try {
+                    return new NSNumber(parsedString);
+                } catch (IllegalArgumentException ignored) {
                     return new NSString(parsedString);
                 }
             }
@@ -398,7 +395,7 @@ public class ASCIIPropertyListParser {
         //Skip begin token
         skip();
         skipWhitespacesAndComments();
-        List<NSObject> objects = new LinkedList<NSObject>();
+        List<NSObject> objects = new LinkedList<>();
         while (!accept(ARRAY_END_TOKEN)) {
             objects.add(parseObject());
             skipWhitespacesAndComments();
@@ -411,7 +408,7 @@ public class ASCIIPropertyListParser {
         }
         //parse end token
         read(ARRAY_END_TOKEN);
-        return new NSArray(objects.toArray(new NSObject[objects.size()]));
+        return new NSArray(objects.toArray(new NSObject[0]));
     }
 
     /**
@@ -518,11 +515,11 @@ public class ASCIIPropertyListParser {
         if (numericalString.length() > 4 && numericalString.charAt(4) == DATE_DATE_FIELD_DELIMITER) {
             try {
                 return new NSDate(numericalString);
-            } catch(Exception ex) {
+            } catch (ParseException ignored) {
                 //An exception occurs if the string is not a date but just a string
             }
         }
-        return new NSString(numericalString);
+        return new NSNumber(numericalString);
     }
 
     /**
@@ -541,36 +538,24 @@ public class ASCIIPropertyListParser {
      * The prerequisite for calling this method is, that a quoted string begin token has been read.
      *
      * @return The quoted string found at the parsing method with all special characters unescaped.
-     * @throws ParseException If an error occured during parsing.
      */
-    private String parseQuotedString() throws ParseException {
+    private String parseQuotedString() {
         //Skip begin token
         skip();
-        String quotedString = "";
         boolean unescapedBackslash = true;
+        int start = index;
         //Read from opening quotation marks to closing quotation marks and skip escaped quotation marks
-        while (data[index] != QUOTEDSTRING_END_TOKEN || (data[index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash)) {
-            quotedString += (char) data[index];
+        while (data[index] != QUOTEDSTRING_END_TOKEN || data[index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash) {
             if (accept(QUOTEDSTRING_ESCAPE_TOKEN)) {
                 unescapedBackslash = !(data[index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash);
             }
             skip();
         }
-        String unescapedString;
-        try {
-            unescapedString = parseQuotedString(quotedString);
-        } catch (Exception ex) {
-            throw new ParseException("The quoted string could not be parsed.", index);
-        }
+        String unescapedString = parseQuotedString(new String(data, start, index - start, StandardCharsets.UTF_8));
         //skip end token
         skip();
         return unescapedString;
     }
-
-    /**
-     * Used to encode the parsed strings
-     */
-    private static CharsetEncoder asciiEncoder;
 
     /**
      * Parses a string according to the format specified for ASCII property lists.
@@ -578,50 +563,14 @@ public class ASCIIPropertyListParser {
      *
      * @param s The escaped string according to the ASCII property list format, without leading and trailing quotation marks.
      * @return The unescaped string in UTF-8 or ASCII format, depending on the contained characters.
-     * @throws java.io.UnsupportedEncodingException If the en-/decoder for the UTF-8 or ASCII encoding could not be loaded
-     * @throws java.nio.charset.CharacterCodingException If the string is encoded neither in ASCII nor in UTF-8
      */
-    public static synchronized String parseQuotedString(String s) throws UnsupportedEncodingException, CharacterCodingException {
-        List<Byte> strBytes = new LinkedList<Byte>();
+    private static synchronized String parseQuotedString(String s) {
+        StringBuilder result = new StringBuilder();
         StringCharacterIterator iterator = new StringCharacterIterator(s);
-        char c = iterator.current();
-
-        while (iterator.getIndex() < iterator.getEndIndex()) {
-            switch (c) {
-                case '\\': { //An escaped sequence is following
-                    byte[] bts = parseEscapedSequence(iterator).getBytes("UTF-8");
-                    for (byte b : bts)
-                        strBytes.add(b);
-                    break;
-                }
-                default: { //a normal ASCII char
-                    strBytes.add((byte) 0);
-                    strBytes.add((byte) c);
-                    break;
-                }
-            }
-            c = iterator.next();
+        for(char c = iterator.first(); c != StringCharacterIterator.DONE; c = iterator.next()) {
+            result.append(c == '\\' ? parseEscapedSequence(iterator) : c);
         }
-        byte[] bytArr = new byte[strBytes.size()];
-        int i = 0;
-        for (Byte b : strBytes) {
-            bytArr[i] = b.byteValue();
-            i++;
-        }
-        //Build string
-        String result = new String(bytArr, "UTF-8");
-        CharBuffer charBuf = CharBuffer.wrap(result);
-
-        //If the string can be represented in the ASCII codepage
-        // --> use ASCII encoding
-        if (asciiEncoder == null)
-            asciiEncoder = Charset.forName("ASCII").newEncoder();
-        if (asciiEncoder.canEncode(charBuf))
-            return asciiEncoder.encode(charBuf).asCharBuffer().toString();
-
-        //The string contains characters outside the ASCII codepage
-        // --> use the UTF-8 encoded string
-        return result;
+        return result.toString();
     }
 
     /**
@@ -629,42 +578,18 @@ public class ASCIIPropertyListParser {
      *
      * @param iterator The string character iterator pointing to the first character after the backslash
      * @return The unescaped character as a string.
-     * @throws UnsupportedEncodingException If an invalid Unicode or ASCII escape sequence is found.
      */
-    private static String parseEscapedSequence(StringCharacterIterator iterator) throws UnsupportedEncodingException {
+    private static String parseEscapedSequence(StringCharacterIterator iterator) {
         char c = iterator.next();
-        if (c == '\\') {
-            return new String(new byte[]{0, '\\'}, "UTF-8");
-        } else if (c == '"') {
-            return new String(new byte[]{0, '\"'}, "UTF-8");
-        } else if (c == 'b') {
-            return new String(new byte[]{0, '\b'}, "UTF-8");
-        } else if (c == 'n') {
-            return new String(new byte[]{0, '\n'}, "UTF-8");
-        } else if (c == 'r') {
-            return new String(new byte[]{0, '\r'}, "UTF-8");
-        } else if (c == 't') {
-            return new String(new byte[]{0, '\t'}, "UTF-8");
-        } else if (c == 'U' || c == 'u') {
-            //4 digit hex Unicode value
-            String byte1 = "";
-            byte1 += iterator.next();
-            byte1 += iterator.next();
-            String byte2 = "";
-            byte2 += iterator.next();
-            byte2 += iterator.next();
-            byte[] stringBytes = {(byte) Integer.parseInt(byte1, 16), (byte) Integer.parseInt(byte2, 16)};
-            return new String(stringBytes, "UTF-8");
-        } else {
-            //3 digit octal ASCII value
-            String num = "";
-            num += c;
-            num += iterator.next();
-            num += iterator.next();
-            int asciiCode = Integer.parseInt(num, 8);
-            byte[] stringBytes = {0, (byte) asciiCode};
-            return new String(stringBytes, "UTF-8");
-        }
+        if (c == '\\') return "\\";
+        if (c == '"') return "\"";
+        if (c == 'b') return "\b";
+        if (c == 'n') return "\n";
+        if (c == 'r') return "\r";
+        if (c == 't') return "\t";
+        if (c == 'U' || c == 'u') return String.valueOf((char) Integer.parseInt("" + iterator.next() +
+            iterator.next() + iterator.next() + iterator.next(), 16));
+        return String.valueOf((char) Integer.parseInt("" + c + iterator.next() + iterator.next() + iterator.next(), 8));
     }
 
 }

@@ -176,9 +176,9 @@ public class ViewingTransformationHelper implements Serializable {
 	private final void sortObjects(final List <? extends AliteObject> objects, final float [] viewMatrix, final float [] tempMatrix, boolean witchSpace, SpaceObject ship) {
 		for (AliteObject eo: objects) {
 			if (witchSpace && (eo.getId().equals("Planet") ||
-					           eo.getId().equals("Sun") ||
-					           (eo instanceof SpaceObject && ((SpaceObject) eo).getType() == ObjectType.SpaceStation) ||
-					           eo.getId().equals("Glow"))) {
+					eo.getId().equals("Sun") ||
+					eo instanceof SpaceObject && ObjectType.isSpaceStation(((SpaceObject) eo).getType()) ||
+					eo.getId().equals("Glow"))) {
 				continue;
 			}
 			Matrix.multiplyMM(tempMatrix, 0, viewMatrix, 0, eo.getMatrix(), 0);

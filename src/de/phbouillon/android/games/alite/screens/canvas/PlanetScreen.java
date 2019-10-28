@@ -45,16 +45,6 @@ public class PlanetScreen extends AliteScreen {
 	private static Pixmap background;
 	private PlanetSpaceObject planet;
 
-	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
-	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
-	private final float[] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
-	private final float[] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
-
-	private final float[] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
-
 
 	private static Pixmap inhabitantBottomLayer;
 	private static Pixmap inhabitantTopLayer;
@@ -64,7 +54,7 @@ public class PlanetScreen extends AliteScreen {
 	private TextData[] descriptionTextData;
 	private TextData[] inhabitantTextData;
 	private SystemData system;
-	private int inhabitantGenerationStep = 0;
+	private int inhabitantGenerationStep;
 
 	private String hig_subDir;
 	private int hig_bodyType;
@@ -90,61 +80,18 @@ public class PlanetScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		Player player = game.getPlayer();
-		final SystemData system = player.getHyperspaceSystem() == null ? player.getCurrentSystem() : player.getHyperspaceSystem();
-		this.system = system;
-		inhabitantTextData = computeCenteredTextDisplay(game.getGraphics(), system.getInhabitants(), 20, 800, 400,
-			ColorScheme.get(ColorScheme.COLOR_INHABITANT_INFORMATION));
-		descriptionTextData = computeTextDisplay(game.getGraphics(), system.getDescription(), 450, 900, 1100, 40,
-			ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+		system = player.getHyperspaceSystem() == null ? player.getCurrentSystem() : player.getHyperspaceSystem();
+		if (system != null) {
+			inhabitantTextData = computeCenteredTextDisplay(game.getGraphics(), system.getInhabitants(), 20, 800, 400,
+				ColorScheme.get(ColorScheme.COLOR_INHABITANT_INFORMATION));
+			descriptionTextData = computeTextDisplay(game.getGraphics(), system.getDescription(), 450, 900, 1100, 40,
+				ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+		} else {
+			SoundManager.play(Assets.error);
+		}
 		initGl();
-		createPlanet(system);
+		createPlanet();
 		inhabitantGenerationStep = 0;
-	}
-
-	private void initGl() {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		int windowWidth = visibleArea.width();
-		int windowHeight = visibleArea.height();
-
-		float ratio = windowWidth / (float) windowHeight;
-		GlUtils.setViewport(visibleArea);
-		GLES11.glDisable(GLES11.GL_FOG);
-		GLES11.glPointSize(1.0f);
-        GLES11.glLineWidth(1.0f);
-
-        GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
-        GLES11.glDisable(GLES11.GL_BLEND);
-
-		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, ratio, 1.0f, 900000.0f);
-		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-		GLES11.glLoadIdentity();
-
-		GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		GLES11.glShadeModel(GLES11.GL_SMOOTH);
-
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_AMBIENT, lightAmbient, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_DIFFUSE, lightDiffuse, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_SPECULAR, lightSpecular, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_POSITION, lightPosition, 0);
-		GLES11.glEnable(GLES11.GL_LIGHT1);
-
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_AMBIENT, sunLightAmbient, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_DIFFUSE, sunLightDiffuse, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_SPECULAR, sunLightSpecular, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_POSITION, sunLightPosition, 0);
-		GLES11.glEnable(GLES11.GL_LIGHT2);
-
-		GLES11.glEnable(GLES11.GL_LIGHTING);
-
-
-		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT);
-		GLES11.glHint(GLES11.GL_PERSPECTIVE_CORRECTION_HINT, GLES11.GL_NICEST);
-		GLES11.glHint(GLES11.GL_POLYGON_SMOOTH_HINT, GLES11.GL_NICEST);
-//		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
-		GLES11.glEnable(GLES11.GL_CULL_FACE);
-
 	}
 
 	private boolean containsInhabitant(int resId, String inhabitant) {
@@ -194,7 +141,8 @@ public class PlanetScreen extends AliteScreen {
 		return "";
 	}
 
-	private void computeAlienImage(final Graphics g, SystemData system) {
+	private void computeAlienImage() {
+		Graphics g = game.getGraphics();
 		String inhabitant = system.getInhabitants().toLowerCase() + " ";
 		String basePath = "alien_icons/" + getRace(inhabitant) + getType(inhabitant);
 		if (system == SystemData.RAXXLA_SYSTEM || g.existsAssetsFile(basePath + "base.png")) {
@@ -227,7 +175,8 @@ public class PlanetScreen extends AliteScreen {
 		}
 	}
 
-	private Pixmap load(final Graphics g, String section, String gender, int type, int layer) {
+	private Pixmap load(String section, String gender, int type, int layer) {
+		Graphics g = game.getGraphics();
 		String fileName = "alien_icons/human/" + section + (gender == null ? "" : "/" + gender) + "/" + type + "_" + layer + ".png";
 		if (g.existsAssetsFile(fileName)) {
 			return g.newPixmap(fileName);
@@ -356,14 +305,14 @@ public class PlanetScreen extends AliteScreen {
 		}
 	}
 
-	private void composePart(final Graphics g, final Pixmap pixmap, final ColorFilter filter, final Canvas composer, final Paint paint) {
+	private void composePart(final Pixmap pixmap, final ColorFilter filter) {
 		if (pixmap == null) {
 			return;
 		}
 		if (filter != null) {
-			g.applyFilterToPixmap(pixmap, filter);
+			game.getGraphics().applyFilterToPixmap(pixmap, filter);
 		}
-		composer.drawBitmap(pixmap.getBitmap(), 0, 0, paint);
+		hig_composer.drawBitmap(pixmap.getBitmap(), 0, 0, hig_paint);
 		pixmap.dispose();
 	}
 
@@ -398,30 +347,31 @@ public class PlanetScreen extends AliteScreen {
 		hig_eyeModifier  = adjustEyeColor(hig_eyeColorType);
 	}
 
-	private void computeHumanImage(final Graphics g) {
+	private void computeHumanImage() {
 		switch (inhabitantGenerationStep) {
 		    case 1: initComputeHumanImage(); break;
-			case 2: composePart(g, load(g, "hair",     hig_subDir, hig_hairType    + 1, 1), hig_hairModifier, hig_composer, hig_paint); break;
-			case 3: composePart(g, load(g, "bodies",   hig_subDir, hig_bodyType    + 1, 1), hig_skinModifier, hig_composer, hig_paint); break;
-			case 4: composePart(g, load(g, "bodies",   hig_subDir, hig_bodyType    + 1, 2), null, hig_composer, hig_paint); break;
-			case 5: composePart(g, load(g, "heads",    hig_subDir, hig_faceType    + 1, 1), hig_skinModifier, hig_composer, hig_paint); break;
-			case 6: composePart(g, load(g, "eyes",     hig_subDir, hig_eyeType     + 1, 1), null, hig_composer, hig_paint); break;
-			case 7: composePart(g, load(g, "eyes",     hig_subDir, hig_eyeType     + 1, 2), hig_eyeModifier, hig_composer, hig_paint); break;
-			case 8: composePart(g, load(g, "ears",     null,   hig_earType     + 1, 1), hig_skinModifier, hig_composer, hig_paint); break;
-			case 9: composePart(g, load(g, "noses",    hig_subDir, hig_noseType    + 1, 1), hig_skinModifier, hig_composer, hig_paint); break;
-			case 10: composePart(g, load(g, "mouths",   hig_subDir, hig_mouthType   + 1, 1), null, hig_composer, hig_paint); break;
-			case 11: composePart(g, load(g, "mouths",   hig_subDir, hig_mouthType   + 1, 2), hig_lipModifier, hig_composer, hig_paint); break;
-			case 12: composePart(g, load(g, "eyebrows", hig_subDir, hig_eyebrowType + 1, 1), hig_hairModifier, hig_composer, hig_paint); break;
-			case 13: composePart(g, load(g, "hair",     hig_subDir, hig_hairType    + 1, 2), hig_hairModifier, hig_composer, hig_paint); break;
+			case 2: composePart(load("hair",     hig_subDir, hig_hairType    + 1, 1), hig_hairModifier); break;
+			case 3: composePart(load("bodies",   hig_subDir, hig_bodyType    + 1, 1), hig_skinModifier); break;
+			case 4: composePart(load("bodies",   hig_subDir, hig_bodyType    + 1, 2), null); break;
+			case 5: composePart(load("heads",    hig_subDir, hig_faceType    + 1, 1), hig_skinModifier); break;
+			case 6: composePart(load("eyes",     hig_subDir, hig_eyeType     + 1, 1), null); break;
+			case 7: composePart(load("eyes",     hig_subDir, hig_eyeType     + 1, 2), hig_eyeModifier); break;
+			case 8: composePart(load("ears",     null,   hig_earType     + 1, 1), hig_skinModifier); break;
+			case 9: composePart(load("noses",    hig_subDir, hig_noseType    + 1, 1), hig_skinModifier); break;
+			case 10: composePart(load("mouths",   hig_subDir, hig_mouthType   + 1, 1), null); break;
+			case 11: composePart(load("mouths",   hig_subDir, hig_mouthType   + 1, 2), hig_lipModifier); break;
+			case 12: composePart(load("eyebrows", hig_subDir, hig_eyebrowType + 1, 1), hig_hairModifier); break;
+			case 13: composePart(load("hair",     hig_subDir, hig_hairType    + 1, 2), hig_hairModifier); break;
 		}
 		inhabitantGenerationStep++;
 		if (inhabitantGenerationStep == 14) {
-			inhabitantBottomLayer = g.newPixmap(hig_humanImage, "humanImage");
+			inhabitantBottomLayer = game.getGraphics().newPixmap(hig_humanImage, "humanImage");
 			inhabitantGenerationStep = -1;
 		}
 	}
 
-	private void displayInhabitants(final Graphics g) {
+	private void displayInhabitants() {
+		Graphics g = game.getGraphics();
 		g.drawPixmap(background, 20, 100);
 		if (inhabitantBottomLayer == null && inhabitantTopLayer == null) {
 			centerText(L.string(R.string.planet_inhabitant_db_load1), 20, 400, 350, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
@@ -446,35 +396,35 @@ public class PlanetScreen extends AliteScreen {
 		return (int) Math.sqrt(dx * dx + dy * dy) << 2;
 	}
 
-	private void displayInformation(final Graphics g, SystemData system) {
+	private void displayInformation() {
+		Graphics g = game.getGraphics();
 		g.drawText(L.string(R.string.planet_economy),          450, 150, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		g.drawText(L.string(R.string.planet_government),       450, 190, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		g.drawText(L.string(R.string.planet_technical_level),  450, 230, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		g.drawText(L.string(R.string.planet_population),       450, 270, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 
-		g.drawText(system.getEconomy().getDescription(),    800, 150, ColorScheme.get(ColorScheme.COLOR_ECONOMY), Assets.regularFont);
-		g.drawText(system.getGovernment().getDescription(), 800, 190, ColorScheme.get(ColorScheme.COLOR_GOVERNMENT), Assets.regularFont);
-		g.drawText("" + system.getTechLevel(),         800, 230, ColorScheme.get(ColorScheme.COLOR_TECH_LEVEL),  Assets.regularFont);
-		g.drawText(system.getPopulation(),                  800, 270, ColorScheme.get(ColorScheme.COLOR_POPULATION), Assets.regularFont);
+		g.drawText(system == null ? "?" : system.getEconomy().getDescription(),    800, 150, ColorScheme.get(ColorScheme.COLOR_ECONOMY), Assets.regularFont);
+		g.drawText(system == null ? "?" : system.getGovernment().getDescription(), 800, 190, ColorScheme.get(ColorScheme.COLOR_GOVERNMENT), Assets.regularFont);
+		g.drawText(system == null ? "?" : "" + system.getTechLevel(),         800, 230, ColorScheme.get(ColorScheme.COLOR_TECH_LEVEL),  Assets.regularFont);
+		g.drawText(system == null ? L.string(R.string.planet_population_unknown) : system.getPopulation(), 800, 270, ColorScheme.get(ColorScheme.COLOR_POPULATION), Assets.regularFont);
 
 		g.drawPixmap(cobraRight, 450, 320);
 		g.drawArrow(720, 560, 1000, 560, ColorScheme.get(ColorScheme.COLOR_ARROW), Graphics.ArrowDirection.RIGHT);
 
 		int halfWidth = g.getTextWidth(L.string(R.string.planet_distance), Assets.regularFont) >> 1;
 		g.drawText(L.string(R.string.planet_distance), 860 - halfWidth, 605, ColorScheme.get(ColorScheme.COLOR_SHIP_DISTANCE), Assets.regularFont);
-		int dist = computeDistance();
-		String distString = L.getOneDecimalFormatString(R.string.cash_amount_only, dist);
+		String distString = system == null ? "?" : L.getOneDecimalFormatString(R.string.cash_amount_only, computeDistance());
 		halfWidth = g.getTextWidth(distString, Assets.regularFont) >> 1;
 		g.drawText(distString, 860 - halfWidth, 545, ColorScheme.get(ColorScheme.COLOR_SHIP_DISTANCE), Assets.regularFont);
 
 		g.drawArrow(1090, 270, 1210, 270, ColorScheme.get(ColorScheme.COLOR_ARROW), Graphics.ArrowDirection.LEFT);
 		g.drawArrow(1630, 270, 1510, 270, ColorScheme.get(ColorScheme.COLOR_ARROW), Graphics.ArrowDirection.RIGHT);
-		String diameter = system.getDiameter();
+		String diameter = system == null ? L.string(R.string.planet_diameter_unknown) : system.getDiameter();
 		halfWidth = g.getTextWidth(diameter, Assets.regularFont) >> 1;
 		g.drawText(diameter, 1370 - halfWidth, 280, ColorScheme.get(ColorScheme.COLOR_DIAMETER), Assets.regularFont);
 
 		g.drawText(L.string(R.string.planet_gnp), 450, 840, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText(system.getGnp(), 800, 840, ColorScheme.get(ColorScheme.COLOR_GNP), Assets.regularFont);
+		g.drawText(system == null ? L.string(R.string.planet_gnp_unknown) : system.getGnp(), 800, 840, ColorScheme.get(ColorScheme.COLOR_GNP), Assets.regularFont);
 
 		displayText(g, descriptionTextData);
 	}
@@ -488,15 +438,15 @@ public class PlanetScreen extends AliteScreen {
 		if (planet != null) {
 			planet.applyDeltaRotation(0, deltaTime * 5.0f, 0);
 		}
-		if (inhabitantGenerationStep >= 0) {
+		if (inhabitantGenerationStep >= 0 && system != null) {
 			if (system.getInhabitantCode() == null) {
 				if (inhabitantGenerationStep == 0) {
 					aig_temp1 = null;
 					aig_temp2 = null;
 				}
-				computeAlienImage(game.getGraphics(), system);
+				computeAlienImage();
 			} else {
-				computeHumanImage(game.getGraphics());
+				computeHumanImage();
 			}
 		}
 	}
@@ -504,15 +454,13 @@ public class PlanetScreen extends AliteScreen {
 	@Override
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
-		Player player = game.getPlayer();
-		SystemData system = player.getHyperspaceSystem() == null ? player.getCurrentSystem() : player.getHyperspaceSystem();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		displayTitle(L.string(R.string.title_planet, system.getName()));
+		displayTitle(L.string(R.string.title_planet, system != null ? system.getName() : L.string(R.string.galaxy_unknown)));
 
 		afterDisplay();
 
-		displayInhabitants(g);
-		displayInformation(g, system);
+		displayInhabitants();
+		displayInformation();
 	}
 
 	@Override
@@ -555,8 +503,8 @@ public class PlanetScreen extends AliteScreen {
 		super.loadAssets();
 	}
 
-	private void createPlanet(final SystemData system) {
-		planet = new PlanetSpaceObject(game, system, true);
+	private void createPlanet() {
+		planet = new PlanetSpaceObject(system, true);
 		planet.setPosition(PLANET_POSITION);
 		planet.applyDeltaRotation(16, 35, 8);
 	}
@@ -576,10 +524,10 @@ public class PlanetScreen extends AliteScreen {
 		GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
-
 		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
 		GLES11.glDepthFunc(GLES11.GL_LESS);
 		GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT);
+
 		GLES11.glPushMatrix();
 		GLES11.glMultMatrixf(planet.getMatrix(), 0);
 		planet.render();

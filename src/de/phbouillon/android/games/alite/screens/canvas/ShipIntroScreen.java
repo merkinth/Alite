@@ -30,49 +30,12 @@ import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.SkySphereSpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.MathHelper;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Adder;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Anaconda;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.AspMkII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.BoaClassCruiser;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Boomslang;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Bushmaster;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkI;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Constrictor;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Coral;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Coriolis;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cottonmouth;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cougar;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Dugite;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.EscapeCapsule;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.FerDeLance;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Gecko;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Gopher;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Harlequin;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Hognose2;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Indigo;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Krait;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Lora;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Lyre;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Mamba;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Missile;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.MorayStarBoat;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Mussurana;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.OrbitShuttle;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Python;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Rattlesnake;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Sidewinder;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargoid;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargon;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.TieFighter;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Transporter;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Viper;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.WolfMkII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Yellowbelly;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class ShipIntroScreen extends AliteScreen {
@@ -81,36 +44,19 @@ public class ShipIntroScreen extends AliteScreen {
 	private static final boolean SHOW_DOCKING = false;
 	private static final boolean DANCE = true;
 
-	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
-	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
-	private final float[] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
-	private final float[] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
-
-	private final float[] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
-
 	private SkySphereSpaceObject skysphere;
-	private AliteObject currentShip;
-
-	private static final float START_Z    = -40000.0f;
+	private SpaceObject currentShip;
 
 	private final Timer timer = new Timer().setAutoReset();
 	private final Timer danceTimer = new Timer().setAutoReset();
-	private int currentShipIndex = 0;
-	private float currentDeltaX;
-	private float targetDeltaX;
-	private float currentDeltaY;
-	private float targetDeltaY;
-	private float currentDeltaZ;
-	private float targetDeltaZ;
+	private Vector3f currentDelta = new Vector3f(0,0,0);
+	private Vector3f targetDelta = new Vector3f(0,0,0);
 
 	private Button yesButton;
 	private Button noButton;
 	private Button tapToStartButton;
-	private boolean selectPreviousShip = false;
-	private Coriolis coriolis;
+	private int selectionDirection = 1;
+	private SpaceObject coriolis;
 
 	enum DisplayMode {
 		ZOOM_IN,
@@ -127,63 +73,20 @@ public class ShipIntroScreen extends AliteScreen {
 		showLoadNewCommander = game.existsSavedCommander();
 	}
 
-	private void initGl() {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		int windowWidth = visibleArea.width();
-		int windowHeight = visibleArea.height();
-
-		float ratio = windowWidth / (float) windowHeight;
-		GlUtils.setViewport(visibleArea);
-		GLES11.glDisable(GLES11.GL_FOG);
-		GLES11.glPointSize(1.0f);
-		GLES11.glLineWidth(1.0f);
-
-		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
-		GLES11.glDisable(GLES11.GL_BLEND);
-
-		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, ratio, 1.0f, 900000.0f);
-		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-		GLES11.glLoadIdentity();
-
-		GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		GLES11.glShadeModel(GLES11.GL_SMOOTH);
-
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_AMBIENT, lightAmbient, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_DIFFUSE, lightDiffuse, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_SPECULAR, lightSpecular, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_POSITION, lightPosition, 0);
-		GLES11.glEnable(GLES11.GL_LIGHT1);
-
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_AMBIENT, sunLightAmbient, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_DIFFUSE, sunLightDiffuse, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_SPECULAR, sunLightSpecular, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_POSITION, sunLightPosition, 0);
-		GLES11.glEnable(GLES11.GL_LIGHT2);
-
-		GLES11.glEnable(GLES11.GL_LIGHTING);
-
-		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT);
-		GLES11.glHint(GLES11.GL_PERSPECTIVE_CORRECTION_HINT, GLES11.GL_NICEST);
-		GLES11.glHint(GLES11.GL_POLYGON_SMOOTH_HINT, GLES11.GL_NICEST);
-		GLES11.glEnable(GLES11.GL_CULL_FACE);
-	}
-
 	@Override
 	public void update(float deltaTime) {
 		updateWithoutNavigation(deltaTime);
 		if (DANCE) {
-			updateAxes();
+			MathHelper.updateAxes(currentDelta, targetDelta);
 		}
 		if (currentShip != null) {
-			currentShip.applyDeltaRotation(currentDeltaX, currentDeltaY, currentDeltaZ);
-			((SpaceObject) currentShip).update(deltaTime);
+			currentShip.applyDeltaRotation(currentDelta.x, currentDelta.y, currentDelta.z);
+			currentShip.update(deltaTime);
 		}
 		switch (displayMode) {
-			case ZOOM_IN:  zoomIn(deltaTime);  break;
+			case ZOOM_IN:  zoomIn();  break;
 			case DANCE:    dance();   break;
-			case ZOOM_OUT: zoomOut(deltaTime); break;
+			case ZOOM_OUT: zoomOut(); break;
 		}
 	}
 
@@ -194,8 +97,10 @@ public class ShipIntroScreen extends AliteScreen {
 				displayMode = DisplayMode.ZOOM_OUT;
 			}
 			if (touch.x2 > 0) {
-			  AliteLog.d("TouchSweep", touch.x + ", " + touch.x2 + ", " + touch.y + ", " + touch.y2);
-				selectPreviousShip = true;
+				AliteLog.d("TouchSweep", touch.x + ", " + touch.x2 + ", " + touch.y + ", " + touch.y2);
+				selectionDirection = -1;
+			} else {
+				selectionDirection = 1;
 			}
 		}
 		if (yesButton.isPressed(touch)) {
@@ -225,13 +130,10 @@ public class ShipIntroScreen extends AliteScreen {
 	}
 
 	private void debugExhausts() {
-		if (DEBUG_EXHAUST) {
-			if (currentShip instanceof SpaceObject) {
-				SpaceObject so = (SpaceObject) currentShip;
-				boolean ok = so.getNumberOfLasers() < 2 || so.getLaserX(0) > so.getLaserX(1);
-				centerTextWide(ok ? "Ok!" : "NOT OK!", 150, Assets.titleFont,
-						ColorScheme.get(ok ? ColorScheme.COLOR_CONDITION_GREEN : ColorScheme.COLOR_CONDITION_RED));
-			}
+		if (DEBUG_EXHAUST && currentShip != null) {
+			boolean ok = currentShip.getNumberOfLasers() < 2 || currentShip.getLaserX(0) > currentShip.getLaserX(1);
+			centerTextWide(ok ? "Ok!" : "NOT OK!", 150, Assets.titleFont,
+				ColorScheme.get(ok ? ColorScheme.COLOR_CONDITION_GREEN : ColorScheme.COLOR_CONDITION_RED));
 		}
 	}
 
@@ -304,7 +206,7 @@ public class ShipIntroScreen extends AliteScreen {
 		}
 		GLES11.glPushMatrix();
 		GLES11.glMultMatrixf(currentShip.getMatrix(), 0);
-		((Geometry) currentShip).render();
+		currentShip.render();
 		GLES11.glPopMatrix();
 
 		endDisplay(visibleArea);
@@ -313,36 +215,32 @@ public class ShipIntroScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		initGl();
-		skysphere = new SkySphereSpaceObject(game, "skysphere", 8000.0f, 16, 16, "textures/star_map.png");
-		SpaceObject ao = getShipForCurrentIndex();
-		ao.setPosition(0.0f, 0.0f, -ao.getMaxExtentWithoutExhaust() * 2.0f);
-
+		skysphere = new SkySphereSpaceObject("skysphere", 8000.0f, 16, 16, "textures/star_map.png");
+		currentShip = SpaceObjectFactory.getInstance().getNextObject(currentShip, selectionDirection, DEBUG_EXHAUST);
+		selectionDirection = 1;
+		currentShip.setPosition(0.0f, 0.0f, -currentShip.getMaxExtentWithoutExhaust() * 2.0f);
 		if (SHOW_DOCKING) {
-			coriolis = new Coriolis(game);
+			coriolis = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Coriolis);
 			coriolis.applyDeltaRotation(0, 0, 90);
 			coriolis.setPosition(0, 0, -1300);
 		}
-		targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-		targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-		targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-		currentShip = ao;
+		MathHelper.getRandomRotationAngles(targetDelta);
 		timer.reset();
 		displayMode = DisplayMode.DANCE;
-		ao.setAIState(AIState.IDLE, (Object[]) null);
-		ao.setSpeed(-ao.getMaxSpeed());
+		currentShip.setAIState(AIState.IDLE, (Object[]) null);
+		currentShip.setSpeed(-currentShip.getMaxSpeed());
 		yesButton = Button.createGradientPictureButton(1000, 950, 110, 110, Assets.yesIcon)
 			.setVisible(showLoadNewCommander);
 		noButton = Button.createGradientPictureButton(1150, 950, 110, 110, Assets.noIcon)
 			.setVisible(showLoadNewCommander);
-		tapToStartButton = Button.createGradientRegularButton(560, 950, 800, 110, L.string(R.string.intro_btn_tap_to_start))
+		tapToStartButton = Button.createGradientRegularButton(530, 980, 800, 80, L.string(R.string.intro_btn_tap_to_start))
 			.setTextColor(ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT))
 			.setVisible(!showLoadNewCommander);
 	}
 
-
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
-		dos.writeInt(currentShipIndex);
+		ScreenBuilder.writeString(dos, currentShip.getId());
 	}
 
 	@Override
@@ -386,26 +284,14 @@ public class ShipIntroScreen extends AliteScreen {
 		return ScreenCodes.SHIP_INTRO_SCREEN;
 	}
 
-	private void zoomIn(float deltaTime) {
+	private void zoomIn() {
 		if (currentShip == null) {
 			return;
 		}
-		Vector3f pos = currentShip.getPosition();
-		float newZ = pos.z + deltaTime * 30000.0f;
-		AliteObject ao = currentShip;
-		boolean end = false;
-		if (ao instanceof SpaceObject)  {
-			if (newZ >= -((SpaceObject) ao).getMaxExtentWithoutExhaust() * 2.0f) {
-				newZ = -((SpaceObject) ao).getMaxExtentWithoutExhaust() * 2.0f;
-				end = true;
-			}
-		} else {
-			if (newZ >= -1400.0f) {
-				newZ = -1400.0f;
-				end = true;
-			}
-		}
-		if (end) {
+		float step = 2.0f * currentShip.getMaxExtentWithoutExhaust();
+		float newZ = currentShip.getPosition().z + step;
+		if (newZ >= -step) {
+			newZ = -step;
 			displayMode = DisplayMode.DANCE;
 			timer.reset();
 		}
@@ -414,104 +300,34 @@ public class ShipIntroScreen extends AliteScreen {
 
 	private void dance() {
 		if (DANCE && danceTimer.hasPassedSeconds(4)) {
-			targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-			targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-			targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
+			MathHelper.getRandomRotationAngles(targetDelta);
 		}
 		if (timer.hasPassedSeconds(15) && !ONLY_CHANGE_SHIPS_AFTER_SWEEP) {
 			displayMode = DisplayMode.ZOOM_OUT;
 		}
 	}
 
-	private void zoomOut(float deltaTime) {
+	private void zoomOut() {
 		if (currentShip == null) {
 			return;
 		}
-		Vector3f pos = currentShip.getPosition();
-		float newZ = pos.z - deltaTime * 30000.0f;
-		if (newZ <= START_Z) {
-			if (currentShip instanceof SpaceObject) {
-				((SpaceObject) currentShip).dispose();
+		float step = 2.0f *currentShip.getMaxExtentWithoutExhaust();
+		float newZ = currentShip.getPosition().z - step;
+		if (newZ <= -50 * step) {
+			if (currentShip != null) {
+				currentShip.dispose();
 			}
 			currentShip = getNextShip();
-			newZ = START_Z;
+			newZ = -50 * currentShip.getMaxExtentWithoutExhaust();
 			displayMode = DisplayMode.ZOOM_IN;
 			timer.reset();
 		}
 		currentShip.setPosition(0, 0, newZ);
 	}
 
-	private void updateAxes() {
-		if (Math.abs(currentDeltaX - targetDeltaX) > 0.0001) {
-			currentDeltaX += (targetDeltaX - currentDeltaX) / 8.0f;
-		}
-		if (Math.abs(currentDeltaY - targetDeltaY) > 0.0001) {
-			currentDeltaY += (targetDeltaY - currentDeltaY) / 8.0f;
-		}
-		if (Math.abs(currentDeltaZ - targetDeltaZ) > 0.0001) {
-			currentDeltaZ += (targetDeltaZ - currentDeltaZ) / 8.0f;
-		}
-	}
-
-
-	private SpaceObject getShipForCurrentIndex() {
-		switch (currentShipIndex) {
-			case  0: return new CobraMkIII(game);
-			case  1: return new Krait(game);
-			case  2: return new Thargoid(game);
-			case  3: return new Thargon(game);
-			case  4: return new BoaClassCruiser(game);
-			case  5: return new Gecko(game);
-			case  6: return new MorayStarBoat(game);
-			case  7: return new Adder(game);
-			case  8: return new Mamba(game);
-			case  9: return new Viper(game);
-			case 10: return new FerDeLance(game);
-			case 11: return new CobraMkI(game);
-			case 12: return new Python(game);
-			case 13: return new Anaconda(game);
-			case 14: return new AspMkII(game);
-			case 15: return new Sidewinder(game);
-			case 16: return new WolfMkII(game);
-			case 17: return new OrbitShuttle(game);
-			case 18: return new Transporter(game);
-			case 19: return new Missile(game);
-			case 20: return new EscapeCapsule(game);
-			case 21: return new Boomslang(game);
-			case 22: return new Constrictor(game);
-			case 23: return new Cottonmouth(game);
-			case 24: return new Cougar(game);
-			case 25: return new Hognose2(game);
-			case 26: return new Lora(game);
-			case 27: return new Gopher(game);
-			case 28: return new Coral(game);
-			case 29: return new Bushmaster(game);
-			case 30: return new Rattlesnake(game);
-			case 31: return new Mussurana(game);
-			case 32: return new Dugite(game);
-			case 33: return new Yellowbelly(game);
-			case 34: return new Indigo(game);
-			case 35: return new Harlequin(game);
-			case 36: return new TieFighter(game);
-			case 37: return new Lyre(game);
-		}
-		return new CobraMkIII(game);
-	}
-
-	private AliteObject getNextShip() {
-		if (selectPreviousShip) {
-			selectPreviousShip = false;
-			currentShipIndex--;
-			if (currentShipIndex < 0) {
-				currentShipIndex = DEBUG_EXHAUST ? 37 : 20;
-			}
-		} else {
-			currentShipIndex++;
-		}
-		if (currentShipIndex >= (DEBUG_EXHAUST ? 38 : 21)) {
-			currentShipIndex = 0;
-		}
-		SpaceObject ao = getShipForCurrentIndex();
+	private SpaceObject getNextShip() {
+		SpaceObject ao = SpaceObjectFactory.getInstance().getNextObject(currentShip, selectionDirection, DEBUG_EXHAUST);
+		selectionDirection = 1;
 		ao.setAIState(AIState.IDLE, (Object[]) null);
 		ao.setSpeed(-ao.getMaxSpeed());
 		return ao;
@@ -520,7 +336,8 @@ public class ShipIntroScreen extends AliteScreen {
 	public static boolean initialize(Alite alite, final DataInputStream dis) {
 		ShipIntroScreen sis = new ShipIntroScreen(alite);
 		try {
-			sis.currentShipIndex = dis.readInt();
+			sis.currentShip = SpaceObjectFactory.getInstance().getObjectById(ScreenBuilder.readString(dis));
+			sis.selectionDirection = 0;
 		} catch (IOException e) {
 			AliteLog.e("Ship Intro Screen Initialize", "Error in initializer.", e);
 			return false;

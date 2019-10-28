@@ -20,10 +20,10 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites.buttons;
 
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.SpaceObjectTraverser;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Missile;
 
 public class ECMTraverser implements SpaceObjectTraverser {
 	private static final long serialVersionUID = 2946553436076856776L;
@@ -40,20 +40,17 @@ public class ECMTraverser implements SpaceObjectTraverser {
 
 	@Override
 	public boolean handle(SpaceObject so) {
-		if (so instanceof Missile && !so.mustBeRemoved()) {
-			Missile m = (Missile) so;
-			if (m.getTarget() == inGame.getShip()) {
-				if (!missileDestroyed) {
-					SoundManager.play(Assets.ecm);
-					if (inGame.getHud() != null) {
-						inGame.getHud().showECM();
-					}
-					missileDestroyed = true;
+		if (so.getType() == ObjectType.Missile && !so.mustBeRemoved() && so.getTarget() == inGame.getShip()) {
+			if (!missileDestroyed) {
+				SoundManager.play(Assets.ecm);
+				if (inGame.getHud() != null) {
+					inGame.getHud().showECM();
 				}
-				m.setHullStrength(0);
-				inGame.getLaserManager().explode(m);
-				inGame.reduceShipEnergy(3);
+				missileDestroyed = true;
 			}
+			so.setHullStrength(0);
+			inGame.getLaserManager().explode(so);
+			inGame.reduceShipEnergy(3);
 		}
 		return false;
 	}

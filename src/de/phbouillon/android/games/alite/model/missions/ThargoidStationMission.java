@@ -28,13 +28,11 @@ import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ThargoidStationScreen;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallbackHandler;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceStation;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargoid;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.*;
 
 public class ThargoidStationMission extends Mission implements Serializable {
 	private static final long serialVersionUID = 4664546653830973675L;
@@ -53,7 +51,7 @@ public class ThargoidStationMission extends Mission implements Serializable {
 				if (numberOfThargoidsToSpawn == 0 || state != 2) {
 					return;
 				}
-				final Thargoid thargoid = new Thargoid(alite);
+				final SpaceObject thargoid = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Thargoid);
 				spawnManager.launchFromBay(thargoid, new AiStateCallbackHandler() {
 					private static final long serialVersionUID = 3546094888645182119L;
 
@@ -127,9 +125,9 @@ public class ThargoidStationMission extends Mission implements Serializable {
 			public void execute(float deltaTime) {
 				SpaceObject station = (SpaceObject) manager.getInGameManager().getStation();
 				station.setId(ALIEN_SPACE_STATION);
-				station.setName(R.string.thargoid_station_name);
+				station.setProperty(SpaceObject.Property.name, L.string(R.string.thargoid_station_name));
 				station.setHullStrength(1024);
-				((SpaceStation) station).denyAccess();
+				station.denyAccess();
 				station.addDestructionCallback(2, new IMethodHook() {
 					private static final long serialVersionUID = 6715650816893032921L;
 
@@ -154,8 +152,8 @@ public class ThargoidStationMission extends Mission implements Serializable {
 		Vector3f spawnPosition = manager.getSpawnPosition();
 		int thargoidNum = alite.getPlayer().getRating().ordinal() < 3 ? 1 : Math.random() < 0.5 ? 2 : 3;
 		for (int i = 0; i < thargoidNum; i++) {
-			Thargoid thargoid = new Thargoid(alite);
-			thargoid.setSpawnThargonDistanceSq(manager.computeSpawnThargonDistanceSq());
+			SpaceObject thargoid = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Thargoid);
+			thargoid.setSpawnDroneDistanceSq(manager.computeSpawnThargonDistanceSq());
 			manager.spawnEnemyAndAttackPlayer(thargoid, i, spawnPosition);
 		}
 	}

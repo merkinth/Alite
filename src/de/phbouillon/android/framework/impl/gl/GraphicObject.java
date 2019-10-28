@@ -28,7 +28,6 @@ import android.opengl.Matrix;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.L;
 
 public class GraphicObject implements Serializable {
 	private static final long serialVersionUID = -8039542554642450651L;
@@ -44,12 +43,11 @@ public class GraphicObject implements Serializable {
 	private float targetSpeed;
 
 	private String id;
-	private int name;
 
-	protected float [] currentMatrix = new float[16];
-	private float [] tempMatrix = new float[16];
-	private float [] tempMatrix2 = new float[16];
-	protected boolean cached = false;
+	private float[] currentMatrix = new float[16];
+	private float[] tempMatrix = new float[16];
+	private float[] tempMatrix2 = new float[16];
+	private boolean cached = false;
 	private IMethodHook updater = null;
 
 	public GraphicObject() {
@@ -83,7 +81,7 @@ public class GraphicObject implements Serializable {
 		return updater;
 	}
 
-	public GraphicObject(float [] matrix) {
+	public GraphicObject(float[] matrix) {
 		this(matrix, "Unknown");
 	}
 
@@ -108,7 +106,7 @@ public class GraphicObject implements Serializable {
 		this.id = id;
 	}
 
-	public GraphicObject(float [] matrix, String id) {
+	public GraphicObject(float[] matrix, String id) {
 		worldPosition = new Vector3f(matrix[12], matrix[13], matrix[14]);
 		rightVector   = new Vector3f(matrix[ 0], matrix[ 1], matrix[ 2]);
 		rightVector.normalize();
@@ -212,11 +210,7 @@ public class GraphicObject implements Serializable {
 	}
 
 	public String getName() {
-		return name == 0 ? id : L.string(name);
-	}
-
-	public void setName(int name) {
-		this.name = name;
+		return id;
 	}
 
 	public float getSpeed() {
@@ -254,38 +248,39 @@ public class GraphicObject implements Serializable {
 	}
 
 	public final void computeMatrix() {
-		if (!cached) {
-			Vector3f rn = rightVector;
-			rn.normalize();
-			currentMatrix[ 0] = rn.x;
-			currentMatrix[ 1] = rn.y;
-			currentMatrix[ 2] = rn.z;
-			currentMatrix[ 3] = 0.0f;
-
-			Vector3f un = upVector;
-			un.normalize();
-			currentMatrix[ 4] = un.x;
-			currentMatrix[ 5] = un.y;
-			currentMatrix[ 6] = un.z;
-			currentMatrix[ 7] = 0.0f;
-
-			Vector3f fn = forwardVector;
-			fn.normalize();
-			currentMatrix[ 8] = fn.x;
-			currentMatrix[ 9] = fn.y;
-			currentMatrix[10] = fn.z;
-			currentMatrix[11] = 0.0f;
-
-			currentMatrix[12] = worldPosition.x;
-			currentMatrix[13] = worldPosition.y;
-			currentMatrix[14] = worldPosition.z;
-			currentMatrix[15] = 1.0f;
-
-			cached = true;
+		if (cached) {
+			return;
 		}
+		Vector3f rn = rightVector;
+		rn.normalize();
+		currentMatrix[ 0] = rn.x;
+		currentMatrix[ 1] = rn.y;
+		currentMatrix[ 2] = rn.z;
+		currentMatrix[ 3] = 0.0f;
+
+		Vector3f un = upVector;
+		un.normalize();
+		currentMatrix[ 4] = un.x;
+		currentMatrix[ 5] = un.y;
+		currentMatrix[ 6] = un.z;
+		currentMatrix[ 7] = 0.0f;
+
+		Vector3f fn = forwardVector;
+		fn.normalize();
+		currentMatrix[ 8] = fn.x;
+		currentMatrix[ 9] = fn.y;
+		currentMatrix[10] = fn.z;
+		currentMatrix[11] = 0.0f;
+
+		currentMatrix[12] = worldPosition.x;
+		currentMatrix[13] = worldPosition.y;
+		currentMatrix[14] = worldPosition.z;
+		currentMatrix[15] = 1.0f;
+
+		cached = true;
 	}
 
-	public float [] getMatrix() {
+	public float[] getMatrix() {
 		computeMatrix();
 		return currentMatrix;
 	}
@@ -293,13 +288,13 @@ public class GraphicObject implements Serializable {
 	private String getMatrixString() {
 		computeMatrix();
 		return String.format(Locale.getDefault(), "[%4.2f, %4.2f, %4.2f, %4.2f\n" +
-		                     " %4.2f, %4.2f, %4.2f, %4.2f\n" +
-		                     " %4.2f, %4.2f, %4.2f, %4.2f\n" +
-		                     " %4.2f, %4.2f, %4.2f, %4.2f]\n",
-		                       currentMatrix[ 0], currentMatrix[ 4], currentMatrix[ 8], currentMatrix[12],
-		                       currentMatrix[ 1], currentMatrix[ 5], currentMatrix[ 9], currentMatrix[13],
-		                       currentMatrix[ 2], currentMatrix[ 6], currentMatrix[10], currentMatrix[14],
-		                       currentMatrix[ 3], currentMatrix[ 7], currentMatrix[11], currentMatrix[15]);
+			 " %4.2f, %4.2f, %4.2f, %4.2f\n" +
+			 " %4.2f, %4.2f, %4.2f, %4.2f\n" +
+			 " %4.2f, %4.2f, %4.2f, %4.2f]\n",
+			   currentMatrix[ 0], currentMatrix[ 4], currentMatrix[ 8], currentMatrix[12],
+			   currentMatrix[ 1], currentMatrix[ 5], currentMatrix[ 9], currentMatrix[13],
+			   currentMatrix[ 2], currentMatrix[ 6], currentMatrix[10], currentMatrix[14],
+			   currentMatrix[ 3], currentMatrix[ 7], currentMatrix[11], currentMatrix[15]);
 	}
 
 	public void translateForward(float deltaTime) {
@@ -352,7 +347,7 @@ public class GraphicObject implements Serializable {
 		cached = false;
 	}
 
-	public float [] getScaledMatrix(float scale) {
+	public float[] getScaledMatrix(float scale) {
 		computeMatrix();
 		Matrix.scaleM(tempMatrix, 0, currentMatrix, 0, scale, scale, scale);
 		return tempMatrix;
@@ -364,13 +359,13 @@ public class GraphicObject implements Serializable {
 		extractVectors();
 	}
 
-	public void scale(float scaleX, float scaleY, float scaleZ) {
+	protected void scale(float scaleX, float scaleY, float scaleZ) {
 		computeMatrix();
 		Matrix.scaleM(currentMatrix, 0, scaleX, scaleY, scaleZ);
 		extractVectors();
 	}
 
-	protected final void extractVectors() {
+	public final void extractVectors() {
 		rightVector.x   = currentMatrix[ 0];
 		rightVector.y   = currentMatrix[ 1];
 		rightVector.z   = currentMatrix[ 2];
@@ -388,7 +383,7 @@ public class GraphicObject implements Serializable {
 		worldPosition.z = currentMatrix[14];
 	}
 
-	public float [] applyDeltaRotation(float x, float y, float z) {
+	public float[] applyDeltaRotation(float x, float y, float z) {
 		computeMatrix();
 		Matrix.rotateM(currentMatrix, 0, z, 0, 0, 1);
 		Matrix.rotateM(currentMatrix, 0, x, 1, 0, 0);
@@ -425,12 +420,18 @@ public class GraphicObject implements Serializable {
 		lookAt(v.x, v.y, v.z, up.x, up.y, up.z);
 	}
 
-	public void setMatrix(float [] matrix) {
-		int counter = 0;
-		for (float f: matrix) {
-			currentMatrix[counter++] = f;
-		}
+	public void setMatrix(float[] matrix) {
+		System.arraycopy(matrix, 0, currentMatrix, 0, matrix.length);
 		cached = true;
 		extractVectors();
 	}
+
+	protected void calculateVertex(float[] resultVector4, int resultVectorOffset, float[] matrix4x4, float[] vector3, int vectorOffset, float scale) {
+		resultVector4[resultVectorOffset] = vector3[vectorOffset] * scale;
+		resultVector4[resultVectorOffset + 1] = vector3[vectorOffset + 1] * scale;
+		resultVector4[resultVectorOffset + 2] = vector3[vectorOffset + 2] * scale;
+		resultVector4[resultVectorOffset + 3] = 1;
+		Matrix.multiplyMV(resultVector4, resultVectorOffset, matrix4x4, 0, resultVector4, resultVectorOffset);
+	}
+
 }

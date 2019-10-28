@@ -28,7 +28,7 @@ import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
 
-public abstract class AliteObject extends GraphicObject implements Serializable {
+public class AliteObject extends GraphicObject implements Serializable {
 	private static final long serialVersionUID = -5229181033103145634L;
 
 	public enum ZPositioning {
@@ -37,21 +37,26 @@ public abstract class AliteObject extends GraphicObject implements Serializable 
 		Back
 	}
 
-	protected boolean visible = true;
-	protected boolean remove = false;
-	protected ZPositioning positionMode = ZPositioning.Normal;
+	private boolean visible = true;
+	private boolean remove = false;
+	private ZPositioning positionMode = ZPositioning.Normal;
 	protected float boundingSphereRadius;
-	protected final Map <Integer, IMethodHook> destructionCallbacks = new LinkedHashMap<>();
+	private final Map <Integer, IMethodHook> destructionCallbacks = new LinkedHashMap<>();
+	protected int hudColor; // scan_class, scanner_display_color1,2, scanner_hostile_display_color1,2
+	private boolean visibleOnHud = false;
 	private transient boolean saving = false;
+	private final float[] displayMatrix = new float[16];
+	float distanceFromCenterToBorder;
+	private boolean depthTest = true;
 
 	protected final Vector3f v0    = new Vector3f(0, 0, 0);
 	protected final Vector3f v1    = new Vector3f(0, 0, 0);
-	protected final Vector3f v2    = new Vector3f(0, 0, 0);
-	protected final Vector3f edge1 = new Vector3f(0, 0, 0);
-	protected final Vector3f edge2 = new Vector3f(0, 0, 0);
-	protected final Vector3f pvec  = new Vector3f(0, 0, 0);
-	protected final Vector3f qvec  = new Vector3f(0, 0, 0);
-	protected final Vector3f tvec  = new Vector3f(0, 0, 0);
+	private final Vector3f v2    = new Vector3f(0, 0, 0);
+	private final Vector3f edge1 = new Vector3f(0, 0, 0);
+	private final Vector3f edge2 = new Vector3f(0, 0, 0);
+	private final Vector3f pvec  = new Vector3f(0, 0, 0);
+	private final Vector3f qvec  = new Vector3f(0, 0, 0);
+	private final Vector3f tvec  = new Vector3f(0, 0, 0);
 
 	public AliteObject(String id) {
 		super(id);
@@ -82,8 +87,12 @@ public abstract class AliteObject extends GraphicObject implements Serializable 
 		return destructionCallbacks.values();
 	}
 
-	public boolean needsDepthTest() {
-		return true;
+	public void setDepthTest(boolean depthTest) {
+		this.depthTest = depthTest;
+	}
+
+	public boolean isDepthTest() {
+		return depthTest;
 	}
 
 	public void setVisible(boolean visible) {
@@ -158,6 +167,31 @@ public abstract class AliteObject extends GraphicObject implements Serializable 
 	}
 
 
-	public abstract boolean isVisibleOnHud();
-	public abstract Vector3f getHudColor();
+	public boolean isVisibleOnHud() {
+		return visibleOnHud;
+	}
+
+	public void setVisibleOnHud(boolean visibleOnHud) {
+		this.visibleOnHud = visibleOnHud;
+	}
+
+	public int getHudColor() {
+		return hudColor;
+	}
+
+	public void render() {
+	}
+
+	public float getDistanceFromCenterToBorder() {
+		return distanceFromCenterToBorder;
+	}
+
+	public void setDisplayMatrix(float[] matrix) {
+		System.arraycopy(matrix, 0, displayMatrix, 0, matrix.length);
+	}
+
+	public float[] getDisplayMatrix() {
+		return displayMatrix;
+	}
+
 }

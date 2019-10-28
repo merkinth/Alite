@@ -31,6 +31,7 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
+import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
@@ -42,7 +43,10 @@ import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.GalaxyScreen;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Constrictor;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.MathHelper;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class ConstrictorScreen extends AliteScreen {
@@ -51,29 +55,16 @@ public class ConstrictorScreen extends AliteScreen {
 
 	private transient MediaPlayer mediaPlayer;
 
-	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
-	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
-	private final float[] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
-	private final float[] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
-
-	private final float[] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
-
 	private MissionLine attCommander;
 	private MissionLine missionLine;
 	private MissionLine acceptMission;
 	private int lineIndex = 0;
-	private Constrictor constrictor;
+	private SpaceObject constrictor;
 	private TextData[] missionText;
 	private final Timer timer = new Timer().setAutoReset();
-	private float currentDeltaX;
-	private float targetDeltaX;
-	private float currentDeltaY;
-	private float targetDeltaY;
-	private float currentDeltaZ;
-	private float targetDeltaZ;
+	private Vector3f currentDelta = new Vector3f(0,0,0);
+	private Vector3f targetDelta = new Vector3f(0,0,0);
+
 	private Button acceptButton;
 	private Button declineButton;
 	private Pixmap acceptIcon;
@@ -93,7 +84,7 @@ public class ConstrictorScreen extends AliteScreen {
 			if (state == 0) {
 				missionLine = new MissionLine(path + "02.mp3", L.string(R.string.mission_constrictor_mission_description));
 				acceptMission = new MissionLine(path + "03.mp3", L.string(R.string.mission_accept));
-				constrictor = new Constrictor(game);
+				constrictor = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Constrictor);
 				constrictor.setPosition(200, 0, -700.0f);
 			} else if (state == 1) {
 				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_constrictor_report_to_base));
@@ -124,63 +115,10 @@ public class ConstrictorScreen extends AliteScreen {
 
 	private void dance() {
 		if (timer.hasPassedSeconds(4)) {
-			targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-			targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-			targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
+			MathHelper.getRandomRotationAngles(targetDelta);
 		}
-		if (Math.abs(currentDeltaX - targetDeltaX) > 0.0001) {
-			currentDeltaX += (targetDeltaX - currentDeltaX) / 8.0f;
-		}
-		if (Math.abs(currentDeltaY - targetDeltaY) > 0.0001) {
-			currentDeltaY += (targetDeltaY - currentDeltaY) / 8.0f;
-		}
-		if (Math.abs(currentDeltaZ - targetDeltaZ) > 0.0001) {
-			currentDeltaZ += (targetDeltaZ - currentDeltaZ) / 8.0f;
-		}
-		constrictor.applyDeltaRotation(currentDeltaX, currentDeltaY, currentDeltaZ);
-	}
-
-	private void initGl() {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		int windowWidth = visibleArea.width();
-		int windowHeight = visibleArea.height();
-
-		float ratio = windowWidth / (float) windowHeight;
-		GlUtils.setViewport(visibleArea);
-		GLES11.glDisable(GLES11.GL_FOG);
-		GLES11.glPointSize(1.0f);
-        GLES11.glLineWidth(1.0f);
-
-        GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
-        GLES11.glDisable(GLES11.GL_BLEND);
-
-		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, ratio, 1.0f, 900000.0f);
-		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-		GLES11.glLoadIdentity();
-
-		GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		GLES11.glShadeModel(GLES11.GL_SMOOTH);
-
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_AMBIENT, lightAmbient, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_DIFFUSE, lightDiffuse, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_SPECULAR, lightSpecular, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_POSITION, lightPosition, 0);
-		GLES11.glEnable(GLES11.GL_LIGHT1);
-
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_AMBIENT, sunLightAmbient, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_DIFFUSE, sunLightDiffuse, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_SPECULAR, sunLightSpecular, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_POSITION, sunLightPosition, 0);
-		GLES11.glEnable(GLES11.GL_LIGHT2);
-
-		GLES11.glEnable(GLES11.GL_LIGHTING);
-
-		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT);
-		GLES11.glHint(GLES11.GL_PERSPECTIVE_CORRECTION_HINT, GLES11.GL_NICEST);
-		GLES11.glHint(GLES11.GL_POLYGON_SMOOTH_HINT, GLES11.GL_NICEST);
-		GLES11.glEnable(GLES11.GL_CULL_FACE);
+		MathHelper.updateAxes(currentDelta, targetDelta);
+		constrictor.applyDeltaRotation(currentDelta.x, currentDelta.y, currentDelta.z);
 	}
 
 	@Override
@@ -319,10 +257,10 @@ public class ConstrictorScreen extends AliteScreen {
 		GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
-
 		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
 		GLES11.glDepthFunc(GLES11.GL_LESS);
 		GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT);
+
 		GLES11.glPushMatrix();
 		GLES11.glMultMatrixf(constrictor.getMatrix(), 0);
 		constrictor.render();
@@ -337,9 +275,7 @@ public class ConstrictorScreen extends AliteScreen {
 	public void activate() {
 		initGl();
 		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
-		targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-		targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-		targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
+		MathHelper.getRandomRotationAngles(targetDelta);
 		if (acceptMission != null) {
 			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, acceptIcon);
 			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, declineIcon);

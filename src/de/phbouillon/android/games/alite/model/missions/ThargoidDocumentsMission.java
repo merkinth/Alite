@@ -31,8 +31,10 @@ import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ThargoidDocumentsScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargoid;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 public class ThargoidDocumentsMission extends Mission implements Serializable {
 	private static final long serialVersionUID = 7271967050611429726L;
@@ -105,8 +107,8 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 		Vector3f spawnPosition = manager.getSpawnPosition();
 		int thargoidNum = alite.getPlayer().getRating().ordinal() < 3 ? 1 : Math.random() < 0.5 ? 1 : 2;
 		for (int i = 0; i < thargoidNum; i++) {
-			Thargoid thargoid = new Thargoid(alite);
-			thargoid.setSpawnThargonDistanceSq(manager.computeSpawnThargonDistanceSq());
+			SpaceObject thargoid = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Thargoid);
+			thargoid.setSpawnDroneDistanceSq(manager.computeSpawnThargonDistanceSq());
 			manager.spawnEnemyAndAttackPlayer(thargoid, i, spawnPosition);
 		}
 	}

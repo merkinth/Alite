@@ -2,7 +2,7 @@ package de.phbouillon.android.framework.impl.gl;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -35,12 +35,11 @@ public class Sphere implements Serializable {
 	protected transient FloatBuffer normalBuffer;
 	protected transient FloatBuffer vertexBuffer;
 	protected transient FloatBuffer texCoordBuffer;
-	
+
 	protected final int numberOfVertices;
 	protected final int glDrawMode;
-	protected transient Alite alite;
 	protected final String textureFilename;
-	
+
 	protected final float [] allNormals;
 	protected float radius;
 	private final int slices;
@@ -49,17 +48,16 @@ public class Sphere implements Serializable {
 	private final boolean hasNormals;
 	private final SpriteData spriteData;
 	private float r, g, b, a;
-	
-	public Sphere(final Alite alite, final float radius, final int slices, final int stacks, final String textureFilename, final SpriteData spriteData, final boolean inside) {
+
+	public Sphere(final float radius, final int slices, final int stacks, final String textureFilename, final SpriteData spriteData, final boolean inside) {
 		numberOfVertices = slices * stacks * 6;
-		this.alite = alite;
 		this.radius = radius;
 		this.spriteData = spriteData;
 		this.slices = slices;
 		this.stacks = stacks;
 		this.inside = inside;
 		hasNormals = !inside;
-		
+
 		vertexBuffer   = GlUtils.allocateFloatBuffer(4 * 3 * numberOfVertices);
 		if (textureFilename != null) {
 			texCoordBuffer = GlUtils.allocateFloatBuffer(4 * 2 * numberOfVertices);
@@ -77,7 +75,7 @@ public class Sphere implements Serializable {
 		plotSpherePoints(slices, stacks, radius, inside);
 		this.textureFilename = textureFilename;
 		if (textureFilename != null) {
-			alite.getTextureManager().addTexture(textureFilename);
+			Alite.get().getTextureManager().addTexture(textureFilename);
 		}
 		glDrawMode = GLES11.GL_TRIANGLES;
 	}
@@ -86,8 +84,7 @@ public class Sphere implements Serializable {
 		try {
 			AliteLog.d("readObject", "Sphere.readObject");
 			in.defaultReadObject();
-			AliteLog.e("readObject", "Sphere.readObject I");
-			this.alite = Alite.get();
+			AliteLog.d("readObject", "Sphere.readObject I");
 			vertexBuffer   = GlUtils.allocateFloatBuffer(4 * 3 * numberOfVertices);
 			if (textureFilename != null) {
 				texCoordBuffer = GlUtils.allocateFloatBuffer(4 * 2 * numberOfVertices);
@@ -98,26 +95,26 @@ public class Sphere implements Serializable {
 				normalBuffer = GlUtils.allocateFloatBuffer(4 * 3 * numberOfVertices);
 			} else {
 				normalBuffer = null;
-			}			
+			}
 			plotSpherePoints(slices, stacks, radius, inside);
 			AliteLog.d("readObject", "Sphere.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
 		}
 	}
-	
+
 	private void writeObject(ObjectOutputStream out)
             throws IOException {
 		try {
 			out.defaultWriteObject();
 		} catch(IOException e) {
 			AliteLog.e("PersistenceException", "Sphere " + textureFilename, e);
-			throw(e);
+			throw e;
 		}
     }
 
 	public void setNewSize(float newRadius) {
-		this.radius = newRadius;
+		radius = newRadius;
 		vertexBuffer.clear();
 		if (hasNormals) {
 			for (float n: allNormals) {
@@ -126,25 +123,25 @@ public class Sphere implements Serializable {
 		}
 		vertexBuffer.position(0);
 	}
-	
+
 	public float getRadius() {
 		return radius;
 	}
-	
+
 	private void plotSpherePoints(int slices, int stacks, float radius, boolean inside) {
 	    float theta, phi;
 	    float phi_step = (float) (2.0f * Math.PI / (slices - 1));
 	    float theta_step = (float) (Math.PI / (stacks - 1));
-		
+
 	    float u, v;
 	    float u_step = 1.0f / (slices - 1);
 	    float v_step = -1.0f / (stacks - 1);
-				
+
 	    int normalOffset = 0;
-	    
+
 		/* Step 360 degrees around pole (slice loop) */
 	    for (phi = 0f, u = 0f; phi < 2.0 * Math.PI; phi += phi_step, u += u_step) {
-			/* For current slice calculate 180 degree stack from pole to pole */ 
+			/* For current slice calculate 180 degree stack from pole to pole */
 			for (theta = 0, v = 0; theta < Math.PI; theta += theta_step, v += v_step) {
 				/*
 				 * Calculate quad. Original showed a pole facing viewer so swapped
@@ -159,7 +156,7 @@ public class Sphere implements Serializable {
 	            float x2 = (float) (Math.sin(phi + phi_step) * Math.sin(theta));
 	            float y2 = (float) (-Math.cos(theta));
 	            float z2 = (float) (Math.cos(phi + phi_step) * Math.sin(theta));
-	            
+
 	            float x3 = (float) (Math.sin(phi + phi_step) * Math.sin(theta + theta_step));
 	            float y3 = (float) (-Math.cos(theta + theta_step));
 	            float z3 = (float) (Math.cos(phi + phi_step) * Math.sin(theta + theta_step));
@@ -167,12 +164,12 @@ public class Sphere implements Serializable {
 	            float x4 = (float) (Math.sin(phi) * Math.sin(theta + theta_step));
 	            float y4 = (float) (-Math.cos(theta + theta_step));
 	            float z4 = (float) (Math.cos(phi) * Math.sin(theta + theta_step));
-				
+
 				/*
 				 * Split quad into 2 triangles (although 2 vertices are shared we output
 				 * 6 vertices because the shared vertices will need different uv values;
 				 * an index array would provide a TnL performance improvement).
-				 */ 
+				 */
 				vertexBuffer.put(radius * x1);
 				vertexBuffer.put(radius * y1);
 				vertexBuffer.put(radius * z1);
@@ -212,7 +209,7 @@ public class Sphere implements Serializable {
 					normalBuffer.put(y4); allNormals[normalOffset++] = y4;
 					normalBuffer.put(z4); allNormals[normalOffset++] = z4;
 				}
-				
+
 				if (spriteData == null) {
 					if (texCoordBuffer != null) {
 						texCoordBuffer.put(inside ? -u : u);
@@ -238,16 +235,16 @@ public class Sphere implements Serializable {
 					texCoordBuffer.put(spriteData.y + v * dy);
 					texCoordBuffer.put(spriteData.x + (u + u_step) * dx);
 					texCoordBuffer.put(spriteData.y + (v + v_step) * dy);
-					texCoordBuffer.put(spriteData.x + (u) * dx);
-					texCoordBuffer.put(spriteData.y + (v) * dy);
+					texCoordBuffer.put(spriteData.x + u * dx);
+					texCoordBuffer.put(spriteData.y + v * dy);
 					texCoordBuffer.put(spriteData.x + (u + u_step) * dx);
 					texCoordBuffer.put(spriteData.y + (v + v_step) * dy);
-					texCoordBuffer.put(spriteData.x + (u) * dx);
+					texCoordBuffer.put(spriteData.x + u * dx);
 					texCoordBuffer.put(spriteData.y + (v + v_step) * dy);
 				}
 	        }
 	    }
-	    vertexBuffer.position(0);	    
+	    vertexBuffer.position(0);
 	    if (texCoordBuffer != null) {
 	    	texCoordBuffer.position(0);
 	    }
@@ -255,7 +252,7 @@ public class Sphere implements Serializable {
 	    	normalBuffer.position(0);
 	    }
 	}
-	
+
 	public void render() {
 		if (hasNormals) {
 			GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
@@ -271,7 +268,7 @@ public class Sphere implements Serializable {
 			GLES11.glDisable(GLES11.GL_LIGHTING);
 			GLES11.glColor4f(r, g, b, a);
 		}
-		alite.getTextureManager().setTexture(textureFilename);
+		Alite.get().getTextureManager().setTexture(textureFilename);
 		GLES11.glDrawArrays(glDrawMode, 0, numberOfVertices);
 		if (!hasNormals) {
 			GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
@@ -279,29 +276,32 @@ public class Sphere implements Serializable {
 		if (textureFilename == null) {
 			GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
 			GLES11.glEnable(GLES11.GL_LIGHTING);
-			GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);			
+			GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 	}
-	
+
 	public void drawArrays() {
 		GLES11.glDrawArrays(glDrawMode, 0, numberOfVertices);
 	}
-			
+
 	public void destroy() {
 		if (textureFilename != null) {
-			alite.getTextureManager().freeTexture(textureFilename);
+			Alite.get().getTextureManager().freeTexture(textureFilename);
 		}
 	}
-	
+
 	public void setColor(float r, float g, float b, float a) {
 		this.r = r;
 		this.g = g;
 		this.b = b;
 		this.a = a;
 	}
-	
-	public float getR() { return r; };
-	public float getG() { return g; };
-	public float getB() { return b; };
-	public float getA() { return a; };
+
+	public float getR() { return r; }
+
+	public float getG() { return g; }
+
+	public float getB() { return b; }
+
+	public float getA() { return a; }
 }

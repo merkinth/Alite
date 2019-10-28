@@ -18,18 +18,14 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites.buttons;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.EscapeCapsule;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 class EscapeCapsuleUpdater implements IMethodHook {
 	private static final long serialVersionUID = -296076467539527770L;
@@ -40,32 +36,18 @@ class EscapeCapsuleUpdater implements IMethodHook {
 		QUIT
 	}
 
-	private transient Alite alite;
 	private final InGameManager inGame;
 	private final GraphicObject ship;
 	private final Timer timer = new Timer();
 	private EscapeCapsuleState state = EscapeCapsuleState.SPAWN;
-	private CobraMkIII cobra = null;
-	private EscapeCapsule esc = null;
+	private SpaceObject cobra = null;
+	private SpaceObject esc = null;
 	private final Vector3f vec1 = new Vector3f(0, 0, 0);
 	private final Vector3f vec2 = new Vector3f(0, 0, 0);
 
-	EscapeCapsuleUpdater(Alite alite, InGameManager inGame, GraphicObject ship) {
-		this.alite = alite;
+	EscapeCapsuleUpdater(InGameManager inGame, GraphicObject ship) {
 		this.inGame = inGame;
 		this.ship = ship;
-	}
-
-	private void readObject(ObjectInputStream in) throws IOException {
-		try {
-			AliteLog.e("readObject", "EscapeCapsuleUpdate.readObject");
-			in.defaultReadObject();
-			AliteLog.e("readObject", "EscapeCapsuleUpdate.readObject I");
-			alite = Alite.get();
-			AliteLog.e("readObject", "EscapeCapsuleUpdate.readObject II");
-		} catch (ClassNotFoundException e) {
-			AliteLog.e("Class not found", e.getMessage(), e);
-		}
 	}
 
 	@Override
@@ -83,7 +65,7 @@ class EscapeCapsuleUpdater implements IMethodHook {
 
 	private void spawnShip() {
 		ship.computeMatrix();
-		cobra = new CobraMkIII(alite);
+		cobra = SpaceObjectFactory.getInstance().getObjectById("cobra_mk_iii");
 		cobra.setUpVector(ship.getUpVector());
 		cobra.setRightVector(ship.getRightVector());
 		cobra.setForwardVector(ship.getForwardVector());
@@ -103,7 +85,7 @@ class EscapeCapsuleUpdater implements IMethodHook {
 	}
 
 	private void spawnEscapeCapsule() {
-		esc = new EscapeCapsule(alite);
+		esc = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.EscapeCapsule);
 		cobra.getForwardVector().copy(vec1);
 		vec1.negate();
 		esc.setForwardVector(vec1);

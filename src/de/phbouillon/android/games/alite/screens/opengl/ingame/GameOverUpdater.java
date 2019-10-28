@@ -18,19 +18,15 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.model.statistics.WeaponType;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 class GameOverUpdater implements IMethodHook {
 	private static final long serialVersionUID = 5497403578670138689L;
@@ -42,32 +38,18 @@ class GameOverUpdater implements IMethodHook {
 		QUIT
 	}
 
-	private transient Alite alite;
 	private final InGameManager inGame;
 	private final GraphicObject ship;
 	private final Timer startTime = new Timer();
 	private GameOverState state = GameOverState.SPAWN;
-	private CobraMkIII cobra = null;
+	private SpaceObject cobra = null;
 	private boolean needsDestruction = true;
 	private final Vector3f vec1 = new Vector3f(0, 0, 0);
 	private final Vector3f vec2 = new Vector3f(0, 0, 0);
 
-	GameOverUpdater(Alite alite, InGameManager inGame, GraphicObject ship) {
-		this.alite = alite;
+	GameOverUpdater(InGameManager inGame, GraphicObject ship) {
 		this.inGame = inGame;
 		this.ship = ship;
-	}
-
-	private void readObject(ObjectInputStream in) throws IOException {
-		try {
-			AliteLog.e("readObject", "GameOverUpdater.readObject");
-			in.defaultReadObject();
-			AliteLog.e("readObject", "GameOverUpdater.readObject I");
-			alite = Alite.get();
-			AliteLog.e("readObject", "GameOverUpdater.readObject II");
-		} catch (ClassNotFoundException e) {
-			AliteLog.e("Class not found", e.getMessage(), e);
-		}
 	}
 
 	@Override
@@ -82,7 +64,7 @@ class GameOverUpdater implements IMethodHook {
 
 	private void spawnShip() {
 		ship.computeMatrix();
-		cobra = new CobraMkIII(alite);
+		cobra = SpaceObjectFactory.getInstance().getObjectById("cobra_mk_iii");
 		cobra.setIdentified();
 		cobra.setUpVector(ship.getUpVector());
 		cobra.setRightVector(ship.getRightVector());

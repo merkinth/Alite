@@ -40,7 +40,7 @@ import de.phbouillon.android.games.alite.screens.canvas.TextData;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public abstract class TutorialScreen extends AliteScreen {
 	private static final int TEXT_LINE_HEIGHT = 50;
-	private static final String DIRECTORY_SOUND_TUTORIAL = LoadingScreen.DIRECTORY_SOUND + "tutorial" + File.separator;
+	private static final String DIRECTORY_SOUND_TUTORIAL = LoadingScreen.DIRECTORY_SOUND + "tutorial" + File.separatorChar;
 	private static final String PLAYER_STATE_BACKUP = "tut_player_state.dat";
 
 	private final transient List <TutorialLine> lines = new ArrayList<>();
@@ -179,27 +179,11 @@ public abstract class TutorialScreen extends AliteScreen {
 	}
 
 	Screen updateNavBar() {
-		NavigationBar navBar = game.getNavigationBar();
 		for (TouchEvent event: game.getInput().getTouchEvents()) {
-			if (event.type == TouchEvent.TOUCH_DOWN && event.x >= AliteConfig.DESKTOP_WIDTH) {
-				startX = event.x;
-				startY = lastY = event.y;
-			}
-			if (event.type == TouchEvent.TOUCH_DRAGGED && event.x >= AliteConfig.DESKTOP_WIDTH) {
-				if (event.y < lastY) {
-					navBar.increasePosition(lastY - event.y);
-				} else {
-					navBar.decreasePosition(event.y - lastY);
-				}
-				lastY = event.y;
-			}
-			if (event.type == TouchEvent.TOUCH_UP) {
-				if (Math.abs(startX - event.x) < 20 &&
-					Math.abs(startY - event.y) < 20) {
-					Screen screen = navBar.touched(game, event.x, event.y);
-					navBar.resetPending();
-					return screen;
-				}
+			Screen screen = checkNavigationBar(event);
+			if (screen != null) {
+				game.getNavigationBar().resetPending();
+				return screen;
 			}
 		}
 		return null;

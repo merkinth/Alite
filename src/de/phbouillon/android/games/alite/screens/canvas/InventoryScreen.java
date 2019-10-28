@@ -36,11 +36,11 @@ import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
-import de.phbouillon.android.games.alite.model.Unit;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class InventoryScreen extends TradeScreen {
@@ -94,14 +94,7 @@ public class InventoryScreen extends TradeScreen {
 	public static boolean initialize(Alite alite, final DataInputStream dis) {
 		InventoryScreen is = new InventoryScreen(alite);
 		try {
-			byte selectionLength = dis.readByte();
-			if (selectionLength > 0) {
-				is.pendingSelection = "";
-				while (selectionLength > 0) {
-					is.pendingSelection += dis.readChar();
-					selectionLength--;
-				}
-			}
+			is.pendingSelection = ScreenBuilder.readString(dis);
 		} catch (IOException e) {
 			AliteLog.e("Inventory Screen Initialize", "Error in initializer.", e);
 			return false;
@@ -112,10 +105,7 @@ public class InventoryScreen extends TradeScreen {
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
-		dos.writeByte(selection == null ? 0 : selection.getName().length());
-		if (selection != null) {
-			dos.writeChars(selection.getName());
-		}
+		ScreenBuilder.writeString(dos, selection == null ? null : selection.getName());
 	}
 
 	@Override
@@ -281,9 +271,9 @@ public class InventoryScreen extends TradeScreen {
 	}
 
 	private void ejectPlayerCargoCanister(TradeGood tradeGood, Weight weight, long price) {
-		final CargoCanister cargo = new CargoCanister(game);
-		cargo.setContent(tradeGood, weight);
-		cargo.setPrice(price);
+		final SpaceObject cargo = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.CargoPod);
+		cargo.setCargoContent(tradeGood, weight);
+		cargo.setCargoPrice(price);
 		InGameManager inGame = ((FlightScreen) game.getCurrentScreen()).getInGameManager();
 		final SpaceObject ship = inGame.getShip();
 		ship.getForwardVector().copy(cargoVector);

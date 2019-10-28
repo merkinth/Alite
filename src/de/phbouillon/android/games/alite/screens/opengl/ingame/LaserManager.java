@@ -41,19 +41,16 @@ import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.Weight;
+import de.phbouillon.android.games.alite.model.missions.ThargoidStationMission;
 import de.phbouillon.android.games.alite.model.statistics.WeaponType;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
-import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.Explosion;
 import de.phbouillon.android.games.alite.screens.opengl.objects.LaserCylinder;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectAI;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Platlet;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteHud;
-
-import static de.phbouillon.android.games.alite.model.missions.ThargoidStationMission.ALIEN_SPACE_STATION;
 
 public class LaserManager implements Serializable {
 	private static final long serialVersionUID = -3608347957484414304L;
@@ -62,12 +59,21 @@ public class LaserManager implements Serializable {
 	private static final long  NORMAL_REFRESH_RATE   = 1437125748L;
 	public  static final float MAX_ENEMY_DISTANCE_SQ = 603979776; // (16384 + 8192) squared
 
-	public  static final int   MAX_LASERS                       = 500;
-	public  static final float LASER_SPEED                      = 12400.0f;
-	public  static final float LASER_BEAM_SPEED                 = 124000.0f;
-	private static final float DIST_FRONT                       = -10.0f;
-	private static final float DIST_RIGHT                       = 30.0f;
-	private static final float DIST_CONVERGE                    = 24000.0f;
+	public  static final int   MAX_LASERS            = 500;
+	public  static final float LASER_SPEED           = 12400.0f;
+	public  static final float LASER_BEAM_SPEED      = 124000.0f;
+	private static final float DIST_FRONT            = -10.0f;
+	private static final float DIST_RIGHT            = 30.0f;
+	private static final float DIST_CONVERGE         = 24000.0f;
+
+	// Oolite default values are:
+	// WEAPON_PLASMA_CANNON = 6.0;
+	// WEAPON_PULSE_LASER = 15.0;
+	// WEAPON_BEAM_LASER = 15.0;
+	// WEAPON_MINING_LASER = 50.0;
+	// WEAPON_THARGOID_LASER = 12.5;
+	// WEAPON_MILITARY_LASER = 23.0
+	private static final int DAMAGE_LASER_HIT = 8; // weapon_energy / subentities type=ball_turret weapon_energy
 
 	private transient Alite alite;
 	private final Vector3f shotOrigin;
@@ -102,8 +108,8 @@ public class LaserManager implements Serializable {
 	private transient Pool <LaserCylinder> laserPool = new Pool<>(laserFactory, MAX_LASERS);
 	final List <LaserCylinder> activeLasers = new ArrayList<>();
 
-	LaserManager(final Alite alite, final InGameManager inGame) {
-		this.alite = alite;
+	LaserManager(final InGameManager inGame) {
+		alite = Alite.get();
 		this.inGame = inGame;
 		shotOrigin = new Vector3f(0, 0, 0);
 		shotDirection = new Vector3f(0, 0, 0);
@@ -155,36 +161,34 @@ public class LaserManager implements Serializable {
 			platletCount = (int) (Math.random() * (so.getMaxCargoCanisters() + 1));
 		}
 		for (int i = 0; i < platletCount; i++) {
-			final Platlet platlet = new Platlet(alite);
+			final SpaceObject platlet = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Alloy);
 			inGame.getSpawnManager().spawnTumbleObject(platlet, so.getPosition());
 		}
 	}
 
 	private void spawnCargoCanisters(final SpaceObject so, int forceCount, WeaponType weaponType) {
-		AliteLog.d("Spawn Cargo Canisters", so.getId() + " has Cargo type: " + so.getCargoType() + " and spawns cargo canisters: " + so.spawnsCargoCanisters());
+		TradeGood tradeGood = so.getCargoType();
+		AliteLog.d("Spawn Cargo Canisters", so.getId() + " has Cargo type: " + tradeGood +
+			" and spawns cargo canisters: " + so.getMaxCargoCanisters());
+		if (so.getMaxCargoCanisters() == 0) {
+			return;
+		}
+
 		if (so.getType() == ObjectType.Asteroid) {
 			spawnPlatlets(so, weaponType);
 			return;
 		}
-		if (so.getCargoType() == null || !so.spawnsCargoCanisters()) {
-			// Legacy: The cargo type is still declared at a ship, but not longer used...
-			// However, if it was defined that a ship has no cargo type, we still
-			// exit here...
-			return;
-		}
-
 		int numberOfCanistersToSpawn = forceCount > 0 ? forceCount : (int) (Math.random() * (so.getMaxCargoCanisters() + 1));
 		for (int i = 0; i < numberOfCanistersToSpawn; i++) {
-			final CargoCanister cargo = new CargoCanister(alite);
-			TradeGood tradeGood = TradeGoodStore.get().getRandomTradeGoodForContainer();
-			cargo.setContent(tradeGood, Weight.unit(tradeGood.getUnit(), (int) (Math.random() * 3 + 1)));
+			final SpaceObject cargo = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.CargoPod);
+			cargo.setCargoContent(tradeGood, Weight.unit(tradeGood.getUnit(), (int) (Math.random() * 3 + 1)));
 			inGame.getSpawnManager().spawnTumbleObject(cargo, so.getPosition());
 		}
 	}
 
 	public void explode(SpaceObject so) {
 		SoundManager.play(Assets.shipDestroyed);
-		activeExplosions.add(new Explosion(alite, so, inGame));
+		activeExplosions.add(new Explosion(so, inGame));
 	}
 
 	void explode(SpaceObject so, WeaponType weaponType) {
@@ -322,18 +326,19 @@ public class LaserManager implements Serializable {
 		}
 		// Fire at player, check for hit.
 		float intersectionDistance = computeIntersectionDistance(shotDirection, shotOrigin, ship.getPosition(), 156, tempVector);
-		if (intersectionDistance > 0 && intersectionDistance <= distanceToNextShot) {
-			for (LaserCylinder lc: laser.getTwins()) {
-				lc.setVisible(false);
-				lc.clearTwins();
-			}
-			laser.setVisible(false);
-			laser.clearTwins();
-			damageShip(8, shotDirection.dot(ship.getForwardVector()) >= 0);
+		if (intersectionDistance <= 0 || intersectionDistance > distanceToNextShot) {
+			return;
 		}
+		for (LaserCylinder lc: laser.getTwins()) {
+			lc.setVisible(false);
+			lc.clearTwins();
+		}
+		laser.setVisible(false);
+		laser.clearTwins();
+		damageShip(DAMAGE_LASER_HIT, shotDirection.dot(ship.getForwardVector()) >= 0);
 	}
 
-	private void checkObjectHit(final LaserCylinder laser, final float distanceToNextShot, final GraphicObject ship, List<AliteObject> allObjects) {
+	private void checkObjectHit(final LaserCylinder laser, final float distanceToNextShot, final SpaceObject ship, List<AliteObject> allObjects) {
 		for (AliteObject eo: allObjects) {
 			if (!(eo instanceof SpaceObject)) {
 				continue;
@@ -361,7 +366,7 @@ public class LaserManager implements Serializable {
 						lc.removeInNFrames(4);
 					}
 					SoundManager.play(Assets.laserHit);
-					if (((SpaceObject) eo).getType() != ObjectType.SpaceStation || ThargoidStationMission.ALIEN_SPACE_STATION.equals(eo.getId())) {
+					if (!ObjectType.isSpaceStation(((SpaceObject) eo).getType()) || ThargoidStationMission.ALIEN_SPACE_STATION.equals(eo.getId())) {
 						// Space Stations are invulnerable --- in general ;)
 						if (Settings.laserPowerOverride != 0) {
 							alite.getPlayer().setCheater(true);
@@ -376,13 +381,13 @@ public class LaserManager implements Serializable {
 							eo.setRemove(true);
 						}
 					}
-					((SpaceObject) eo).executeHit((SpaceObject) ship);
+					((SpaceObject) eo).executeHit(ship);
 				}
 			}
 		}
 	}
 
-	final void update(float deltaTime, final GraphicObject ship, List<AliteObject> allObjects) {
+	final void update(float deltaTime, final SpaceObject ship, List<AliteObject> allObjects) {
 		Iterator<LaserCylinder> laserIterator = activeLasers.iterator();
 		while (laserIterator.hasNext()) {
 			LaserCylinder laser = laserIterator.next();
@@ -450,7 +455,6 @@ public class LaserManager implements Serializable {
 			laser.reset();
 			laser.setBeam(false);
 			laser.setColor(so.getLaserColor());
-			laser.setTexture(so.getLaserTexture(), alite);
 			laser.clearTwins();
 			laser.setPosition(tempVecArray2[0], tempVecArray2[1], tempVecArray2[2]);
 			laser.setInitialDirection(xd, yd, zd);
@@ -506,7 +510,6 @@ public class LaserManager implements Serializable {
 		laserCylinder.reset();
 		laserCylinder.setBeam(laser.isBeam());
 		laserCylinder.setColor(laser.getColor());
-		laserCylinder.setTexture(laser.getTexture(), alite);
 		laserCylinder.clearTwins();
 		laserCylinder.setOrigin(null);
 		laserCylinder.setPosition(x, y, z);
@@ -653,7 +656,7 @@ public class LaserManager implements Serializable {
 		}
 		alite.getTextureManager().setTexture(null);
 		GLES11.glPushMatrix();
-		laser.render(alite);
+		laser.render();
 	    GLES11.glPopMatrix();
 	    laser.postRender();
 	}

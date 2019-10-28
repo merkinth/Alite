@@ -26,7 +26,6 @@ import android.opengl.GLES11;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.Sprite;
-import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.model.Laser;
@@ -152,7 +151,7 @@ public class AliteHud extends Sprite implements Serializable {
 		}
 	}
 
-	public void setObject(int index, float x, float y, float z, Vector3f color, boolean isEnemy) {
+	public void setObject(int index, float x, float y, float z, int color, boolean isEnemy) {
 		if (index >= MAXIMUM_OBJECTS) {
 			AliteLog.d("ALITE Hud", "Maximum number of HUD objects exceeded!");
 			return;
@@ -160,9 +159,7 @@ public class AliteHud extends Sprite implements Serializable {
 		objects[index][0] = x;
 		objects[index][1] = y;
 		objects[index][2] = z;
-		objectColors[index][0] = color.x;
-		objectColors[index][1] = color.y;
-		objectColors[index][2] = color.z;
+		objectColors[index] = color;
 		enemy[index] = isEnemy;
 		enabled[index] = true;
 	}

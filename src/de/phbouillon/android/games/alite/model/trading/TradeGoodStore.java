@@ -22,7 +22,7 @@ public abstract class TradeGoodStore {
 	public static final String GOOD_THARGOID_DOCUMENTS = "Thargoid Documents";
 	public static final String GOOD_UNHAPPY_REFUGEES = "Unhappy Refugees";
 
-	private static final int NUMBER_OF_GOODS = 18;
+	public static final int NUMBER_OF_GOODS = 18;
 
 	static final int FOOD             =  0;
 	static final int TEXTILES         =  1;

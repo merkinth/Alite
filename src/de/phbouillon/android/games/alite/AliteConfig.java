@@ -2,13 +2,11 @@ package de.phbouillon.android.games.alite;
 
 public class AliteConfig {
 	public static final boolean HAS_EXTENSION_APK = true;
-	public static final int EXTENSION_FILE_VERSION = 2201;
-	static final long EXTENSION_FILE_LENGTH = 228980801L;
+	static final long EXTENSION_FILE_LENGTH = 206153281L;
 
 	public static final String GAME_NAME = "Alite 2020";
-	private static final String PRG_VERSION = "1.5.8";
-	public static final String VERSION_STRING = PRG_VERSION + " " + (HAS_EXTENSION_APK ? "OBB" : "SFI");
-	public static final String ALITE_WEBSITE = "http://alite.mobi"; // see also manifest file if change
+	public static final String VERSION_STRING = BuildConfig.VERSION_NAME + " " + (HAS_EXTENSION_APK ? "OBB" : "SFI");
+	public static final String ALITE_WEBSITE = "https://alite2020.iftopic.com"; // see also manifest file if change
 	public static final String ALITE_MAIL = "alite.crash.report@gmail.com";
 	public static final String ROOT_DRIVE_FOLDER = "1OtXzUbeHWrvN9j_JolgIMKEODHSQCmEK";
 

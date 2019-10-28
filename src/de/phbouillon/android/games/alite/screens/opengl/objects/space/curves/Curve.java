@@ -24,20 +24,22 @@ import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 
 public abstract class Curve extends AliteObject implements Serializable {
-	protected CurveParameter px;
-	protected CurveParameter py;
-	protected CurveParameter pz;
-	protected CurveParameter rx;
-	protected CurveParameter ry;
-	protected CurveParameter rz;
+	private static final long serialVersionUID = 5294825793948465746L;
 
-	protected float totalLength;
+	private CurveParameter px;
+	private CurveParameter py;
+	private CurveParameter pz;
+	private CurveParameter rx;
+	private CurveParameter ry;
+	private CurveParameter rz;
 
-	protected final Vector3f position = new Vector3f(0, 0, 0);
-	protected final Vector3f rotation = new Vector3f(0, 0, 0);
-	protected final Vector3f cForward = new Vector3f(0, 0, 0);
-	protected final Vector3f cRight   = new Vector3f(0, 0, 0);
-	protected final Vector3f cUp      = new Vector3f(0, 0, 0);
+	float totalLength;
+
+	private final Vector3f position = new Vector3f(0, 0, 0);
+	private final Vector3f rotation = new Vector3f(0, 0, 0);
+	private final Vector3f cForward = new Vector3f(0, 0, 0);
+	private final Vector3f cRight   = new Vector3f(0, 0, 0);
+	private final Vector3f cUp      = new Vector3f(0, 0, 0);
 
 	protected Curve(String id) {
 		super(id);
@@ -122,13 +124,4 @@ public abstract class Curve extends AliteObject implements Serializable {
 		return cRight;
 	}
 
-	@Override
-	public boolean isVisibleOnHud() {
-		return false;
-	}
-
-	@Override
-	public Vector3f getHudColor() {
-		return null;
-	}
 }

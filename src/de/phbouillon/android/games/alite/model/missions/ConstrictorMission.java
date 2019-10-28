@@ -26,10 +26,14 @@ import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ConstrictorScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Constrictor;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 public class ConstrictorMission extends Mission {
+	private static final long serialVersionUID = -5769172780079332330L;
+
 	public static final int ID = 1;
 
 	private boolean constrictorCreated = false;
@@ -108,7 +112,7 @@ public class ConstrictorMission extends Mission {
 				SoundManager.play(Assets.com_conditionRed);
 				manager.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
 				Vector3f spawnPosition = manager.getSpawnPosition();
-				Constrictor constrictor = new Constrictor(alite);
+				SpaceObject constrictor = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Constrictor);
 				manager.spawnEnemyAndAttackPlayer(constrictor, 0, spawnPosition);
 				manager.lockConditionRedEvent();
 				constrictor.addDestructionCallback(13, new IMethodHook() {

@@ -1,0 +1,1181 @@
+{
+	"cobra_mk_iii" = {
+		name = "Cobra Mk III";
+		max_flight_speed = 367.4;
+		max_flight_pitch = 1.0;
+		max_flight_roll = 2.0;
+		max_energy = 72.0;
+		has_ecm = 1.0;
+		aggression_level = 10;
+		has_escape_pod = 3.0;
+		bounty = 40;
+		cargo_carried = 3;
+		weapon_position_forward = (
+			"44.3 -1.38 90.0",
+			"-44.3 -1.38 90.0"
+		);
+		exhaust = (
+			"-50.0 0.0 0.0 13 13 30.0",
+			"50.0 0.0 0.0 13 13 30.0",
+			"-115.0 0.0 0.0 5 5 18.0",
+			"115.0 0.0 0.0 5 5 18.0"
+		);
+		exhaust_emissive_color = (
+			"0.7 0.8 0.8 0.7",
+			"0.7 0.8 0.8 0.7",
+			"1.0 0.5 0.0 0.7",
+			"1.0 0.5 0.0 0.7"
+		);
+		model = "cobra_mk_iii.dat";
+		roles = "Trader Defender";
+	};
+
+	"cobra_mk_iii_enemy" = {
+		like_ship = "cobra_mk_iii";
+		max_energy = 140.0;
+		roles = "Pirate(0.01)";
+	};
+
+	"krait" = {
+		name = "Krait";
+		max_flight_speed = 367.4;
+		max_flight_pitch = 1.5;
+		max_flight_roll = 2.75;
+		max_energy = 180.0;
+		has_ecm = 1.0;
+		aggression_level = 10;
+		bounty = 100;
+		cargo_carried = 1;
+		weapon_position_forward = (
+			"176.0 0.0 160.0",
+			"-176.0 0.0 160.0"
+		);
+		laser_color ="greenColor";
+		exhaust = (
+			"-30.0 0.0 -20.0 13 13 30.0",
+			"30.0 0.0 -20.0 13 13 30.0"
+		);
+		exhaust_emissive_color = (
+			"1.0 0.67 0.0 0.7",
+			"1.0 0.67 0.0 0.7"
+		);
+		model = "krait.dat";
+		roles = "Pirate Defender";
+	};
+
+	"thargoid" = {
+		name = "Thargoid";
+		affected_by_energy_bomb = 0.0;
+		max_flight_speed = 501.0;
+		max_flight_pitch = 1.0;
+		max_flight_roll = 2.0;
+		max_energy = 500.0;
+		has_ecm = 1.0;
+		aggression_level = 20;
+		bounty = 400;
+		missiles = 0;
+		weapon_position_forward = (
+			"114.80 -72.88 278.8",
+			"-114.80 -72.88 278.8",
+			"0.0 72.88 131.20"
+		);
+		laser_color ="greenColor";
+		escort_roles = (
+			{ role = "thargon"; min = 4; max = 7; }
+		);
+		model = "thargoid.dat";
+		roles = "Thargoid";
+	};
+
+	"thargon" = {
+		name = "Thargon";
+		max_flight_speed = 250.5;
+		max_flight_pitch = 1.0;
+		max_flight_roll = 2.0;
+		max_energy = 30.0;
+		aggression_level = 5;
+		bounty = 30;
+		missiles = 0;
+		weapon_position_forward = (
+			"0.0 -10.9 43.58"
+		);
+		laser_color ="#7F00FFAA"; // dark cyan
+		model = "thargon.dat";
+		roles = "Thargon";
+	};
+
+	"boa_class_cruiser" = {
+		name = "Boa Class Cruiser";
+		max_flight_speed = 300.6;
+		max_flight_pitch = 1.0;
+		max_flight_roll = 2.8;
+		max_energy = 124.0;
+		aggression_level = 5;
+		has_escape_pod = 1.0;
+		bounty = 80;
+		cargo_carried = 3;
+		weapon_position_forward = (
+			"0.0 27.82 200.0"
+		);
+		laser_color ="blueColor";
+		exhaust = (
+			"0.0 20.0 -5.0 13 13 30.0"
+		);
+		exhaust_emissive_color = (
+			"0.63 0.23 0.7 0.7"
+		);
+		model = "boaclasscruiser.dat";
+		roles = "Pirate";
+	};
+
+	"gecko" = {
+		name = "Gecko";
+		max_flight_speed = 367.4;
+		max_flight_pitch = 1.5;
+		max_flight_roll = 3.0;
+		max_energy = 190.0;
+		aggression_level = 15;
+		has_escape_pod = 2.0;
+		bounty = 120;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"20.3 -2.04 81.24",
+			"-20.3 -2.04 81.24"
+		);
+		laser_color ="greenColor";
+		exhaust = (
+			"0.0 0.0 0.0 13 13 30.0"
+		);
+		exhaust_emissive_color = (
+			"0.81 0.38 0.71 0.7"
+		);
+		model = "gecko.dat";
+		roles = "Pirate";
+	};
+
+	"moray_star_boat" = {
+		name = "Moray Star Boat";
+		max_flight_speed = 300.6;
+		max_flight_pitch = 1.5;
+		max_flight_roll = 2.5;
+		max_energy = 96.0;
+		aggression_level = 10;
+		has_escape_pod = 2.0;
+		bounty = 80;
+		cargo_carried = 1;
+		weapon_position_forward = (
+			"0.0 -46.16 120.0"
+		);
+		laser_color ="blueColor";
+		exhaust = (
+			"0.0 -5.0 0.0 19 4 30.0"
+		);
+		model = "moraystarboat.dat";
+		roles = "Pirate";
+	};
+
+	"adder" = {
+		name = "Adder";
+		max_flight_speed = 300.6;
+		max_flight_pitch = 2.0;
+		max_flight_roll = 2.8;
+		max_energy = 112.0;
+		aggression_level = 10;
+		has_escape_pod = 1.0;
+		bounty = 80;
+		cargo_carried = 1;
+		max_missiles = 1;
+		weapon_position_forward = (
+			"42.4 0.0 106.0",
+			"-42.4 0.0 106.0"
+		);
+		laser_color ="yellowColor";
+		exhaust = (
+			"-25.0 0.0 0.0 13 13 18.0",
+			"25.0 0.0 0.0 13 13 18.0"
+		);
+		exhaust_emissive_color = (
+			"0.7 0.0 0.56 0.7",
+			"0.7 0.0 0.56 0.7"
+		);
+		model = "adder.dat";
+		roles = "Defender Pirate";
+	};
+
+	"mamba" = {
+		name = "Mamba";
+		max_flight_speed = 400.8;
+		max_flight_pitch = 1.4;
+		max_flight_roll = 2.1;
+		max_energy = 40.0;
+		aggression_level = 10;
+		has_escape_pod = 1.0;
+		bounty = 40;
+		cargo_carried = 1;
+		weapon_position_forward = (
+			"0.0 0.0 118.46"
+		);
+		laser_color ="redColor";
+		exhaust = (
+			"-60.0 0.0 0.0 7 7 30.0",
+			"60.0 0.0 0.0 7 7 30.0",
+			"0.0 0.0 0.0 22 13 54.0"
+		);
+		exhaust_emissive_color = (
+			"1.0 0.81 0.2 0.7",
+			"1.0 0.81 0.2 0.7",
+			"1.0 0.5 0.8 0.7"
+		);
+		model = "mamba.dat";
+		roles = "Defender Pirate";
+	};
+
+	"viper" = {
+		name = "Viper";
+		max_flight_speed = 367.4;
+		max_flight_pitch = 1.8;
+		max_flight_roll = 2.8;
+		max_energy = 120.0;
+		aggression_level = 10;
+		bounty = 0;
+		weapon_position_forward = (
+			"0.0 0.0 96.0"
+		);
+		laser_color ="blueColor";
+		exhaust = (
+			"-40.0 0.0 0.0 10 10 30.0",
+			"40.0 0.0 0.0 10 10 30.0"
+		);
+		exhaust_emissive_color = (
+			"0.97 0.66 0.0 0.7",
+			"0.97 0.66 0.0 0.7"
+		);
+		model = "viper.dat";
+		roles = "Police";
+	};
+
+	"fer_de_lance" = {
+		name = "Fer-De-Lance";
+		max_flight_speed = 367.4;
+		max_flight_pitch = 1.0;
+		max_flight_roll = 3.6;
+		max_energy = 80.0;
+		aggression_level = 5;
+		has_escape_pod = 1.0;
+		bounty = 50;
+		cargo_carried = 1;
+		weapon_position_forward = (
+			"0.0 -37.64 160.0"
+		);
+		exhaust = (
+			"0.0 -20.0 0.0 14 14 22.0"
+		);
+		exhaust_emissive_color = (
+			"0.94 0.73 0.23 0.7"
+		);
+		model = "ferdelance.dat";
+		roles = "Trader Defender";
+	};
+
+	"cobra_mk_i" = {
+		name = "Cobra Mk I";
+		max_flight_speed = 317.3;
+		max_flight_pitch = 1.2;
+		max_flight_roll = 2.0;
+		max_energy = 72.0;
+		has_ecm = 1.0;
+		aggression_level = 5;
+		has_escape_pod = 3.0;
+		bounty = 0;
+		cargo_carried = 1;
+		weapon_position_forward = (
+			"41.72 0.0 114.72",
+			"-41.72 0.0 114.72"
+		);
+		laser_color ="greenColor";
+		exhaust = (
+			"-30.0 0.0 0.0 13 13 24.0",
+			"30.0 0.0 0.0 13 13 24.0"
+		);
+		model = "cobramki.dat";
+		roles = "Trader Defender";
+	};
+
+	"cobra_mk_i_enemy" = {
+		like_ship = "cobra_mk_i";
+		max_energy = 140.0;
+		bounty = 40;
+		roles = "Pirate(0.02)";
+	};
+
+	"python" = {
+		name = "Python";
+		max_flight_speed = 250.5;
+		max_flight_pitch = 0.8;
+		max_flight_roll = 2.0;
+		max_energy = 80.0;
+		aggression_level = 5;
+		has_escape_pod = 1.0;
+		bounty = 0;
+		cargo_carried = 3;
+		model_scale_factor = 0.8;
+		weapon_position_forward = (
+			"0.0 0.0 336.0"
+		);
+		laser_color ="yellowColor";
+		exhaust = (
+			"0.0 0.0 0.0 31 19 44.0"
+		);
+		model = "python.dat";
+		roles = "Trader Defender";
+	};
+
+	"anaconda" = {
+		name = "Anaconda";
+		max_flight_speed = 167.0;
+		max_flight_pitch = 0.4;
+		max_flight_roll = 0.75;
+		max_energy = 112.0;
+		has_ecm = 1.0;
+		aggression_level = 10;
+		has_escape_pod = 3.0;
+		bounty = 0;
+		cargo_carried = 3;
+		weapon_position_forward = (
+			"0.0 -14.68 312.0"
+		);
+		laser_color ="redColor";
+		exhaust = (
+			"-40.0 25.0 -30.0 19 19 40.0",
+			"40.0 25.0 -30.0 19 19 40.0"
+		);
+		model = "anaconda.dat";
+		roles = "Trader";
+	};
+
+	"rolfs_cobra" = {
+		name = "Rolf's Cobra";
+		max_flight_speed = 367.4;
+		max_flight_pitch = 1.0;
+		max_flight_roll = 2.0;
+		max_energy = 72.0;
+		has_ecm = 1.0;
+		aggression_level = 10;
+		has_escape_pod = 3.0;
+		bounty = 50;
+		cargo_carried = 3;
+		weapon_position_forward = (
+			"15.37 11.14 126.15",
+			"0.0 0.0 194.22"
+		);
+		exhaust = (
+			"0.0 -92.0 0.0 23 23 30.0"
+		);
+		model = "rolfscobra.dat";
+		roles = "Trader";
+	};
+
+	"asp_mk_ii" = {
+		name = "Asp Mk II";
+		max_flight_speed = 501.0;
+		max_flight_pitch = 1.0;
+		max_flight_roll = 2.0;
+		max_energy = 200.0;
+		aggression_level = 15;
+		has_escape_pod = 1.0;
+		bounty = 120;
+		cargo_carried = 1;
+		weapon_position_forward = (
+			"51.26 -9.86 138.0",
+			"-51.26 -9.86 138.0"
+		);
+		laser_color ="greenColor";
+		exhaust = (
+			"0.0 0.0 0.0 32 16 46.0"
+		);
+		exhaust_emissive_color = (
+			"1.0 0.45 0.0 0.7"
+		);
+		model = "aspmkii.dat";
+		roles = "Pirate Defender";
+	};
+
+	"sidewinder" = {
+		name = "Sidewinder";
+		max_flight_speed = 334.0;
+		max_flight_pitch = 1.6;
+		max_flight_roll = 2.8;
+		max_energy = 40.0;
+		aggression_level = 10;
+		has_escape_pod = 1.0;
+		bounty = 40;
+		cargo_carried = 1;
+		weapon_position_forward = (
+			"63.02 0.0 68.92",
+			"-63.02 0.0 68.92"
+		);
+		exhaust = (
+			"0.0 0.0 0.0 13 13 30.0"
+		);
+		exhaust_emissive_color = (
+			"0.93 0.33 0.8 0.7"
+		);
+		model = "sidewinder.dat";
+		roles = "Pirate Defender";
+	};
+
+	"wolf_mk_ii" = {
+		name = "Wolf Mk II";
+		max_flight_speed = 501.0;
+		max_flight_pitch = 1.0;
+		max_flight_roll = 2.0;
+		max_energy = 255.0;
+		aggression_level = 15;
+		has_escape_pod = 3.0;
+		bounty = 150;
+		cargo_carried = 1;
+		weapon_position_forward = (
+			"22.22 0.0 120.0",
+			"-22.22 0.0 120.0"
+		);
+		laser_color ="redColor";
+		exhaust = (
+			"0.0 0.0 -10.0 27 7 66.0"
+		);
+		exhaust_emissive_color = (
+			"0.97 0.1 0.8 0.7"
+		);
+		model = "wolfmkii.dat";
+		roles = "Pirate Defender";
+	};
+
+	"orbit_shuttle" = {
+		name = "Orbit Shuttle";
+		max_flight_speed = 100.2;
+		max_flight_pitch = 0.9;
+		max_flight_roll = 2.0;
+		max_energy = 112.0;
+		aggression_level = 5;
+		has_escape_pod = 1.0;
+		bounty = 0;
+		cargo_carried = 1;
+		exhaust = (
+			"-25.0 25.0 0.0 10 10 12.0",
+			"25.0 25.0 0.0 10 10 12.0",
+			"-25.0 -25.0 0.0 10 10 12.0",
+			"25.0 -25.0 0.0 10 10 12.0"
+		);
+		exhaust_emissive_color = (
+			"0.81 0.35 0.63 0.7",
+			"0.81 0.35 0.63 0.7",
+			"0.81 0.35 0.63 0.7",
+			"0.81 0.35 0.63 0.7"
+		);
+		model = "orbitshuttle.dat";
+		roles = "Shuttle";
+	};
+
+	"transporter" = {
+		name = "Transporter";
+		max_flight_speed = 367.4;
+		max_flight_pitch = 1.0;
+		max_flight_roll = 2.0;
+		max_energy = 80.0;
+		aggression_level = 5;
+		bounty = 0;
+		exhaust = (
+			"-37.0 -5.0 0.0 13 13 30.0",
+			"37.0 -5.0 0.0 13 13 30.0"
+		);
+		model = "transporter.dat";
+		roles = "Shuttle";
+	};
+
+	"missile" = {
+		name = "Missile";
+		max_flight_speed = 701.4;
+		max_flight_pitch = 12.0;
+		max_flight_roll = 12.0;
+		max_energy = 1.0;
+		bounty = 0;
+		proximity_warning = 0;
+		exhaust = (
+			"0.0 0.0 -15.0 13 13 30.0"
+		);
+		model = "missile.dat";
+		roles = "Missile";
+	};
+
+	"escape_capsule" = {
+		name = "Escape Capsule";
+		max_flight_speed = 283.9;
+		max_flight_pitch = 0.5;
+		max_flight_roll = 0.5;
+		max_energy = 40.0;
+		aggression_level = 5;
+		bounty = 0;
+		proximity_warning = 0;
+		exhaust = (
+			"-40.0 -25.0 -35.0 13 13 16.0",
+			"40.0 -25.0 -35.0 13 13 16.0",
+			"0.0 50.0 -35.0 13 13 16.0"
+		);
+		exhaust_emissive_color = (
+			"0.8 0.53 0.8 0.7",
+			"0.8 0.53 0.8 0.7",
+			"0.8 0.53 0.8 0.7"
+		);
+		model = "escapecapsule.dat";
+		roles = "EscapeCapsule";
+	};
+
+	"cargo_canister" = {
+		name = "Cargo Canister";
+		max_flight_speed = 183.7;
+		max_flight_pitch = 0.5;
+		max_flight_roll = 0.5;
+		max_energy = 170.0;
+		aggression_level = 0;
+		bounty = 0;
+		missiles = 0;
+		proximity_warning = 0;
+		model = "cargo_canister.dat";
+		roles = "CargoPod";
+	};
+
+	"platlet" = {
+		name = "Platlet";
+		max_flight_speed = 50.5;
+		max_flight_pitch = 0.1;
+		max_flight_roll = 0.1;
+		max_energy = 33.0;
+		aggression_level = 0;
+		bounty = 0;
+		missiles = 0;
+		proximity_warning = 0;
+		model = "platlet.dat";
+		roles = "Alloy";
+	};
+
+	"asteroid1" = {
+		name = "Asteroid";
+		max_flight_speed = 280.0;
+		max_flight_pitch = 0.1;
+		max_flight_roll = 0.1;
+		max_energy = 60.0;
+		aggression_level = 0;
+		bounty = 10;
+		cargo_carried = 2;
+		missiles = 0;
+		proximity_warning = 0;
+		model = "asteroid1.dat";
+		roles = "Asteroid";
+	};
+
+	"asteroid2" = {
+		name = "Asteroid";
+		max_flight_speed = 312.0;
+		max_flight_pitch = 0.1;
+		max_flight_roll = 0.1;
+		max_energy = 60.0;
+		aggression_level = 0;
+		bounty = 10;
+		cargo_carried = 3;
+		missiles = 0;
+		proximity_warning = 0;
+		model = "asteroid2.dat";
+		roles = "Asteroid";
+	};
+
+	"harken" = {
+		name = "Harken";
+		max_flight_speed = 367.4;
+		max_flight_pitch = 2.5;
+		max_flight_roll = 3.2;
+		max_energy = 190.0;
+		has_ecm = 1.0;
+		aggression_level = 14;
+		bounty = 150;
+		galaxy = 3;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"61.31 -0.17 118.1",
+			"-39.26 -7.11 100.0"
+		);
+		exhaust = (
+			"60.0 0.0 0.0 13 13 30.0"
+		);
+		exhaust_emissive_color = (
+			"0.82 0.51 0.72 0.7"
+		);
+		model = "harken.dat";
+		roles = "Pirate";
+	};
+
+	"constrictor" = {
+		name = "Constrictor";
+		affected_by_energy_bomb = 0.0;
+		max_flight_speed = 501.0;
+		max_flight_pitch = 1.75;
+		max_flight_roll = 2.5;
+		max_energy = 1024.0;
+		has_ecm = 1.0;
+		aggression_level = 25;
+		bounty = 4000;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"40.0 -20.0 120.00",
+			"-40.0 -20.0 120.00"
+		);
+		laser_color ="magentaColor";
+		exhaust = (
+			"0.0 0.0 0.0 25 8 30.0"
+		);
+		exhaust_emissive_color = (
+			"0.92 0.6 0.8 0.7"
+		);
+		model = "constrictor.dat";
+		roles = "Constrictor";
+	};
+
+	"cottonmouth" = {
+		name = "Cottonmouth";
+		max_flight_speed = 367.4;
+		max_flight_pitch = 1.5;
+		max_flight_roll = 2.75;
+		max_energy = 160.0;
+		has_ecm = 1.0;
+		aggression_level = 10;
+		bounty = 100;
+		galaxy = 2;
+		cargo_carried = 1;
+		weapon_position_forward = (
+			"8.55 -13.25 239.68",
+			"-12.16 -13.25 239.68"
+		);
+		laser_color ="cyanColor";
+		exhaust = (
+			"-100.0 -30.0 0.0 20 20 22.0",
+			"100.0 -30.0 0.0 20 20 22.0"
+		);
+		model = "cottonmouth.dat";
+		roles = "Pirate Defender";
+	};
+
+	"cougarwing" = {
+		name = "Cougar Wing";
+		affected_by_energy_bomb = 0.0;
+		max_energy = 1024.0;
+		model = "cougarwing.dat";
+	};
+
+	"cougar" = {
+		name = "Cougar";
+		affected_by_energy_bomb = 0.0;
+		max_flight_speed = 501.0;
+		max_flight_pitch = 2.25;
+		max_flight_roll = 2.25;
+		max_energy = 1024.0;
+		has_ecm = 1.0;
+		aggression_level = 25;
+		bounty = 5000;
+		galaxy = 2;
+		cargo_carried = 1;
+		weapon_position_forward = (
+			"0.0 30.43 198.0"
+		);
+		laser_color ="cyanColor";
+		exhaust = (
+			"-30.0 0.0 0.0 13 13 42.0",
+			"30.0 0.0 0.0 13 13 42.0"
+		);
+		exhaust_emissive_color = (
+			"0.32 0.95 0.14 0.7",
+			"0.32 0.95 0.14 0.7"
+		);
+		subentities = (
+			{
+				subentity_key = "cougarwing";
+				orientation = (1, 0, 0, 0);
+				position = (0, 0, 0);
+				is_dock = false;
+			},
+			{
+				subentity_key = "cougarwing";
+				orientation = (0, 0, 0, 1);
+				position = (0, 0, 0);
+				is_dock = false;
+			}
+		);
+		model = "cougar.dat";
+		roles = "Cougar";
+	};
+
+	"hognose" = {
+		name = "Hognose";
+		max_flight_speed = 367.4;
+		max_flight_pitch = 1.5;
+		max_flight_roll = 2.75;
+		max_energy = 120.0;
+		aggression_level = 10;
+		bounty = 80;
+		galaxy = 2;
+		cargo_carried = 3;
+		weapon_position_forward = (
+			"0.01 -25.69 292.72"
+		);
+		exhaust = (
+			"0.0 -45.0 -195.0 18 15 36.0"
+		);
+		exhaust_emissive_color = (
+			"0.7 0.75 0.8 0.7"
+		);
+		model = "hognose.dat";
+		roles = "Pirate";
+	};
+
+	"lancehead" = {
+		name = "Lancehead";
+		max_flight_speed = 434.2;
+		max_flight_pitch = 2.5;
+		max_flight_roll = 2.5;
+		max_energy = 160.0;
+		aggression_level = 14;
+		bounty = 150;
+		galaxy = 3;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"142.73 -26.97 177.57",
+			"-141.88 -29.97 177.57"
+		);
+		laser_color ="redColor";
+		exhaust = (
+			"0.0 15.0 -60.0 10 10 30.0"
+		);
+		exhaust_emissive_color = (
+			"1.0 0.44 0.4 0.7"
+		);
+		model = "lancehead.dat";
+		roles = "Pirate";
+	};
+
+	"gopher" = {
+		name = "Gopher";
+		max_flight_speed = 400.8;
+		max_flight_pitch = 1.5;
+		max_flight_roll = 2.75;
+		max_energy = 190.0;
+		has_ecm = 1.0;
+		aggression_level = 10;
+		has_escape_pod = 1.0;
+		bounty = 100;
+		galaxy = 4;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"52.74 0.37 177.92",
+			"-52.74 0.37 177.92"
+		);
+		laser_color ="redColor";
+		exhaust = (
+			"-40.0 -10.0 0.0 16 16 22.0",
+			"40.0 -10.0 0.0 16 16 22.0",
+			"0.0 -10.0 0.0 16 16 22.0"
+		);
+		exhaust_emissive_color = (
+			"0.55 0.56 0.8 0.7",
+			"0.55 0.56 0.8 0.7",
+			"0.55 0.56 0.8 0.7"
+		);
+		model = "gopher.dat";
+		roles = "Pirate Defender";
+	};
+
+	"coral" = {
+		name = "Coral";
+		max_flight_speed = 400.8;
+		max_flight_pitch = 3.0;
+		max_flight_roll = 2.25;
+		max_energy = 220.0;
+		has_ecm = 1.0;
+		aggression_level = 14;
+		has_escape_pod = 1.0;
+		bounty = 200;
+		galaxy = 6;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"0.0 0.0 211.46"
+		);
+		laser_color ="greenColor";
+		exhaust = (
+			"-45.0 5.0 -80.0 13 24 30.0",
+			"45.0 5.0 -80.0 13 24 30.0",
+			"0.0 5.0 -80.0 13 24 30.0"
+		);
+		exhaust_emissive_color = (
+			"0.6 0.08 0.8 0.7",
+			"0.6 0.08 0.8 0.7",
+			"0.6 0.08 0.8 0.7"
+		);
+		model = "coral.dat";
+		roles = "Pirate Defender";
+	};
+
+	"bushmaster" = {
+		name = "Bushmaster";
+		max_flight_speed = 400.8;
+		max_flight_pitch = 2.5;
+		max_flight_roll = 2.5;
+		max_energy = 200.0;
+		has_ecm = 1.0;
+		aggression_level = 13;
+		has_escape_pod = 1.0;
+		bounty = 150;
+		galaxy = 5;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"30.43 -82.43 279.95",
+			"-30.43 -82.43 279.95"
+		);
+		laser_color ="blueColor";
+		exhaust = (
+			"-100.0 15.0 0.0 52 19 30.0",
+			"100.0 15.0 0.0 52 19 30.0"
+		);
+		exhaust_emissive_color = (
+			"0.84 0.12 0.18 0.7",
+			"0.84 0.12 0.18 0.7"
+		);
+		model = "bushmaster.dat";
+		roles = "Pirate Defender";
+	};
+
+	"rattlesnake" = {
+		name = "Rattlesnake";
+		max_flight_speed = 534.4;
+		max_flight_pitch = 3.25;
+		max_flight_roll = 3.25;
+		max_energy = 280.0;
+		has_ecm = 1.0;
+		aggression_level = 20;
+		has_escape_pod = 1.0;
+		bounty = 500;
+		galaxy = 8;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"120.0 -0.1 69.50",
+			"-120.0 -0.1 69.50",
+			"-4.17 116.96 59.2",
+			"-0.15 -119.64 59.11"
+		);
+		laser_color ="blueColor";
+		exhaust = (
+			"-35.0 0.0 -40.0 9 7 24.0",
+			"35.0 0.0 -40.0 9 7 24.0",
+			"0.0 -35.0 -40.0 7 9 24.0",
+			"0.0 35.0 -40.0 7 9 24.0"
+		);
+		exhaust_emissive_color = (
+			"0.83 0.7 0.23 0.7",
+			"0.83 0.7 0.23 0.7",
+			"0.83 0.7 0.23 0.7",
+			"0.83 0.7 0.23 0.7"
+		);
+		model = "rattlesnake.dat";
+		roles = "Pirate";
+	};
+
+	"mussurana" = {
+		name = "Mussurana";
+		max_flight_speed = 400.8;
+		max_flight_pitch = 1.5;
+		max_flight_roll = 1.5;
+		max_energy = 200.0;
+		has_ecm = 1.0;
+		aggression_level = 10;
+		has_escape_pod = 1.0;
+		bounty = 100;
+		galaxy = 4;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"23.33 -46.67 136.21",
+			"-23.33 -46.67 136.21"
+		);
+		laser_color ="yellowColor";
+		exhaust = (
+			"0.0 10.0 -25.0 19 19 24.0"
+		);
+		model = "mussurana.dat";
+		roles = "Pirate Defender";
+	};
+
+	"dugite" = {
+		name = "Dugite";
+		max_flight_speed = 434.2;
+		max_flight_pitch = 3.0;
+		max_flight_roll = 3.0;
+		max_energy = 280.0;
+		has_ecm = 1.0;
+		aggression_level = 15;
+		has_escape_pod = 1.0;
+		bounty = 250;
+		galaxy = 7;
+		cargo_carried = 3;
+		weapon_position_forward = (
+			"32.65 -0.39 205.64",
+			"-32.65 -0.39 205.64"
+		);
+		laser_color ="yellowColor";
+		exhaust = (
+			"0.0 -5.0 0.0 18 18 30.0"
+		);
+		exhaust_emissive_color = (
+			"1.0 0.68 0.22 0.7"
+		);
+		model = "dugite.dat";
+		roles = "Pirate";
+	};
+
+	"yellowbelly" = {
+		name = "Yellowbelly";
+		max_flight_speed = 434.2;
+		max_flight_pitch = 1.5;
+		max_flight_roll = 2.75;
+		max_energy = 240.0;
+		has_ecm = 1.0;
+		aggression_level = 17;
+		bounty = 200;
+		galaxy = 6;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"0.0 -19.59 243.39"
+		);
+		laser_color ="yellowColor";
+		exhaust = (
+			"25.0 5.0 -30.0 5 5 20.0",
+			"-25.0 5.0 -30.0 5 5 20.0",
+			"0.0 20.0 -30.0 5 5 20.0",
+		);
+		model = "yellowbelly.dat";
+		roles = "Pirate";
+	};
+
+	"indigo" = {
+		name = "Indigo";
+		max_flight_speed = 434.2;
+		max_flight_pitch = 2.5;
+		max_flight_roll = 2.75;
+		max_energy = 220.0;
+		has_ecm = 1.0;
+		aggression_level = 12;
+		has_escape_pod = 1.0;
+		bounty = 200;
+		galaxy = 5;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"0.0 -13.91 150.75"
+		);
+		laser_color ="blueColor";
+		exhaust = (
+			"50.0 0.0 0.0 13 13 30.0",
+			"-50.0 0.0 0.0 13 13 30.0"
+		);
+		model = "indigo.dat";
+		roles = "Pirate Defender";
+	};
+
+	"harlequin" = {
+		name = "Harlequin";
+		max_flight_speed = 467.6;
+		max_flight_pitch = 3.0;
+		max_flight_roll = 3.25;
+		max_energy = 320.0;
+		has_ecm = 1.0;
+		aggression_level = 20;
+		has_escape_pod = 1.0;
+		bounty = 500;
+		galaxy = 8;
+		cargo_carried = 2;
+		weapon_position_forward = (
+			"101.69 -71.23 225.45",
+			"-101.69 -71.23 225.45",
+			"0.0 104.9 225.45"
+		);
+		laser_color ="greenColor";
+		exhaust = (
+			"-100.0 -75.0 -15.0 10 10 44.0",
+			"100.0 -75.0 -15.0 10 10 44.0",
+			"0.0 105.0 -15.0 10 10 44.0"
+		);
+		exhaust_emissive_color = (
+			"0.33 0.22 0.8 0.7",
+			"0.33 0.22 0.8 0.7",
+			"0.33 0.22 0.8 0.7"
+		);
+		model = "harlequin.dat";
+		roles = "Pirate";
+	};
+
+	"tie_fighter" = {
+		name = "Tie Fighter";
+		affected_by_energy_bomb = 0.0;
+		max_flight_speed = 650.4;
+		max_flight_pitch = 4.5;
+		max_flight_roll = 4.5;
+		max_energy = 580.0;
+		has_ecm = 1.0;
+		aggression_level = 30;
+		bounty = 0;
+		weapon_position_forward = (
+			"197.83 0.99 198.42",
+			"-192.28 224.14 -101.37"
+		);
+		laser_color ="redColor";
+		exhaust = (
+			"-55.0 0.0 -120.0 4 4 30.0",
+			"55.0 0.0 -120.0 4 4 30.0"
+		);
+		exhaust_emissive_color = (
+			"1.0 0.1 0.0 0.7",
+			"1.0 0.1 0.0 0.7"
+		);
+		model = "tiefighter.dat";
+		roles = "TieFighter";
+	};
+
+	"lyre" = {
+		name = "Lyre";
+		max_flight_speed = 434.2;
+		max_flight_pitch = 2.5;
+		max_flight_roll = 3.0;
+		max_energy = 240.0;
+		has_ecm = 1.0;
+		aggression_level = 10;
+		has_escape_pod = 1.0;
+		bounty = 200;
+		galaxy = 7;
+		cargo_carried = 3;
+		weapon_position_forward = (
+			"49.38 0.0 133.42",
+			"-49.38 0.0 133.42"
+		);
+		laser_color ="yellowColor";
+		exhaust = (
+			"-35.0 0.0 0.0 13 13 30.0",
+			"35.0 0.0 0.0 13 13 30.0"
+		);
+		exhaust_emissive_color = (
+			"0.86 0.18 0.7 0.7",
+			"0.86 0.18 0.7 0.7"
+		);
+		model = "lyre.dat";
+		roles = "Pirate Defender";
+	};
+
+	"buoy" = {
+		name = "Buoy";
+		max_flight_speed = 0.0;
+		max_flight_pitch = 0.0;
+		max_flight_roll = 0.0;
+		max_energy = 55.0;
+		aggression_level = 0;
+		bounty = 0;
+		missiles = 0;
+		model = "buoy.dat";
+		roles = "Buoy";
+	};
+
+	"coriolis_dock" = {
+		name = "Coriolis Dock";
+		model = "coriolis_dock.dat";
+		model_scale_factor = 6.0;
+	};
+
+	"coriolis_station" = {
+		name = "Coriolis Station";
+		affected_by_energy_bomb = 0.0;
+		max_flight_speed = 0.0;
+		max_flight_pitch = 8.0;
+		max_flight_roll = 8.0;
+		max_energy = 255.0;
+		has_ecm = 1.0;
+		aggression_level = 0;
+		bounty = 0;
+		missiles = 0;
+		proximity_warning = 0;
+		model_scale_factor = 6.0;
+		model = "coriolis.dat";
+		roles = "Coriolis";
+		subentities = (
+			{
+				subentity_key = "coriolis_dock";
+				orientation = (1, 0, 0, 0);
+				position = (0, 0, 0);
+				is_dock = true;
+			}
+		);
+	};
+
+	"icosaeder_dock" = {
+		name = "Icosaeder Dock";
+		model = "icosaeder_dock.dat";
+		model_scale_factor = 3.84;
+	};
+
+	"icosaeder_station" = {
+		name = "Icosaeder Station";
+		affected_by_energy_bomb = 0.0;
+		max_flight_speed = 0.0;
+		max_flight_pitch = 8.0;
+		max_flight_roll = 8.0;
+		max_energy = 255.0;
+		has_ecm = 1.0;
+		aggression_level = 0;
+		bounty = 0;
+		missiles = 0;
+		proximity_warning = 0;
+		model_scale_factor = 3.84;
+		model = "icosaeder.dat";
+		roles = "Icosahedron";
+		subentities = (
+			{
+				subentity_key = "icosaeder_dock";
+				orientation = (1, 0, 0, 0);
+				position = (0, 0, 0);
+				is_dock = true;
+			}
+		);
+	};
+
+	"dodec_dock" = {
+		name = "Dodec Dock";
+		model = "dodec_dock.dat";
+		model_scale_factor = 4.897959;
+	};
+
+	"dodec_station" = {
+		name = "Dodec Station";
+		affected_by_energy_bomb = 0.0;
+		max_flight_speed = 0.0;
+		max_flight_pitch = 8.0;
+		max_flight_roll = 8.0;
+		max_energy = 255.0;
+		has_ecm = 1.0;
+		aggression_level = 0;
+		bounty = 0;
+		missiles = 0;
+		proximity_warning = 0;
+		//port_radius = 1191.0;
+		model_scale_factor = 4.897959;
+		model = "dodec.dat";
+		roles = "Dodecahedron";
+		subentities = (
+			{
+				subentity_key = "dodec_dock";
+				orientation = (1, 0, 0, 0);
+				position = (0, 0, 0);
+				is_dock = true;
+			}
+		);
+	};
+
+}

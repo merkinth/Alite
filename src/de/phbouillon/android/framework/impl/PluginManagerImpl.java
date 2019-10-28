@@ -18,6 +18,7 @@ package de.phbouillon.android.framework.impl;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -47,7 +48,6 @@ public class PluginManagerImpl implements PluginManager {
 
 	private Context context;
 	private FileIO fileIO;
-	private String accountName;
 	private String rootDriveFolder;
 	private String applicationName;
 	private IDownloaderClient uiNotifier;
@@ -58,11 +58,9 @@ public class PluginManagerImpl implements PluginManager {
 	private int updateMode;
 	private int downloadState;
 
-	public PluginManagerImpl(Context context, FileIO fileIO, String accountName, String rootDriveFolder,
-			String applicationName, IDownloaderClient uiNotifier) {
+	public PluginManagerImpl(Context context, FileIO fileIO, String rootDriveFolder, String applicationName, IDownloaderClient uiNotifier) {
 		this.context = context;
 		this.fileIO = fileIO;
-		this.accountName = accountName;
 		this.rootDriveFolder = rootDriveFolder;
 		this.applicationName = applicationName;
 		this.uiNotifier = uiNotifier;
@@ -152,7 +150,7 @@ public class PluginManagerImpl implements PluginManager {
 		try {
 			Drive service = getDriveService();
 			fileIO.mkDir(destinationFolder);
-			destinationFilename = destinationFolder + File.separator + destinationFilename;
+			destinationFilename = destinationFolder + File.separatorChar + destinationFilename;
 			OutputStream outputStream = fileIO.writeFile(destinationFilename + ".tmp");
 			Drive.Files.Get get = service.files().get(fileId);
 			downloadProgressInfo = new DownloadProgressInfo(size, 0, -1, 0);
@@ -191,7 +189,8 @@ public class PluginManagerImpl implements PluginManager {
 		downloadProgressInfo.mCurrentSpeed = totalBytesSoFar / timePassed;
 	}
 
-	private class Worker extends AsyncTask<Object, DownloadProgressInfo, Object> implements MediaHttpDownloaderProgressListener {
+	@SuppressLint("StaticFieldLeak")
+	private class Worker extends AsyncTask<Void, DownloadProgressInfo, Object> implements MediaHttpDownloaderProgressListener {
 		private IMethodHook backgroundTask;
 
 		Worker(IMethodHook backgroundTask) {
@@ -199,12 +198,12 @@ public class PluginManagerImpl implements PluginManager {
 		}
 
 		@Override
-		protected DownloadProgressInfo doInBackground(Object... objects) {
+		protected DownloadProgressInfo doInBackground(Void... params) {
 			backgroundTask.execute(0);
 			return null;
 		}
 		@Override
-		protected void onProgressUpdate(DownloadProgressInfo[] values) {
+		protected void onProgressUpdate(DownloadProgressInfo... values) {
 			super.onProgressUpdate(values);
 			if (uiNotifier != null) {
 				uiNotifier.onDownloadProgress(values[0]);

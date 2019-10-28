@@ -2,7 +2,7 @@ package de.phbouillon.android.framework.impl.gl;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -29,17 +29,17 @@ import de.phbouillon.android.games.alite.AliteLog;
 public class Skysphere extends Sphere implements Serializable {
 	private static final long serialVersionUID = 4648170914967080291L;
 
-	public Skysphere(final Alite alite, final float radius, final int slices, final int stacks, final String textureFilename) {
-		super(alite, radius, slices, stacks, textureFilename, null, true);
+	public Skysphere(final float radius, final int slices, final int stacks, final String textureFilename) {
+		super(radius, slices, stacks, textureFilename, null, true);
 	}
-		
+
 	private void writeObject(ObjectOutputStream out)
             throws IOException {
 		try {
 			out.defaultWriteObject();
 		} catch(IOException e) {
 			AliteLog.e("PersistenceException", "Skysphere", e);
-			throw(e);
+			throw e;
 		}
     }
 
@@ -48,16 +48,16 @@ public class Skysphere extends Sphere implements Serializable {
 		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
-		
+
 		GLES11.glVertexPointer(3, GLES11.GL_FLOAT, 0, vertexBuffer);
 		GLES11.glTexCoordPointer(2, GLES11.GL_FLOAT, 0, texCoordBuffer);
-		
+
 		GLES11.glDisable(GLES11.GL_LIGHTING);
 		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		alite.getTextureManager().setTexture(textureFilename);
+		Alite.get().getTextureManager().setTexture(textureFilename);
 		GLES11.glDrawArrays(glDrawMode, 0, numberOfVertices);
 		GLES11.glEnable(GLES11.GL_LIGHTING);
-		
+
 		GLES11.glEnable(GLES11.GL_CULL_FACE);
 		GLES11.glDisableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
 		GLES11.glDisableClientState(GLES11.GL_VERTEX_ARRAY);

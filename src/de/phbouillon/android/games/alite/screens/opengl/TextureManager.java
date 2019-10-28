@@ -39,6 +39,7 @@ import android.opengl.GLES11;
 import android.opengl.GLUtils;
 import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.MemUtil;
+import de.phbouillon.android.framework.ResourceStream;
 import de.phbouillon.android.framework.impl.Pool;
 import de.phbouillon.android.framework.impl.Pool.PoolObjectFactory;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -80,16 +81,16 @@ public class TextureManager {
 	}
 
 	public int addTexture(String fileName) {
+		return addTextureFromStream(fileName, null);
+	}
+
+	public int addTextureFromStream(String fileName, ResourceStream textureInputStream) {
 		if (bitmaps.contains(fileName)) {
 			return 0;
 		}
 		Texture texture = textures.get(fileName);
 		if (texture == null || !texture.isValid()) {
-			texture = texturePool.newObject();
-			texture.index[0] = 0;
-			GLES11.glGenTextures(1, texture.index, 0);
-			loadTexture(fileName, texture.index[0]);
-			textures.put(fileName, texture);
+			texture = forceAddTexture(fileName, textureInputStream);
 		}
 		return texture.index[0];
 	}
@@ -113,12 +114,13 @@ public class TextureManager {
 		return texture.index[0];
 	}
 
-	private void forceAddTexture(String fileName) {
+	private Texture forceAddTexture(String fileName, ResourceStream textureInputStream) {
 		Texture texture = texturePool.newObject();
 		texture.index[0] = 0;
 		GLES11.glGenTextures(1, texture.index, 0);
-		loadTexture(fileName, texture.index[0]);
+		loadTexture(fileName, texture.index[0], textureInputStream);
 		textures.put(fileName, texture);
+		return texture;
 	}
 
 	public void freeTexture(String fileName) {
@@ -134,18 +136,22 @@ public class TextureManager {
 	}
 
 	public void setTexture(String fileName) {
+		setTexture(fileName, null);
+	}
+
+	public void setTexture(String fileName, ResourceStream textureInputStream) {
 		if (fileName == null) {
 			GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, 0);
 			return;
 		}
 		Texture texture = textures.get(fileName);
 		if (texture == null || !texture.isValid()) {
-			addTexture(fileName);
+			addTextureFromStream(fileName, textureInputStream);
 			texture = textures.get(fileName);
 		}
 		if (texture != null) {
 			if (!texture.isValid()) {
-				texture.index[0] = addTexture(fileName);
+				texture.index[0] = addTextureFromStream(fileName, textureInputStream);
 			}
 
 			if (texture.index[0] != 0) {
@@ -185,7 +191,7 @@ public class TextureManager {
 				}
 			}
 			if (!bitmaps.contains(fileName)) {
-				forceAddTexture(fileName);
+				forceAddTexture(fileName, null);
 			}
 		}
 	}
@@ -206,9 +212,8 @@ public class TextureManager {
 		String[] parts;
 		String[] coords;
 		String[] size;
-		float x, y, sx, sy;
 		while (line != null) {
-			if (line.trim().length() == 0) {
+			if (line.trim().isEmpty()) {
 				line = br.readLine();
 				continue;
 			}
@@ -218,38 +223,37 @@ public class TextureManager {
 			} else {
 				coords = parts[1].split(",");
 				size = parts[2].split(",");
-				x = Float.parseFloat(coords[0]) / Settings.textureLevel;
-				y = Float.parseFloat(coords[1]) / Settings.textureLevel;
-				sx = Float.parseFloat(size[0]) / Settings.textureLevel;
-				sy = Float.parseFloat(size[1]) / Settings.textureLevel;
-				sprites.put(fileName + ":" + parts[0], new SpriteData(parts[0], x / width, y / height, (x + sx - 1) / width, (y + sy - 1) / height, Float.parseFloat(size[0]), Float.parseFloat(size[1])));
+				float x = Float.parseFloat(coords[0]) / Settings.textureLevel;
+				float y = Float.parseFloat(coords[1]) / Settings.textureLevel;
+				float sx = Float.parseFloat(size[0]) / Settings.textureLevel;
+				float sy = Float.parseFloat(size[1]) / Settings.textureLevel;
+				sprites.put(fileName + ":" + parts[0], new SpriteData(parts[0], x / width, y / height,
+					(x + sx - 1) / width, (y + sy - 1) / height, Float.parseFloat(size[0]), Float.parseFloat(size[1])));
 			}
 			line = br.readLine();
 		}
 	}
 
-	private Bitmap newBitmap(String fileName) {
-		Config config = Settings.colorDepth == 1 ? Config.ARGB_8888 : Config.ARGB_4444;
-		Options options = new Options();
-		options.inPreferredConfig = config;
-		options.inSampleSize = Settings.textureLevel;
-		Bitmap bitmap = null;
-		try (InputStream in = game.getFileIO().readPrivateFile(fileName)) {
-			bitmap = BitmapFactory.decodeStream(in, null, options);
-			if (bitmap == null)
-				throw new RuntimeException("Couldn't load bitmap from asset '" + fileName + "'");
-		} catch (IOException e) {
-			AliteLog.e("Error loading bitmap", "Couldn't load bitmap from asset '" + fileName + "'");
-//			throw new RuntimeException("Couldn't load bitmap from asset '" + fileName + "'");
+	private Bitmap newBitmap(String fileName, ResourceStream textureInputStream) {
+		try (InputStream in = textureInputStream == null ? game.getFileIO().readPrivateFile(fileName) : textureInputStream.getStream(fileName)) {
+			Options options = new Options();
+			options.inPreferredConfig = Settings.colorDepth == 1 ? Config.ARGB_8888 : Config.ARGB_4444;
+			options.inSampleSize = Settings.textureLevel;
+			Bitmap bitmap = BitmapFactory.decodeStream(in, null, options);
+			if (bitmap == null) {
+				throw new RuntimeException("Couldn't load bitmap from '" + fileName + "'");
+			}
+			return bitmap;
+		} catch (IOException ignored) {
+			AliteLog.e("Error loading bitmap", "Couldn't load bitmap from '" + fileName + "'");
 		}
-		return bitmap;
+		return null;
 	}
 
-	private void loadTexture(String fileName, int index) {
+	private void loadTexture(String fileName, int index, ResourceStream textureInputStream) {
 		AliteLog.d("Loading Texture: " + fileName, fileName + " Creating bitmap....");
-		Bitmap bitmap = newBitmap(fileName);
+		Bitmap bitmap = newBitmap(fileName, textureInputStream);
 		if (bitmap == null) {
-			AliteLog.e("Loading Texture: " + fileName, "Creating bitmap failed!");
 			return;
 		}
 		loadTexture(bitmap, index);

@@ -28,6 +28,7 @@ import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
+import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.missions.CougarMission;
@@ -35,33 +36,23 @@ import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cougar;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.MathHelper;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class CougarScreen extends AliteScreen {
 	private final MediaPlayer mediaPlayer;
 
-	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
-	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
-	private final float[] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
-	private final float[] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
-
-	private final float[] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
-	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
-
 	private MissionLine missionLine;
 	private int lineIndex = 0;
-	private Cougar cougar;
+	private SpaceObject cougar;
 	private TextData[] missionText;
 	private final Timer timer = new Timer().setAutoReset();
-	private float currentDeltaX;
-	private float targetDeltaX;
-	private float currentDeltaY;
-	private float targetDeltaY;
-	private float currentDeltaZ;
-	private float targetDeltaZ;
+	private Vector3f currentDelta = new Vector3f(0,0,0);
+	private Vector3f targetDelta = new Vector3f(0,0,0);
+
 	private final int givenState;
 
 	public CougarScreen(Alite game, int state) {
@@ -73,7 +64,7 @@ public class CougarScreen extends AliteScreen {
 		try {
 			if (state == 0) {
 				missionLine = new MissionLine(path + "01.mp3", L.string(R.string.mission_cougar_mission_description));
-				cougar = new Cougar(game);
+				cougar = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Cougar);
 				cougar.setPosition(200, 0, -700.0f);
 				mission.setPlayerAccepts(true);
 				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 1);
@@ -87,63 +78,10 @@ public class CougarScreen extends AliteScreen {
 
 	private void dance() {
 		if (timer.hasPassedSeconds(4)) {
-			targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-			targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-			targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
+			MathHelper.getRandomRotationAngles(targetDelta);
 		}
-		if (Math.abs(currentDeltaX - targetDeltaX) > 0.0001) {
-			currentDeltaX += (targetDeltaX - currentDeltaX) / 8.0f;
-		}
-		if (Math.abs(currentDeltaY - targetDeltaY) > 0.0001) {
-			currentDeltaY += (targetDeltaY - currentDeltaY) / 8.0f;
-		}
-		if (Math.abs(currentDeltaZ - targetDeltaZ) > 0.0001) {
-			currentDeltaZ += (targetDeltaZ - currentDeltaZ) / 8.0f;
-		}
-		cougar.applyDeltaRotation(currentDeltaX, currentDeltaY, currentDeltaZ);
-	}
-
-	private void initGl() {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		int windowWidth = visibleArea.width();
-		int windowHeight = visibleArea.height();
-
-		float ratio = windowWidth / (float) windowHeight;
-		GlUtils.setViewport(visibleArea);
-		GLES11.glDisable(GLES11.GL_FOG);
-		GLES11.glPointSize(1.0f);
-        GLES11.glLineWidth(1.0f);
-
-        GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
-        GLES11.glDisable(GLES11.GL_BLEND);
-
-		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, ratio, 1.0f, 900000.0f);
-		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-		GLES11.glLoadIdentity();
-
-		GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		GLES11.glShadeModel(GLES11.GL_SMOOTH);
-
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_AMBIENT, lightAmbient, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_DIFFUSE, lightDiffuse, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_SPECULAR, lightSpecular, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_POSITION, lightPosition, 0);
-		GLES11.glEnable(GLES11.GL_LIGHT1);
-
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_AMBIENT, sunLightAmbient, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_DIFFUSE, sunLightDiffuse, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_SPECULAR, sunLightSpecular, 0);
-		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_POSITION, sunLightPosition, 0);
-		GLES11.glEnable(GLES11.GL_LIGHT2);
-
-		GLES11.glEnable(GLES11.GL_LIGHTING);
-
-		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT);
-		GLES11.glHint(GLES11.GL_PERSPECTIVE_CORRECTION_HINT, GLES11.GL_NICEST);
-		GLES11.glHint(GLES11.GL_POLYGON_SMOOTH_HINT, GLES11.GL_NICEST);
-		GLES11.glEnable(GLES11.GL_CULL_FACE);
+		MathHelper.updateAxes(currentDelta, targetDelta);
+		cougar.applyDeltaRotation(currentDelta.x, currentDelta.y, currentDelta.z);
 	}
 
 	@Override
@@ -191,10 +129,10 @@ public class CougarScreen extends AliteScreen {
 		GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
-
 		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
 		GLES11.glDepthFunc(GLES11.GL_LESS);
 		GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT);
+
 		GLES11.glPushMatrix();
 		GLES11.glMultMatrixf(cougar.getMatrix(), 0);
 		cougar.render();
@@ -209,9 +147,7 @@ public class CougarScreen extends AliteScreen {
 	public void activate() {
 		initGl();
 		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 200, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
-		targetDeltaX = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-		targetDeltaY = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
-		targetDeltaZ = Math.random() < 0.5 ? (float) Math.random() * 2.0f + 2.0f : -(float) Math.random() * 2.0f - 2.0f;
+		MathHelper.getRandomRotationAngles(targetDelta);
 	}
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {

@@ -47,6 +47,15 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public abstract class AliteScreen extends Screen {
+	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
+	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
+	private final float[] lightSpecular = { 0.5f, 0.5f, 1.0f, 1.0f };
+	private final float[] lightPosition = { 100.0f, 30.0f, -10.0f, 1.0f };
+	private final float[] sunLightAmbient  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
+	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
+
 	protected int startX = -1;
 	protected int startY = -1;
 	protected int lastX = -1;
@@ -90,6 +99,10 @@ public abstract class AliteScreen extends Screen {
 
 	public void showMessageDialog(String message) {
 		setMessageDialog(message, DIALOG_OK);
+	}
+
+	public void showLargeMessageDialog(String message) {
+		setMessageDialog(message, DIALOG_OK | DIALOG_LARGE);
 	}
 
 	protected void showQuestionDialog(String message) {
@@ -277,6 +290,49 @@ public abstract class AliteScreen extends Screen {
 		dialogState|= DIALOG_VISIBLE;
 	}
 
+	protected void initGl() {
+		Rect visibleArea = game.getGraphics().getVisibleArea();
+		int windowWidth = visibleArea.width();
+		int windowHeight = visibleArea.height();
+
+		float ratio = windowWidth / (float) windowHeight;
+		GlUtils.setViewport(visibleArea);
+		GLES11.glDisable(GLES11.GL_FOG);
+		GLES11.glPointSize(1.0f);
+		GLES11.glLineWidth(1.0f);
+
+		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE_MINUS_SRC_ALPHA);
+		GLES11.glDisable(GLES11.GL_BLEND);
+
+		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
+		GLES11.glLoadIdentity();
+		GlUtils.gluPerspective(game, 45.0f, ratio, 1.0f, 900000.0f);
+		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
+		GLES11.glLoadIdentity();
+
+		GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		GLES11.glShadeModel(GLES11.GL_SMOOTH);
+
+		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_AMBIENT, lightAmbient, 0);
+		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_DIFFUSE, lightDiffuse, 0);
+		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_SPECULAR, lightSpecular, 0);
+		GLES11.glLightfv(GLES11.GL_LIGHT1, GLES11.GL_POSITION, lightPosition, 0);
+		GLES11.glEnable(GLES11.GL_LIGHT1);
+
+		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_AMBIENT, sunLightAmbient, 0);
+		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_DIFFUSE, sunLightDiffuse, 0);
+		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_SPECULAR, sunLightSpecular, 0);
+		GLES11.glLightfv(GLES11.GL_LIGHT2, GLES11.GL_POSITION, sunLightPosition, 0);
+		GLES11.glEnable(GLES11.GL_LIGHT2);
+
+		GLES11.glEnable(GLES11.GL_LIGHTING);
+
+		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT);
+		GLES11.glHint(GLES11.GL_PERSPECTIVE_CORRECTION_HINT, GLES11.GL_NICEST);
+		GLES11.glHint(GLES11.GL_POLYGON_SMOOTH_HINT, GLES11.GL_NICEST);
+		GLES11.glEnable(GLES11.GL_CULL_FACE);
+	}
+
 	@Override
 	public synchronized void update(float deltaTime) {
 		update(deltaTime, (dialogState & DIALOG_MODAL) == 0);
@@ -286,7 +342,10 @@ public abstract class AliteScreen extends Screen {
 		newScreen = null;
 		for (TouchEvent event: game.getInput().getTouchEvents()) {
 			if (withNavigation) {
-				checkNavigationBar(event);
+				Screen screen = checkNavigationBar(event);
+				if (screen != null) {
+					newScreen = screen;
+				}
 			}
 			processMessageDialogTouch(event);
 			if (!isMessageDialogActive()) {
@@ -299,7 +358,10 @@ public abstract class AliteScreen extends Screen {
 		}
 	}
 
-	private void checkNavigationBar(TouchEvent event) {
+	protected Screen checkNavigationBar(TouchEvent event) {
+		if (event.x < AliteConfig.DESKTOP_WIDTH || event.x > AliteConfig.SCREEN_WIDTH) {
+			return null;
+		}
 		NavigationBar navBar = game.getNavigationBar();
 		if (event.type == TouchEvent.TOUCH_DOWN && event.x >= AliteConfig.DESKTOP_WIDTH) {
 			startX = event.x;
@@ -314,11 +376,11 @@ public abstract class AliteScreen extends Screen {
 			lastY = event.y;
 		}
 		if (event.type == TouchEvent.TOUCH_UP) {
-			if (Math.abs(startX - event.x) < 20 &&
-				Math.abs(startY - event.y) < 20) {
-				newScreen = navBar.touched(game, event.x, event.y);
+			if (Math.abs(startX - event.x) < 20 && Math.abs(startY - event.y) < 20) {
+				return navBar.touched(game, event.x, event.y);
 			}
 		}
+		return null;
 	}
 
 	protected synchronized void updateWithoutNavigation(float deltaTime) {

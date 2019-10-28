@@ -58,6 +58,8 @@
     <string name="notification_download_assets">Downloading assets. This only needs to be done once...</string>
     <string name="notification_download_working">Working...</string>
     <string name="notification_plugin_checking">Checking updates of plugins...</string>
+    <string name="notification_plugins_loading">Loading plugins...</string>
+    <string name="notification_plugin_loading">Loading plugin %s</string>
     <string name="notification_download_error">Error while downloading expansion file: %s</string>
     <string name="notification_downloading_info">Downloading... %d of %dMB read. Speed: %4.2f MB/s. Time remaining: %ds.</string>
     <string name="obb_download_error">There was an error when trying to access %1$s\'s resource files.
@@ -638,10 +640,13 @@
     <string name="planet_technical_level">Technical Level:</string>
     <string name="planet_population">Population:</string>
     <string name="planet_population_value">%d.%d bn</string>
+    <string name="planet_population_unknown">\? bn</string>
     <string name="planet_distance">Light Years</string>
     <string name="planet_gnp">GNP:</string>
     <string name="planet_gnp_value">%d.%d MCr</string>
+    <string name="planet_gnp_unknown">\? MCr</string>
     <string name="planet_diameter_value">%,d km</string>
+    <string name="planet_diameter_unknown">\? km</string>
 
     <string name="plugins_no_description">(No description)</string>
     <string name="plugins_removal_reason">Removal reason: %s</string>
@@ -1046,52 +1051,4 @@
 
     <string name="radar_zoom_x2">x2</string>
     <string name="radar_zoom_x4">x4</string>
-
-    <!-- Name of space objects - temporary solution, till space objects are not pluggable -->
-    <string name="so_adder">Adder</string>
-    <string name="so_anaconda">Anaconda</string>
-    <string name="so_asp_mk_ii">Asp Mk II</string>
-    <string name="so_asteroid">Asteroid</string>
-    <string name="so_boa_class_cruiser">Boa Class Cruiser</string>
-    <string name="so_harken">Harken</string>
-    <string name="so_bushmaster">Bushmaster</string>
-    <string name="so_buoy">Buoy</string>
-    <string name="so_cargo_canister">Cargo Canister</string>
-    <string name="so_cobra_mk_i">Cobra Mk I</string>
-    <string name="so_cobra_mk_iii">Cobra Mk III</string>
-    <string name="so_constrictor">Constrictor</string>
-    <string name="so_coral">Coral</string>
-    <string name="so_coroilis_station">Coriolis Station</string>
-    <string name="so_cottonmouth">Cottonmouth</string>
-    <string name="so_cougar">Cougar</string>
-    <string name="so_dodec_station">Dodec Station</string>
-    <string name="so_dugite">Dugite</string>
-    <string name="so_escape_capsule">Escape Capsule</string>
-    <string name="so_fer_de_lance">Fer-De-Lance</string>
-    <string name="so_gecko">Gecko</string>
-    <string name="so_gopher">Gopher</string>
-    <string name="so_harlequin">Harlequin</string>
-    <string name="so_hognose">Hognose</string>
-    <string name="so_icosaeder_station">Icosaeder Station</string>
-    <string name="so_indigo">Indigo</string>
-    <string name="so_krait">Krait</string>
-    <string name="so_lancehead">Lancehead</string>
-    <string name="so_lyre">Lyre</string>
-    <string name="so_mamba">Mamba</string>
-    <string name="so_missile">Missile</string>
-    <string name="so_moray_star_boat">Moray Star Boat</string>
-    <string name="so_mussurana">Mussurana</string>
-    <string name="so_platlet">Platlet</string>
-    <string name="so_python">Python</string>
-    <string name="so_rattlesnake">Rattlesnake</string>
-    <string name="so_rolfs_cobra">Rolfs Cobra</string>
-    <string name="so_sidewinder">Sidewinder</string>
-    <string name="so_thargoid">Thargoid</string>
-    <string name="so_thargon">Thargon</string>
-    <string name="so_tie_fighter">Tie Fighter</string>
-    <string name="so_transporter">Transporter</string>
-    <string name="so_orbit_shuttle">Orbit Shuttle</string>
-    <string name="so_viper">Viper</string>
-    <string name="so_wolf_mk_ii">Wolf Mk II</string>
-    <string name="so_yellowbelly">Yellowbelly</string>
 </resources>

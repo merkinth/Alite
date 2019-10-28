@@ -26,14 +26,15 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.opengl.GLES11;
 import android.opengl.Matrix;
-import de.phbouillon.android.framework.Geometry;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.AccelerometerHandler;
+import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
@@ -46,24 +47,12 @@ import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.generator.enums.Government;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
-import de.phbouillon.android.games.alite.model.statistics.ShipType;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.ShipIntroScreen;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
-import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.Billboard;
-import de.phbouillon.android.games.alite.screens.opengl.objects.ExplosionBillboard;
-import de.phbouillon.android.games.alite.screens.opengl.objects.LaserCylinder;
-import de.phbouillon.android.games.alite.screens.opengl.objects.SkySphereSpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.MathHelper;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceStation;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Missile;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargon;
+import de.phbouillon.android.games.alite.screens.opengl.objects.*;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.*;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteHud;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteButtons;
 
@@ -124,11 +113,11 @@ public class InGameManager implements Serializable {
 	private ViewingTransformationHelper viewingTransformationHelper = new ViewingTransformationHelper();
 	private WitchSpaceRender            witchSpace = null;
 
-	private CobraMkIII                  ship;
+	private SpaceObject                 ship;
 	private AliteObject                 planet;
 	private AliteObject                 sun;
 	private AliteObject                 sunGlow;
-	private AliteObject                 station;
+	private SpaceObject                 station;
 
 	public HyperspaceTimer              hyperspaceTimer = null;
 	private TimedEvent                  cloakingEvent = null;
@@ -151,18 +140,18 @@ public class InGameManager implements Serializable {
 	private int                         lastY = -1;
 	private int                         hudIndex = 0;
 
-	public InGameManager(final Alite alite, AliteHud hud, String skyMap, float[] lightPosition, boolean fromStation, boolean initStarDust) {
-		this.alite = alite;
-		helper = new InGameHelper(alite, this);
+	public InGameManager(AliteHud hud, String skyMap, float[] lightPosition, boolean fromStation, boolean initStarDust) {
+		alite = Alite.get();
+		helper = new InGameHelper(this);
 		this.hud = hud;
 		this.lightPosition = lightPosition;
-		spawnManager = new ObjectSpawnManager(alite, this);
-		dockingComputerAI = new DockingComputerAI(alite, this);
+		spawnManager = new ObjectSpawnManager(this);
+		dockingComputerAI = new DockingComputerAI(this);
 		alite.getPlayer().getCobra().resetEnergy();
 
-		skysphere = new SkySphereSpaceObject(alite, "skysphere", 8000.0f, 16, 16, skyMap);
-		ship = new CobraMkIII(alite);
-		ship.setPlayerCobra(true);
+		skysphere = new SkySphereSpaceObject("skysphere", 8000.0f, 16, 16, skyMap);
+		ship = SpaceObjectFactory.getInstance().getObjectById("cobra_mk_iii");
+		ship.setPlayer(true);
 		ship.setId("Camera");
 
 		MathHelper.getRandomPosition(FlightScreen.PLANET_POSITION, tempVector, 115000.0f, 20000.0f).copy(systemStationPosition);
@@ -179,8 +168,8 @@ public class InGameManager implements Serializable {
 		if (initStarDust && Settings.particleDensity > 0) {
 			starDust = new StarDust(ship.getPosition());
 		}
-		buttons = hud != null ? new AliteButtons(alite, ship, this) : null;
-		laserManager = new LaserManager(alite, this);
+		buttons = hud != null ? new AliteButtons(ship, this) : null;
+		laserManager = new LaserManager(this);
 		timedEvents.addAll(laserManager.registerTimedEvents());
 		Rect visibleArea = alite.getGraphics().getVisibleArea();
 		aspectRatio = visibleArea.width() / (float) visibleArea.height();
@@ -200,7 +189,7 @@ public class InGameManager implements Serializable {
 	    if (currentSystem != null) {
 	    	vipersWillEngage = true;
 	    	if (getStation() != null) {
-	    		int hitCount = ((SpaceStation) getStation()).getHitCount();
+	    		int hitCount = getStation().getHitCount();
 	    		if (hitCount > 1) {
 	    			safeZoneViolated = true;
 	    			vipersWillEngage = true;
@@ -311,7 +300,7 @@ public class InGameManager implements Serializable {
 	}
 
 	public void toggleDockingComputer(boolean playSound) {
-		if (!((SpaceStation) getStation()).accessAllowed()) {
+		if (getStation().isAccessDenied()) {
 			if (playSound) {
 				SoundManager.play(Assets.com_accessDeclined);
 				message.setText(L.string(R.string.com_access_declined));
@@ -337,7 +326,7 @@ public class InGameManager implements Serializable {
 	}
 
 	public void toggleStationHandsDocking() {
-		if (!((SpaceStation) getStation()).accessAllowed()) {
+		if (getStation().isAccessDenied()) {
 			SoundManager.play(Assets.com_accessDeclined);
 			message.setText(L.string(R.string.com_access_declined));
 			return;
@@ -347,7 +336,7 @@ public class InGameManager implements Serializable {
 			return;
 		}
 		long dockingFee = getDockingFee();
-		feeText = L.getOneDecimalFormatString(R.string.assisted_docking, dockingFee);
+		feeText = L.string(R.string.assisted_docking, L.getOneDecimalFormatString(R.string.cash_amount_value_ccy, dockingFee));
 	}
 
 	private long getDockingFee() {
@@ -405,11 +394,11 @@ public class InGameManager implements Serializable {
 		return sunGlow;
 	}
 
-	void setStation(AliteObject station) {
+	void setStation(SpaceObject station) {
 		this.station = station;
 	}
 
-	public AliteObject getStation() {
+	public SpaceObject getStation() {
 		return station;
 	}
 
@@ -449,7 +438,7 @@ public class InGameManager implements Serializable {
 		return val < min ? min : val > max ? max : val;
 	}
 
-	public CobraMkIII getShip() {
+	public SpaceObject getShip() {
 		return ship;
 	}
 
@@ -511,8 +500,8 @@ public class InGameManager implements Serializable {
 		switch (Settings.controlMode) {
 			case ACCELEROMETER: getAccelerometerData(); break;
 			case ALTERNATIVE_ACCELEROMETER: getAlternativeAccelerometerData(); break;
-			case CONTROL_PAD: getHudControlData(); break;
-			case CURSOR_BLOCK: getHudControlData(); break;
+			case CONTROL_PAD:
+			case CURSOR_BLOCK:
 			case CURSOR_SPLIT_BLOCK: getHudControlData(); break;
 		}
 	}
@@ -550,7 +539,7 @@ public class InGameManager implements Serializable {
 	}
 
 	private synchronized void spawnMissile(SpaceObject so) {
-		Missile missile = helper.spawnMissile(so, ship);
+		SpaceObject missile = helper.spawnMissile(so, ship);
         message.repeatText(L.string(R.string.com_incoming_missile), 2);
         missile.addDestructionCallback(7, new IMethodHook() {
 			private static final long serialVersionUID = -4168441227358105959L;
@@ -563,17 +552,15 @@ public class InGameManager implements Serializable {
 		});
 	}
 
-	private synchronized void spawnObjects(AliteObject ao) {
-		if (ao instanceof SpaceObject) {
-			for (ShipType st: ((SpaceObject) ao).getObjectsToSpawn()) {
-				switch (st) {
-					case Missile: spawnMissile((SpaceObject) ao); break;
-					case EscapeCapsule: helper.launchEscapeCapsule((SpaceObject) ao); break;
-					default: AliteLog.d("Unknown ShipType", "Supposed to spawn a " + st + " - but don't know how."); break;
-				}
+	private synchronized void spawnObjects(SpaceObject ao) {
+		for (ObjectType st: ao.getObjectsToSpawn()) {
+			switch (st) {
+				case Missile: spawnMissile(ao); break;
+				case EscapeCapsule: helper.launchEscapeCapsule(ao); break;
+				default: AliteLog.d("Unknown ShipType", "Supposed to spawn a " + st + " - but don't know how."); break;
 			}
-			((SpaceObject) ao).clearObjectsToSpawn();
 		}
+		ao.clearObjectsToSpawn();
 	}
 
 	private synchronized void updatePlanet(AliteObject ao) {
@@ -622,7 +609,9 @@ public class InGameManager implements Serializable {
 			if ("Planet".equals(ao.getId())) {
 				updatePlanet(ao);
 			}
-			spawnObjects(ao);
+			if (ao instanceof SpaceObject) {
+				spawnObjects((SpaceObject) ao);
+			}
 			if (removeObjectIfNecessary(objectIterator, ao)) {
 				continue;
 			}
@@ -631,12 +620,12 @@ public class InGameManager implements Serializable {
 				if (((SpaceObject) ao).getAIState() != AIState.FOLLOW_CURVE) {
 					ao.moveForward(deltaTime);
 				}
-			}
-			if (ao.getId().equals("Missile")) {
-				helper.handleMissileUpdate((Missile) ao, deltaTime);
-				ao.getPosition().sub(ship.getPosition(), tempVector);
-				if (tempVector.lengthSq() > AliteHud.MAX_DISTANCE * AliteHud.MAX_DISTANCE) {
-					objectIterator.remove();
+				if (((SpaceObject) ao).getType() == ObjectType.Missile) {
+					helper.handleMissileUpdate((SpaceObject)ao, deltaTime);
+					ao.getPosition().sub(ship.getPosition(), tempVector);
+					if (tempVector.lengthSq() > AliteHud.MAX_DISTANCE_SQ) {
+						objectIterator.remove();
+					}
 				}
 			}
 			ao.onUpdate(deltaTime);
@@ -657,7 +646,7 @@ public class InGameManager implements Serializable {
 	}
 
 	private synchronized void handleStationAccessDeclined() {
-		if (!((SpaceStation) getStation()).accessAllowed()) {
+		if (getStation().isAccessDenied()) {
 			if (isDockingComputerActive()) {
 				if (hud != null) {
 					hud.mapDirections(false, false, false, false);
@@ -1026,31 +1015,23 @@ public class InGameManager implements Serializable {
 		}
 		SpaceObject so = (SpaceObject) go;
 		ObjectType type = so.getType();
-		if (type == ObjectType.EnemyShip || type == ObjectType.Thargoid || type == ObjectType.Viper) {
-			return true;
-		}
-		return type == ObjectType.Thargon && ((Thargon) so).getMother() != null && ((Thargon) so).getMother().getHullStrength() > 0;
+		return type == ObjectType.Pirate || type == ObjectType.Thargoid || type == ObjectType.Police ||
+			so.isDrone() && so.hasLivingMother();
 	}
 
 	private void renderHudObject(float deltaTime, AliteObject go) {
-		if (go instanceof SpaceObject && ((SpaceObject) go).isCloaked()) {
+		if (hud == null || go instanceof SpaceObject && ((SpaceObject) go).isCloaked()) {
 			return;
 		}
-		if (go.isVisibleOnHud() && hud != null) {
+		if (go.isVisibleOnHud()) {
 			Matrix.multiplyMM(tempMatrix[1], 0, viewMatrix, 0, go.getMatrix(), 0);
-			if (go instanceof SpaceObject && ((SpaceObject) go).hasOverrideColor()) {
-				hud.setObject(hudIndex++, tempMatrix[1][12], tempMatrix[1][13], tempMatrix[1][14], ((SpaceObject) go).getOverrideColor(), isEnemy(go));
-			} else {
-				hud.setObject(hudIndex++, tempMatrix[1][12], tempMatrix[1][13], tempMatrix[1][14], go.getHudColor(), isEnemy(go));
-			}
+			hud.setObject(hudIndex++, tempMatrix[1][12], tempMatrix[1][13], tempMatrix[1][14], go.getHudColor(), isEnemy(go));
 		}
-		if (go instanceof SpaceObject
-				&& ((SpaceObject) go).getType() == ObjectType.SpaceStation
-				&& hud != null && !planetWasSet) {
+		if (go instanceof SpaceObject && ObjectType.isSpaceStation(((SpaceObject) go).getType()) && !planetWasSet) {
 			Matrix.multiplyMM(tempMatrix[1], 0, viewMatrix, 0, go.getMatrix(), 0);
 			hud.setPlanet(tempMatrix[1][12], tempMatrix[1][13], tempMatrix[1][14]);
 		}
-		if ("Planet".equals(go.getId()) && hud != null) {
+		if ("Planet".equals(go.getId())) {
 			if (!playerInSafeZone) {
 				Matrix.multiplyMM(tempMatrix[1], 0, viewMatrix, 0, go.getMatrix(), 0);
 				hud.setPlanet(tempMatrix[1][12], tempMatrix[1][13], tempMatrix[1][14]);
@@ -1059,7 +1040,7 @@ public class InGameManager implements Serializable {
 				helper.checkAltitudeLowAlert();
 			}
 		}
-		if ("Sun".equals(go.getId()) && hud != null) {
+		if ("Sun".equals(go.getId())) {
 			float distSq = go.getPosition().distanceSq(ship.getPosition());
 			if (distSq > EXT_SAFE_ZONE_RADIUS_SQ || witchSpace != null) {
 				alite.getCobra().setCabinTemperature(0);
@@ -1069,37 +1050,36 @@ public class InGameManager implements Serializable {
 					message.setText(L.string(R.string.msg_mass_locked));
 				}
 				alite.getCobra().setCabinTemperature(
-						(int) (PlayerCobra.MAX_CABIN_TEMPERATURE - PlayerCobra.MAX_CABIN_TEMPERATURE
-							* ((distSq - FlightScreen.SUN_SIZE * FlightScreen.SUN_SIZE) / EXT_SAFE_ZONE_RADIUS_SQ)));
+					(int) (PlayerCobra.MAX_CABIN_TEMPERATURE - PlayerCobra.MAX_CABIN_TEMPERATURE
+						* ((distSq - FlightScreen.SUN_SIZE * FlightScreen.SUN_SIZE) / EXT_SAFE_ZONE_RADIUS_SQ)));
 				helper.checkCabinTemperatureAlert(deltaTime);
 			}
 		}
 	}
 
- 	private void renderAllObjects(final float deltaTime, final List <DepthBucket> objects) {
- 		if (witchSpace == null) {
- 			GLES11.glPushMatrix();
- 			  skysphere.setPosition(ship.getPosition());
-		      GLES11.glMultMatrixf(skysphere.getMatrix(), 0);
-		      skysphere.render();
-		    GLES11.glPopMatrix();
- 		}
-
-		if (starDust != null && witchSpace == null) {
-			// Now render star dust...
+	private void renderAllObjects(final float deltaTime) {
+		if (witchSpace == null) {
 			GLES11.glPushMatrix();
-			GLES11.glMultMatrixf(starDust.getMatrix(), 0);
-			GLES11.glDisable(GLES11.GL_DEPTH_TEST);
-			starDust.render();
-			GLES11.glEnable(GLES11.GL_DEPTH_TEST);
+			skysphere.setPosition(ship.getPosition());
+			GLES11.glMultMatrixf(skysphere.getMatrix(), 0);
+			skysphere.render();
 			GLES11.glPopMatrix();
+
+			if (starDust != null) {
+				// Now render star dust...
+				GLES11.glPushMatrix();
+				GLES11.glMultMatrixf(starDust.getMatrix(), 0);
+				GLES11.glDisable(GLES11.GL_DEPTH_TEST);
+				starDust.render();
+				GLES11.glEnable(GLES11.GL_DEPTH_TEST);
+				GLES11.glPopMatrix();
+			}
 		}
 
 		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
-
 		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
 		GLES11.glDepthFunc(GLES11.GL_LESS);
 		GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT);
@@ -1149,7 +1129,7 @@ public class InGameManager implements Serializable {
 					((ExplosionBillboard) go).getExplosion().render();
 					continue;
 				}
-				if (!isPlayerAlive() && go instanceof SpaceObject && ((SpaceObject) go).getType() == ObjectType.SpaceStation) {
+				if (!isPlayerAlive() && go instanceof SpaceObject && ObjectType.isSpaceStation(((SpaceObject) go).getType())) {
 					// If the player rams the space station, the station gets in the way of the game over sequence.
 					// So we don't draw it.
 					continue;
@@ -1159,62 +1139,59 @@ public class InGameManager implements Serializable {
 				if (viewDirection == PlayerCobra.DIR_FRONT) {
 					renderHudObject(deltaTime, go);
 				}
-				if (go.needsDepthTest()) {
+				if (go.isDepthTest()) {
 					GLES11.glEnable(GLES11.GL_DEPTH_TEST);
 				} else {
 					GLES11.glDisable(GLES11.GL_DEPTH_TEST);
 				}
-				if (go instanceof Geometry) {
-					float distSq = 1.0f;
+				float distSq = 1.0f;
+				if (go instanceof SpaceObject) {
+					distSq = ship.getPosition().distanceSq(go.getPosition());
+				}
+				if (go instanceof Billboard) {
+					((Billboard) go).update(ship);
+					GLES11.glEnable(GLES11.GL_BLEND);
+					GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE_MINUS_SRC_ALPHA);
+					GLES11.glDisable(GLES11.GL_CULL_FACE);
+				}
+				float[] goMatrix;
+				if (go instanceof SpaceObject && ObjectType.isSpaceStation(((SpaceObject) go).getType())) {
+					float scale = distSq < EXT_SAFE_ZONE_RADIUS_SQ ? 1.0f : EXT_SAFE_ZONE_RADIUS_SQ / distSq;
+					goMatrix = go.getScaledMatrix(scale);
+					((SpaceObject) go).scaleBoundingBox(scale);
+				} else {
+					goMatrix = go.getMatrix();
+				}
+				GLES11.glMultMatrixf(goMatrix, 0);
+				Matrix.multiplyMM(tempMatrix[2], 0, viewMatrix, 0, go.getMatrix(), 0);
+				go.setDisplayMatrix(tempMatrix[2]);
+				if (alite.getCobra().getLaser(viewDirection) != null) {
 					if (go instanceof SpaceObject) {
-						distSq = ship.getPosition().distanceSq(go.getPosition());
-					}
-					if (go instanceof Billboard) {
-						((Billboard) go).update(ship);
-						GLES11.glEnable(GLES11.GL_BLEND);
-					    GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE_MINUS_SRC_ALPHA);
-						GLES11.glDisable(GLES11.GL_CULL_FACE);
-					}
-					float[] goMatrix;
-					if (go instanceof SpaceObject && ((SpaceObject) go).getType() == ObjectType.SpaceStation) {
-						float scale = distSq < EXT_SAFE_ZONE_RADIUS_SQ ? 1.0f : EXT_SAFE_ZONE_RADIUS_SQ / distSq;
-						goMatrix = go.getScaledMatrix(scale);
-						((SpaceObject) go).scaleBoundingBox(scale);
-					} else {
-						goMatrix = go.getMatrix();
-					}
-					GLES11.glMultMatrixf(goMatrix, 0);
-					Matrix.multiplyMM(tempMatrix[2], 0, viewMatrix, 0,
-							go.getMatrix(), 0);
-					((Geometry) go).setDisplayMatrix(tempMatrix[2]);
-					if (alite.getCobra().getLaser(viewDirection) != null) {
-						if (go instanceof SpaceObject) {
-							if (targetMissile && alite.getCobra().getMissiles() > 0 || Settings.autoId && !((SpaceObject) go).isIdentified()) {
-								if (laserManager.isUnderCross((SpaceObject) go, ship, viewDirection)) {
-									if (targetMissile) {
-										AliteLog.d("Targetted", "Targetted " + go.getId());
-										setMessage(L.string(R.string.msg_missile_locked, go.getName()));
-										alite.getCobra().setMissileLocked(true);
-										missileLock = (SpaceObject) go;
-										SoundManager.play(Assets.missileLocked);
-										targetMissile = false;
-									} else if (Settings.autoId && isPlayerAlive()) {
-										SoundManager.play(Assets.identify);
-										setMessage(go.getName());
-									}
-									((SpaceObject) go).setIdentified();
+						if (targetMissile && alite.getCobra().getMissiles() > 0 || Settings.autoId && !((SpaceObject) go).isIdentified()) {
+							if (laserManager.isUnderCross((SpaceObject) go, ship, viewDirection)) {
+								if (targetMissile) {
+									AliteLog.d("Targetted", "Targetted " + go.getId());
+									setMessage(L.string(R.string.msg_missile_locked, go.getName()));
+									alite.getCobra().setMissileLocked(true);
+									missileLock = (SpaceObject) go;
+									SoundManager.play(Assets.missileLocked);
+									targetMissile = false;
+								} else if (Settings.autoId && isPlayerAlive()) {
+									SoundManager.play(Assets.identify);
+									setMessage(go.getName());
 								}
+								((SpaceObject) go).setIdentified();
 							}
 						}
 					}
-					((Geometry) go).render();
-					if (go instanceof SpaceObject) {
-						((SpaceObject) go).renderTargetBox(distSq);
-					}
-					if (go instanceof Billboard) {
-						GLES11.glDisable(GLES11.GL_BLEND);
-						GLES11.glEnable(GLES11.GL_CULL_FACE);
-					}
+				}
+				go.render();
+				if (go instanceof SpaceObject) {
+					((SpaceObject) go).renderTargetBox(distSq);
+				}
+				if (go instanceof Billboard) {
+					GLES11.glDisable(GLES11.GL_BLEND);
+					GLES11.glEnable(GLES11.GL_CULL_FACE);
 				}
 				GLES11.glPopMatrix();
 			}
@@ -1313,10 +1290,12 @@ public class InGameManager implements Serializable {
 				buttons.renderYesNoButtons();
 			}
 			if (Settings.displayFrameRate) {
-				OnScreenDebug.debugFPS(alite);
+				alite.getGraphics().drawText(String.format("FPS: %3.1f", AndroidGame.fps), 400, 10, 0xFFE6B300,
+					Assets.regularFont, 1.0f);
+				alite.getGraphics().setColor(Color.WHITE);
 			}
 			if (Settings.displayDockingInformation) {
-				OnScreenDebug.debugDocking(alite, ship, sortedObjectsToDraw);
+				debugDocking();
 			}
 			renderButtons();
 		} else {
@@ -1337,6 +1316,58 @@ public class InGameManager implements Serializable {
 			GLES11.glPopMatrix();
 			GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		}
+	}
+
+	private void debugDocking() {
+		for (DepthBucket depthBucket: sortedObjectsToDraw) {
+			for (AliteObject object: depthBucket.sortedObjects) {
+				if (object instanceof SpaceObject && ObjectType.isSpaceStation(((SpaceObject) object).getType())) {
+					float distanceSq = computeDistanceSq(object, ship);
+					if (distanceSq < 64000000) {
+						displayDockingAlignment((SpaceObject) object, distanceSq);
+					}
+					return;
+				}
+			}
+		}
+		alite.getGraphics().setColor(Color.WHITE);
+	}
+
+	float computeDistanceSq(AliteObject a, AliteObject b) {
+		tempVector.x = b.getPosition().x - a.getPosition().x;
+		tempVector.y = b.getPosition().y - a.getPosition().y;
+		tempVector.z = b.getPosition().z - a.getPosition().z;
+		tempVector.normalize();
+		float aDistance = a.getDistanceFromCenterToBorder();
+		float adx = aDistance * tempVector.x;
+		float ady = aDistance * tempVector.y;
+		float adz = aDistance * tempVector.z;
+		tempVector.negate();
+		float bDistance = b.getDistanceFromCenterToBorder();
+		float bdx = bDistance * tempVector.x;
+		float bdy = bDistance * tempVector.y;
+		float bdz = bDistance * tempVector.z;
+
+		return (a.getPosition().x + adx - b.getPosition().x - bdx) * (a.getPosition().x + adx - b.getPosition().x - bdx) +
+			(a.getPosition().y + ady - b.getPosition().y - bdy) * (a.getPosition().y + ady - b.getPosition().y - bdy) +
+			(a.getPosition().z + adz - b.getPosition().z - bdz) * (a.getPosition().z + adz - b.getPosition().z - bdz);
+	}
+
+	private void displayDockingAlignment(SpaceObject spaceStation, float distanceSq) {
+		alite.getGraphics().drawText("Dist: " + distanceSq, 400, 50, Color.WHITE, Assets.regularFont, 1.0f);
+		float fz = spaceStation.getDisplayMatrix()[10];
+		alite.getGraphics().drawText("fz: " + fz, 400, 90, fz < 0.98f ? Color.RED : Color.GREEN,
+			Assets.regularFont, 1.0f);
+
+		float angle = ship.getForwardVector().angleInDegrees(spaceStation.getForwardVector());
+		alite.getGraphics().drawText(String.format("%4.2f", angle), 400, 130,
+			Math.abs(angle) > 15.0f ? Color.RED : Color.GREEN, Assets.regularFont, 1.0f);
+
+		float ux = Math.abs(spaceStation.getDisplayMatrix()[4]);
+		alite.getGraphics().setColor(ux < 0.95f ? Color.RED : Color.GREEN);
+		alite.getGraphics().drawText("ux: " + ux, 400, 170,
+			ux < 0.95f ? Color.RED : Color.GREEN, Assets.regularFont, 1.0f);
+		alite.getGraphics().setColor(Color.WHITE);
 	}
 
 	void calcAllObjects(final float deltaTime, final List<AliteObject> objects) {
@@ -1363,19 +1394,17 @@ public class InGameManager implements Serializable {
 					if (go instanceof SpaceObject && ((SpaceObject) go).isCloaked()) {
 						continue;
 					}
-					if (!isPlayerAlive() && go instanceof SpaceObject && ((SpaceObject) go).getType() == ObjectType.SpaceStation) {
+					if (!isPlayerAlive() && go instanceof SpaceObject && ObjectType.isSpaceStation(((SpaceObject) go).getType())) {
 						// If the player rams the space station, the station gets in the way of the game over sequence.
 						// So we don't draw it.
 						continue;
 					}
 					MathHelper.copyMatrix(tempMatrix[0], viewMatrix);
-					if (go instanceof Geometry) {
-						if (go instanceof Billboard) {
-							((Billboard) go).update(ship);
-						}
-						Matrix.multiplyMM(tempMatrix[2], 0, viewMatrix, 0, go.getMatrix(), 0);
-						((Geometry) go).setDisplayMatrix(tempMatrix[2]);
+					if (go instanceof Billboard) {
+						((Billboard) go).update(ship);
 					}
+					Matrix.multiplyMM(tempMatrix[2], 0, viewMatrix, 0, go.getMatrix(), 0);
+					go.setDisplayMatrix(tempMatrix[2]);
 				}
 			}
 		} catch (ConcurrentModificationException ignored) {
@@ -1589,11 +1618,10 @@ public class InGameManager implements Serializable {
 		int bounty = destroyedObject.getBounty();
 		alite.getPlayer().setCash(alite.getPlayer().getCash() + bounty);
 		computeScore(destroyedObject);
-		if (!(destroyedObject instanceof CargoCanister)) {
+		if (destroyedObject.getType() != ObjectType.CargoPod) {
 			SoundManager.play(Assets.com_targetDestroyed);
 			String bountyString = bounty == 0 ? L.string(R.string.bounty_none, destroyedObject.getName()) :
-				L.string(R.string.bounty_amount, destroyedObject.getName(),
-					L.getOneDecimalFormatString(R.string.cash_amount_value_ccy, bounty));
+				L.string(R.string.bounty_amount, destroyedObject.getName(), L.getOneDecimalFormatString(R.string.cash_amount_value_ccy, bounty));
 			message.setDelayedText(bountyString);
 		}
 	}
@@ -1629,19 +1657,19 @@ public class InGameManager implements Serializable {
 			toggleDockingComputer(false);
 		}
 		killHyperspaceJump();
+		message.clearRepetition();
 		if (ship.getUpdater() instanceof GameOverUpdater) {
 			return;
 		}
 		SoundManager.stop(Assets.energyLow);
 		SoundManager.stop(Assets.criticalCondition);
-		message.clearRepetition();
 		setPlayerControl(false);
 		if (alite.getCurrentScreen() instanceof FlightScreen) {
 			((FlightScreen) alite.getCurrentScreen()).setInformationScreen(null);
 		}
 		forceForwardView();
 		killHud();
-		ship.setUpdater(new GameOverUpdater(alite, this, ship));
+		ship.setUpdater(new GameOverUpdater(this, ship));
 		alite.getPlayer().setCondition(Condition.DOCKED);
 	}
 
@@ -1672,7 +1700,7 @@ public class InGameManager implements Serializable {
 
 	void resetHud() {
 		if (hud != null) {
-			hud = new AliteHud(alite);
+			hud = new AliteHud();
 			if (buttons != null) {
 				buttons.reset();
 			}

@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -20,16 +20,26 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 public enum ObjectType {
 	Trader,
-	EnemyShip,
+	Pirate,
 	Thargoid,
 	Thargon,
-	Viper,
+	Police,
 	Shuttle,
 	Asteroid,
-	SpaceStation,
+	Coriolis, // station
+	Dodecahedron, // station
+	Icosahedron, // station
 	Missile,
 	EscapeCapsule,
-	CargoCanister, 
-	Buoy, 
-	Platlet
+	CargoPod,
+	Buoy,
+	Alloy,
+	Constrictor,
+	Cougar,
+	TieFighter,
+	Defender;
+
+	public static boolean isSpaceStation(ObjectType type) {
+		return type == Coriolis || type == Dodecahedron || type == Icosahedron;
+	}
 }

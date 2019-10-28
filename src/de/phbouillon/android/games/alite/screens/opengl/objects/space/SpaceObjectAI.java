@@ -31,21 +31,17 @@ import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.model.statistics.ShipType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.curves.BreakDown;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.curves.BreakUp;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.curves.Curve;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Missile;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Viper;
 
 public final class SpaceObjectAI implements Serializable {
 	private static final long serialVersionUID = 8646121427456794783L;
 
 	private static final float MISSILE_MIN_DIST_SQ                      = 36000000.0f;
-	public  static final float SHOOT_DISTANCE_SQ                        = 81000000.0f;
+	public  static final float SHOOT_DISTANCE_SQ                        = 81000000.0f; // subentities type=ball_turret weapon_range
 	private static final float FIRE_MISSILE_UPON_FIRST_HIT_PROBABILITY  = 5.0f;
 	private static final long  BASE_DELAY_BETWEEN_SHOOT_CHECKS          = 59880239L; // 16.7 FPS
 	private static final long  SHOOT_DELAY_REDUCE_PER_RATING_LEVEL      = 3318363L; // 1.6625 Delta FPS
@@ -86,7 +82,6 @@ public final class SpaceObjectAI implements Serializable {
 	}
 
 	private float trackPosition(Vector3f targetPosition, Vector3f targetUp, float deltaTime) {
-		so.updateInternals();
 		Quaternion.fromMatrix(so.getMatrix(), q1);
 		q1.normalize();
 
@@ -115,7 +110,7 @@ public final class SpaceObjectAI implements Serializable {
 		}
 		if (Math.abs(angle) > 0.0001f && !Float.isInfinite(angle) && !Float.isNaN(angle)) {
 			Matrix.rotateM(so.getMatrix(), 0, angle, v0.x, v0.y, v0.z);
-			so.computeInternals();
+			so.extractVectors();
 		}
 
 		return absAngle;
@@ -253,8 +248,8 @@ public final class SpaceObjectAI implements Serializable {
 
 	private float executeSteering(float desiredSpeed) {
 		so.applyDeltaRotation(flightPitch, 0, flightRoll);
-		if (so instanceof CobraMkIII && ((CobraMkIII) so).isPlayerCobra()) {
-			so.getGame().getCobra().setRotation(flightPitch, flightRoll);
+		if (so.isPlayer()) {
+			Alite.get().getCobra().setRotation(flightPitch, flightRoll);
 		}
 		so.getPosition().copy(v0);
 		if (target == null) {
@@ -277,8 +272,8 @@ public final class SpaceObjectAI implements Serializable {
 
 	private void executeSteeringNoSpeedChange(Vector3f targetPosition) {
 		so.applyDeltaRotation(flightPitch, 0, flightRoll);
-		if (so instanceof CobraMkIII && ((CobraMkIII) so).isPlayerCobra()) {
-			so.getGame().getCobra().setRotation(flightPitch, flightRoll);
+		if (so.isPlayer()) {
+			Alite.get().getCobra().setRotation(flightPitch, flightRoll);
 		}
 		so.getPosition().copy(v0);
 		v0.sub(targetPosition);
@@ -288,8 +283,8 @@ public final class SpaceObjectAI implements Serializable {
 
 	private void executeSteering(float desiredSpeed, Vector3f position) {
 		so.applyDeltaRotation(flightPitch, 0, flightRoll);
-		if (so instanceof CobraMkIII && ((CobraMkIII) so).isPlayerCobra()) {
-			so.getGame().getCobra().setRotation(flightPitch, flightRoll);
+		if (so.isPlayer()) {
+			Alite.get().getCobra().setRotation(flightPitch, flightRoll);
 		}
 		so.getPosition().copy(v0);
 		v0.sub(position);
@@ -309,7 +304,6 @@ public final class SpaceObjectAI implements Serializable {
 	}
 
 	void orient(Vector3f targetPosition, Vector3f targetUp, float deltaTime) {
-		so.updateInternals();
 		Quaternion.fromMatrix(so.getMatrix(), q1);
 		q1.normalize();
 
@@ -337,21 +331,21 @@ public final class SpaceObjectAI implements Serializable {
 		}
 		if (Math.abs(angle) > 0.0001f && !Float.isInfinite(angle) && !Float.isNaN(angle)) {
 			Matrix.rotateM(so.getMatrix(), 0, angle, v0.x, v0.y, v0.z);
-			if (so instanceof CobraMkIII && ((CobraMkIII) so).isPlayerCobra()) {
+			if (so.isPlayer()) {
 				v1.x = 1;
 				v1.y = 0;
 				v1.z = 0;
 				v2.x = 0;
 				v2.y = 0;
 				v2.z = 1;
-				so.getGame().getCobra().setRotation(v0.dot(v1), v0.dot(v2));
+				Alite.get().getCobra().setRotation(v0.dot(v1), v0.dot(v2));
 			}
-			so.computeInternals();
+			so.extractVectors();
 		}
 	}
 
 	private void calculateTrackingSpeed(float angle) {
-		if (so instanceof Missile) {
+		if (so.getType() == ObjectType.Missile) {
 			if (angle > 50) {
 				so.setSpeed(-so.getMaxSpeed() * 0.3f);
 			} else if (angle > 40) {
@@ -384,14 +378,14 @@ public final class SpaceObjectAI implements Serializable {
 
 	private void avoidCollision() {
 		SpaceObject proximity = so.getProximity();
-		if (proximity != null && !so.inBay) {
+		if (proximity != null && !so.isInBay()) {
 			pushState(AIState.EVADE, proximity);
 		}
 	}
 
 	private void attackObject(float deltaTime) {
-		if (target instanceof CobraMkIII && ((CobraMkIII) target).isPlayerCobra()) {
-			if (InGameManager.playerInSafeZone && !(so instanceof Viper) && !so.isIgnoreSafeZone()) {
+		if (target instanceof SpaceObject && ((SpaceObject) target).isPlayer()) {
+			if (InGameManager.playerInSafeZone && so.getType() != ObjectType.Police && !so.isIgnoreSafeZone()) {
 				waitForSafeZoneExit = true;
 				pushState(AIState.FLEE, target);
 				return;
@@ -401,25 +395,24 @@ public final class SpaceObjectAI implements Serializable {
 		avoidCollision();
 		float angle = executeSteering(-1);
 		float distanceSq = so.getPosition().distanceSq(target.getPosition());
-		if (angle < 10 && distanceSq < SHOOT_DISTANCE_SQ && !so.hasEjected()) {
-			if (target instanceof SpaceObject && ((SpaceObject) target).isCloaked()) {
-				return;
-			}
-			int rating = Alite.get().getPlayer().getRating().ordinal();
-			if (rating >= 7 || lastShootCheck.hasPassedNanos(
-					BASE_DELAY_BETWEEN_SHOOT_CHECKS - (rating + 2) * SHOOT_DELAY_REDUCE_PER_RATING_LEVEL)) {
-				int rand = (int) (Math.random() * 256);
-				if (so.getAggressionLevel() > rand) {
-					if (so.getGame().getLaserManager() != null) {
-						so.getGame().getLaserManager().fire(so, target);
-					}
-				}
-			}
+		if (angle >= 10 || distanceSq >= SHOOT_DISTANCE_SQ || so.hasEjected()) {
+			return;
+		}
+		if (target instanceof SpaceObject && ((SpaceObject) target).isCloaked()) {
+			return;
+		}
+		int rating = Alite.get().getPlayer().getRating().ordinal();
+		if (rating < 7 && !lastShootCheck.hasPassedNanos(
+			BASE_DELAY_BETWEEN_SHOOT_CHECKS - (rating + 2) * SHOOT_DELAY_REDUCE_PER_RATING_LEVEL)) {
+			return;
+		}
+		if (Alite.get().getLaserManager() != null && so.getAggressionLevel() > Math.random() * 256) {
+			Alite.get().getLaserManager().fire(so, target);
 		}
 	}
 
 	private void fleeObject(float deltaTime) {
-		if (target instanceof CobraMkIII && ((CobraMkIII) target).isPlayerCobra()) {
+		if (target instanceof SpaceObject && ((SpaceObject) target).isPlayer()) {
 			if (!InGameManager.playerInSafeZone && waitForSafeZoneExit) {
 				popState();
 				waitForSafeZoneExit = false;
@@ -491,7 +484,7 @@ public final class SpaceObjectAI implements Serializable {
 		float distanceSq = so.getPosition().distanceSq(evadePosition);
 		SpaceObject proximity = so.getProximity();
 		boolean clearEvade = false;
-		if (proximity != null && proximity.getType() == ObjectType.SpaceStation) {
+		if (proximity != null && ObjectType.isSpaceStation(proximity.getType())) {
 			float maxExtentSq = proximity.getMaxExtent();
 			maxExtentSq *= maxExtentSq;
 			clearEvade = distanceSq > maxExtentSq;
@@ -514,7 +507,7 @@ public final class SpaceObjectAI implements Serializable {
 	}
 
 	private void updateTrack(float deltaTime) {
-		if (so instanceof Missile && target != null) {
+		if (so.getType() == ObjectType.Missile && target != null) {
 			float angle = trackPosition(target.getPosition(), target.getUpVector(), deltaTime);
 			calculateTrackingSpeed(angle);
 			return;
@@ -522,7 +515,7 @@ public final class SpaceObjectAI implements Serializable {
 		if (target instanceof SpaceObject && !((SpaceObject) target).isCloaked()) {
 			trackInternal(target.getPosition(), 1000.0f, deltaTime, false);
 		}
-		executeSteering(so instanceof Missile ? -1 : so.getMaxSpeed());
+		executeSteering(so.getType() == ObjectType.Missile ? -1 : so.getMaxSpeed());
 	}
 
 	private void initiateTrack(boolean replace, Object[] data) {
@@ -760,10 +753,10 @@ public final class SpaceObjectAI implements Serializable {
 
 	final void update(float deltaTime) {
 		if (so != null) {
-			if (so.escapeCapsuleCaps > 0 && so.getHullStrength() < 2 && !so.hasEjected()) {
-				if (Math.random() * 100 < 10) {
+			if (so.getEscapePod() > 0 && so.getHullStrength() < 2 && !so.hasEjected()) {
+				if (Math.random() < 0.1) {
 					so.setEjected();
-					so.addObjectToSpawn(ShipType.EscapeCapsule);
+					so.addObjectToSpawn(ObjectType.EscapeCapsule);
 				}
 			}
 		}
@@ -802,7 +795,7 @@ public final class SpaceObjectAI implements Serializable {
 				break;
 		}
 		if (Settings.VIS_DEBUG) {
-			if (so instanceof CobraMkIII && ((CobraMkIII) so).isPlayerCobra()) {
+			if (so.isPlayer()) {
 				String sl;
 				switch (currentState.peek()) {
 				case ATTACK:       sl = "AT"; break;
@@ -884,8 +877,8 @@ public final class SpaceObjectAI implements Serializable {
 			if (Math.random() * 100 < FIRE_MISSILE_UPON_FIRST_HIT_PROBABILITY) {
 				if (!player.isCloaked() && so.getMissileCount() > 0 && so.getPosition().distanceSq(player.getPosition()) >= MISSILE_MIN_DIST_SQ) {
 					if (so.canFireMissile()) {
-						so.setMissileCount(so.getMissileCount() - 1);
-						so.addObjectToSpawn(ShipType.Missile);
+						so.setProperty(SpaceObject.Property.missiles, so.getMissileCount() - 1);
+						so.addObjectToSpawn(ObjectType.Missile);
 					}
 				}
 			}
@@ -915,29 +908,34 @@ public final class SpaceObjectAI implements Serializable {
 	void executeHit(SpaceObject player) {
 		if (so.getHullStrength() > 0 && !so.mustBeRemoved() && !so.hasEjected()) {
 			int rand = (int) (Math.random() * 256);
-			int check = (so.getGame().getPlayer().getRating().ordinal() << 2) + 15;
+			int check = (Alite.get().getPlayer().getRating().ordinal() << 2) + 15;
 			if (so.getMissileCount() > 0 && rand < check && !player.isCloaked() && so.getPosition().distanceSq(player.getPosition()) >= MISSILE_MIN_DIST_SQ) {
 				if (so.canFireMissile()) {
-					so.setMissileCount(so.getMissileCount() - 1);
-					so.addObjectToSpawn(ShipType.Missile);
+					so.setProperty(SpaceObject.Property.missiles, so.getMissileCount() - 1);
+					so.addObjectToSpawn(ObjectType.Missile);
 				}
 			}
 		}
 
+		// Nothing to do (actually handled in the SpaceStation code)
+		if (ObjectType.isSpaceStation(so.getType())) {
+			return;
+		}
+
 		switch (so.getType()) {
-			case Asteroid:      break; // Nothing to do
-			case CargoCanister: break; // Nothing to do
-			case EnemyShip:     bankOrAttack(player); break;
+			case Asteroid:
+			case CargoPod:
+			case Buoy:
+			case Alloy:
+			case Missile: break; // Nothing to do
+
 			case EscapeCapsule: pushState(AIState.BANK, player); break;
-			case Missile:       break; // Nothing to do
-			case Shuttle:       so.hasBeenHitByPlayer(); flee(player); break;
-			case SpaceStation:  break; // Nothing to do (actually handled in the SpaceStation code)
-			case Thargoid:      bankOrAttack(player); break;
-			case Thargon:       bankOrAttack(player); break;
-			case Trader:        so.hasBeenHitByPlayer(); fleeBankOrAttack(player); break;
-			case Viper:         bankOrAttack(player); break;
-			case Buoy:          break; // Nothing to do
-			case Platlet:       break; // Nothing to do
+
+			case Shuttle: so.hasBeenHitByPlayer(); flee(player); break;
+			case Trader: so.hasBeenHitByPlayer(); fleeBankOrAttack(player); break;
+
+			// EnemyShip (Constrictor, Cougar, TieFighter, Defender, Thargoid, Thargon, Viper)
+			default: bankOrAttack(player); break;
 		}
 	}
 }

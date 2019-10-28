@@ -22,19 +22,20 @@ import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
-import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.CougarScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.AspMkII;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Cougar;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 public class CougarMission extends Mission {
+	private static final long serialVersionUID = 5999402243478935543L;
+
 	public static final int ID = 4;
 
 	private final Vector3f tempVector = new Vector3f(0, 0, 0);
@@ -48,10 +49,10 @@ public class CougarMission extends Mission {
 		private static final long serialVersionUID = 6077773193969694018L;
 		private long nextUpdateEvent;
 		private final Timer timer = new Timer().setAutoReset();
-		private final Cougar cougar;
+		private final SpaceObject cougar;
 		private boolean cloaked = false;
 
-		CougarCloakingUpdater(Cougar cougar) {
+		CougarCloakingUpdater(SpaceObject cougar) {
 			this.cougar = cougar;
 			computeNextUpdateTime();
 		}
@@ -99,7 +100,7 @@ public class CougarMission extends Mission {
 		return null;
 	}
 
-	private void spawnCargoCanister(final InGameManager inGame, final Cougar cougar) {
+	private void spawnCargoCanister(final InGameManager inGame, final SpaceObject cougar) {
 		tempVector.x = (float) (-2.0 + Math.random() * 4.0);
 		tempVector.y = (float) (-2.0 + Math.random() * 4.0);
 		tempVector.z = (float) (-2.0 + Math.random() * 4.0);
@@ -114,8 +115,8 @@ public class CougarMission extends Mission {
 		final float rx = tempVector.x;
 		final float ry = tempVector.y;
 		final float rz = tempVector.z;
-		final CargoCanister cargo = new CargoCanister(alite);
-		cargo.setContent(EquipmentStore.cloakingDevice);
+		final SpaceObject cargo = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.CargoPod);
+		cargo.setSpecialCargoContent(EquipmentStore.cloakingDevice);
 		cargo.setSpeed(0.0f);
 		final float speed = 0.2f + (cargo.getMaxSpeed() - 0.2f) * (float) Math.random();
 		cargo.setPosition(cougar.getPosition().x, cougar.getPosition().y, cougar.getPosition().z);
@@ -159,9 +160,9 @@ public class CougarMission extends Mission {
 				SoundManager.play(Assets.com_conditionRed);
 				manager.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
 				Vector3f spawnPosition = manager.getSpawnPosition();
-				final Cougar cougar = new Cougar(alite);
-				AspMkII asp1 = new AspMkII(alite);
-				AspMkII asp2 = new AspMkII(alite);
+				final SpaceObject cougar = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Cougar);
+				SpaceObject asp1 = SpaceObjectFactory.getInstance().getObjectById("asp_mk_ii");
+				SpaceObject asp2 = SpaceObjectFactory.getInstance().getObjectById("asp_mk_ii");
 				manager.spawnEnemyAndAttackPlayer(asp1, 0, spawnPosition );
 				manager.spawnEnemyAndAttackPlayer(cougar, 1, spawnPosition);
 				manager.spawnEnemyAndAttackPlayer(asp2, 2, spawnPosition);

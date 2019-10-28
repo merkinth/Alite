@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,20 +18,24 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.nio.FloatBuffer;
 
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
+import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.MathHelper;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 
-public class EngineExhaust extends GraphicObject implements Serializable {	
+public class EngineExhaust extends GraphicObject implements Serializable {
+	private static final long serialVersionUID = 5759966400204672217L;
+
 	private static final float sqrt1_2 = (float) Math.sqrt(0.5);
 	private static final float [] sin = new float [] {0, sqrt1_2, 1, sqrt1_2, 0, -sqrt1_2, -1, -sqrt1_2};
 	private static final float [] cos = new float [] {1, sqrt1_2, 0, -sqrt1_2, -1, -sqrt1_2, 0, sqrt1_2};
-	private final SpaceObject so;
 	private float [][] emission = new float[2][4];
 	private float [] saveMatrix = new float[16];
 	private transient FloatBuffer diskBuffer;
@@ -41,16 +45,19 @@ public class EngineExhaust extends GraphicObject implements Serializable {
 	private float exhaustRadiusX;
 	private float exhaustRadiusY;
 	private float maxLen;
-	private boolean depthTest = true;
+	private float x;
+	private float y;
+	private float z;
 	private float r, g, b, a;
-	
-	public EngineExhaust(SpaceObject ref, float radiusX, float radiusY, float maxLen, float x, float y, float z) {
-		this(ref, radiusX, radiusY, maxLen, x, y, z, 0.7f, 0.8f, 0.8f, 0.7f);
+
+	public EngineExhaust(float radiusX, float radiusY, float maxLen, float x, float y, float z) {
+		this(radiusX, radiusY, maxLen, x, y, z, 0.7f, 0.8f, 0.8f, 0.7f);
 	}
-	
-	public EngineExhaust(SpaceObject ref, float radiusX, float radiusY, float maxLen, float x, float y, float z, float r, float g, float b, float a) {
-		this.so = ref;
-		setPosition(x, y, ref.getBoundingBox()[5] + z);
+
+	public EngineExhaust(float radiusX, float radiusY, float maxLen, float x, float y, float z, float r, float g, float b, float a) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
 		exhaustRadiusX = radiusX;
 		exhaustRadiusY = radiusY;
 		this.maxLen    = maxLen;
@@ -64,76 +71,90 @@ public class EngineExhaust extends GraphicObject implements Serializable {
 		this.a = a;
 	}
 
+	private void readObject(ObjectInputStream in) throws IOException {
+		try {
+			AliteLog.d("readObject", "EngineExhaust.readObject");
+			in.defaultReadObject();
+			AliteLog.d("readObject", "EngineExhaust.readObject I");
+			diskBuffer     = GlUtils.allocateFloatBuffer(4 * 3 * 10);
+			cylinderBuffer = GlUtils.allocateFloatBuffer(4 * 3 * 18);
+			colorBuffer1   = GlUtils.allocateFloatBuffer(4 * 4 * 10);
+			colorBuffer2   = GlUtils.allocateFloatBuffer(4 * 4 * 18);
+			AliteLog.d("readObject", "EngineExhaust.readObject II");
+		} catch (ClassNotFoundException e) {
+			AliteLog.e("Class not found", e.getMessage(), e);
+		}
+	}
+
 	public float getMaxLen() {
 		return maxLen;
 	}
-	
+
 	public float getRadiusX() {
 		return exhaustRadiusX;
 	}
-	
+
 	public void setRadiusX(float radiusX) {
-		this.exhaustRadiusX = radiusX;
+		exhaustRadiusX = radiusX;
 	}
-	
+
 	public float getRadiusY() {
 		return exhaustRadiusY;
 	}
-	
+
 	public void setRadiusY(float radiusY) {
-		this.exhaustRadiusY = radiusY;
+		exhaustRadiusY = radiusY;
 	}
 
-	public float getMaxLength() {
-		return maxLen;
+	public float getX() {
+		return x;
 	}
-	
+
+	public float getY() {
+		return y;
+	}
+
+	public float getZ() {
+		return z;
+	}
+
 	public float getR() {
 		return r;
 	}
-	
+
 	public float getG() {
 		return g;
 	}
-	
+
 	public float getB() {
 		return b;
 	}
-	
+
 	public float getA() {
 		return a;
 	}
-	
+
 	public void setColor(float r, float g, float b, float a) {
 		this.r = r;
 		this.g = g;
 		this.b = b;
 		this.a = a;
 	}
-	
+
 	public void setMaxLength(float newMax) {
 		maxLen = newMax;
 	}
-	
-	public void setDepthTest(boolean b) {
-		depthTest = b;
-	}
-	
-	public boolean getDepthTest() {
-		return depthTest;
-	}
-	
-	public void update() {		
-		float factor = -so.getSpeed() / so.getMaxSpeed();
-		
+
+	public void update(SpaceObject owner) {
+		float factor = (float) -(0.4 * Math.random() + 0.6) * owner.getSpeed() / owner.getMaxSpeed();
 		emission[0][0] = r - factor * 0.2f;
-		emission[0][1] = g; 
+		emission[0][1] = g;
 		emission[0][2] = b + factor * 0.2f;
 		emission[0][3] = a + factor * 0.3f;
-		emission[1][0] = (0.6f * (r - factor * 0.2f)) * (1.0f - (float) Math.random() * 0.1f);
-		emission[1][1] = (0.6f * g) * (1.0f - (float) Math.random() * 0.1f);
+		emission[1][0] = 0.6f * (r - factor * 0.2f) * (1.0f - (float) Math.random() * 0.1f);
+		emission[1][1] = 0.6f * g * (1.0f - (float) Math.random() * 0.1f);
 		emission[1][2] = (b + factor * 0.2f) * (1.0f - (float) Math.random() * 0.1f);
-		emission[1][3] = (factor * 0.3f) * (1.0f - (float) Math.random() * 0.1f);
+		emission[1][3] = factor * 0.3f * (1.0f - (float) Math.random() * 0.1f);
 
 		diskBuffer.clear();
 		cylinderBuffer.clear();
@@ -142,7 +163,7 @@ public class EngineExhaust extends GraphicObject implements Serializable {
 		plotDiskPoints(exhaustRadiusX, exhaustRadiusY, 0, 0, 1);
 		plotCylinderPoints(exhaustRadiusX, exhaustRadiusY, exhaustRadiusX * 0.3f, exhaustRadiusY * 0.3f, maxLen * factor, 0, 0, 1);
 	}
-	
+
 	 private void plotDiskPoints(float rx, float ry, float x, float y, float z) {
 		 diskBuffer.put(x);
 		 diskBuffer.put(y);
@@ -154,7 +175,7 @@ public class EngineExhaust extends GraphicObject implements Serializable {
 		 for (int i = 0; i < 8; i++) {
 			 diskBuffer.put(x + sin[i] * rx);
 			 diskBuffer.put(y + cos[i] * ry);
-			 diskBuffer.put(z);	
+			 diskBuffer.put(z);
 			 colorBuffer1.put(emission[0][0]);
 			 colorBuffer1.put(emission[0][1]);
 			 colorBuffer1.put(emission[0][2]);
@@ -162,7 +183,7 @@ public class EngineExhaust extends GraphicObject implements Serializable {
 		 }
 		 diskBuffer.put(x);
 		 diskBuffer.put(y + ry);
-		 diskBuffer.put(z);			 
+		 diskBuffer.put(z);
 		 colorBuffer1.put(emission[0][0]);
 		 colorBuffer1.put(emission[0][1]);
 		 colorBuffer1.put(emission[0][2]);
@@ -171,7 +192,7 @@ public class EngineExhaust extends GraphicObject implements Serializable {
 		 colorBuffer1.position(0);
 	}
 
-	private void plotCylinderPoints(float r1x, float r1y, float r2x, float r2y, float len, float x, float y, float z) {		
+	private void plotCylinderPoints(float r1x, float r1y, float r2x, float r2y, float len, float x, float y, float z) {
 		float first = 0;
 		for (int i = 0; i < 8; i++) {
 			cylinderBuffer.put(x + sin[i] * r1x);
@@ -187,7 +208,7 @@ public class EngineExhaust extends GraphicObject implements Serializable {
 			if (i == 0) {
 				first = val;
 			}
-			cylinderBuffer.put(val);	
+			cylinderBuffer.put(val);
 			colorBuffer2.put(emission[1][0]);
 			colorBuffer2.put(emission[1][1]);
 			colorBuffer2.put(emission[1][2]);
@@ -199,10 +220,10 @@ public class EngineExhaust extends GraphicObject implements Serializable {
 		colorBuffer2.put(emission[0][0]);
 		colorBuffer2.put(emission[0][1]);
 		colorBuffer2.put(emission[0][2]);
-		colorBuffer2.put(emission[0][3]);		
+		colorBuffer2.put(emission[0][3]);
 		cylinderBuffer.put(x + sin[0] * r2x);
 		cylinderBuffer.put(y + cos[0] * r2y);
-		cylinderBuffer.put(first);			
+		cylinderBuffer.put(first);
 		colorBuffer2.put(emission[1][0]);
 		colorBuffer2.put(emission[1][1]);
 		colorBuffer2.put(emission[1][2]);
@@ -210,8 +231,9 @@ public class EngineExhaust extends GraphicObject implements Serializable {
 		cylinderBuffer.position(0);
 		colorBuffer2.position(0);
 	}
-	
-	public void render() {
+
+	public void render(SpaceObject owner) {
+		setPosition(x, y, owner.getBoundingBox()[5] + z);
 		GLES11.glDepthFunc(GLES11.GL_LESS);
 		GLES11.glDepthMask(false);
 		GLES11.glEnable(GLES11.GL_BLEND);
@@ -219,24 +241,24 @@ public class EngineExhaust extends GraphicObject implements Serializable {
 		GLES11.glDisableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_COLOR_ARRAY);
 		GLES11.glDisable(GLES11.GL_LIGHTING);
-		GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE);		
+		GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE);
 		MathHelper.copyMatrix(getMatrix(), saveMatrix);
 		for (int i = 0; i < 2; i++) {
 			GLES11.glPushMatrix();
 			GLES11.glMultMatrixf(getMatrix(), 0);
-		
+
 			GLES11.glVertexPointer(3, GLES11.GL_FLOAT, 0, diskBuffer);
 			GLES11.glColorPointer(4, GLES11.GL_FLOAT, 0, colorBuffer1);
 			GLES11.glDrawArrays(GLES11.GL_TRIANGLE_FAN, 0, 10);
-		
+
 			GLES11.glVertexPointer(3, GLES11.GL_FLOAT, 0, cylinderBuffer);
 			GLES11.glColorPointer(4, GLES11.GL_FLOAT, 0, colorBuffer2);
 			GLES11.glDrawArrays(GLES11.GL_TRIANGLE_STRIP, 0, 18);
-		
+
 			GLES11.glPopMatrix();
 			scale(0.4f, 0.4f, 1.2f);
 		}
-		MathHelper.copyMatrix(saveMatrix, currentMatrix);
+		setMatrix(saveMatrix);
 		extractVectors();
 		GLES11.glEnable(GLES11.GL_CULL_FACE);
 		GLES11.glEnable(GLES11.GL_LIGHTING);

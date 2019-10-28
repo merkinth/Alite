@@ -20,11 +20,16 @@ package de.phbouillon.android.games.alite;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.AssetManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Messenger;
 import android.view.View;
@@ -41,16 +46,18 @@ import de.phbouillon.android.framework.impl.PluginManagerImpl;
 import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.io.AliteDownloaderService;
 import de.phbouillon.android.games.alite.io.AliteFiles;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
+import de.phbouillon.android.games.alite.oxp.OXPParser;
 import de.phbouillon.android.games.alite.screens.canvas.PluginsScreen;
 
 public class AliteStartManager extends Activity implements IDownloaderClient {
-	public static final int ALITE_RESULT_CLOSE_ALL = 78615265;
+	static final int ALITE_RESULT_CLOSE_ALL = 78615265;
 
 	public static final String ALITE_STATE_FILE = "current_state.dat";
 
 	private IStub downloaderClientStub;
 	private String currentStatus = "Idle";
-	private FileIO fileIO;
+	private static FileIO fileIO;
 	private IMethodHook onTaskCompleted;
 	private boolean pluginUpdateCheck;
 
@@ -66,8 +73,8 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 	}
 
 	private boolean expansionFilesDelivered() {
-	    String fileName = Helpers.getExpansionAPKFileName(this, true, AliteConfig.EXTENSION_FILE_VERSION);
-		File[] oldOBBs = fileIO.getFiles(Helpers.getSaveFilePath(this), "(.*)\\.obb");
+	    String fileName = Helpers.getExpansionAPKFileName(this, true, BuildConfig.VERSION_CODE);
+		File[] oldOBBs = fileIO.getFiles(Helpers.getSaveFilePath(this), ".*\\.obb");
 		if (oldOBBs != null) {
 			for (File obb : oldOBBs) {
 				if (!fileName.equals(obb.getName())) {
@@ -118,7 +125,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 
 			@Override
 			public void execute(float deltaTime) {
-				upgradePlugins();
+				upgradeAndLoadPlugins();
 			}
 		}, new ErrorHook());
 	}
@@ -148,41 +155,195 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		if (AliteConfig.HAS_EXTENSION_APK) {
 			checkDownload();
 		} else {
-			upgradePlugins();
+			upgradeAndLoadPlugins();
 		}
 		AliteLog.d("AliteStartManager.onCreate", "onCreate end");
 	}
 
 //	private void checkSHA() {
-//	    String fileName = Helpers.getExpansionAPKFileName(this, true, EXTENSION_FILE_VERSION);
+//	    String fileName = Helpers.getExpansionAPKFileName(this, true, BuildConfig.VERSION_CODE);
 //	    AliteLog.e("SHA-Checksum", "Start SHA-Checksum calculation");
 //	    File fileForNewFile = new File(Helpers.generateSaveFileName(this, fileName));
 //	    AliteLog.e("SHA-Checksum", "Checksum for obb: " + FileUtils.computeSHAString(fileForNewFile));
 //	}
 
-	private void upgradePlugins() {
-		if (Settings.extensionUpdateMode == PluginManager.UPDATE_MODE_NO_UPDATE) {
-			AliteLog.d("Alite Start Manager", "Updating plugins is disabled");
-			new PluginModel(fileIO, PluginsScreen.DIRECTORY_PLUGINS + PluginsScreen.PLUGINS_META_FILE).
-				checkPluginFiles(null, new String[] { L.DIRECTORY_LOCALES, PluginsScreen.DIRECTORY_PLUGINS });
-			startGame();
-			return;
-		}
-		AliteLog.d("Alite Start Manager", "Checking plugins");
+	private void upgradeAndLoadPlugins() {
 		pluginUpdateCheck = true;
 		setContentView(R.layout.activity_start_manager);
 		findViewById(R.id.downloadHeader).setVisibility(View.INVISIBLE);
 		setStatus(L.string(R.string.notification_download_working));
-		((TextView) findViewById(R.id.downloadTextView)).setText(L.string(R.string.notification_plugin_checking));
+		if (Settings.extensionUpdateMode == PluginManager.UPDATE_MODE_NO_UPDATE) {
+			((TextView) findViewById(R.id.downloadTextView)).setText(L.string(R.string.notification_plugins_loading));
+			AliteLog.d("Alite Start Manager", "Updating plugins is disabled");
+			new PluginModel(fileIO, PluginsScreen.DIRECTORY_PLUGINS + PluginsScreen.PLUGINS_META_FILE).
+				checkPluginFiles(null, new String[]{L.DIRECTORY_LOCALES, PluginsScreen.DIRECTORY_PLUGINS});
+		} else {
+			AliteLog.d("Alite Start Manager", "Checking plugins");
+			((TextView) findViewById(R.id.downloadTextView)).setText(L.string(R.string.notification_plugin_checking));
+			new PluginManagerImpl(this, fileIO, AliteConfig.ROOT_DRIVE_FOLDER, AliteConfig.GAME_NAME, this).
+				checkPluginFiles(PluginsScreen.DIRECTORY_PLUGINS, L.DIRECTORY_LOCALES, PluginsScreen.PLUGINS_META_FILE, Settings.extensionUpdateMode);
+		}
 		onTaskCompleted = deltaTime -> startGame();
-		new PluginManagerImpl(this, fileIO, AliteConfig.ALITE_MAIL, AliteConfig.ROOT_DRIVE_FOLDER, AliteConfig.GAME_NAME, this).
-			checkPluginFiles(PluginsScreen.DIRECTORY_PLUGINS, L.DIRECTORY_LOCALES, PluginsScreen.PLUGINS_META_FILE, Settings.extensionUpdateMode);
+		((TextView) findViewById(R.id.downloadTextView)).setText(L.string(R.string.notification_plugins_loading));
+		new PluginLoader(this, onTaskCompleted).execute(getResources().getAssets());
 	}
 
 	private void startGame() {
 		AliteLog.d("Alite Start Manager", "Loading Alite State");
-//		loadOXPs();
-		loadCurrentGame(fileIO);
+		loadCurrentGame();
+	}
+
+	static void loadLocaleDependentPlugins() {
+		new PluginLoader(null, null).loadLocaleDependentPlugins();
+	}
+
+	private static class PluginLoader extends AsyncTask<AssetManager, String, Object> {
+		@SuppressLint("StaticFieldLeak")
+		private Activity activity;
+		private IMethodHook onTaskCompleted;
+		private boolean countMode;
+		private int pluginTotal;
+		private int pluginProgress;
+
+		PluginLoader(Activity activity, IMethodHook onTaskCompleted) {
+			this.activity = activity;
+			this.onTaskCompleted = onTaskCompleted;
+		}
+
+		@Override
+		protected Object doInBackground(AssetManager... assetManager) {
+			countMode = true;
+			countOrLoadPlugins(assetManager);
+			countMode = false;
+			countOrLoadPlugins(assetManager);
+			return null;
+		}
+
+		private void countOrLoadPlugins(AssetManager[] assetManager) {
+			if (assetManager.length > 0) {
+				loadBundledPlugins(assetManager[0]);
+				loadExternalPlugins(PluginsScreen.DIRECTORY_PLUGINS, "");
+			}
+			loadLocaleDependentPlugins();
+		}
+
+		@Override
+		protected void onProgressUpdate(String... values) {
+			super.onProgressUpdate(values);
+			if (activity != null) {
+				((TextView) activity.findViewById(R.id.downloadTextView)).setText(L.string(R.string.notification_plugin_loading, values[0]));
+				int progressInPercent = pluginTotal == 0 ? 100 : 100 * pluginProgress / pluginTotal;
+				((TextView) activity.findViewById(R.id.downloadProgressPercentTextView)).setText(
+					StringUtil.format("%d%%", progressInPercent));
+				((ProgressBar) activity.findViewById(R.id.downloadProgressBar)).setProgress(progressInPercent);
+			}
+		}
+
+		@Override
+		protected void onPostExecute(Object o) {
+			super.onPostExecute(o);
+			if (onTaskCompleted != null) {
+				onTaskCompleted.execute(0);
+			}
+		}
+
+		private void loadBundledPlugins(AssetManager assetManager) {
+			try {
+				String[] plugins = assetManager.list("plugins");
+				if (plugins == null) {
+					return;
+				}
+				if (countMode) {
+					pluginTotal += plugins.length;
+					return;
+				}
+				for (String pluginName : plugins) {
+					new OXPParser(PluginsScreen.DIRECTORY_PLUGINS + pluginName,
+						fileName -> assetManager.open(PluginsScreen.DIRECTORY_PLUGINS + pluginName + File.separatorChar + fileName));
+					pluginProgress++;
+					publishProgress(pluginName);
+				}
+			} catch (IOException e) {
+				AliteLog.e("Bundled plugin load error", "Failed to load bundled plugin.", e);
+			}
+		}
+
+		void loadLocaleDependentPlugins() {
+			String[] plugins = L.getInstance().list(PluginsScreen.DIRECTORY_PLUGINS);
+			if (plugins == null) {
+				return;
+			}
+			if (countMode) {
+				pluginTotal += plugins.length;
+				loadExternalPlugins(L.DIRECTORY_LOCALES, L.getInstance().getCurrentLocale().getLanguage() + '_' +
+					L.getInstance().getCurrentLocale().getCountry() + '_');
+				return;
+			}
+			for (String pluginName : plugins) {
+				try {
+					new OXPParser(PluginsScreen.DIRECTORY_PLUGINS + pluginName,
+						fileName -> L.raw(PluginsScreen.DIRECTORY_PLUGINS + pluginName + File.separatorChar, fileName));
+					pluginProgress++;
+					publishProgress(pluginName);
+				} catch (IOException e) {
+					AliteLog.e("Plugin localization error", "Failed to load localization of plugin.", e);
+				}
+			}
+			loadExternalPlugins(L.DIRECTORY_LOCALES, L.getInstance().getCurrentLocale().getLanguage() + '_' +
+				L.getInstance().getCurrentLocale().getCountry() + '_');
+		}
+
+		private void loadExternalPlugins(String directory, String fileNamePrefix) {
+			File[] plugins = fileIO.getFiles(directory, fileNamePrefix + ".*\\.oxz|" +
+				fileNamePrefix + ".*\\.zip|" + fileNamePrefix + ".*\\.oxp");
+			if (plugins == null) {
+				return;
+			}
+			if (countMode) {
+				pluginTotal += plugins.length;
+				return;
+			}
+			List<OXPParser> pendingPlugins = new ArrayList<>();
+			List<OXPParser> installedPlugins = new ArrayList<>();
+			for (File f : plugins) {
+				try {
+					final OXPParser plugin = new OXPParser(fileIO, directory + f.getName(), installedPlugins);
+					if (!plugin.isPluginFile()) {
+						// localization of program itself is already set by button languages on options screen
+						continue;
+					}
+					if (plugin.isPlugged()) {
+						pluginProgress++;
+						publishProgress(f.getName());
+						installedPlugins.add(plugin);
+					} else {
+						pendingPlugins.add(plugin);
+					}
+				} catch (IOException e) {
+					AliteLog.e("Plugin load error", "Failed to load plugin " + f.getPath(), e);
+				}
+			}
+			if (pendingPlugins.isEmpty()) {
+				return;
+			}
+			boolean handled = false;
+			do {
+				for (OXPParser plugin : pendingPlugins) {
+					try {
+						plugin.plug();
+						if (plugin.isPlugged()) {
+							publishProgress(plugin.getPluginName());
+							installedPlugins.add(plugin);
+							pendingPlugins.remove(plugin);
+							handled = true;
+						}
+					} catch (IOException e) {
+						pendingPlugins.remove(plugin);
+						AliteLog.e("Plugin load error", "Failed to load plugin " + plugin.getIdentifier(), e);
+					}
+				}
+			} while (handled);
+		}
 	}
 
 	private void startAliteIntro() {
@@ -190,6 +351,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		Intent intent = new Intent(this, AliteIntro.class);
 		intent.putExtra(Alite.LOG_IS_INITIALIZED, true);
 		startActivityForResult(intent, 0);
+		finish();
 	}
 
 	private void startAlite() {
@@ -197,9 +359,10 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		Intent intent = new Intent(this, Alite.class);
 		intent.putExtra(Alite.LOG_IS_INITIALIZED, true);
 		startActivityForResult(intent, 0);
+		finish();
 	}
 
-	private void loadCurrentGame(FileIO fileIO) {
+	private void loadCurrentGame() {
 		try {
 			if (fileIO.exists(ALITE_STATE_FILE)) {
 				AliteLog.d("Alite Start Manager", "Alite state file exists. Opening it.");
@@ -264,12 +427,10 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 	public void onDownloadStateChanged(int newState) {
 		setStatus(L.string(pluginUpdateCheck ? R.string.notification_download_working :
 			Helpers.getDownloaderStringResourceIDFromState(newState)));
-		((TextView) findViewById(R.id.downloadProgressPercentTextView)).setText(
-			StringUtil.format("%d%%", 100));
+		((TextView) findViewById(R.id.downloadProgressPercentTextView)).setText(StringUtil.format("%d%%", 100));
 		((ProgressBar) findViewById(R.id.downloadProgressBar)).setProgress(100);
 		((TextView) findViewById(R.id.downloadTextView)).setText(L.string(pluginUpdateCheck ?
 			R.string.notification_plugin_checking : R.string.notification_download_complete));
-		onTaskCompleted.execute(0);
 	}
 
 	@Override

@@ -34,7 +34,7 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Buoy;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteButtons;
 
 //This screen never needs to be serialized, as it is not part of the InGame state,
@@ -44,10 +44,10 @@ import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteBut
 public class TutBasicFlying extends TutorialScreen {
 
 	private static final int TUTORIAL_INDEX = 6;
-	private static final String YELLOW_TARGET_ID = "Yellow Target";
-	private static final String BLUE_TARGET_ID = "Blue Target";
-	private static final String BUOY_ID = "Buoy";
-	private static final String DOCKING_BUOY_ID = "Docking Buoy";
+	private static final String YELLOW_TARGET_ID = "yellow_target";
+	private static final String BLUE_TARGET_ID = "blue_target";
+	private static final String BUOY_ID = "buoy";
+	private static final String DOCKING_BUOY_ID = "docking_buoy";
 
 	private FlightScreen flight;
 	private boolean resetShipPosition = true;
@@ -143,14 +143,14 @@ public class TutBasicFlying extends TutorialScreen {
 		final TutorialLine line = addTopLine(L.string(R.string.tutorial_basic_flying_02));
 
 		line.setFinishHook(deltaTime -> {
-			yellowTarget = getBuoy("Yellow Target", new Vector3f(-8000, -11000, 17000),
-				new Vector3f(0xef, 0xef, 0x00));
-			blueTarget = getBuoy("Blue Target", new Vector3f(8000, 14000, -10000),
-				new Vector3f(0x00, 0x00, 0xef));
+			yellowTarget = getBuoy(YELLOW_TARGET_ID, R.string.tutorial_basic_flying_yellow_target,
+				new Vector3f(-8000, -11000, 17000), 0xEFEF00);
+			blueTarget = getBuoy(BLUE_TARGET_ID, R.string.tutorial_basic_flying_blue_target,
+				new Vector3f(8000, 14000, -10000), 0x0000EF);
 		});
 	}
 
-	private Buoy getBuoy(String name, Vector3f relPos, Vector3f color) {
+	private SpaceObject getBuoy(String id, int name, Vector3f relPos, int color) {
 		Vector3f position = new Vector3f(0, 0, 0);
 		Vector3f vec = new Vector3f(0, 0, 0);
 
@@ -165,10 +165,11 @@ public class TutBasicFlying extends TutorialScreen {
 		vec.scale(relPos.z);
 		position.add(vec);
 
-		Buoy buoy = new Buoy(game);
-		buoy.setId(name);
+		SpaceObject buoy = SpaceObjectFactory.getInstance().getObjectById(BUOY_ID);
+		buoy.setId(id);
+		buoy.setProperty(SpaceObject.Property.name, L.string(name));
 		buoy.setPosition(position);
-		buoy.setHudColor(new Vector3f(color.x, color.y, color.z));
+		buoy.setHudColor(color);
 		buoy.scale(6.0f);
 		flight.getInGameManager().addObject(buoy);
 		return buoy;
@@ -521,7 +522,7 @@ public class TutBasicFlying extends TutorialScreen {
 				dockingBuoy = (SpaceObject)flight.findObjectById(DOCKING_BUOY_ID);
 				if (dockingBuoy == null) {
 					InGameManager man = flight.getInGameManager();
-					dockingBuoy = new Buoy(game);
+					dockingBuoy = SpaceObjectFactory.getInstance().getObjectById(BUOY_ID);
 					Vector3f position = new Vector3f(0, 0, 0);
 					man.getPlanet().getPosition().sub(man.getStation().getPosition(), position);
 					position.normalize();
@@ -529,8 +530,9 @@ public class TutBasicFlying extends TutorialScreen {
 					position.add(man.getStation().getPosition());
 
 					dockingBuoy.setPosition(position);
-					dockingBuoy.setHudColor(new Vector3f(0xef, 0x00, 0x00));
-					dockingBuoy.setId("Docking Buoy");
+					dockingBuoy.setHudColor(0xEF0000);
+					dockingBuoy.setId(DOCKING_BUOY_ID);
+					dockingBuoy.setProperty(SpaceObject.Property.name, L.string(R.string.tutorial_basic_flying_docking_buoy));
 					flight.getInGameManager().addObject(dockingBuoy);
 				}
 			}

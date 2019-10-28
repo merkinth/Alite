@@ -33,9 +33,7 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallback;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallbackHandler;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceStation;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.WayPoint;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CobraMkIII;
 
 final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 	private static final long serialVersionUID = 7044055833923332317L;
@@ -93,7 +91,8 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		public void execute(float deltaTime) {
 			// Step 3: Now that the point between station and planet has been reached,
 			//         orient ship towards docking bay.
-			Matrix.rotateM(matrixCopy, 0, inGame.getStation().getMatrix(), 0, (float) Math.toDegrees(FlightScreen.SPACE_STATION_ROTATION_SPEED), 0, 0, 1);
+			Matrix.rotateM(matrixCopy, 0, inGame.getStation().getMatrix(), 0,
+				(float) Math.toDegrees(inGame.getStation().getSpaceStationRotationSpeed()), 0, 0, 1);
 			v1.x = matrixCopy[0];
 			v1.y = matrixCopy[1];
 			v1.z = matrixCopy[2];
@@ -223,12 +222,12 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		}
 	}
 
-	final boolean checkForCorrectDockingAlignment(SpaceObject spaceStation, CobraMkIII ship) {
+	final boolean checkForCorrectDockingAlignment(SpaceObject spaceStation, SpaceObject ship) {
 		// Checks for correct alignment are activated even if the Docking Computer is
 		// steering the ship... Maybe risky, but seems to work so far...
 		// It should at least be checked if the DC approaches from the correct side and
 		// the angle is ok...
-		if (!((SpaceStation) inGame.getStation()).accessAllowed()) {
+		if (inGame.getStation().isAccessDenied()) {
 			// Ok, you cannot land here at all... Access denied...
 			SoundManager.playOnce(Assets.com_accessDeclined, 3000);
 			inGame.getMessage().setText(L.string(R.string.com_access_declined));

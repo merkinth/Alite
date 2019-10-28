@@ -93,7 +93,7 @@ public class PluginModel {
 		localFiles = new HashMap<>();
 		for (String folder : folders) {
 			int startCounter = localFiles.size();
-			File[] files = fileIO.getFiles(folder, "(.*)\\.zip");
+			File[] files = fileIO.getFiles(folder, ".*\\.oxz|.*\\.zip|.*\\.oxp");
 			if (files != null) {
 				for (File f : files) {
 					localFiles.put(f.getName(), f);

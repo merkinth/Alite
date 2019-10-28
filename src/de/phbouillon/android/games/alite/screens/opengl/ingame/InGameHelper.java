@@ -38,13 +38,7 @@ import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceStation;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.CargoCanister;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.EscapeCapsule;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Missile;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Platlet;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargoid;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargon;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 class InGameHelper implements Serializable {
 	private static final long serialVersionUID = 9018204797190210420L;
@@ -52,6 +46,11 @@ class InGameHelper implements Serializable {
 	private static final float STATION_PROXIMITY_DISTANCE_SQ = 4000000.0f;
 	static final float STATION_VESSEL_PROXIMITY_DISTANCE_SQ = 8000000.0f;
 	private static final float PROXIMITY_WARNING_RADIUS_FACTOR = 18.0f;
+
+	private static final int DAMAGE_CARGO_COLLISION = 10;
+	private static final int DAMAGE_STATION_COLLISION = 5;
+	private static final int DAMAGE_OBJECT_COLLISION = 20;
+	private static final int DAMAGE_MISSILE = 40;
 
 	private final InGameManager inGame;
 	private final Vector3f tempVector;
@@ -61,11 +60,10 @@ class InGameHelper implements Serializable {
 	private transient ScoopCallback scoopCallback = null;
 	private boolean cabinTemperatureAlarm;
 
-	InGameHelper(Alite alite, InGameManager inGame) {
-		this.alite = alite;
+	InGameHelper(InGameManager inGame) {
 		this.inGame = inGame;
-		this.tempVector = new Vector3f(0, 0, 0);
-		this.attackTraverser = new AttackTraverser(alite);
+		tempVector = new Vector3f(0, 0, 0);
+		attackTraverser = new AttackTraverser();
 	}
 
 	void setScoopCallback(ScoopCallback callback) {
@@ -77,8 +75,8 @@ class InGameHelper implements Serializable {
 	}
 
 	private void ramCargo(SpaceObject rammedObject) {
-		rammedObject.applyDamage(4000.0f);
-		inGame.getLaserManager().damageShip(10, true);
+		rammedObject.applyDamage(4000);
+		inGame.getLaserManager().damageShip(DAMAGE_CARGO_COLLISION, true);
 	}
 
 	void checkShipStationProximity() {
@@ -130,14 +128,14 @@ class InGameHelper implements Serializable {
 				if (distanceCamSq <= objectBProximityDistance) {
 					objectB.setProximity(inGame.getShip());
 				}
-				if (objectA instanceof SpaceStation) {
+				if (ObjectType.isSpaceStation(objectA.getType())) {
 					float intersectionDistance = LaserManager.computeIntersectionDistance(objectB.getForwardVector(), objectB.getPosition(), objectA.getPosition(), 1000.0f, tempVector);
 					float travelDistance = -objectB.getSpeed() * 3.0f;
 					if (intersectionDistance > 0 && intersectionDistance < travelDistance) {
 						objectB.setProximity(objectA);
 					}
 				}
-				if (objectB instanceof SpaceStation) {
+				if (ObjectType.isSpaceStation(objectB.getType())) {
 					float intersectionDistance = LaserManager.computeIntersectionDistance(objectA.getForwardVector(), objectA.getPosition(), objectB.getPosition(), 1000.0f, tempVector);
 					float travelDistance = -objectA.getSpeed() * 3.0f;
 					if (intersectionDistance > 0 && intersectionDistance < travelDistance) {
@@ -150,8 +148,8 @@ class InGameHelper implements Serializable {
 
 	private void scoop(SpaceObject cargo) {
 		// Fuel scoop must be installed and cargo must be in the lower half of the screen...
-		if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop) ||
-		     cargo.getDisplayMatrix()[13] >= 0) {
+		Alite alite  = Alite.get();
+		if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop) || cargo.getDisplayMatrix()[13] >= 0) {
 			ramCargo(cargo);
 			if (scoopCallback != null) {
 				scoopCallback.rammed(cargo);
@@ -159,17 +157,17 @@ class InGameHelper implements Serializable {
 			return;
 		}
 
-		if (cargo instanceof CargoCanister && ((CargoCanister) cargo).getEquipment() != null) {
-			cargo.applyDamage(4000.0f);
+		if (cargo.getType() == ObjectType.CargoPod && cargo.getSpecialCargoContent() != null) {
+			cargo.applyDamage(4000);
 			SoundManager.play(Assets.scooped);
-			alite.getCobra().addEquipment(((CargoCanister) cargo).getEquipment());
-			inGame.getMessage().setText(((CargoCanister) cargo).getEquipment().getName());
+			alite.getCobra().addEquipment(cargo.getSpecialCargoContent());
+			inGame.getMessage().setText(cargo.getSpecialCargoContent().getName());
 			if (scoopCallback != null) {
 				scoopCallback.scooped(cargo);
 			}
 			return;
 		}
-		Weight quantity = cargo instanceof CargoCanister ? ((CargoCanister) cargo).getQuantity() : Weight.tonnes((int) (Math.random() * 3 + 1));
+		Weight quantity = cargo.getType() == ObjectType.CargoPod ? cargo.getCargoQuantity() : Weight.tonnes((int) (Math.random() * 3 + 1));
 		if (alite.getCobra().getFreeCargo().compareTo(quantity) < 0) {
 			ramCargo(cargo);
 			if (scoopCallback != null) {
@@ -178,22 +176,22 @@ class InGameHelper implements Serializable {
 			inGame.getMessage().setText(L.string(R.string.msg_full_cargo));
 			return;
 		}
-		cargo.applyDamage(4000.0f);
+		cargo.applyDamage(4000);
 		SoundManager.play(Assets.scooped);
 		if (scoopCallback != null) {
 			scoopCallback.scooped(cargo);
 		}
-		TradeGood scoopedTradeGood = cargo instanceof CargoCanister ? ((CargoCanister) cargo).getContent() :
-			cargo instanceof EscapeCapsule ? TradeGoodStore.get().slaves() :
-			cargo instanceof Thargon ? TradeGoodStore.get().alienItems() :
+		TradeGood scoopedTradeGood = cargo.getType() == ObjectType.CargoPod ? cargo.getCargoContent() :
+			cargo.getType() == ObjectType.EscapeCapsule ? TradeGoodStore.get().slaves() :
+			cargo.getType() == ObjectType.Thargon ? TradeGoodStore.get().alienItems() :
 			TradeGoodStore.get().alloys();
-		long price = cargo instanceof CargoCanister ? ((CargoCanister) cargo).getPrice() : 0;
+		long price = cargo.getType() == ObjectType.CargoPod ? cargo.getCargoPrice() : 0;
 		if (scoopedTradeGood == null) {
 			AliteLog.e("Scooped null cargo!", "Scooped null cargo!");
 			scoopedTradeGood = TradeGoodStore.get().getRandomTradeGoodForContainer();
 		}
 		AliteLog.d("Scooped Cargo", "Scooped Cargo " + scoopedTradeGood.getName());
-		if (!alite.getCobra().hasCargo(scoopedTradeGood) && cargo instanceof CargoCanister) {
+		if (!alite.getCobra().hasCargo(scoopedTradeGood) && cargo.getType() == ObjectType.CargoPod) {
 			// This makes sure that if a player scoops his dropped cargo back up, the
 			// gain/loss calculation stays accurate
 			alite.getCobra().addTradeGood(scoopedTradeGood, quantity, price);
@@ -232,45 +230,51 @@ class InGameHelper implements Serializable {
 			return;
 		}
 		for (AliteObject object: allObjects) {
-			float distanceSq = ObjectUtils.computeDistanceSq(object, inGame.getShip());
-			if (object instanceof Thargoid) {
-				if (distanceSq <= ((Thargoid) object).getSpawnThargonDistanceSq()) {
-					((Thargoid) object).setSpawnThargonDistanceSq(-1);
-					inGame.getSpawnManager().spawnThargons(alite, (Thargoid) object);
+			float distanceSq = inGame.computeDistanceSq(object, inGame.getShip());
+			SpaceObject so = null;
+			ObjectType objectType = null;
+			if (object instanceof SpaceObject) {
+				so = (SpaceObject) object;
+				objectType = so.getType();
+			}
+			if (objectType == ObjectType.Thargoid) {
+				if (distanceSq <= so.getSpawnDroneDistanceSq()) {
+					so.setSpawnDroneDistanceSq(-1);
+					inGame.getSpawnManager().spawnThargons(so);
 				}
 			}
-			if (distanceSq < 2500) {
-				if (object instanceof SpaceObject && ((SpaceObject) object).getType() == ObjectType.SpaceStation && inGame.getWitchSpace() == null) {
-					if (inGame.getDockingComputerAI().checkForCorrectDockingAlignment((SpaceObject) object, inGame.getShip())) {
-						inGame.clearMissileLock();
-						automaticDockingSequence();
-					} else {
-						inGame.getLaserManager().damageShip(5, ((SpaceObject) object).getDisplayMatrix()[14] < 0);
-						inGame.getShip().setSpeed(0.0f);
-					}
-				} else if (object.getId().equals("Cargo Canister") ||
-						   object instanceof Thargon && (((Thargon) object).getMother() == null || ((Thargon) object).getMother().getHullStrength() <= 0) ||
-						   object instanceof EscapeCapsule ||
-						   object instanceof Platlet) {
-					scoop((SpaceObject) object);
-				} else if (!(object instanceof Missile)) {
-					if (inGame.getWitchSpace() != null && (object.getId().equals("Planet") ||
-							object.getId().equals("Sun") ||
-							object instanceof SpaceObject && ((SpaceObject) object).getType() == ObjectType.SpaceStation ||
-							object.getId().equals("Glow"))) {
-						continue;
-					}
-					if (object instanceof SpaceObject && ((SpaceObject) object).getHullStrength() > 0) {
-						AliteLog.d("Crash Occurred", object.getId() + " crashed into player. " + ((SpaceObject) object).getCurrentAIStack());
-						inGame.getLaserManager().damageShip(20, ((SpaceObject) object).getDisplayMatrix()[14] < 0);
-						((SpaceObject) object).setHullStrength(0);
-						object.setRemove(true);
-						inGame.computeBounty((SpaceObject) object);
-						inGame.getLaserManager().explode((SpaceObject) object, WeaponType.Collision);
-					}
- 					else {
-						SoundManager.play(Assets.hullDamage);
-					}
+			if (distanceSq >= 2500) {
+				continue;
+			}
+			if (ObjectType.isSpaceStation(objectType) && inGame.getWitchSpace() == null) {
+				if (inGame.getDockingComputerAI().checkForCorrectDockingAlignment(so, inGame.getShip())) {
+					inGame.clearMissileLock();
+					automaticDockingSequence();
+				} else {
+					inGame.getLaserManager().damageShip(DAMAGE_STATION_COLLISION, so.getDisplayMatrix()[14] < 0);
+					inGame.getShip().setSpeed(0.0f);
+				}
+			} else if (objectType == ObjectType.CargoPod ||
+					so != null && so.isDrone() && !so.hasLivingMother() ||
+					objectType == ObjectType.EscapeCapsule || objectType == ObjectType.Alloy) {
+				scoop(so);
+			} else if (objectType != ObjectType.Missile) {
+				if (inGame.getWitchSpace() != null && (object.getId().equals("Planet") ||
+						object.getId().equals("Sun") ||
+					ObjectType.isSpaceStation(objectType) ||
+						object.getId().equals("Glow"))) {
+					continue;
+				}
+				if (so != null && so.getHullStrength() > 0) {
+					AliteLog.d("Crash Occurred", object.getId() + " crashed into player. " + so.getCurrentAIStack());
+					inGame.getLaserManager().damageShip(DAMAGE_OBJECT_COLLISION, so.getDisplayMatrix()[14] < 0);
+					so.setHullStrength(0);
+					object.setRemove(true);
+					inGame.computeBounty(so);
+					inGame.getLaserManager().explode(so, WeaponType.Collision);
+				}
+				 else {
+					SoundManager.play(Assets.hullDamage);
 				}
 			}
 		}
@@ -278,7 +282,7 @@ class InGameHelper implements Serializable {
 
 	void launchEscapeCapsule(SpaceObject source) {
 		SoundManager.play(Assets.retroRocketsOrEscapeCapsuleFired);
-		EscapeCapsule esc = new EscapeCapsule(alite);
+		SpaceObject esc = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.EscapeCapsule);
 
 		source.getUpVector().copy(tempVector);
 		esc.setForwardVector(tempVector);
@@ -293,7 +297,7 @@ class InGameHelper implements Serializable {
 		inGame.addObject(esc);
 	}
 
-	Missile spawnMissile(SpaceObject source, SpaceObject target) {
+	SpaceObject spawnMissile(SpaceObject source, SpaceObject target) {
 		Vector3f shipPos = source.getPosition();
 		if (inGame.getViewDirection() == PlayerCobra.DIR_FRONT || source != inGame.getShip()) {
 			source.getForwardVector().copy(tempVector);
@@ -310,7 +314,7 @@ class InGameHelper implements Serializable {
 		float x = shipPos.x + tempVector.x * -1000f;
 		float y = shipPos.y + tempVector.y * -1000f;
 		float z = shipPos.z + tempVector.z * -10f;
-		Missile missile = new Missile(alite);
+		SpaceObject missile = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Missile);
 		missile.setPosition(x, y, z);
 		missile.orientTowards(x + tempVector.x * -1000.0f,
 							  y + tempVector.y * -1000.0f,
@@ -321,19 +325,12 @@ class InGameHelper implements Serializable {
 		missile.setSource(source);
 		if (source == inGame.getShip()) {
 			// Check if target has ECM; then the missile's fate will be
-			// decided here: If the player is close enough, he'll have a small
-			// chance to get through (10%).
-			if (target.hasEcm()) {
-				// < 1000m (1000 * 1000 = 1000000)
-				if (target.getPosition().distanceSq(source.getPosition()) < 1000000) {
-					if (Math.random() > 0.1) {
-						missile.setWillBeDestroyedByECM(true);
-					}
-				} else {
-					missile.setWillBeDestroyedByECM(true);
-				}
+			// decided here: If the player is close enough (< 1000m (1000 * 1000 = 1000000)),
+			// he'll have a small chance to get through (10%).
+			if (target.hasEcm() && (target.getPosition().distanceSq(source.getPosition()) >= 1000000 || Math.random() > 0.1)) {
+				missile.setWillBeDestroyedByECM(true);
 			}
-			if (target.getType() == ObjectType.SpaceStation ||
+			if (ObjectType.isSpaceStation(target.getType()) ||
 			    target.getType() == ObjectType.Shuttle ||
 			    target.getType() == ObjectType.Trader) {
 				Alite alite  = Alite.get();
@@ -364,25 +361,27 @@ class InGameHelper implements Serializable {
 		return missile;
 	}
 
-	void handleMissileUpdate(Missile missile, float deltaTime) {
+	void handleMissileUpdate(SpaceObject missile, float deltaTime) {
 		missile.moveForward(deltaTime);
+		SpaceObject target = missile.getTarget();
 		// And track target object...
-		if (missile.getTarget() == inGame.getShip() && lastMissileWarning.hasPassedSeconds(2)) {
+		if (target == inGame.getShip() && lastMissileWarning.hasPassedSeconds(2)) {
 			SoundManager.play(Assets.com_incomingMissile);
 		}
 		if (missile.getHullStrength() <= 0) {
 			return;
 		}
 
-		if (missile.getTarget() == null || missile.getTarget().mustBeRemoved() || missile.getTarget().getHullStrength() <= 0) {
+		if (target == null || target.mustBeRemoved() || target.getHullStrength() <= 0) {
 			inGame.setMessage(L.string(R.string.msg_target_lost));
 			missile.setHullStrength(0);
 			inGame.getLaserManager().explode(missile, WeaponType.PulseLaser);
 			return;
 		}
 
+		boolean willBeDestroyedByECM = missile.getWillBeDestroyedByECM();
 		missile.update(deltaTime);
-		if (missile.getWillBeDestroyedByECM() && missile.getPosition().distanceSq(missile.getTarget().getPosition()) < 40000 && !inGame.isECMJammer()) {
+		if (willBeDestroyedByECM && missile.getPosition().distanceSq(target.getPosition()) < 40000 && !inGame.isECMJammer()) {
 			missile.setHullStrength(0);
 			inGame.getLaserManager().explode(missile, WeaponType.ECM);
 			SoundManager.play(Assets.ecm);
@@ -393,14 +392,14 @@ class InGameHelper implements Serializable {
 		}
 
 		float distance = LaserManager.computeIntersectionDistance(missile.getForwardVector(),
-			missile.getPosition(), missile.getTarget().getPosition(), missile.getTarget().getBoundingSphereRadius(), tempVector);
+			missile.getPosition(), target.getPosition(), target.getBoundingSphereRadius(), tempVector);
 		if (distance <= 0 || distance >= -missile.getSpeed() * deltaTime && distance >= 4000) {
 			return;
 		}
 
 		missile.setHullStrength(0);
 		inGame.getLaserManager().explode(missile, WeaponType.SelfDestruct);
-		if (missile.getWillBeDestroyedByECM() && !inGame.isECMJammer()) {
+		if (willBeDestroyedByECM && !inGame.isECMJammer()) {
 			SoundManager.play(Assets.ecm);
 			if (inGame.getHud() != null) {
 				inGame.getHud().showECM();
@@ -408,15 +407,15 @@ class InGameHelper implements Serializable {
 			return;
 		}
 
-		if (missile.getTarget() == inGame.getShip()) {
-			inGame.getLaserManager().damageShip(40, missile.getDisplayMatrix()[14] < 0);
+		if (target == inGame.getShip()) {
+			inGame.getLaserManager().damageShip(DAMAGE_MISSILE, missile.getDisplayMatrix()[14] < 0);
 			return;
 		}
 
-		missile.getTarget().setHullStrength(0);
-		missile.getTarget().setRemove(true);
-		inGame.computeBounty(missile.getTarget());
-		inGame.getLaserManager().explode(missile.getTarget(), WeaponType.Missile);
+		target.setHullStrength(0);
+		target.setRemove(true);
+		inGame.computeBounty(target);
+		inGame.getLaserManager().explode(target, WeaponType.Missile);
 	}
 
 	void checkAltitudeLowAlert() {
@@ -465,7 +464,7 @@ class InGameHelper implements Serializable {
 			}
 		}
 		if (cabinTemperature > 26 && alite.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop) &&
-				alite.getCobra().getFuel() < PlayerCobra.MAXIMUM_FUEL) {
+				alite.getCobra().getFuel() < PlayerCobra.MAX_FUEL) {
 			inGame.getMessage().repeatText(L.string(R.string.msg_fuel_scoop_activated), 1);
 			fuelScoopFuel += 20 * -inGame.getShip().getSpeed() / inGame.getShip().getMaxSpeed() * deltaTime;
 			int newFuel = (int) fuelScoopFuel;
@@ -492,9 +491,9 @@ class InGameHelper implements Serializable {
 		}
 		Alite alite  = Alite.get();
 		if (alite.getCobra().getEnergy() < PlayerCobra.MAX_ENERGY_BANK ||
-			alite.getCobra().getCabinTemperature() > 24	||
-			alite.getCobra().getAltitude() < 6 ||
-			inGame.getWitchSpace() != null) {
+				alite.getCobra().getCabinTemperature() > 24 ||
+				alite.getCobra().getAltitude() < 6 ||
+				inGame.getWitchSpace() != null) {
 			alite.getPlayer().setCondition(Condition.RED);
 			return;
 		}
@@ -503,7 +502,7 @@ class InGameHelper implements Serializable {
 				alite.getPlayer().setCondition(Condition.GREEN);
 			} else {
 				Condition conditionOld = alite.getPlayer().getCondition();
-				alite.getPlayer().setCondition(inGame.getNumberOfObjects(ObjectType.Viper) > 0 ? Condition.RED : Condition.YELLOW);
+				alite.getPlayer().setCondition(inGame.getNumberOfObjects(ObjectType.Police) > 0 ? Condition.RED : Condition.YELLOW);
 				Condition conditionNew = alite.getPlayer().getCondition();
 				if (conditionOld != conditionNew && conditionNew == Condition.RED) {
 					SoundManager.play(Assets.com_conditionRed);

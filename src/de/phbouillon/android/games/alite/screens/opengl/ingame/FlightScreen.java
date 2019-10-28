@@ -48,10 +48,7 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.PlanetSpaceObjec
 import de.phbouillon.android.games.alite.screens.opengl.objects.SphericalSpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Coriolis;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Dodec;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Icosaeder;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.TieFighter;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteHud;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteButtons;
 
@@ -61,12 +58,10 @@ public class FlightScreen extends GlScreen implements Serializable {
 	static final Vector3f PLANET_POSITION              = new Vector3f(0.0f, 0.0f, 800000.0f);
 	static final Vector3f SHIP_ENTRY_POSITION          = new Vector3f(0.0f, 0.0f, 400000.0f);
 	static final float    SUN_SIZE                     = 60000.0f;
-	static final float    SPACE_STATION_ROTATION_SPEED = 0.2f;
 
 	private int windowWidth;
 	private int windowHeight;
 	private SphericalSpaceObject star;
-	private SphericalSpaceObject starGlow;
 	private PlanetSpaceObject    planet;
 
 	private InGameManager inGame;
@@ -202,7 +197,6 @@ public class FlightScreen extends GlScreen implements Serializable {
 			windowWidth = visibleArea.width();
 			windowHeight = visibleArea.height();
 			initializeGl(visibleArea);
-			AliteHud.ct = new DefaultCoordinateTransformer(game);
 			setPause(true);
 			return;
 		}
@@ -211,8 +205,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 		windowHeight = visibleArea.height();
 		initializeGl(visibleArea);
 
-		AliteHud.ct = new DefaultCoordinateTransformer(game);
-		inGame = new InGameManager(game, new AliteHud(game), "textures/star_map.png", lightPosition, fromStation, true);
+		inGame = new InGameManager(new AliteHud(), "textures/star_map.png", lightPosition, fromStation, true);
 		PlayerCobra cobra = game.getCobra();
 		cobra.setMissileTargetting(false);
 		cobra.setMissileLocked(false);
@@ -290,7 +283,7 @@ public class FlightScreen extends GlScreen implements Serializable {
             	case 6: sunLightEmission[0] = 1.0f; sunLightEmission[1] = 0.5f; sunLightEmission[2] = 0.5f; sunLightEmission[3] = 1.0f; break;
             }
         }
-		star = new SphericalSpaceObject(game, "Sun", sunSize, 30, starTextureName);
+		star = new SphericalSpaceObject("Sun", sunSize, starTextureName);
 		star.setVisibleOnHud(false);
 		star.setAdditionalGLParameters(new IAdditionalGLParameterSetter(){
 			private static final long serialVersionUID = -7931217736505566905L;
@@ -306,13 +299,8 @@ public class FlightScreen extends GlScreen implements Serializable {
 			}
 		});
 
-		starGlow = new SphericalSpaceObject(game, "Glow", sunSize + 60.0f, 30, "textures/glow_mask2.png")  {
-			private static final long serialVersionUID = -437275620274071131L;
-
-			public boolean needsDepthTest() {
-				return false;
-			}
-		};
+		SphericalSpaceObject starGlow = new SphericalSpaceObject("Glow", sunSize + 60.0f, "textures/glow_mask2.png");
+		starGlow.setDepthTest(false);
 		starGlow.setVisibleOnHud(false);
 		starGlow.setAdditionalGLParameters(new IAdditionalGLParameterSetter() {
 			private static final long serialVersionUID = -7651239619882350365L;
@@ -331,19 +319,13 @@ public class FlightScreen extends GlScreen implements Serializable {
 			}
 		});
 
-		planet = new PlanetSpaceObject(game, currentSystem, false);
+		planet = new PlanetSpaceObject(currentSystem, false);
 		planet.applyDeltaRotation(23, 0, 14);
 		planet.setPosition(PLANET_POSITION);
 
-		if (currentSystem == null) {
-			spaceStation = new Coriolis(game);
-		} else if (currentSystem.getTechLevel() > 13) {
-			spaceStation = new Icosaeder(game);
-		} else if (currentSystem.getTechLevel() > 9) {
-			spaceStation = new Dodec(game);
-		} else {
-			spaceStation = new Coriolis(game);
-		}
+		spaceStation = SpaceObjectFactory.getInstance().getRandomObjectByType(
+			currentSystem == null || currentSystem.getTechLevel() <= 9 ? ObjectType.Coriolis :
+			currentSystem.getTechLevel() > 13 ? ObjectType.Icosahedron : ObjectType.Dodecahedron);
 		spaceStation.setPosition(inGame.getSystemStationPosition());
 		if (fromStation) {
 			spaceStation.setIdentified();
@@ -367,7 +349,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 
 	private void initializeGameOverParade() {
 		for (int i = 0; i < 20; i++) {
-			allObjects.add(new TieFighter(game));
+			allObjects.add(SpaceObjectFactory.getInstance().getObjectById("tie_fighter"));
 		}
 	}
 
@@ -431,17 +413,16 @@ public class FlightScreen extends GlScreen implements Serializable {
 	    	inGame.getShip().getRightVector().copy(v1);
 	    	v1.scale(5000);
 	    	for (AliteObject ao: allObjects) {
-	    		if (ao instanceof TieFighter) {
+	    		if (ao instanceof SpaceObject && ((SpaceObject)ao).getType() == ObjectType.TieFighter) {
+	    			SpaceObject tie = (SpaceObject) ao;
 	    			if (count % 2 == 0) {
 	    				v0.add(v1, v2);
-	    				TieFighter tie = (TieFighter) ao;
 	    				tie.setPosition(v2);
-	    				tie.orientTowards(inGame.getShip(), 0);
-	    				tie.setAIState(AIState.IDLE, (Object[]) null);
+						tie.orientTowards(inGame.getShip(), 0);
+						tie.setAIState(AIState.IDLE, (Object[]) null);
 	    				count++;
 	    			} else {
 	    				v0.sub(v1, v2);
-	    				TieFighter tie = (TieFighter) ao;
 	    				tie.setPosition(v2);
 	    				tie.orientTowards(inGame.getShip(), 0);
 	    				tie.setAIState(AIState.IDLE, (Object[]) null);
@@ -523,7 +504,8 @@ public class FlightScreen extends GlScreen implements Serializable {
 					if (resetSpaceStation) {
 						performResetSpaceStation();
 					}
-					spaceStation.applyDeltaRotation(0.0f, 0.0f, (float) Math.toDegrees(SPACE_STATION_ROTATION_SPEED * deltaTime));
+					spaceStation.applyDeltaRotation(0.0f, 0.0f,
+						(float) Math.toDegrees(spaceStation.getSpaceStationRotationSpeed() * deltaTime));
 				}
 			}
 		} catch (NullPointerException e) {

@@ -34,22 +34,13 @@ import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.generator.enums.Government;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.screens.opengl.objects.BoxSpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallback;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallbackHandler;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.MathHelper;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceStation;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.WayPoint;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.OrbitShuttle;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargoid;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Thargon;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Transporter;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.ships.Viper;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.*;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteHud;
 
 public class ObjectSpawnManager implements Serializable {
 	private static final long serialVersionUID = -6732126311025754393L;
+
+	private static final int DAMAGE_SPACE_STATION_DEFENCE = 15;
 
 	public static boolean ASTEROIDS_ENABLED             = true;
 	public static boolean CONDITION_RED_OBJECTS_ENABLED = true;
@@ -138,8 +129,8 @@ public class ObjectSpawnManager implements Serializable {
 		}
 	}
 
-	ObjectSpawnManager(final Alite alite, final InGameManager inGame) {
-		this.alite = alite;
+	ObjectSpawnManager(final InGameManager inGame) {
+		alite = Alite.get();
 		this.inGame = inGame;
 		initializeLimits();
 	}
@@ -170,8 +161,8 @@ public class ObjectSpawnManager implements Serializable {
 			shuttleOrTransportTimer = new SpawnTimer();
 			viperTimer = new SpawnTimer();
 			timedEventsMustBeInitialized = true;
-			gateWatcher = new BoxSpaceObject(alite, "GateWatcher", 510, 510, 100);
-			AliteLog.e("readObject", "ObjectSpawnManager.readObject II");
+			gateWatcher = new BoxSpaceObject("GateWatcher", 510, 510, 100);
+			AliteLog.d("readObject", "ObjectSpawnManager.readObject II");
 			initializeLimits();
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
@@ -257,7 +248,7 @@ public class ObjectSpawnManager implements Serializable {
 
 			@Override
 			public void execute(float deltaTime) {
-				spawnShuttleOrTransporter();
+				spawnShuttle();
 			}
 		});
 		AliteLog.d("Viper", "Viper Timer, initializing");
@@ -338,13 +329,13 @@ public class ObjectSpawnManager implements Serializable {
 	void startSimulation(SystemData system) {
 		this.system = system;
 		torus = false;
-		gateWatcher = new BoxSpaceObject(alite, "GateWatcher", 510, 510, 100);
+		gateWatcher = new BoxSpaceObject("GateWatcher", 510, 510, 100);
 		initTimedEvents(inGame);
 		launchAreaViolations = 0;
 	}
 
 	private long getDelayToConditionRedEncounter() {
-		return system == null ? 0 : (long) (((system.getGovernment().ordinal() + 2) << 9) / 16.7f * 1000000000L);
+		return system == null ? 0 : (long) ((system.getGovernment().ordinal() + 2 << 9) / 16.7f * 1000000000L);
 	}
 
 	private long getDelayToTraderEncounter() {
@@ -384,7 +375,7 @@ public class ObjectSpawnManager implements Serializable {
 		SoundManager.stop(Assets.torus);
 		torus = false;
 		if (conditionRedTimer.event != null) {
-			conditionRedTimer.event.updateDelay((long) (((system.getGovernment().ordinal() + 2) << 9) / 16.7f * 1000000000L));
+			conditionRedTimer.event.updateDelay((long) ((system.getGovernment().ordinal() + 2 << 9) / 16.7f * 1000000000L));
 		}
 		inGame.yankOutOfTorus();
 	}
@@ -423,7 +414,7 @@ public class ObjectSpawnManager implements Serializable {
 
 			@Override
 			public void execute(float deltaTime) {
-				if (inGame.getNumberOfObjects(ObjectType.EnemyShip) == 0 && conditionRedTimer.event != null) {
+				if (inGame.getNumberOfObjects(ObjectType.Pirate) == 0 && conditionRedTimer.event != null) {
 					unlockConditionRedEvent();
 				}
 			}
@@ -436,8 +427,8 @@ public class ObjectSpawnManager implements Serializable {
 			return;
 		}
 		Vector3f spawnPosition = getSpawnPosition(getSpawnDistance());
-		Thargoid thargoid = new Thargoid(alite);
-		thargoid.setSpawnThargonDistanceSq(computeSpawnThargonDistanceSq());
+		SpaceObject thargoid = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Thargoid);
+		thargoid.setSpawnDroneDistanceSq(computeSpawnThargonDistanceSq());
 		spawnEnemyAndAttackPlayerWithoutCallback(thargoid, 0, spawnPosition);
 		thargoid.addDestructionCallback(9, new IMethodHook(){
 			private static final long serialVersionUID = -5841075572165732277L;
@@ -484,7 +475,7 @@ public class ObjectSpawnManager implements Serializable {
 			thargoidNum = maxNumberOfThargoids - thargoids;
 		}
 		int num = calculateNumberOfObjectsToSpawn();
-		int enemies = inGame.getNumberOfObjects(ObjectType.EnemyShip);
+		int enemies = inGame.getNumberOfObjects(ObjectType.Pirate);
 		if (num + enemies > maxNumberOfEnemies) {
 			num = maxNumberOfEnemies - enemies;
 		}
@@ -504,8 +495,8 @@ public class ObjectSpawnManager implements Serializable {
 			conditionRedTimer.event.lock();
 			Vector3f spawnPosition = getSpawnPosition(getSpawnDistance());
 			for (int i = 0; i < thargoidNum; i++) {
-				Thargoid thargoid = new Thargoid(alite);
-				thargoid.setSpawnThargonDistanceSq(computeSpawnThargonDistanceSq());
+				SpaceObject thargoid = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Thargoid);
+				thargoid.setSpawnDroneDistanceSq(computeSpawnThargonDistanceSq());
 				spawnEnemyAndAttackPlayer(thargoid, i, spawnPosition);
 			}
 			return;
@@ -513,13 +504,13 @@ public class ObjectSpawnManager implements Serializable {
 		conditionRedTimer.event.lock();
 		Vector3f spawnPosition = getSpawnPosition(getSpawnDistance());
 		for (int i = 0; i < num; i++) {
-			SpaceObject ship = SpaceObject.createRandomEnemy(alite);
+			SpaceObject ship = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Pirate);
 			spawnEnemyAndAttackPlayer(ship, i, spawnPosition);
 		}
 	}
 
 	public long computeSpawnThargonDistanceSq() {
-		if ((int) (Math.random() * 100) < alite.getPlayer().getRating().ordinal() * 20) {
+		if ((int) (Math.random() * 5) < alite.getPlayer().getRating().ordinal()) {
 			long d = (long) (8192 + 8192 * Math.random());
 			return d * d;
 		}
@@ -617,7 +608,7 @@ public class ObjectSpawnManager implements Serializable {
 		} else {
 			SoundManager.play(Assets.com_launch_area_violation_3rd);
 			inGame.setMessage(L.string(R.string.com_launch_area_violation_3rd));
-			((SpaceStation) inGame.getStation()).denyAccess();
+			inGame.getStation().denyAccess();
 			alite.getPlayer().setLegalValue(alite.getPlayer().getLegalValue() + 4);
 			inGame.getShip().setUpdater(new IMethodHook() {
 				private static final long serialVersionUID = 4046742301009349763L;
@@ -632,7 +623,7 @@ public class ObjectSpawnManager implements Serializable {
 							inGame.getShip().setUpdater(null);
 							return;
 						}
-						inGame.getLaserManager().damageShip(15, true);
+						inGame.getLaserManager().damageShip(DAMAGE_SPACE_STATION_DEFENCE, true);
 					}
 				}
 			});
@@ -651,7 +642,7 @@ public class ObjectSpawnManager implements Serializable {
 			if (!isLaunchFromStationSafe(true)) {
 				return;
 			}
-			final SpaceObject ship = SpaceObject.createRandomTraderWithoutAnaconda(alite);
+			final SpaceObject ship = createRandomTraderWithoutAnaconda();
 			launchFromBay(ship, new AiStateCallbackHandler() {
 				private static final long serialVersionUID = -5203119902007110520L;
 
@@ -676,7 +667,7 @@ public class ObjectSpawnManager implements Serializable {
 			return;
 		}
 		getSpawnPosition(getSpawnDistance());
-		final SpaceObject ship = SpaceObject.createRandomTrader(alite);
+		final SpaceObject ship = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Trader);
 		ship.setPosition(vector);
 		ship.setRandomOrientation(vector, inGame.getShip().getUpVector());
 		ship.setAIState(AIState.IDLE, 0);
@@ -696,6 +687,16 @@ public class ObjectSpawnManager implements Serializable {
 		inGame.addObject(ship);
 	}
 
+	// The Anaconda is too big for the station, so -- better not let it fly from its docking bay :)
+	private SpaceObject createRandomTraderWithoutAnaconda() {
+		while (true) {
+			final SpaceObject ship = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Trader);
+			if (!"Anaconda".equals(ship.getId())) {
+				return ship;
+			}
+		}
+	}
+
 	public void launchFromBay(final SpaceObject so, final AiStateCallbackHandler callback) {
 		so.setInBay(true);
 		so.setPosition(inGame.getSystemStationPosition());
@@ -708,14 +709,14 @@ public class ObjectSpawnManager implements Serializable {
 		inGame.getStation().getForwardVector().copy(vector);
 		vector.scale(1000);
 		vector.add(inGame.getStation().getPosition());
-		WayPoint[] wps = new WayPoint[] {WayPoint.newWayPoint(vector, so.getUpVector())};
-		so.setAIState(AIState.FLY_PATH, (Object[]) wps);
+		so.setAIState(AIState.FLY_PATH, WayPoint.newWayPoint(vector, so.getUpVector()));
 		so.setUpdater(new IMethodHook() {
 			private static final long serialVersionUID = 9195512054255867095L;
 
 			@Override
 			public void execute(float deltaTime) {
-				Matrix.rotateM(matrixCopy, 0, inGame.getStation().getMatrix(), 0, (float) Math.toDegrees(FlightScreen.SPACE_STATION_ROTATION_SPEED), 0, 0, 1);
+				Matrix.rotateM(matrixCopy, 0, inGame.getStation().getMatrix(), 0,
+					(float) Math.toDegrees(inGame.getStation().getSpaceStationRotationSpeed()), 0, 0, 1);
 				vector.x = -matrixCopy[0];
 				vector.y = -matrixCopy[1];
 				vector.z = -matrixCopy[2];
@@ -746,7 +747,7 @@ public class ObjectSpawnManager implements Serializable {
 			return;
 		}
 		getSpawnPosition(getSpawnDistance());
-		final SpaceObject asteroid = SpaceObject.createRandomAsteroid(alite);
+		final SpaceObject asteroid = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Asteroid);
 		spawnObject(asteroid, asteroid.getMaxSpeed(), vector);
 	}
 
@@ -794,7 +795,7 @@ public class ObjectSpawnManager implements Serializable {
 		vector2.normalize();
 	}
 
-	private void spawnShuttleOrTransporter() {
+	private void spawnShuttle() {
 		shuttleOrTransportTimer.event.updateDelay((long) ((600.0f + 300.0f * Math.random()) / 16.7f * 1000000000L / (float) alite.getTimeFactor()));
 		if (inGame.getWitchSpace() != null || !InGameManager.playerInSafeZone) {
 			return;
@@ -808,28 +809,22 @@ public class ObjectSpawnManager implements Serializable {
 		if (inGame.getNumberOfObjects(ObjectType.Shuttle) >= maxNumberOfShuttles) {
 			return;
 		}
-		final SpaceObject shuttleOrTransport;
-		if (Math.random() < 0.5) {
-			shuttleOrTransport = new OrbitShuttle(alite);
-		} else {
-			shuttleOrTransport = new Transporter(alite);
-		}
-		launchFromBay(shuttleOrTransport, new AiStateCallbackHandler() {
+		final SpaceObject shuttle = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Shuttle);
+		launchFromBay(shuttle, new AiStateCallbackHandler() {
 			private static final long serialVersionUID = 2203774721593552494L;
 
 			@Override
 			public void execute(SpaceObject so) {
-				shuttleOrTransport.setUpdater(null);
-				shuttleOrTransport.setInBay(false);
-				WayPoint[] wps = new WayPoint[] {WayPoint.newWayPoint(FlightScreen.PLANET_POSITION, shuttleOrTransport.getUpVector())};
-				shuttleOrTransport.setAIState(AIState.FLY_PATH, (Object[]) wps);
-				shuttleOrTransport.setUpdater(new IMethodHook() {
+				shuttle.setUpdater(null);
+				shuttle.setInBay(false);
+				shuttle.setAIState(AIState.FLY_PATH, WayPoint.newWayPoint(FlightScreen.PLANET_POSITION, shuttle.getUpVector()));
+				shuttle.setUpdater(new IMethodHook() {
 					private static final long serialVersionUID = 2702506138360802890L;
 
 					@Override
 					public void execute(float deltaTime) {
-						if (shuttleOrTransport.getPosition().distanceSq(FlightScreen.PLANET_POSITION) < TRANSPORT_PLANET_DISTANCE_SQ) {
-							shuttleOrTransport.setRemove(true);
+						if (shuttle.getPosition().distanceSq(FlightScreen.PLANET_POSITION) < TRANSPORT_PLANET_DISTANCE_SQ) {
+							shuttle.setRemove(true);
 						}
 					}
 				});
@@ -848,8 +843,8 @@ public class ObjectSpawnManager implements Serializable {
 		if (alite.getPlayer().getLegalStatus() == LegalStatus.CLEAN) {
 			return;
 		}
-		int currentNumberOfVipers = inGame.getNumberOfObjects(ObjectType.Viper) + inGame.getNumberOfObjects(ObjectType.EnemyShip);
-		if (inGame.getNumberOfObjects(ObjectType.Viper) >= maxNumberOfVipers || !VIPERS_ENABLED) {
+		int currentNumberOfVipers = inGame.getNumberOfObjects(ObjectType.Police) + inGame.getNumberOfObjects(ObjectType.Pirate);
+		if (inGame.getNumberOfObjects(ObjectType.Police) >= maxNumberOfVipers || !VIPERS_ENABLED) {
 			return;
 		}
 		if (!isLaunchFromStationSafe(false)) {
@@ -863,11 +858,11 @@ public class ObjectSpawnManager implements Serializable {
 			return;
 		}
 	    SystemData currentSystem = alite.getPlayer().getCurrentSystem();
-	    SpaceObject shipType = null;
+	    ObjectType shipType = ObjectType.Police;
 	    if (currentSystem != null) {
 	    	boolean playerIsCurrentlyOffensive = InGameManager.safeZoneViolated;
 	    	if (!playerIsCurrentlyOffensive && inGame.getStation() != null) {
-	    		int hitCount = ((SpaceStation) inGame.getStation()).getHitCount();
+	    		int hitCount = inGame.getStation().getHitCount();
 	    		if (hitCount > 1) {
 	    			playerIsCurrentlyOffensive = true;
 	    		}
@@ -881,9 +876,9 @@ public class ObjectSpawnManager implements Serializable {
 	    		return;
 	    	}
 	    	inGame.setVipersWillEngage();
-	    	shipType = government == Government.ANARCHY || government == Government.FEUDAL ?
-	    			SpaceObject.createRandomDefensiveShip(alite) : new Viper(alite);
-	    	shipType.setHudColor(Viper.HUD_COLOR);
+			if (government == Government.ANARCHY || government == Government.FEUDAL) {
+				shipType = ObjectType.Defender;
+			}
 			Condition conditionOld = alite.getPlayer().getCondition();
 			alite.getPlayer().setCondition(Condition.RED);
 			if (conditionOld != Condition.RED) {
@@ -892,7 +887,7 @@ public class ObjectSpawnManager implements Serializable {
 			}
 	    }
 
-		final SpaceObject viper = shipType == null ? new Viper(alite) : shipType;
+		final SpaceObject viper = SpaceObjectFactory.getInstance().getRandomObjectByType(shipType);
 		viper.setIgnoreSafeZone();
 		launchFromBay(viper, new AiStateCallbackHandler() {
 			private static final long serialVersionUID = -2431074037545740323L;
@@ -908,7 +903,7 @@ public class ObjectSpawnManager implements Serializable {
 
 	private int calculateNumberOfObjectsToSpawn() {
 		int d = Settings.difficultyLevel;
-		int result = (int) (Math.random() * ((alite.getPlayer().getRating().ordinal() + 3) >> 1)) + 1;
+		int result = (int) (Math.random() * (alite.getPlayer().getRating().ordinal() + 3 >> 1)) + 1;
 		if (d > 3) {
 			result += d - 3;
 		}
@@ -933,27 +928,26 @@ public class ObjectSpawnManager implements Serializable {
 		return getSpawnPosition(getSpawnDistance());
 	}
 
-	void spawnThargons(Alite alite, final Thargoid mother) {
+	void spawnThargons(final SpaceObject mother) {
 		if (!THARGONS_ENABLED) {
 			return;
 		}
-		int numberOfThargons = (int) (Math.random() * 4 + 4);
+		int numberOfThargons = (int) (Math.random() * (mother.getMaxDrones() - mother.getMinDrones() + 1) + mother.getMinDrones());
 		mother.getForwardVector().copy(vector);
 		vector.scale(40);
 		vector.add(mother.getPosition());
 		vector.copy(vector2);
 		for (int i = 0; i < numberOfThargons; i++) {
-			final Thargon thargon = new Thargon(alite);
+			final SpaceObject thargon = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Thargon);
 			spawnEnemyAndAttackPlayerWithoutCallback(thargon, i, vector2, thargonSpawnMatrix);
-			mother.addActiveThargon(thargon);
-			thargon.setMother(mother);
+			mother.addActiveDrone(thargon);
 			thargon.addDestructionCallback(10, new IMethodHook() {
 				private static final long serialVersionUID = -7756830551169201213L;
 
 				@Override
 				public void execute(float deltaTime) {
 					if (mother.getHullStrength() > 0) {
-						mother.removeActiveThargon(thargon);
+						mother.removeActiveDrone(thargon);
 					}
 				}
 
@@ -963,9 +957,9 @@ public class ObjectSpawnManager implements Serializable {
 
 				@Override
 				public void execute(float deltaTime) {
-					for (Thargon thargon: mother.getActiveThargons()) {
-						if (thargon.getHullStrength() > 0) {
-							thargon.setAIState(AIState.FLY_STRAIGHT, -thargon.getSpeed());
+					for (SpaceObject drone: mother.getActiveDrones()) {
+						if (drone.getHullStrength() > 0) {
+							drone.setAIState(AIState.FLY_STRAIGHT, -drone.getSpeed());
 						}
 					}
 				}

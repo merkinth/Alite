@@ -178,7 +178,7 @@ public class Alite extends AndroidGame {
 			return false;
 		}
 		int distance = player.getCurrentSystem() == null ? computeDistance(player.getPosition(), player.getHyperspaceSystem()) : player.getCurrentSystem().computeDistance(player.getHyperspaceSystem());
-		return Settings.unlimitedFuel || player.getCobra().getFuel() >= distance;
+		return Settings.unlimitedFuel || player.getCobra().getFuel() > 0 && player.getCobra().getFuel() >= distance;
 	}
 
 	private int computeDistance(Point p, SystemData system) {
@@ -387,6 +387,7 @@ public class Alite extends AndroidGame {
 		generator.rebuildGalaxy();
 		player.setCurrentSystem(generator.getSystem(player.getCurrentSystem().getIndex()));
 		player.setHyperspaceSystem(generator.getSystem(player.getHyperspaceSystem().getIndex()));
+		AliteStartManager.loadLocaleDependentPlugins();
 	}
 
 	@Override

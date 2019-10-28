@@ -109,7 +109,7 @@ class ObjectPicker implements Serializable {
 						continue;
 					}
 					float radius = object.getBoundingSphereRadius();
-					if (((SpaceObject) object).getType() != ObjectType.SpaceStation) {
+					if (!ObjectType.isSpaceStation(((SpaceObject) object).getType())) {
 						float distSq = inGame.getShip().getPosition().distanceSq(object.getPosition());
 						float scale = distSq < 25000000 ? 1.0f : distSq / 25000000;
 						if (scale > 3.0f) {

@@ -29,9 +29,9 @@ import de.phbouillon.android.games.alite.Settings;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class LoadingScreen extends AliteScreen {
-	public static final String DIRECTORY_SOUND = "sound" + File.separator;
-	public static final String DIRECTORY_MUSIC = "music" + File.separator;
-	private static final String DIRECTORY_SOUND_COMPUTER = DIRECTORY_SOUND + "computer" + File.separator;
+	public static final String DIRECTORY_SOUND = "sound" + File.separatorChar;
+	public static final String DIRECTORY_MUSIC = "music" + File.separatorChar;
+	private static final String DIRECTORY_SOUND_COMPUTER = DIRECTORY_SOUND + "computer" + File.separatorChar;
 
 	public LoadingScreen(Alite game) {
 		super(game);

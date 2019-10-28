@@ -89,8 +89,8 @@ import java.util.*;
  */
 public class L {
 
-	public static final String DIRECTORY_LOCALES = "locales" + File.separator;
-	private static final String DIRECTORY_ASSETS = "assets" + File.separator;
+	public static final String DIRECTORY_LOCALES = "locales" + File.separatorChar;
+	private static final String DIRECTORY_ASSETS = "assets" + File.separatorChar;
 
 	private Resources res;
 	private ZipResourceFile currentLanguagePack;
@@ -112,7 +112,7 @@ public class L {
 
 	public void loadLocaleList(FileIO f, String localeName) {
 		nextLocaleIndex = 0;
-		File[] localeFiles = f.getFiles(DIRECTORY_LOCALES, "(.*)\\.zip");
+		File[] localeFiles = f.getFiles(DIRECTORY_LOCALES, ".*\\.zip");
 		locales.clear();
 		locales.add(Settings.DEFAULT_LOCALE_FILE);
 		// if locale directory does not exist
@@ -122,11 +122,38 @@ public class L {
 		AliteLog.d("loadLocaleList", "Number of locale files in directory '" +
 			DIRECTORY_LOCALES + "' found: " + localeFiles.length);
 		for (int i = 0; i < localeFiles.length; i++) {
-			locales.add(localeFiles[i].getName());
-			if (localeFiles[i].getName().equals(localeName)) {
-				nextLocaleIndex = i+1;
+			if (languageCountryToLocale(localeFiles[i].getName()) != null) {
+				locales.add(localeFiles[i].getName());
+				if (localeFiles[i].getName().equals(localeName)) {
+					nextLocaleIndex = i+1;
+				}
 			}
 		}
+	}
+
+	private Locale languageCountryToLocale(String languageFileName) {
+		int languageIdx = languageFileName.indexOf('_');
+		if (languageIdx < 2 || languageIdx > 8) {
+			return null;
+		}
+		int countryIdx = languageFileName.indexOf('_', languageIdx + 1);
+		if (countryIdx < 0) {
+			countryIdx = languageFileName.indexOf('.');
+			if (countryIdx < 0) {
+				countryIdx = languageFileName.length();
+			}
+		}
+		if (countryIdx - languageIdx < 2 || countryIdx - languageIdx > 3) {
+			return null;
+		}
+		try {
+			Locale locale = new Locale(languageFileName.substring(0, languageIdx),
+				languageFileName.substring(languageIdx + 1, countryIdx).toUpperCase());
+			if (!locale.getISO3Language().isEmpty() && !locale.getISO3Country().isEmpty()) {
+				return locale;
+			}
+		} catch (MissingResourceException ignored) { }
+		return null;
 	}
 
 	public String getNextLocale() {
@@ -144,7 +171,7 @@ public class L {
 		String localeFile = Settings.DEFAULT_LOCALE_FILE;
 
 		isDefaultLanguage = languagePackFileName == null || languagePackFileName.isEmpty() ||
-			Settings.DEFAULT_LOCALE_FILE.equals(languagePackFileName.substring(languagePackFileName.lastIndexOf(File.separator) + 1));
+			Settings.DEFAULT_LOCALE_FILE.equals(languagePackFileName.substring(languagePackFileName.lastIndexOf(File.separatorChar) + 1));
 
 		if (!isDefaultLanguage) {
 			try {
@@ -184,7 +211,7 @@ public class L {
 	private ZipResourceFile readLanguageResources(String languagePackFileName, Map<String, String> currentResource,
 			Map<String, String[]> currentArrayResource) throws IOException, SAXException, ParserConfigurationException {
 		ZipResourceFile languagePack = new ZipResourceFile(languagePackFileName);
-		InputStream is = languagePack.getInputStream("values" + File.separator + "strings.xml");
+		InputStream is = languagePack.getInputStream("values" + File.separatorChar + "strings.xml");
 		if (is == null) {
 			return null;
 		}
@@ -245,14 +272,8 @@ public class L {
 	}
 
 	private void setCurrentLocale(String languagePackFileName) {
-		Settings.localeFileName = languagePackFileName.substring(languagePackFileName.lastIndexOf(File.separator) + 1);
-		int languageIdx = Settings.localeFileName.indexOf('_');
-		int countryIdx = Settings.localeFileName.indexOf('_', languageIdx + 1);
-		if (countryIdx < 0) {
-			countryIdx = Settings.localeFileName.length();
-		}
-		currentLocale = new Locale(Settings.localeFileName.substring(0, languageIdx),
-			Settings.localeFileName.substring(languageIdx + 1, countryIdx).toUpperCase());
+		Settings.localeFileName = languagePackFileName.substring(languagePackFileName.lastIndexOf(File.separatorChar) + 1);
+		currentLocale = languageCountryToLocale(Settings.localeFileName);
 	}
 
 	public Locale getCurrentLocale() {
@@ -303,6 +324,28 @@ public class L {
 			}
 		}
 		return otherIdx < 0 ? "" : StringUtil.format(items[otherIdx].substring("other".length() + 1), formatArgs);
+	}
+
+	public String[] list(String path) {
+		if (getInstance().currentLanguagePack == null) {
+			return null;
+		}
+		ZipResourceFile.ZipEntryRO[] entries = getInstance().currentLanguagePack.getAllEntries();
+		List<String> files = new ArrayList<>();
+		int length = path.length();
+		for (ZipResourceFile.ZipEntryRO entry : entries) {
+			if (entry.mFileName.startsWith(path) && entry.mFileName.length() > length) {
+				// files are not in the sub-directory of path
+				int subDirIdx = entry.mFileName.indexOf(File.separatorChar, length);
+				if (subDirIdx < 0) {
+					files.add(entry.mFileName.substring(length));
+				} else if (!files.contains(entry.mFileName.substring(length, subDirIdx))) {
+					files.add(entry.mFileName.substring(length, subDirIdx));
+				}
+			}
+
+		}
+		return files.toArray(new String[0]);
 	}
 
 	public static InputStream raw(String fileName) throws IOException {

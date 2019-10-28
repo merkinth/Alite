@@ -32,18 +32,16 @@ public class Laser extends Equipment implements Serializable {
 	private final Timer timer = new Timer().setAutoResetWithImmediateAtFirstCall();
 	private final long delayTime;
 	private final int power;
-	private final long color;
+	private final int color;
 	private final boolean beam;
-	private final String textureName;
 
-	public Laser(int id, int name, int cost, int shortName, int index, long delay, int power, long color, boolean beam, String texture) {
+	public Laser(int id, int name, int cost, int shortName, int index, long delay, int power, int color, boolean beam) {
 		super(id, name, cost, shortName, false);
 		this.index = index;
 		this.power = power;
 		this.delayTime = delay;
 		this.color = color;
 		this.beam = beam;
-		this.textureName = texture;
 	}
 
 	private void writeObject(ObjectOutputStream out) throws IOException {
@@ -67,12 +65,8 @@ public class Laser extends Equipment implements Serializable {
 		return power;
 	}
 
-	public long getColor() {
+	public int getColor() {
 		return color;
-	}
-
-	public String getTexture() {
-		return textureName;
 	}
 
 	public boolean isBeam() {
