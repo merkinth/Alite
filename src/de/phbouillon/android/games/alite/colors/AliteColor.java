@@ -19,9 +19,7 @@ package de.phbouillon.android.games.alite.colors;
  */
 
 import android.graphics.Color;
-import de.phbouillon.android.games.alite.AliteLog;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -30,11 +28,11 @@ public class AliteColor {
 	// Further pre-defined color constants
 	static final int GRAYISH_BLUE          = 0xFF8CAAEF;
 	static final int LIGHT_GREEN           = 0xFF8CEF00;
-	static final int ORANGE                = 0xFFEF6500;
+	public static final int ORANGE         = 0xFFEF6500;
 	static final int ELECTRIC_BLUE         = 0xFF0892D0;
 	static final int DARK_ELECTRIC_BLUE    = 0xFF085290;
-	static final int LIGHT_ORANGE          = 0xFFEEACAC;
-	static final int DARK_ORANGE           = 0xFF885555;
+	static final int PINK                  = 0xFFEEACAC;
+	static final int DARK_PINK             = 0xFF885555;
 	static final int DKGRAY_MED_ALPHA      = 0xAA444444;
 	static final int GRAY_MED_ALPHA        = 0xAA888888;
 	static final int LIGHT_GREEN_LOW_ALPHA = 0x5500AA00;
@@ -113,13 +111,14 @@ public class AliteColor {
 		colorNameMap.put("teal", 0xFF008080);
 		// Add further pre-defined color constants
 		colorNameMap.put("transparent", Color.TRANSPARENT);
+		colorNameMap.put("clear", Color.TRANSPARENT);
 		colorNameMap.put("grayishblue", GRAYISH_BLUE);
 		colorNameMap.put("lightgreen", LIGHT_GREEN);
 		colorNameMap.put("orange", ORANGE);
 		colorNameMap.put("electricblue", ELECTRIC_BLUE);
 		colorNameMap.put("darkelectricblue", DARK_ELECTRIC_BLUE);
-		colorNameMap.put("lightorange", LIGHT_ORANGE);
-		colorNameMap.put("darkorange", DARK_ORANGE);
+		colorNameMap.put("pink", PINK);
+		colorNameMap.put("darkpink", DARK_PINK);
 		colorNameMap.put("dkgraymedalpha", DKGRAY_MED_ALPHA);
 		colorNameMap.put("graymedalpha", GRAY_MED_ALPHA);
 		colorNameMap.put("lightgreenlowalpha", LIGHT_GREEN_LOW_ALPHA);
@@ -128,5 +127,6 @@ public class AliteColor {
 		colorNameMap.put("darkblue", DARK_BLUE);
 		colorNameMap.put("lightredlowalpha", LIGHT_RED_LOW_ALPHA);
 		colorNameMap.put("darkredlowalpha", DARK_RED_LOW_ALPHA);
+		colorNameMap.put("brown", 0xFF996633);
 	}
 }

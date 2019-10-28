@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -23,26 +23,29 @@ import java.io.Serializable;
 import de.phbouillon.android.games.alite.Alite;
 
 public class ExplosionBillboard extends Billboard implements Serializable {
+	private static final long serialVersionUID = -7178776348821798250L;
+
 	private static final int EXPLOSION_FRAMES = 48;
-			
+
 	private int currentFrame;
 	private Explosion explosion;
-	
-	public ExplosionBillboard(Explosion ex, Alite alite, int frame) {
-		super("Explosion", alite, 0.0f, 0.0f, 0.0f, 130.0f, 130.0f, "textures/explosion2.png", alite.getTextureManager().getSprite("textures/explosion2.png", "frame" + frame));
-		this.explosion = ex;
+
+	ExplosionBillboard(Explosion ex, int frame) {
+		super("Explosion", 0.0f, 0.0f, 0.0f, 130.0f, 130.0f, "textures/explosion2.png",
+			Alite.get().getTextureManager().getSprite("textures/explosion2.png", "frame" + frame));
+		explosion = ex;
 		currentFrame = frame;
 		setZPositioningMode(ZPositioning.Front);
 		boundingSphereRadius = 150.0f;
 	}
 
-	public void setFrame(int frame) {
+	void setFrame(int frame) {
 		currentFrame = frame;
 		if (currentFrame >= EXPLOSION_FRAMES || currentFrame < 0) {
 			setRemove(true);
 			return;
 		}
-		updateTextureCoordinates(alite.getTextureManager().getSprite("textures/explosion2.png", "frame" + frame));
+		updateTextureCoordinates(Alite.get().getTextureManager().getSprite("textures/explosion2.png", "frame" + frame));
 	}
 
 	@Override
@@ -50,12 +53,12 @@ public class ExplosionBillboard extends Billboard implements Serializable {
 		super.resize(newWidth, newHeight);
 		boundingSphereRadius = (newWidth + newHeight) / 2.0f;
 	}
-	
-	public int getFrame() {
+
+	int getFrame() {
 		return currentFrame;
 	}
 
 	public Explosion getExplosion() {
 		return explosion;
-	}	
+	}
 }

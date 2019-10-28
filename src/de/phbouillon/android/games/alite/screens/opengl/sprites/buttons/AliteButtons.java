@@ -100,9 +100,8 @@ public class AliteButtons implements Serializable {
 	private final ECMTraverser ecmTraverser;
 	private int fireButtonPressed = -1;
 
-	public AliteButtons(Alite alite, GraphicObject ship, InGameManager inGame) {
-		ct = new DefaultCoordinateTransformer(alite);
-		this.alite = alite;
+	public AliteButtons(GraphicObject ship, InGameManager inGame) {
+		alite = Alite.get();
 		this.ship = ship;
 		this.inGame = inGame;
 
@@ -711,7 +710,7 @@ public class AliteButtons implements Serializable {
 		}
 		inGame.forceForwardView();
 		inGame.killHud();
-		ship.setUpdater(new EscapeCapsuleUpdater(alite, inGame, ship));
+		ship.setUpdater(new EscapeCapsuleUpdater(inGame, ship));
 		alite.getPlayer().setCondition(Condition.DOCKED);
 		// The police track record is identified by the ship's id,
 		// so leaving it with an escape capsule can be abused to get a

@@ -31,7 +31,7 @@ import de.phbouillon.android.games.alite.model.CommanderData;
 @SuppressWarnings("serial")
 public class LoadScreen extends CatalogScreen {
 	private boolean confirmedLoad = false;
-	private boolean pendingShowMessage = false;
+	private boolean pendingShowMessage;
 
 	LoadScreen(Alite game, String title) {
 		super(game, title);
@@ -82,7 +82,7 @@ public class LoadScreen extends CatalogScreen {
 			// this lookup isn't the problem.
 			dos.writeInt(commanderData.indexOf(c));
 		}
-		dos.writeBoolean(isMessageDialogActive());
+		dos.writeBoolean(pendingShowMessage);
 	}
 
 	@Override
@@ -95,10 +95,12 @@ public class LoadScreen extends CatalogScreen {
 		if (selectedCommanderData.size() == 1) {
 			if (messageResult == RESULT_NONE) {
 				showQuestionDialog(L.string(R.string.cmdr_load_confirm, selectedCommanderData.get(0).getName()));
+				pendingShowMessage = true;
 				confirmDelete = false;
 				SoundManager.play(Assets.alert);
 				return;
 			}
+			pendingShowMessage = false;
 			if (messageResult == RESULT_YES) {
 				try {
 					game.loadCommander(selectedCommanderData.get(0).getFileName());

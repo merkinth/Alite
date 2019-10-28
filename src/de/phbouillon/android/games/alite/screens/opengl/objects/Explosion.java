@@ -39,7 +39,7 @@ public class Explosion implements Serializable {
 	private boolean rendered;
 	private SpaceObject ref;
 
-	public Explosion(Alite alite, SpaceObject ref, InGameManager inGame) {
+	public Explosion(SpaceObject ref, InGameManager inGame) {
 		this.inGame = inGame;
 		this.ref = ref;
 
@@ -47,7 +47,7 @@ public class Explosion implements Serializable {
 		ref.getPosition().copy(zOffset);
 		zOffset.z -= size / 3.0f;
 		for (int i = 0; i < 3; i++) {
-			explosions[i] = new ExplosionBillboard(this, alite, i);
+			explosions[i] = new ExplosionBillboard(this, i);
 			explosions[i].setPosition(zOffset);
 			explosions[i].resize(size, size);
 			inGame.addObject(explosions[i]);

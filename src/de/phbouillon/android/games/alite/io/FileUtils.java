@@ -786,7 +786,7 @@ public class FileUtils {
 	}
 
 	public File[] getCommanderFiles() {
-		return game.getFileIO().getFiles(CommanderData.DIRECTORY_COMMANDER, "(.*)\\" + ALITE_COMMANDER_EXTENSION);
+		return game.getFileIO().getFiles(CommanderData.DIRECTORY_COMMANDER, ".*\\" + ALITE_COMMANDER_EXTENSION);
 	}
 
 	public boolean existsSavedCommander() {

@@ -20,15 +20,12 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
 
 import java.io.DataInputStream;
 
-import android.content.pm.ActivityInfo;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.model.Condition;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class DisplayOptionsScreen extends OptionsScreen {
 	private Button animations;
 	private Button colorScheme;
@@ -167,11 +164,7 @@ public class DisplayOptionsScreen extends OptionsScreen {
 				if (Settings.lockScreen >= 3) {
 					Settings.lockScreen = 0;
 				}
-				switch (Settings.lockScreen) {
-					case 0: game.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE); break;
-					case 1: game.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); break;
-					case 2: game.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE); break;
-				}
+				Settings.setOrientation(game);
 				lockOrientation.setText(L.string(R.string.options_display_lock_orientation, L.string(getOrientationLockString(Settings.lockScreen))));
 				Settings.save(game.getFileIO());
 			} else if (targetBox.isTouched(touch.x, touch.y)) {

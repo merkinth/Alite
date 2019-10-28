@@ -149,8 +149,8 @@ public class ColorScheme {
 		{AliteColor.DARK_BLUE, AliteColor.DARK_BLUE}, // COLOR_BACKGROUND_DARK
 		{Color.WHITE, Color.WHITE}, // COLOR_FRAME_LIGHT
 		{Color.GRAY, Color.GRAY}, // COLOR_FRAME_DARK
-		{AliteColor.LIGHT_ORANGE, AliteColor.LIGHT_ORANGE}, // COLOR_SELECTED_COLORED_FRAME_LIGHT
-		{AliteColor.DARK_ORANGE, AliteColor.DARK_ORANGE}, // COLOR_SELECTED_COLORED_FRAME_DARK
+		{AliteColor.PINK, AliteColor.PINK}, // COLOR_SELECTED_COLORED_FRAME_LIGHT
+		{AliteColor.DARK_PINK, AliteColor.DARK_PINK}, // COLOR_SELECTED_COLORED_FRAME_DARK
 		{AliteColor.DARK_RED_LOW_ALPHA, AliteColor.DARK_RED_LOW_ALPHA}, // COLOR_PULSING_HIGHLIGHTER_DARK
 		{AliteColor.LIGHT_RED_LOW_ALPHA, AliteColor.LIGHT_RED_LOW_ALPHA}, // COLOR_PULSING_HIGHLIGHTER_LIGHT
 		{AliteColor.DKGRAY_MED_ALPHA, AliteColor.DKGRAY_MED_ALPHA}, // COLOR_TUTORIAL_BUBBLE_DARK
@@ -223,8 +223,8 @@ public class ColorScheme {
 		{Color.DKGRAY, Color.DKGRAY}, // COLOR_BACKGROUND_DARK
 		{Color.WHITE, Color.WHITE}, // COLOR_FRAME_LIGHT
 		{Color.GRAY, Color.GRAY}, // COLOR_FRAME_DARK
-		{AliteColor.LIGHT_ORANGE, AliteColor.LIGHT_ORANGE}, // COLOR_SELECTED_COLORED_FRAME_LIGHT
-		{AliteColor.DARK_ORANGE, AliteColor.DARK_ORANGE}, // COLOR_SELECTED_COLORED_FRAME_DARK
+		{AliteColor.PINK, AliteColor.PINK}, // COLOR_SELECTED_COLORED_FRAME_LIGHT
+		{AliteColor.DARK_PINK, AliteColor.DARK_PINK}, // COLOR_SELECTED_COLORED_FRAME_DARK
 		{AliteColor.DARK_GREEN_LOW_ALPHA, AliteColor.DARK_GREEN_LOW_ALPHA}, // COLOR_PULSING_HIGHLIGHTER_DARK
 		{AliteColor.LIGHT_GREEN_LOW_ALPHA, AliteColor.LIGHT_GREEN_LOW_ALPHA}, // COLOR_PULSING_HIGHLIGHTER_LIGHT
 		{AliteColor.DKGRAY_MED_ALPHA, AliteColor.DKGRAY_MED_ALPHA}, // COLOR_TUTORIAL_BUBBLE_DARK
@@ -237,7 +237,7 @@ public class ColorScheme {
 		{AliteColor.ORANGE, AliteColor.ORANGE}, // COLOR_SELECTED_TEXT
 		{AliteColor.DARK_ELECTRIC_BLUE, AliteColor.DARK_ELECTRIC_BLUE}, // COLOR_CREDITS_DESCRIPTION
 		{AliteColor.ELECTRIC_BLUE, AliteColor.ELECTRIC_BLUE}, // COLOR_CREDITS_PERSON
-		{AliteColor.DARK_ORANGE, AliteColor.DARK_ORANGE}, // COLOR_CREDITS_ADDITION
+		{AliteColor.DARK_PINK, AliteColor.DARK_PINK}, // COLOR_CREDITS_ADDITION
 		{AliteColor.LIGHT_GREEN, Color.RED}, // COLOR_FRONT_SHIELD
 		{AliteColor.LIGHT_GREEN, Color.RED}, // COLOR_AFT_SHIELD
 		{AliteColor.LIGHT_GREEN, Color.RED}, // COLOR_FUEL
@@ -255,7 +255,7 @@ public class ColorScheme {
 		{0x99F0F000, 0x99F0F000} // COLOR_HUD_MESSAGE - MedAlphaDarkYellow
 	};
 
-	private static final String DIRECTORY_COLOR_SCHEMES = "color_schemes" + File.separator;
+	private static final String DIRECTORY_COLOR_SCHEMES = "color_schemes" + File.separatorChar;
 	static final String ALITE_COLOR_SCHEME_EXTENSION = ".acs";
 
 	private static int[][] colors = classicColorSchemeColors;
@@ -355,7 +355,7 @@ public class ColorScheme {
 
 	public static void loadColorSchemeList(FileIO f, String schemeName) {
 		nextColorSchemeIndex = 0;
-		File[] colorSchemeFiles = f.getFiles(DIRECTORY_COLOR_SCHEMES, "(.*)\\" + ALITE_COLOR_SCHEME_EXTENSION);
+		File[] colorSchemeFiles = f.getFiles(DIRECTORY_COLOR_SCHEMES, ".*\\" + ALITE_COLOR_SCHEME_EXTENSION);
 		colorSchemes.clear();
 		// if color_schemes directory does not exist
 		if (colorSchemeFiles == null) {

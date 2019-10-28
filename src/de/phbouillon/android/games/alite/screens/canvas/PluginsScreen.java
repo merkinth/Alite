@@ -35,6 +35,7 @@ import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ import java.util.Locale;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class PluginsScreen extends AliteScreen implements IDownloaderClient {
-	public static final String DIRECTORY_PLUGINS = "plugins" + java.io.File.separator;
+	public static final String DIRECTORY_PLUGINS = "plugins" + File.separator;
 	public static final String PLUGINS_META_FILE = "alite_plugins.json";
 
 	private final List<Button> buttons = new ArrayList<>();
@@ -235,7 +236,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 					}
 					downloadState = IDownloaderClient.STATE_DOWNLOADING;
 					progress = new DownloadProgressInfo(1, 0, -1, 0);
-					new PluginManagerImpl(game.getApplicationContext(), game.getFileIO(), AliteConfig.ALITE_MAIL,
+					new PluginManagerImpl(game.getApplicationContext(), game.getFileIO(),
 						AliteConfig.ROOT_DRIVE_FOLDER, AliteConfig.GAME_NAME, this).
 						downloadFile(currentPlugin.fileId, currentPlugin.size, currentPlugin.folder, currentPlugin.filename);
 					return;
@@ -271,7 +272,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 			}
 		}
 
-		g.setClip(0, 0, -1, 1000);
+		g.setClip(-1, 130, -1, 1000);
 		for (int i = 0; i < buttons.size(); i++) {
 			Button button = buttons.get(i).setYOffset(-yPosition);
 			String status = plugins.get(i/3).status;
@@ -303,16 +304,12 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 					break;
 
 				case 1:
-				if (isDownloadable(status)) {
-					button.render(g);
-				}
-				break;
+					button.setVisible(isDownloadable(status)).render(g);
+					break;
 
 				case 2:
-				if (isRemovable(status)) {
-					button.render(g);
-				}
-				break;
+					button.setVisible(isRemovable(status)).render(g);
+					break;
 			}
 		}
 		g.setClip(-1, -1, -1, -1);

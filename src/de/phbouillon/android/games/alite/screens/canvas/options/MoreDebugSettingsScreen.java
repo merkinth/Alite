@@ -141,7 +141,7 @@ public class MoreDebugSettingsScreen extends AliteScreen {
 			for (Mission m: game.getPlayer().getCompletedMissions()) {
 				completedMissions += m.getClass().getSimpleName() + "; ";
 			}
-			showMessageDialog(L.string(R.string.options_more_debug_completed_missions, completedMissions));
+			showLargeMessageDialog(L.string(R.string.options_more_debug_completed_missions, completedMissions));
 			return;
 		}
 		if (back.isTouched(touch.x, touch.y)) {

@@ -263,10 +263,6 @@ public class NavigationBar {
 		if (entry.navigationTarget != null) {
 			SoundManager.play(Assets.click);
 			try {
-				if (index == Alite.NAVIGATION_BAR_PLANET &&
-						game.getPlayer().getCurrentSystem() == null && game.getPlayer().getHyperspaceSystem() == null) {
-					SoundManager.play(Assets.error);
-				}
 				Screen newScreen = (Screen) Class.forName(getClass().getPackage().getName() + "." + entry.navigationTarget).
 					getConstructor(Alite.class).newInstance(game);
 				pendingIndex = index;
