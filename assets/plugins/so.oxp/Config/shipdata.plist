@@ -679,7 +679,6 @@
 		has_ecm = 1.0;
 		aggression_level = 25;
 		bounty = 5000;
-		galaxy = 2;
 		cargo_carried = 1;
 		weapon_position_forward = (
 			"0.0 30.43 198.0"

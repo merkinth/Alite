@@ -96,6 +96,8 @@ public class StatusScreen extends AliteScreen {
 		g.drawText(L.string(R.string.status_cash),           40, 390, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		if (!player.getActiveMissions().isEmpty()) {
 			g.drawText(L.string(R.string.status_mission_objective), 750, 150, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+			g.drawText(player.getActiveMissions().get(0).getObjective(), 750, 190,
+				ColorScheme.get(ColorScheme.COLOR_MISSION_OBJECTIVE), Assets.regularFont);
 		}
 
 		if (player.getCurrentSystem() != null) {
@@ -112,10 +114,6 @@ public class StatusScreen extends AliteScreen {
 			ColorScheme.get(ColorScheme.COLOR_REMAINING_FUEL), Assets.regularFont);
 		g.drawText(L.getOneDecimalFormatString(R.string.cash_amount_value_currency, player.getCash()), 400, 390,
 				ColorScheme.get(ColorScheme.COLOR_BALANCE), Assets.regularFont);
-		if (!player.getActiveMissions().isEmpty()) {
-			g.drawText(player.getActiveMissions().get(0).getObjective(), 1110, 150,
-					ColorScheme.get(ColorScheme.COLOR_MISSION_OBJECTIVE), Assets.regularFont);
-		}
 		if (!(game.getCurrentScreen() instanceof FlightScreen)) {
 			g.drawText(L.string(R.string.status_visit_web_page, AliteConfig.ALITE_WEBSITE), 50, 1050,
 				ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);

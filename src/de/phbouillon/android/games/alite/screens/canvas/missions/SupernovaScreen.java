@@ -65,10 +65,10 @@ public class SupernovaScreen extends AliteScreen {
 				acceptMission = new MissionLine(path + "06.mp3", L.string(R.string.mission_supernova_accept));
 			} else if (state == 1) {
 				missionLine = new MissionLine(path + "05.mp3", L.string(R.string.mission_supernova_mission_decline));
-				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 1);
+				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 2);
 			} else if (state == 2) {
 				missionLine = new MissionLine(path + "03.mp3", L.string(R.string.mission_supernova_drop_us_off));
-				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 2);
+				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 1);
 			} else if (state == 3) {
 				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_supernova_success));
 				mission.onMissionComplete();
