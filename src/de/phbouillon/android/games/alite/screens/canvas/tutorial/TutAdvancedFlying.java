@@ -172,7 +172,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 			setUnskippable().setMustRetainEvents();
 
 		line.setUpdateMethod(deltaTime -> {
-			enableControlButtons(true);
+			overrideControlButtons(true);
 			setPlayerControlOn();
 			if (flight.getInGameManager().isTargetInCenter()) {
 				SoundManager.play(Assets.identify);
@@ -186,7 +186,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 		flight.getInGameManager().getShip().adjustSpeed(0);
 		flight.getInGameManager().setNeedsSpeedAdjustment(true);
 		flight.setHandleUI(false);
-		enableControlButtons(false);
+		overrideControlButtons(false);
 	}
 
 	private void setPlayerControlOn() {
@@ -197,25 +197,26 @@ public class TutAdvancedFlying extends TutorialScreen {
 		}
 	}
 
-	private void enableControlButtons(boolean enable) {
-		AliteButtons.OVERRIDE_HYPERSPACE = enable;
-		AliteButtons.OVERRIDE_INFORMATION = enable;
-		AliteButtons.OVERRIDE_MISSILE = enable;
-		AliteButtons.OVERRIDE_LASER = enable;
+	private void overrideControlButtons(boolean override) {
+		AliteButtons.OVERRIDE_HYPERSPACE = override;
+		AliteButtons.OVERRIDE_INFORMATION = override;
+		AliteButtons.OVERRIDE_MISSILE = override;
+		AliteButtons.OVERRIDE_LASER = override;
+		AliteButtons.OVERRIDE_TORUS = override;
 	}
 
 	private void initLine_05() {
 		final TutorialLine line = addTopLine(L.string(R.string.tutorial_advanced_flying_05)).setUnskippable();
 		line.setMustRetainEvents().setUpdateMethod(deltaTime -> {
-			enableControlButtons(true);
+			overrideControlButtons(true);
 			setPlayerControlOn();
-			if (game.getCobra().getSpeed() <= -PlayerCobra.MAX_SPEED) {
+			if (flight.getInGameManager().getShip().getSpeed() <= -PlayerCobra.MAX_SPEED) {
 				line.setFinished();
 			}
 		}).setFinishHook(deltaTime -> {
 			flight.getInGameManager().setPlayerControl(false);
 			flight.setHandleUI(false);
-			enableControlButtons(false);
+			overrideControlButtons(false);
 		});
 	}
 
@@ -235,18 +236,19 @@ public class TutAdvancedFlying extends TutorialScreen {
 			addHighlight(makeHighlight(1560, 150, 200, 200));
 
 		line.setUpdateMethod(deltaTime -> {
-			enableControlButtons(true);
+			overrideControlButtons(true);
 			AliteButtons.OVERRIDE_TORUS = false;
 			setPlayerControlOn();
-			if (game.getCobra().getSpeed() < -PlayerCobra.TORUS_TEST_SPEED) {
+			if (flight.getInGameManager().getShip().getSpeed() < -PlayerCobra.TORUS_TEST_SPEED) {
+				setPlayerControlOff();
 				if (timer.hasPassedSeconds(5)) {
 					flight.getInGameManager().getSpawnManager().leaveTorus();
 					line.setFinished();
 				}
 			}
 		}).setFinishHook(deltaTime -> {
-			setPlayerControlOff();
-			AliteButtons.OVERRIDE_TORUS = false;
+			// leaveTorus enables player control but does not change UI handler
+			flight.setHandleUI(true);
 		});
 	}
 
@@ -279,8 +281,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	private void initLine_16() {
-		final TutorialLine line = addEmptyLine().setMustRetainEvents().
-			setUnskippable();
+		final TutorialLine line = addEmptyLine().setMustRetainEvents().setUnskippable();
 
 		line.setUpdateMethod(deltaTime -> {
 			AliteButtons.OVERRIDE_HYPERSPACE = true;
@@ -340,8 +341,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 			addEmptyLine().setUnskippable().setMustRetainEvents();
 
 		line.setUpdateMethod(deltaTime -> {
-			enableControlButtons(true);
-			AliteButtons.OVERRIDE_TORUS = true;
+			overrideControlButtons(true);
 			setPlayerControlOn();
 			setScoopNotifier(line);
 		}).setFinishHook(deltaTime -> {
@@ -393,13 +393,12 @@ public class TutAdvancedFlying extends TutorialScreen {
 	private void initLine_25() {
 		addEmptyLine().setUnskippable().setMustRetainEvents()
 		.setUpdateMethod(deltaTime -> {
-			enableControlButtons(true);
+			overrideControlButtons(true);
 			AliteButtons.OVERRIDE_TORUS = false;
 			setPlayerControlOn();
 			if (flight.getPostDockingHook() == null) {
 				flight.setPostDockingHook(deltaTime1 -> {
-					enableControlButtons(false);
-					AliteButtons.OVERRIDE_TORUS = false;
+					overrideControlButtons(false);
 					dispose();
 				});
 			}

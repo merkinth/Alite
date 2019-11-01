@@ -28,6 +28,7 @@ import androidx.annotation.PluralsRes;
 import androidx.annotation.StringRes;
 import com.android.vending.expansion.zipfile.ZipResourceFile;
 import de.phbouillon.android.framework.FileIO;
+import de.phbouillon.android.framework.IntFunction;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 import org.w3c.dom.DOMException;
@@ -245,12 +246,6 @@ public class L {
 
 	public static String getOneDecimalFormatString(int resId, long value) {
 		return string(resId, value / 10, value % 10);
-	}
-
-	// todo: Remove this copy of interface after min sdk will be at least 24
-	@FunctionalInterface
-	private interface IntFunction<R> {
-		R apply(int value);
 	}
 
 	private <T> void collectResourceFields(Field[] fields, Map<String,T> current, SparseArray<T> destination, IntFunction<T> getter) {

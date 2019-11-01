@@ -37,7 +37,6 @@ import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
-import de.phbouillon.android.games.alite.screens.canvas.tutorial.TutorialScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
@@ -80,7 +79,6 @@ public class AliteButtons implements Serializable {
 	private final String textureFilename;
 	protected transient Alite alite;
 	protected final GraphicObject ship;
-	private Screen newScreen;
 	private final InGameManager inGame;
 	private ButtonData source = null;
 	private ButtonGroup [] buttonGroup;
@@ -119,7 +117,6 @@ public class AliteButtons implements Serializable {
 			600.0f / 1024.0f, 600.0f / 1024.0f, 800.0f / 1024.0f,  800.0f / 1024.0f, textureFilename);
 		noButton      = new Sprite(1220, 250, 1420, 450,
 			600.0f / 1024.0f, 800.0f / 1024.0f, 800.0f / 1024.0f, 1000.0f / 1024.0f, textureFilename);
-		newScreen     = null;
 
 		torusTraverser = new TorusBlockingTraverser(inGame);
 		energyBombTraverser = new EnergyBombTraverser(inGame);
@@ -303,7 +300,7 @@ public class AliteButtons implements Serializable {
 			return;
 		}
 		if ((buttons[DOCKING_COMPUTER] == null || !buttons[DOCKING_COMPUTER].active) &&
-				alite.getCobra().getSpeed() <= -PlayerCobra.MAX_SPEED &&
+				inGame.getShip().getSpeed() <= -PlayerCobra.MAX_SPEED &&
 				!inGame.isInExtendedSafeZone() && !inGame.isWitchSpace() &&
 				alite.getCobra().getCabinTemperature() == 0 &&
 				!inGame.traverseObjects(torusTraverser)) {
@@ -327,7 +324,7 @@ public class AliteButtons implements Serializable {
 	}
 
 	private boolean isTorusDriveEngaged() {
-		return isTorusDriveEngaged(alite.getCobra().getSpeed());
+		return isTorusDriveEngaged(inGame.getShip().getSpeed());
 	}
 
 	private boolean isTorusDriveEngaged(float speed) {
@@ -378,7 +375,7 @@ public class AliteButtons implements Serializable {
 		if (buttons[RETRO_ROCKETS] == null) {
 			return;
 		}
-		buttons[RETRO_ROCKETS].active = alite.getCobra().isEquipmentInstalled(EquipmentStore.retroRockets) && alite.getCobra().getSpeed() <= 0.0f;
+		buttons[RETRO_ROCKETS].active = alite.getCobra().isEquipmentInstalled(EquipmentStore.retroRockets) && inGame.getShip().getSpeed() <= 0.0f;
 	}
 
 	private void updateSweep() {
@@ -783,7 +780,7 @@ public class AliteButtons implements Serializable {
 	}
 
 	private void toggleTimeDrive() {
-		if (OVERRIDE_TORUS || alite.getCurrentScreen() instanceof TutorialScreen) {
+		if (OVERRIDE_TORUS) {
 			return;
 		}
 		if (isTimeDriveEngaged() || isTorusDriveEngaged(ship.getSpeed())) {
@@ -822,7 +819,4 @@ public class AliteButtons implements Serializable {
 		ship.setSpeed(RETRO_ROCKET_SPEED);
 	}
 
-	public Screen getNewScreen() {
-		return newScreen;
-	}
 }

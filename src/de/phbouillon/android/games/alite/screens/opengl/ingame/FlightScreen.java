@@ -205,7 +205,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 		windowHeight = visibleArea.height();
 		initializeGl(visibleArea);
 
-		inGame = new InGameManager(new AliteHud(), "textures/star_map.png", lightPosition, fromStation, true);
+		inGame = new InGameManager(new AliteHud(speed -> inGame.getShip().getSpeed()), "textures/star_map.png", lightPosition, fromStation, true);
 		PlayerCobra cobra = game.getCobra();
 		cobra.setMissileTargetting(false);
 		cobra.setMissileLocked(false);

@@ -67,7 +67,6 @@ public class PlayerCobra {
 	private float altitude = MAX_ALTITUDE;
 	private float pitch = 0f;
 	private float roll = 0f;
-	private float speed = 0f;
 	private boolean missileLocked = false;
 	private boolean missileTargetting = false;
 	private final List <Equipment> equipmentList = new ArrayList<Equipment>();
@@ -397,14 +396,6 @@ public class PlayerCobra {
 
 	public void setAltitude(float altitude) {
 		this.altitude = altitude;
-	}
-
-	public float getSpeed() {
-		return speed;
-	}
-
-	public void setSpeed(float speed) {
-		this.speed = speed;
 	}
 
 	public float getPitch() {

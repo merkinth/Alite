@@ -93,7 +93,7 @@ public class TutIntroduction extends TutorialScreen {
 
 	private void initLine_05() {
 		addLine(1, L.string(R.string.tutorial_introduction_05))
-			.addHighlight(makeHighlight(30, 270, 850, 50));
+			.setY(700).setHeight(350).addHighlight(makeHighlight(30, 270, 850, 50));
 	}
 
 	private void initLine_06() {
@@ -108,7 +108,7 @@ public class TutIntroduction extends TutorialScreen {
 
 	private void initLine_08() {
 		addLine(1, L.string(R.string.tutorial_introduction_08))
-			.addHighlight(makeHighlight(970, 350, 300, 50))
+			.setY(750).addHighlight(makeHighlight(970, 350, 300, 50))
 			.addHighlight(makeHighlight(1330, 540, 300, 50));
 	}
 

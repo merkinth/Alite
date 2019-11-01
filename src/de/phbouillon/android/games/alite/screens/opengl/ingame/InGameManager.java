@@ -938,7 +938,7 @@ public class InGameManager implements Serializable {
 				handleSpeedChange(e);
 			}
 		} else {
-			newScreen = buttons.getNewScreen();
+			newScreen = null;
 			return true;
 		}
 		return false;
@@ -989,7 +989,6 @@ public class InGameManager implements Serializable {
 		if (playerControl) {
 			alite.getCobra().setRotation(deltaYawRollPitch.z, deltaYawRollPitch.y);
 		}
-		alite.getCobra().setSpeed(ship.getSpeed());
 		hud.render();
 		hud.clear();
 	}
@@ -1700,7 +1699,7 @@ public class InGameManager implements Serializable {
 
 	void resetHud() {
 		if (hud != null) {
-			hud = new AliteHud();
+			hud = new AliteHud(speed -> ship.getSpeed());
 			if (buttons != null) {
 				buttons.reset();
 			}

@@ -21,6 +21,7 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites;
 import java.io.Serializable;
 
 import android.graphics.Color;
+import de.phbouillon.android.framework.IntFunction;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Settings;
@@ -43,6 +44,7 @@ public final class InfoGaugeRenderer implements Serializable {
 	private final Sprite[] uiTexts = new Sprite[13];
 	private float pitchPos = 175.0f;
 	private float rollPos = 175.0f;
+	private IntFunction<Float> getSpeed;
 
 	InfoGaugeRenderer(final AliteHud hud) {
 		gaugeOverlay   = hud.genSprite("gauge_overlay", 150, 700);
@@ -65,6 +67,7 @@ public final class InfoGaugeRenderer implements Serializable {
 				sy = 700;
 			}
 		}
+		getSpeed = hud.getSpeedFunction();
 	}
 
 	private float extractFrontShield() {
@@ -110,7 +113,7 @@ public final class InfoGaugeRenderer implements Serializable {
 	}
 
 	private float extractSpeed() {
-		float speed = Alite.get().getCobra().getSpeed();
+		float speed = getSpeed.apply(0);
 		if (-speed > PlayerCobra.MAX_SPEED) {
 			speed = -PlayerCobra.MAX_SPEED;
 		}

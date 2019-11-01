@@ -24,6 +24,7 @@ import java.io.Serializable;
 
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Input.TouchEvent;
+import de.phbouillon.android.framework.IntFunction;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.*;
@@ -78,9 +79,11 @@ public class AliteHud extends Sprite implements Serializable {
 	private ControlPad controlPad;
 	private CursorKeys controlKeys;
 	private final Timer timer = new Timer().setAutoResetWithSkipFirstCall();
+	private IntFunction<Float> getSpeed;
 
-	public AliteHud() {
+	public AliteHud(IntFunction<Float> getSpeed) {
 		super(RADAR_X1, RADAR_Y1, RADAR_X2, RADAR_Y2, 0, 0, 1, 1, TEXTURE_FILE);
+		this.getSpeed = getSpeed;
 		SpriteData spriteData = Alite.get().getTextureManager().getSprite(TEXTURE_FILE, "radar");
 		setTextureCoords(spriteData.x, spriteData.y, spriteData.x2, spriteData.y2);
 
@@ -101,6 +104,10 @@ public class AliteHud extends Sprite implements Serializable {
 		} else if (Settings.controlMode == ShipControl.CURSOR_SPLIT_BLOCK) {
 			controlKeys = new CursorKeys(true);
 		}
+	}
+
+	IntFunction<Float> getSpeedFunction() {
+		return getSpeed;
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
