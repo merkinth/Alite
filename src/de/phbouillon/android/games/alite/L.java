@@ -65,7 +65,7 @@ import java.util.*;
  * <p>Strings and arrays have static values they are returned by methods string and array.</p>
  *<p></p>
  * <p>Binary a.k.a raw files are handled by methods raw and rawDescriptor.
- * To access them by its descriptor has a trick: firstly, they have to be save from the zipped resource file
+ * To access them by its descriptor has a trick: firstly, they have to be saved from the zipped resource file
  * as a temporary file.</p>
  *<p></p>
  * <p>Handling plurals requires further explanation. Since the plural form that is currently being used
@@ -91,7 +91,7 @@ import java.util.*;
 public class L {
 
 	public static final String DIRECTORY_LOCALES = "locales" + File.separatorChar;
-	private static final String DIRECTORY_ASSETS = "assets" + File.separatorChar;
+	public static final String DIRECTORY_ASSETS = "assets" + File.separatorChar;
 
 	private Resources res;
 	private ZipResourceFile currentLanguagePack;

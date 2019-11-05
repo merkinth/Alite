@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model.library;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -21,25 +21,23 @@ package de.phbouillon.android.games.alite.model.library;
 public class ItemDescriptor {
 	private String fileName;
 	private String text;
-	
-	ItemDescriptor(String fileName, String text) {
+	private boolean localized;
+
+	ItemDescriptor(String fileName, String text, boolean localized) {
 		this.fileName = fileName;
 		this.text = text;
+		this.localized = localized;
 	}
-	
+
 	public String getFileName() {
 		return fileName;
 	}
-	
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
-	}
-	
+
 	public String getText() {
 		return text;
 	}
-	
-	public void setText(String text) {
-		this.text = text;
+
+	public boolean isLocalized() {
+		return localized;
 	}
 }

@@ -23,6 +23,8 @@ import android.graphics.ColorFilter;
 import android.graphics.Rect;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 
+import java.io.InputStream;
+
 public interface Graphics {
 	enum PixmapFormat {
 		ARGB8888, ARGB4444, RGB565
@@ -66,6 +68,7 @@ public interface Graphics {
 
 	Pixmap newPixmap(String fileName);
 	Pixmap newPixmap(String fileName, int width, int height);
+	Pixmap newPixmap(String fileName, InputStream is, int width, int height);
 	Pixmap newPixmap(Bitmap bitmap, String fileName);
 
 	void drawPixmap(Pixmap pixmap, int x, int y);

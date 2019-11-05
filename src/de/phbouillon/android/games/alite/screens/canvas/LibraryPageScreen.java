@@ -30,7 +30,6 @@ import android.graphics.Color;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
-import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
@@ -195,9 +194,8 @@ public class LibraryPageScreen extends AliteScreen {
 		int counter = 0;
 		for (ItemDescriptor id: page.getImages()) {
 			try {
-				Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY + id.getFileName() + ".png", 500, 250);
 				Button b = Button.createGradientPictureButton(1100, PAGE_BEGIN + counter * 275,
-					500 + 2 * Button.BORDER_SIZE, 250 + 2 * Button.BORDER_SIZE, pixmap);
+					500 + 2 * Button.BORDER_SIZE, 250 + 2 * Button.BORDER_SIZE, getImage(id, 500, 250));
 				images.add(b);
 				counter++;
 			} catch (RuntimeException e) {
@@ -208,6 +206,18 @@ public class LibraryPageScreen extends AliteScreen {
 				AliteLog.e("[ALITE] LibraryPageScreen", "Image " + id.getFileName() + " not found. Skipping.");
 			}
 		}
+	}
+
+	private Pixmap getImage(ItemDescriptor id, int width, int height) {
+		String imageName = Toc.DIRECTORY_LIBRARY + id.getFileName() + ".png";
+		Pixmap pixmap = null;
+		if (id.isLocalized()) {
+			try {
+				pixmap = game.getGraphics().newPixmap(imageName, L.raw(L.DIRECTORY_ASSETS + Toc.DIRECTORY_LIBRARY,
+					id.getFileName() + ".png"), width, height);
+			} catch (IOException | RuntimeException ignored) { }
+		}
+		return pixmap == null ? game.getGraphics().newPixmap(imageName, width, height): pixmap;
 	}
 
 	public static boolean initialize(Alite alite, DataInputStream dis) {
@@ -330,11 +340,9 @@ public class LibraryPageScreen extends AliteScreen {
 			for (String col: row.split(",")) {
 				col = col.replaceAll("\\[s\\]", " ").trim();
 				if (col.contains("[r]")) {
-					col.replaceAll("\\[r\\]", "");
 					rightAlign.add(colIndex);
 				}
 				if (col.contains("[m]")) {
-					col.replaceAll("\\[m\\]", "");
 					toggleColor = false;
 				}
 				StyledText styledWord = getStyledText(col);
@@ -587,9 +595,8 @@ public class LibraryPageScreen extends AliteScreen {
 				for (int i = 0; i < images.size(); i++) {
 					Button b = images.get(i);
 					if (b.isTouched(touch.x, touch.y)) {
-						Pixmap pixmap = game.getGraphics().newPixmap(Toc.DIRECTORY_LIBRARY +
-							entries.get(entryIndex).getLinkedPage().getImages().get(i).getFileName() + ".png");
-						fullScreenImage(pixmap, entries.get(entryIndex).getLinkedPage().getImages().get(i).getText());
+						ItemDescriptor id = entries.get(entryIndex).getLinkedPage().getImages().get(i);
+						fullScreenImage(getImage(id, -1, -1), id.getText());
 					}
 				}
 				if (next != null && next.isTouched(touch.x, touch.y)) {

@@ -31,7 +31,6 @@ import de.phbouillon.android.games.alite.AliteLog;
 
 public class LibraryPage {
 	private List <String> paragraphs;
-	private List <ItemDescriptor> objects;
 	private List <ItemDescriptor> images;
 	private ItemDescriptor backgroundImage;
 
@@ -82,16 +81,12 @@ public class LibraryPage {
 						text = text.trim();
 					}
 				}
-				ItemDescriptor item = new ItemDescriptor(object.getAttribute("name"), text);
+				ItemDescriptor item = new ItemDescriptor(object.getAttribute("name"), text,
+					"true".equals(object.getAttribute("localized")));
 				result.add(item);
 			}
 		}
 		return result;
-	}
-
-	private static List <ItemDescriptor> getObjects(Element root) {
-		NodeList objects = ((Element) root.getElementsByTagName("Content").item(0)).getElementsByTagName("Object");
-		return extractItems(objects);
 	}
 
 	private static List <ItemDescriptor> getImages(Element root) {
@@ -112,7 +107,6 @@ public class LibraryPage {
 			Element root = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is).getDocumentElement();
 			root.normalize();
 			result.paragraphs        = getParagraphsFromText(getPageText(root));
-			result.objects           = getObjects(root);
 			result.images            = getImages(root);
 			result.backgroundImage   = getBackgroundImage(root);
 		} catch (Throwable t) {
@@ -139,19 +133,12 @@ public class LibraryPage {
 
 		builder.append("Content:\n");
 		builder.append(paragraphs == null || paragraphs.isEmpty() ? "-" : getParagraphs());
-		if (objects != null && !objects.isEmpty()) {
-			builder.append("Objects:\n");
-			for (ItemDescriptor id: objects) {
-				builder.append("  Name: " + id.getFileName() + "\n");
-				builder.append("  Desc: " + id.getText() + "\n");
-			}
-			builder.append("\n");
-		}
 		if (images != null && !images.isEmpty()) {
 			builder.append("Images:\n");
 			for (ItemDescriptor id: images) {
 				builder.append("  Name: " + id.getFileName() + "\n");
 				builder.append("  Desc: " + id.getText() + "\n");
+				builder.append("  Localized: " + id.isLocalized() + "\n");
 			}
 			builder.append("\n");
 		}

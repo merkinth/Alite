@@ -93,12 +93,18 @@ public class AndroidGraphics implements Graphics {
 	private Bitmap loadBitmap(String fileName) {
 		options.inPreferredConfig = Settings.colorDepth == 1 ? Config.ARGB_8888 : Config.ARGB_4444;
 		options.inSampleSize = Settings.textureLevel;
-		Bitmap bitmap;
-		try (InputStream in = fileIO.readPrivateFile(fileName)) {
-			bitmap = BitmapFactory.decodeStream(in, null, options);
-			if (bitmap == null)
-				throw new RuntimeException("Couldn't load bitmap from asset '" + fileName + "'");
-		} catch (IOException e) {
+		try (InputStream is = fileIO.readPrivateFile(fileName)) {
+			return loadBitmap(fileName, is);
+		} catch (IOException ignored) {
+			throw new RuntimeException("Couldn't load bitmap from asset '" + fileName + "'");
+		}
+	}
+
+	private Bitmap loadBitmap(String fileName, InputStream is) {
+		options.inPreferredConfig = Settings.colorDepth == 1 ? Config.ARGB_8888 : Config.ARGB_4444;
+		options.inSampleSize = Settings.textureLevel;
+		Bitmap bitmap = BitmapFactory.decodeStream(is, null, options);
+		if (bitmap == null) {
 			throw new RuntimeException("Couldn't load bitmap from asset '" + fileName + "'");
 		}
 		return bitmap;
@@ -111,11 +117,23 @@ public class AndroidGraphics implements Graphics {
 	}
 
 	@Override
+	public Pixmap newPixmap(String fileName, InputStream is, int width, int height) {
+		return drawBitmapAndScale(fileName, loadBitmap(fileName, is), width * scaleFactor,
+			height * scaleFactor, scaleMatrix, canvas, filterPaint);
+	}
+
+	@Override
 	public Pixmap newPixmap(Bitmap bitmap, String fileName) {
 		return drawBitmapAndScale(fileName, bitmap, bitmap.getWidth(), bitmap.getHeight(), new Matrix(), new Canvas(), new Paint(Paint.FILTER_BITMAP_FLAG));
 	}
 
 	private Pixmap drawBitmapAndScale(String fileName, Bitmap bitmap, float newWidth, float newHeight, Matrix scaleMatrix, Canvas canvas, Paint filterPaint) {
+		if (newWidth == -1) {
+			newWidth = bitmap.getWidth();
+		}
+		if (newHeight == -1) {
+			newHeight = bitmap.getHeight();
+		}
 		int textureWidth = determineTextureSize((int) newWidth);
 		int textureHeight = determineTextureSize((int) newHeight);
 		float tx2 = newWidth / textureWidth;
