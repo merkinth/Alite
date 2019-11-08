@@ -18,6 +18,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
 
@@ -27,7 +28,13 @@ class CloakingEvent extends TimedEvent {
 	CloakingEvent(InGameManager inGame) {
 		super(359281437L);
 		inGame.getMessage().repeatText(L.string(R.string.msg_cloaking_active), 3);
-		addAlarmEvent(deltaTime -> inGame.reduceShipEnergy(1));
+		addAlarmEvent(new IMethodHook() {
+			private static final long serialVersionUID = -4029522005378301546L;
+			@Override
+			public void execute(float deltaTime) {
+				inGame.reduceShipEnergy(1);
+			}
+		});
 	}
 
 }

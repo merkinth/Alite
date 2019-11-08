@@ -18,6 +18,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
 
@@ -27,7 +28,13 @@ class JammingEvent extends TimedEvent {
 	JammingEvent(InGameManager inGame) {
 		super(359281437L);
 		inGame.getMessage().repeatText(L.string(R.string.msg_ecm_jammer_active), 3);
-		addAlarmEvent(deltaTime -> inGame.reduceShipEnergy(1));
+		addAlarmEvent(new IMethodHook() {
+			private static final long serialVersionUID = -3735014336593672064L;
+			@Override
+			public void execute(float deltaTime) {
+				inGame.reduceShipEnergy(1);
+			}
+		});
 	}
 
 }

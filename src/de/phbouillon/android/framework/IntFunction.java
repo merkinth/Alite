@@ -1,4 +1,3 @@
-// todo: Remove this copy of interface after min sdk will be at least 24
 package de.phbouillon.android.framework;
 
 /* Alite - Discover the Universe on your Favorite Android Device
@@ -19,7 +18,9 @@ package de.phbouillon.android.framework;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import java.io.Serializable;
+
 @FunctionalInterface
-public interface IntFunction<R> {
+public interface IntFunction<R> extends Serializable {
 	R apply(int value);
 }

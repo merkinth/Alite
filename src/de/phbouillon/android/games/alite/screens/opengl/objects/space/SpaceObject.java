@@ -312,7 +312,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		if (value instanceof Boolean) {
 			return (boolean) value ? 1f : 0f;
 		}
-		AliteLog.e("getNumericProperty error", "Cannot get number with type " + value.getClass().getName());
+		AliteLog.e("getNumericProperty error", "Cannot get value of '" + name + "' with type " + value.getClass().getName());
 		return 0f;
 	}
 

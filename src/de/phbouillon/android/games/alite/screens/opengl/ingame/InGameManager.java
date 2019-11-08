@@ -32,6 +32,7 @@ import android.opengl.GLES11;
 import android.opengl.Matrix;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Input.TouchEvent;
+import de.phbouillon.android.framework.IntFunction;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.AccelerometerHandler;
 import de.phbouillon.android.framework.impl.AndroidGame;
@@ -1699,7 +1700,14 @@ public class InGameManager implements Serializable {
 
 	void resetHud() {
 		if (hud != null) {
-			hud = new AliteHud(speed -> ship.getSpeed());
+			hud = new AliteHud(new IntFunction<Float>() {
+				private static final long serialVersionUID = 1294719270286388523L;
+
+				@Override
+				public Float apply(int speed) {
+					return ship.getSpeed();
+				}
+			});
 			if (buttons != null) {
 				buttons.reset();
 			}

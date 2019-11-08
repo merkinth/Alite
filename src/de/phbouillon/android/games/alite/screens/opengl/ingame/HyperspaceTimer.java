@@ -18,6 +18,7 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.SoundManager;
@@ -32,18 +33,22 @@ public class HyperspaceTimer extends TimedEvent {
 		super(1000000000L);
 		countDown = isIntergalactic ? 30 : 10;
 		inGame.getMessage().setText(StringUtil.format("%d", countDown));
-		addAlarmEvent(deltaTime -> {
-			countDown--;
-			SoundManager.play(Assets.click);
-			if (countDown == 0) {
-				SoundManager.stopAll();
-				if (inGame.getHyperspaceHook() != null) {
-					inGame.getHyperspaceHook().execute(0);
-				} else {
-					inGame.performHyperspaceJump(isIntergalactic);
+		addAlarmEvent(new IMethodHook() {
+			private static final long serialVersionUID = 8631878861995197334L;
+			@Override
+			public void execute(float deltaTime) {
+				countDown--;
+				SoundManager.play(Assets.click);
+				if (countDown == 0) {
+					SoundManager.stopAll();
+					if (inGame.getHyperspaceHook() != null) {
+						inGame.getHyperspaceHook().execute(0);
+					} else {
+						inGame.performHyperspaceJump(isIntergalactic);
+					}
 				}
+				inGame.getMessage().setText(StringUtil.format("%d", countDown));
 			}
-			inGame.getMessage().setText(StringUtil.format("%d",countDown));
 		});
 	}
 

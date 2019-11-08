@@ -47,22 +47,26 @@ public class ThargoidStationMission extends Mission implements Serializable {
 
 		LaunchThargoidFromStationEvent(final ObjectSpawnManager spawnManager, long delayInNanoSeconds, int numberOfThargoidsToSpawn) {
 			super(delayInNanoSeconds);
-			addAlarmEvent(deltaTime -> {
-				if (numberOfThargoidsToSpawn == 0 || state != 2) {
-					return;
-				}
-				final SpaceObject thargoid = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Thargoid);
-				spawnManager.launchFromBay(thargoid, new AiStateCallbackHandler() {
-					private static final long serialVersionUID = 3546094888645182119L;
-
-					@Override
-					public void execute(SpaceObject so) {
-						thargoid.setUpdater(null);
-						thargoid.setInBay(false);
-						thargoid.setIgnoreSafeZone();
-						thargoid.setAIState(AIState.ATTACK, spawnManager.getInGameManager().getShip());
+			addAlarmEvent(new IMethodHook() {
+				private static final long serialVersionUID = -519339357944058227L;
+				@Override
+				public void execute(float deltaTime) {
+					if (numberOfThargoidsToSpawn == 0 || state != 2) {
+						return;
 					}
-				});
+					final SpaceObject thargoid = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Thargoid);
+					spawnManager.launchFromBay(thargoid, new AiStateCallbackHandler() {
+						private static final long serialVersionUID = 3546094888645182119L;
+
+						@Override
+						public void execute(SpaceObject so) {
+							thargoid.setUpdater(null);
+							thargoid.setInBay(false);
+							thargoid.setIgnoreSafeZone();
+							thargoid.setAIState(AIState.ATTACK, spawnManager.getInGameManager().getShip());
+						}
+					});
+				}
 			});
 		}
 	}
@@ -123,7 +127,7 @@ public class ThargoidStationMission extends Mission implements Serializable {
 
 			@Override
 			public void execute(float deltaTime) {
-				SpaceObject station = (SpaceObject) manager.getInGameManager().getStation();
+				SpaceObject station = manager.getInGameManager().getStation();
 				station.setId(ALIEN_SPACE_STATION);
 				station.setProperty(SpaceObject.Property.name, L.string(R.string.thargoid_station_name));
 				station.setHullStrength(1024);

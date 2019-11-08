@@ -28,11 +28,8 @@ import java.util.ArrayList;
 
 import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.GlScreen;
-import de.phbouillon.android.framework.IMethodHook;
+import de.phbouillon.android.framework.*;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.Screen;
-import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
@@ -205,7 +202,14 @@ public class FlightScreen extends GlScreen implements Serializable {
 		windowHeight = visibleArea.height();
 		initializeGl(visibleArea);
 
-		inGame = new InGameManager(new AliteHud(speed -> inGame.getShip().getSpeed()), "textures/star_map.png", lightPosition, fromStation, true);
+		inGame = new InGameManager(new AliteHud(new IntFunction<Float>() {
+			private static final long serialVersionUID = 7872124707688525785L;
+
+			@Override
+			public Float apply(int speed) {
+				return inGame.getShip().getSpeed();
+			}
+		}), "textures/star_map.png", lightPosition, fromStation, true);
 		PlayerCobra cobra = game.getCobra();
 		cobra.setMissileTargetting(false);
 		cobra.setMissileLocked(false);
