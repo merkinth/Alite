@@ -414,8 +414,8 @@ public class SpaceObject extends AliteObject implements Serializable {
 		}
 	}
 
-	final int getMissileCount() {
-		return getNumericProperty(Property.missiles).intValue();
+	final long getMissileCount() {
+		return getNumericProperty(Property.missiles).longValue();
 	}
 
 	boolean canFireMissile() {
