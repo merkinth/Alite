@@ -48,6 +48,7 @@ public class OXPParser {
 	private boolean manifestRequired;
 	private boolean isPluginFile;
 	private boolean plugged = true;
+	private boolean localeDependent;
 	private List<String> pendingRegistration = new ArrayList<>();
 
 	private String identifier;
@@ -86,19 +87,22 @@ public class OXPParser {
 		}
 		parser = new PListParser(inputStreamMethod);
 		name = pluginName;
-		plug();
 	}
 
-	public OXPParser(String pluginName, ResourceStream inputStreamMethod) throws IOException {
+	public OXPParser(String pluginName, ResourceStream inputStreamMethod) {
 		this.pluginName = pluginName;
 		this.inputStreamMethod = inputStreamMethod;
 		parser = new PListParser(inputStreamMethod);
 		name = pluginName;
 		isPluginFile = true;
-		plug();
 	}
 
-	public void plug() throws IOException {
+	public OXPParser setLocaleDependent() {
+		localeDependent = true;
+		return this;
+	}
+
+	private void plug() throws IOException {
 		if (!isPluginFile) {
 			return;
 		}
@@ -156,7 +160,7 @@ public class OXPParser {
 			}
 			SpaceObject spaceObject = SpaceObjectFactory.getInstance().getTemplateObject(id);
 			boolean register = spaceObject == null;
-			boolean shipData = (FILE_SHIP_DATA).equals(fileName);
+			boolean shipData = FILE_SHIP_DATA.equals(fileName);
 			AliteLog.d("readShipDataFileProperties " + (pending ? "(pending) " : "") + (shipData ? "shipdata" : ""), id);
 			if (register) {
 				if (shipData) {
@@ -170,9 +174,17 @@ public class OXPParser {
 			NSDictionary propertyList = (NSDictionary) shipList.get(id);
 			for (String p: propertyList.keySet()) {
 				if (propertyList.get(p) instanceof NSString) {
-					spaceObject.setProperty(SpaceObject.Property.valueOf(p), getString(propertyList, p));
+					if (shipData || !localeDependent) {
+						spaceObject.setProperty(SpaceObject.Property.valueOf(p), getString(propertyList, p));
+					} else {
+						spaceObject.setOverrideProperty(SpaceObject.Property.valueOf(p), getString(propertyList, p));
+					}
 				} else if (propertyList.get(p) instanceof NSNumber) {
-					spaceObject.setProperty(SpaceObject.Property.valueOf(p), getNumber(propertyList, p));
+					if (shipData || !localeDependent) {
+						spaceObject.setProperty(SpaceObject.Property.valueOf(p), getNumber(propertyList, p));
+					} else {
+						spaceObject.setOverrideProperty(SpaceObject.Property.valueOf(p), getNumber(propertyList, p));
+					}
 				} else if (propertyList.get(p) instanceof NSArray) {
 					ArrayList<String> list = new ArrayList<>();
 					for (NSObject items : ((NSArray) propertyList.get(p)).getArray()) {
@@ -204,7 +216,11 @@ public class OXPParser {
 							spaceObject.addSubEntity(list.get(list.size() - 1));
 						}
 					}
-					spaceObject.setProperty(SpaceObject.Property.valueOf(p), list);
+					if (shipData || !localeDependent) {
+						spaceObject.setProperty(SpaceObject.Property.valueOf(p), list);
+					} else {
+						spaceObject.setOverrideProperty(SpaceObject.Property.valueOf(p), list);
+					}
 				}
 			}
 			String likeShipId = setDependentProperties(spaceObject);
@@ -216,7 +232,8 @@ public class OXPParser {
 				}
 				continue;
 			}
-			boolean modelDefined = spaceObject.getStringProperty(SpaceObject.Property.like_ship) != null;
+			boolean modelDefined = spaceObject.getStringProperty(SpaceObject.Property.like_ship) != null &&
+				spaceObject.getProperty(SpaceObject.Property.model) == null;
 			if (shipData && !modelDefined) {
 				modelDefined = isModelDefined(spaceObject);
 			}
@@ -359,6 +376,7 @@ public class OXPParser {
 		spaceObject.setProperty(SpaceObject.Property.model_scale_factor, 1.0d);
 		spaceObject.setProperty(SpaceObject.Property.max_energy, 1L);
 		spaceObject.setProperty(SpaceObject.Property.cargo_carried, 0L);
+		spaceObject.setProperty(SpaceObject.Property.max_cargo, 0L);
 		spaceObject.setProperty(SpaceObject.Property.likely_cargo, 0L);
 		spaceObject.setProperty(SpaceObject.Property.affected_by_energy_bomb, 1.0d);
 		spaceObject.setProperty(SpaceObject.Property.proximity_warning, 1L);
@@ -377,10 +395,6 @@ public class OXPParser {
 		if (spaceObject.getProperty(SpaceObject.Property.max_missiles) == null) {
 			spaceObject.setProperty(SpaceObject.Property.max_missiles,
 				spaceObject.getNumericProperty(SpaceObject.Property.missiles));
-		}
-
-		if (spaceObject.getProperty(SpaceObject.Property.display_name) != null) {
-			spaceObject.setProperty(SpaceObject.Property.name, spaceObject.getStringProperty(SpaceObject.Property.display_name));
 		}
 
 		// escort_role is used instead of escort_ship
@@ -574,7 +588,8 @@ public class OXPParser {
 		return isPluginFile;
 	}
 
-	public boolean isPlugged() {
+	public boolean isPlugged() throws IOException {
+		plug();
 		return plugged;
 	}
 

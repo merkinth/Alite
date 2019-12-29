@@ -167,7 +167,7 @@ public class AndroidFileIO implements FileIO {
 	@Override
 	public File[] getFiles(final String directory, final String fileNamePattern) {
 		File root = useExternalStorage ? new File(externalStoragePath + directory) : context.getFilesDir();
-		return root.listFiles((dir, filename) -> dir.getName().matches(
+		return root.listFiles((dir, filename) -> dir.getPath().endsWith(
 			directory.charAt(directory.length() - 1) == File.separatorChar ?
 				directory.substring(0, directory.length() - 1) : directory) && filename.matches(fileNamePattern));
 	}

@@ -9,7 +9,7 @@
 		aggression_level = 10;
 		has_escape_pod = 3.0;
 		bounty = 40;
-		cargo_carried = 3;
+		max_cargo = 3;
 		weapon_position_forward = (
 			"44.3 -1.38 90.0",
 			"-44.3 -1.38 90.0"
@@ -45,7 +45,7 @@
 		has_ecm = 1.0;
 		aggression_level = 10;
 		bounty = 100;
-		cargo_carried = 1;
+		max_cargo = 1;
 		weapon_position_forward = (
 			"176.0 0.0 160.0",
 			"-176.0 0.0 160.0"
@@ -87,6 +87,11 @@
 		roles = "Thargoid";
 	};
 
+	"thargoid_a" = {
+		like_ship = "thargoid";
+		model = "thargoid_a.dat";
+	};
+
 	"thargon" = {
 		name = "Thargon";
 		max_flight_speed = 250.5;
@@ -104,6 +109,11 @@
 		roles = "Thargon";
 	};
 
+	"thargon_a" = {
+		like_ship = "thargon";
+		model = "thargon_a.dat";
+	};
+
 	"boa_class_cruiser" = {
 		name = "Boa Class Cruiser";
 		max_flight_speed = 300.6;
@@ -113,7 +123,7 @@
 		aggression_level = 5;
 		has_escape_pod = 1.0;
 		bounty = 80;
-		cargo_carried = 3;
+		max_cargo = 3;
 		weapon_position_forward = (
 			"0.0 27.82 200.0"
 		);
@@ -137,7 +147,7 @@
 		aggression_level = 15;
 		has_escape_pod = 2.0;
 		bounty = 120;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"20.3 -2.04 81.24",
 			"-20.3 -2.04 81.24"
@@ -162,7 +172,7 @@
 		aggression_level = 10;
 		has_escape_pod = 2.0;
 		bounty = 80;
-		cargo_carried = 1;
+		max_cargo = 1;
 		weapon_position_forward = (
 			"0.0 -46.16 120.0"
 		);
@@ -183,7 +193,7 @@
 		aggression_level = 10;
 		has_escape_pod = 1.0;
 		bounty = 80;
-		cargo_carried = 1;
+		max_cargo = 1;
 		max_missiles = 1;
 		weapon_position_forward = (
 			"42.4 0.0 106.0",
@@ -211,7 +221,7 @@
 		aggression_level = 10;
 		has_escape_pod = 1.0;
 		bounty = 40;
-		cargo_carried = 1;
+		max_cargo = 1;
 		weapon_position_forward = (
 			"0.0 0.0 118.46"
 		);
@@ -263,7 +273,7 @@
 		aggression_level = 5;
 		has_escape_pod = 1.0;
 		bounty = 50;
-		cargo_carried = 1;
+		max_cargo = 1;
 		weapon_position_forward = (
 			"0.0 -37.64 160.0"
 		);
@@ -287,7 +297,7 @@
 		aggression_level = 5;
 		has_escape_pod = 3.0;
 		bounty = 0;
-		cargo_carried = 1;
+		max_cargo = 1;
 		weapon_position_forward = (
 			"41.72 0.0 114.72",
 			"-41.72 0.0 114.72"
@@ -317,7 +327,7 @@
 		aggression_level = 5;
 		has_escape_pod = 1.0;
 		bounty = 0;
-		cargo_carried = 3;
+		max_cargo = 3;
 		model_scale_factor = 0.8;
 		weapon_position_forward = (
 			"0.0 0.0 336.0"
@@ -340,7 +350,7 @@
 		aggression_level = 10;
 		has_escape_pod = 3.0;
 		bounty = 0;
-		cargo_carried = 3;
+		max_cargo = 3;
 		weapon_position_forward = (
 			"0.0 -14.68 312.0"
 		);
@@ -363,7 +373,7 @@
 		aggression_level = 10;
 		has_escape_pod = 3.0;
 		bounty = 50;
-		cargo_carried = 3;
+		max_cargo = 3;
 		weapon_position_forward = (
 			"15.37 11.14 126.15",
 			"0.0 0.0 194.22"
@@ -384,7 +394,7 @@
 		aggression_level = 15;
 		has_escape_pod = 1.0;
 		bounty = 120;
-		cargo_carried = 1;
+		max_cargo = 1;
 		weapon_position_forward = (
 			"51.26 -9.86 138.0",
 			"-51.26 -9.86 138.0"
@@ -409,7 +419,7 @@
 		aggression_level = 10;
 		has_escape_pod = 1.0;
 		bounty = 40;
-		cargo_carried = 1;
+		max_cargo = 1;
 		weapon_position_forward = (
 			"63.02 0.0 68.92",
 			"-63.02 0.0 68.92"
@@ -433,7 +443,7 @@
 		aggression_level = 15;
 		has_escape_pod = 3.0;
 		bounty = 150;
-		cargo_carried = 1;
+		max_cargo = 1;
 		weapon_position_forward = (
 			"22.22 0.0 120.0",
 			"-22.22 0.0 120.0"
@@ -458,7 +468,7 @@
 		aggression_level = 5;
 		has_escape_pod = 1.0;
 		bounty = 0;
-		cargo_carried = 1;
+		max_cargo = 1;
 		exhaust = (
 			"-25.0 25.0 0.0 10 10 12.0",
 			"25.0 25.0 0.0 10 10 12.0",
@@ -565,7 +575,7 @@
 		max_energy = 60.0;
 		aggression_level = 0;
 		bounty = 10;
-		cargo_carried = 2;
+		max_cargo = 2;
 		missiles = 0;
 		proximity_warning = 0;
 		model = "asteroid1.dat";
@@ -580,7 +590,7 @@
 		max_energy = 60.0;
 		aggression_level = 0;
 		bounty = 10;
-		cargo_carried = 3;
+		max_cargo = 3;
 		missiles = 0;
 		proximity_warning = 0;
 		model = "asteroid2.dat";
@@ -597,7 +607,7 @@
 		aggression_level = 14;
 		bounty = 150;
 		galaxy = 3;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"61.31 -0.17 118.1",
 			"-39.26 -7.11 100.0"
@@ -622,7 +632,7 @@
 		has_ecm = 1.0;
 		aggression_level = 25;
 		bounty = 4000;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"40.0 -20.0 120.00",
 			"-40.0 -20.0 120.00"
@@ -648,7 +658,7 @@
 		aggression_level = 10;
 		bounty = 100;
 		galaxy = 2;
-		cargo_carried = 1;
+		max_cargo = 1;
 		weapon_position_forward = (
 			"8.55 -13.25 239.68",
 			"-12.16 -13.25 239.68"
@@ -679,7 +689,7 @@
 		has_ecm = 1.0;
 		aggression_level = 25;
 		bounty = 5000;
-		cargo_carried = 1;
+		max_cargo = 1;
 		weapon_position_forward = (
 			"0.0 30.43 198.0"
 		);
@@ -719,7 +729,7 @@
 		aggression_level = 10;
 		bounty = 80;
 		galaxy = 2;
-		cargo_carried = 3;
+		max_cargo = 3;
 		weapon_position_forward = (
 			"0.01 -25.69 292.72"
 		);
@@ -742,7 +752,7 @@
 		aggression_level = 14;
 		bounty = 150;
 		galaxy = 3;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"142.73 -26.97 177.57",
 			"-141.88 -29.97 177.57"
@@ -769,7 +779,7 @@
 		has_escape_pod = 1.0;
 		bounty = 100;
 		galaxy = 4;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"52.74 0.37 177.92",
 			"-52.74 0.37 177.92"
@@ -800,7 +810,7 @@
 		has_escape_pod = 1.0;
 		bounty = 200;
 		galaxy = 6;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"0.0 0.0 211.46"
 		);
@@ -830,7 +840,7 @@
 		has_escape_pod = 1.0;
 		bounty = 150;
 		galaxy = 5;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"30.43 -82.43 279.95",
 			"-30.43 -82.43 279.95"
@@ -859,7 +869,7 @@
 		has_escape_pod = 1.0;
 		bounty = 500;
 		galaxy = 8;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"120.0 -0.1 69.50",
 			"-120.0 -0.1 69.50",
@@ -894,7 +904,7 @@
 		has_escape_pod = 1.0;
 		bounty = 100;
 		galaxy = 4;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"23.33 -46.67 136.21",
 			"-23.33 -46.67 136.21"
@@ -918,7 +928,7 @@
 		has_escape_pod = 1.0;
 		bounty = 250;
 		galaxy = 7;
-		cargo_carried = 3;
+		max_cargo = 3;
 		weapon_position_forward = (
 			"32.65 -0.39 205.64",
 			"-32.65 -0.39 205.64"
@@ -944,7 +954,7 @@
 		aggression_level = 17;
 		bounty = 200;
 		galaxy = 6;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"0.0 -19.59 243.39"
 		);
@@ -969,7 +979,7 @@
 		has_escape_pod = 1.0;
 		bounty = 200;
 		galaxy = 5;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"0.0 -13.91 150.75"
 		);
@@ -993,7 +1003,7 @@
 		has_escape_pod = 1.0;
 		bounty = 500;
 		galaxy = 8;
-		cargo_carried = 2;
+		max_cargo = 2;
 		weapon_position_forward = (
 			"101.69 -71.23 225.45",
 			"-101.69 -71.23 225.45",
@@ -1052,7 +1062,7 @@
 		has_escape_pod = 1.0;
 		bounty = 200;
 		galaxy = 7;
-		cargo_carried = 3;
+		max_cargo = 3;
 		weapon_position_forward = (
 			"49.38 0.0 133.42",
 			"-49.38 0.0 133.42"

@@ -71,6 +71,7 @@ public class ShipIntroScreen extends AliteScreen {
 	public ShipIntroScreen(Alite game) {
 		super(game);
 		showLoadNewCommander = game.existsSavedCommander();
+		theChase = game.getAudio().newMusic(LoadingScreen.DIRECTORY_MUSIC + "the_chase.mp3");
 	}
 
 	@Override
@@ -214,6 +215,8 @@ public class ShipIntroScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
+		theChase.setLooping(true);
+		theChase.play();
 		initGl();
 		skysphere = new SkySphereSpaceObject("skysphere", 8000.0f, 16, 16, "textures/star_map.png");
 		currentShip = SpaceObjectFactory.getInstance().getNextObject(currentShip, selectionDirection, DEBUG_EXHAUST);
@@ -245,38 +248,26 @@ public class ShipIntroScreen extends AliteScreen {
 
 	@Override
 	public void loadAssets() {
-		theChase = game.getAudio().newMusic(LoadingScreen.DIRECTORY_MUSIC + "the_chase.mp3");
-		super.loadAssets();
 	}
 
-	@Override
-	public void pause() {
-		super.pause();
-		if (theChase != null) {
-			theChase.pause();
-			theChase = null;
-		}
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
-		if (theChase != null) {
-			theChase.setLooping(true);
-			theChase.play();
-		}
-		initGl();
-		game.getTextureManager().reloadAllTextures();
-	}
-
-	@Override
-	public void dispose() {
-		super.dispose();
+	private void disposeMusic() {
 		if (theChase != null) {
 			theChase.stop();
 			theChase.dispose();
 			theChase = null;
 		}
+	}
+
+	@Override
+	public void pause() {
+		super.pause();
+		disposeMusic();
+	}
+
+	@Override
+	public void dispose() {
+		super.dispose();
+		disposeMusic();
 	}
 
 	@Override

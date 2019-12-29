@@ -49,6 +49,7 @@ import de.phbouillon.android.games.alite.io.AliteFiles;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.oxp.OXPParser;
 import de.phbouillon.android.games.alite.screens.canvas.PluginsScreen;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 public class AliteStartManager extends Activity implements IDownloaderClient {
 	static final int ALITE_RESULT_CLOSE_ALL = 78615265;
@@ -222,7 +223,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		private void countOrLoadPlugins(AssetManager[] assetManager) {
 			if (assetManager.length > 0) {
 				loadBundledPlugins(assetManager[0]);
-				loadExternalPlugins(PluginsScreen.DIRECTORY_PLUGINS, "");
+				loadExternalPlugins(false);
 			}
 			loadLocaleDependentPlugins();
 		}
@@ -257,9 +258,11 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 					pluginTotal += plugins.length;
 					return;
 				}
+				AliteLog.d("loadBundledPlugins", "Started");
 				for (String pluginName : plugins) {
 					new OXPParser(PluginsScreen.DIRECTORY_PLUGINS + pluginName,
-						fileName -> assetManager.open(PluginsScreen.DIRECTORY_PLUGINS + pluginName + File.separatorChar + fileName));
+						fileName -> assetManager.open(PluginsScreen.DIRECTORY_PLUGINS + pluginName +
+							File.separatorChar + fileName)).isPlugged();
 					pluginProgress++;
 					publishProgress(pluginName);
 				}
@@ -269,34 +272,41 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		}
 
 		void loadLocaleDependentPlugins() {
+			SpaceObjectFactory.getInstance().clearLocaleDependentProperties();
 			String[] plugins = L.getInstance().list(PluginsScreen.DIRECTORY_PLUGINS);
 			if (plugins == null) {
 				return;
 			}
 			if (countMode) {
 				pluginTotal += plugins.length;
-				loadExternalPlugins(L.DIRECTORY_LOCALES, L.getInstance().getCurrentLocale().getLanguage() + '_' +
-					L.getInstance().getCurrentLocale().getCountry() + '_');
+				loadExternalPlugins(true);
 				return;
 			}
+			AliteLog.d("loadLocaleDependentPlugins", "Started");
 			for (String pluginName : plugins) {
 				try {
 					new OXPParser(PluginsScreen.DIRECTORY_PLUGINS + pluginName,
-						fileName -> L.raw(PluginsScreen.DIRECTORY_PLUGINS + pluginName + File.separatorChar, fileName));
+							fileName -> L.raw(PluginsScreen.DIRECTORY_PLUGINS + pluginName + File.separatorChar, fileName)).
+						setLocaleDependent().isPlugged();
 					pluginProgress++;
 					publishProgress(pluginName);
 				} catch (IOException e) {
 					AliteLog.e("Plugin localization error", "Failed to load localization of plugin.", e);
 				}
 			}
-			loadExternalPlugins(L.DIRECTORY_LOCALES, L.getInstance().getCurrentLocale().getLanguage() + '_' +
-				L.getInstance().getCurrentLocale().getCountry() + '_');
+			loadExternalPlugins(true);
 		}
 
-		private void loadExternalPlugins(String directory, String fileNamePrefix) {
+		private void loadExternalPlugins(boolean localeDependent) {
+			String directory = localeDependent ? L.DIRECTORY_LOCALES : PluginsScreen.DIRECTORY_PLUGINS;
+			String fileNamePrefix = localeDependent ? (L.getInstance().getCurrentLocale().getLanguage() + '_' +
+				L.getInstance().getCurrentLocale().getCountry() + '_').toLowerCase() : "";
+			AliteLog.d("loadExternalPlugins" + (countMode ? " (countMode)" : ""), "" +
+				"Search in directory '" + directory + "' with filename prefix '" + fileNamePrefix + "'");
 			File[] plugins = fileIO.getFiles(directory, fileNamePrefix + ".*\\.oxz|" +
 				fileNamePrefix + ".*\\.zip|" + fileNamePrefix + ".*\\.oxp");
-			if (plugins == null) {
+			if (plugins == null || plugins.length == 0) {
+				AliteLog.d("loadExternalPlugins", "plugin not found.");
 				return;
 			}
 			if (countMode) {
@@ -308,6 +318,9 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 			for (File f : plugins) {
 				try {
 					final OXPParser plugin = new OXPParser(fileIO, directory + f.getName(), installedPlugins);
+					if (localeDependent) {
+						plugin.setLocaleDependent();
+					}
 					if (!plugin.isPluginFile()) {
 						// localization of program itself is already set by button languages on options screen
 						continue;
@@ -330,7 +343,6 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 			do {
 				for (OXPParser plugin : pendingPlugins) {
 					try {
-						plugin.plug();
 						if (plugin.isPlugged()) {
 							publishProgress(plugin.getPluginName());
 							installedPlugins.add(plugin);

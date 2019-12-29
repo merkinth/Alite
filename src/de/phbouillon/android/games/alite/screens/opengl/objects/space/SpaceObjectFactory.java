@@ -149,4 +149,10 @@ public class SpaceObjectFactory {
 		} while (!allObjects && !demoObjectId.contains(so.getId()));
 		return so.cloneObject(getDefaultRole(so));
 	}
+
+	public void clearLocaleDependentProperties() {
+		for (SpaceObject so : objects) {
+			so.clearLocaleDependentProperties();
+		}
+	}
 }

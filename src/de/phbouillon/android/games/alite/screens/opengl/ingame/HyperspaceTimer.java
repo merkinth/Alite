@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.games.alite.Assets;
-import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.SoundManager;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
 

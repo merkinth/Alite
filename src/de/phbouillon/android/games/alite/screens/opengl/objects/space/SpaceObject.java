@@ -208,6 +208,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	private Map<Property,Object> properties = new HashMap<>();
+	private Map<Property,Object> localeDependentProperties = new HashMap<>();
 
 	private static final int DEFAULT_HUD_COLOR_ENEMY = 0x8CAAF0;
 	private static final int DEFAULT_HUD_COLOR_TRADER = 0xF0F000;
@@ -290,16 +291,26 @@ public class SpaceObject extends AliteObject implements Serializable {
 		}
 	}
 
+	public void setOverrideProperty(Property name, Object value) {
+		try {
+//			AliteLog.d("overrideProperty", name + " [" + (value != null ? value.getClass().getName() : "null") + "] = " + value);
+			localeDependentProperties.put(name, value);
+		} catch (IllegalArgumentException ignored) {
+			AliteLog.e("Space object override property error", "Unknown property '" + name + "'");
+		}
+	}
+
 	public Object getProperty(Property name) {
-		return properties.get(name);
+		Object property = localeDependentProperties.get(name);
+		return property != null ? property : properties.get(name);
 	}
 
 	public String getStringProperty(Property name) {
-		return (String) properties.get(name);
+		return (String) getProperty(name);
 	}
 
 	public Float getNumericProperty(Property name) {
-		Object value = properties.get(name);
+		Object value = getProperty(name);
 		if (value == null) {
 			return 0f;
 		}
@@ -317,7 +328,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	public List<String> getArrayProperty(Property name) {
-		return (List<String>) properties.get(name);
+		return (List<String>) getProperty(name);
 	}
 
 	public List<Vector3f> getLaserHardpoint() {
@@ -688,7 +699,6 @@ public class SpaceObject extends AliteObject implements Serializable {
 
 			offset += 3;
 		}
-//		calculateBoundingBox(); // todo
 	}
 
 	private void calculateBoundingBox() {
@@ -769,7 +779,8 @@ public class SpaceObject extends AliteObject implements Serializable {
 
 	@Override
 	public String getName() {
-		return getStringProperty(Property.name);
+		String name = getStringProperty(Property.display_name);
+		return name != null ? name : getStringProperty(Property.name);
 	}
 
 	public float getMaxSpeed() {
@@ -1163,11 +1174,22 @@ public class SpaceObject extends AliteObject implements Serializable {
 		targetBox.setColor(hudColor);
 	}
 
+	public void clearLocaleDependentProperties() {
+		localeDependentProperties.clear();
+	}
+
+	public void refreshLocaleDependentProperties() {
+		localeDependentProperties.clear();
+		localeDependentProperties.putAll(SpaceObjectFactory.getInstance().getTemplateObject(getId()).localeDependentProperties);
+		AliteLog.d("refreshLocaleDependentProperties", getId() + ": " + properties + ": " + localeDependentProperties);
+	}
+
 	public void copyPropertiesAndModelData(SpaceObject dest) {
 		copyPropertiesAndModelData(dest, true);
 	}
 
 	private void copyPropertiesAndModelData(SpaceObject dest, boolean undefinedOnly) {
+		dest.localeDependentProperties.clear();
 		if (undefinedOnly) {
 			for (Property p : properties.keySet()) {
 				if (!dest.properties.containsKey(p)) {
@@ -1175,7 +1197,9 @@ public class SpaceObject extends AliteObject implements Serializable {
 				}
 			}
 		} else {
+			dest.properties.clear();
 			dest.properties.putAll(properties);
+			dest.localeDependentProperties.putAll(localeDependentProperties);
 		}
 		dest.vertexBuffer = new float[vertexBuffer.length];
 		System.arraycopy(vertexBuffer, 0, dest.vertexBuffer, 0, vertexBuffer.length);
