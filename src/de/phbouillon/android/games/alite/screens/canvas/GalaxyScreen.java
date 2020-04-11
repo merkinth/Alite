@@ -18,13 +18,10 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Locale;
 
-import android.graphics.Point;
 import android.util.SparseIntArray;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -45,8 +42,8 @@ public class GalaxyScreen extends AliteScreen {
 
 	private static final int SCALE_CONST = 7;
 
-	float zoomFactor;
-	float pendingZoomFactor = -1.0f;
+	protected float zoomFactor;
+	private float pendingZoomFactor = -1.0f;
 	protected String title;
 	private MappedSystemData[] systemData;
 
@@ -57,18 +54,18 @@ public class GalaxyScreen extends AliteScreen {
 	private Button homeButton;
 	private Pixmap findIcon;
 	private Pixmap homeIcon;
-	int centerX = 0;
-	int centerY = 0;
-	int pendingCenterX = -1;
-	int pendingCenterY = -1;
-	int targetX = 0;
-	int targetY = 0;
+	protected int centerX = 0;
+	protected int centerY = 0;
+	private int pendingCenterX = -1;
+	private int pendingCenterY = -1;
+	private int targetX = 0;
+	private int targetY = 0;
 	private int deltaX = 0;
 	private int deltaY = 0;
 	private boolean zoom = false;
 	private MappedSystemData scalingReferenceSystem = null;
 
-	class MappedSystemData {
+	static class MappedSystemData {
 		SystemData system;
 		int x;
 		int y;
@@ -82,25 +79,17 @@ public class GalaxyScreen extends AliteScreen {
 		}
 	}
 
-	public GalaxyScreen(Alite game) {
-		super(game);
+	// default public constructor is required for navigation bar
+	public GalaxyScreen() {
 	}
 
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		GalaxyScreen gs = new GalaxyScreen(alite);
-		try {
-			gs.zoomFactor = dis.readFloat();
-			gs.centerX = dis.readInt();
-			gs.centerY = dis.readInt();
-			gs.pendingZoomFactor = gs.zoomFactor;
-			gs.pendingCenterX = gs.centerX;
-			gs.pendingCenterY = gs.centerY;
-		} catch (IOException e) {
-			AliteLog.e("Galaxy Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		alite.setScreen(gs);
-		return true;
+	public GalaxyScreen(float zoomFactor, int centerX, int centerY) {
+		this.zoomFactor = zoomFactor;
+		this.centerX = centerX;
+		this.centerY = centerY;
+		pendingZoomFactor = zoomFactor;
+		pendingCenterX = centerX;
+		pendingCenterY = centerY;
 	}
 
 	@Override
@@ -318,8 +307,8 @@ public class GalaxyScreen extends AliteScreen {
 	}
 
 	public void updateMap() {
-		int dx = (centerX - targetX) >> 4;
-		int dy = (centerY - targetY) >> 3;
+		int dx = centerX - targetX >> 4;
+		int dy = centerY - targetY >> 3;
 		centerX -= dx;
 		centerY -= dy;
 
@@ -373,7 +362,7 @@ public class GalaxyScreen extends AliteScreen {
 			int x2 = transformX((int) (xp + 17.5f));
 			int px = transformX(xp);
 			int py = transformY(hyperspaceSystem.getY());
-			g.drawDashedCircle(px, py, (x2 - x1) >> 1, ColorScheme.get(ColorScheme.COLOR_DASHED_FUEL_CIRCLE), 64);
+			g.drawDashedCircle(px, py, x2 - x1 >> 1, ColorScheme.get(ColorScheme.COLOR_DASHED_FUEL_CIRCLE), 64);
 		}
 
 		float fuel = player.getCobra().getFuel();
@@ -383,14 +372,8 @@ public class GalaxyScreen extends AliteScreen {
 
         int px = transformX(currentSystem == null ? player.getPosition().x : player.getCurrentSystem().getX());
         int py = transformY(currentSystem == null ? player.getPosition().y : player.getCurrentSystem().getY());
-        g.drawCircle(px, py, (x2 - x1) >> 1, ColorScheme.get(ColorScheme.COLOR_FUEL_CIRCLE), 64);
+        g.drawCircle(px, py, x2 - x1 >> 1, ColorScheme.get(ColorScheme.COLOR_FUEL_CIRCLE), 64);
 
-	}
-
-	private int computeDistance(SystemData target, Point position) {
-		int dx = position.x - target.getX();
-		int dy = position.y - target.getY();
-		return (int) Math.sqrt(dx * dx + dy * dy) << 2;
 	}
 
 	private void renderDistance() {
@@ -398,10 +381,9 @@ public class GalaxyScreen extends AliteScreen {
 		Graphics g = game.getGraphics();
 
         if (player.getHyperspaceSystem() != null) {
-			int distance = player.getCurrentSystem() == null ? computeDistance(player.getHyperspaceSystem(), player.getPosition())
-				 : player.getHyperspaceSystem().computeDistance(player.getCurrentSystem());
-			g.drawText(L.string(R.string.galaxy_distance_info, player.getHyperspaceSystem() == null ?
-				L.string(R.string.galaxy_unknown) : player.getHyperspaceSystem().getName(), distance / 10, distance % 10),
+			int distance = player.computeDistance();
+			g.drawText(L.string(R.string.galaxy_distance_info,
+				player.getHyperspaceSystem().getName(), distance / 10, distance % 10),
 				100, 1060, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
         }
 	}
@@ -452,6 +434,10 @@ public class GalaxyScreen extends AliteScreen {
 		game.getInput().setZoomFactor(zoomFactor);
 		centerX = HALF_WIDTH;
 		centerY = HALF_HEIGHT;
+		centerTarget();
+	}
+
+	protected void centerTarget() {
 		targetX = centerX;
 		targetY = centerY;
 

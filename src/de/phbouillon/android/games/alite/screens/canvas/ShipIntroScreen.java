@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -32,9 +31,9 @@ import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.SkySphereSpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.MathHelper;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectAI;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
@@ -68,10 +67,15 @@ public class ShipIntroScreen extends AliteScreen {
 	private Music theChase;
 	private boolean showLoadNewCommander;
 
-	public ShipIntroScreen(Alite game) {
-		super(game);
+	public ShipIntroScreen() {
 		showLoadNewCommander = game.existsSavedCommander();
 		theChase = game.getAudio().newMusic(LoadingScreen.DIRECTORY_MUSIC + "the_chase.mp3");
+	}
+
+	public ShipIntroScreen(String objectId) {
+		this();
+		currentShip = SpaceObjectFactory.getInstance().getObjectById(objectId);
+		selectionDirection = 0;
 	}
 
 	@Override
@@ -106,16 +110,16 @@ public class ShipIntroScreen extends AliteScreen {
 		}
 		if (yesButton.isPressed(touch)) {
 			SoundManager.play(Assets.click);
-			newScreen = new LoadScreen(game, L.string(R.string.title_cmdr_load));
+			newScreen = new LoadScreen(L.string(R.string.title_cmdr_load));
 			game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK);
 		}
 		if (noButton.isPressed(touch)) {
 			SoundManager.play(Assets.click);
-			newScreen = new StatusScreen(game);
+			newScreen = new StatusScreen();
 		}
 		if (tapToStartButton.isPressed(touch)) {
 			SoundManager.play(Assets.click);
-			newScreen = new StatusScreen(game);
+			newScreen = new StatusScreen();
 		}
 		if (newScreen != null) {
 			if (theChase != null) {
@@ -230,7 +234,7 @@ public class ShipIntroScreen extends AliteScreen {
 		MathHelper.getRandomRotationAngles(targetDelta);
 		timer.reset();
 		displayMode = DisplayMode.DANCE;
-		currentShip.setAIState(AIState.IDLE, (Object[]) null);
+		currentShip.setAIState(SpaceObjectAI.AI_STATE_GLOBAL, (Object[]) null);
 		currentShip.setSpeed(-currentShip.getMaxSpeed());
 		yesButton = Button.createGradientPictureButton(1000, 950, 110, 110, Assets.yesIcon)
 			.setVisible(showLoadNewCommander);
@@ -319,21 +323,8 @@ public class ShipIntroScreen extends AliteScreen {
 	private SpaceObject getNextShip() {
 		SpaceObject ao = SpaceObjectFactory.getInstance().getNextObject(currentShip, selectionDirection, DEBUG_EXHAUST);
 		selectionDirection = 1;
-		ao.setAIState(AIState.IDLE, (Object[]) null);
+		ao.setAIState(SpaceObjectAI.AI_STATE_GLOBAL, (Object[]) null);
 		ao.setSpeed(-ao.getMaxSpeed());
 		return ao;
-	}
-
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		ShipIntroScreen sis = new ShipIntroScreen(alite);
-		try {
-			sis.currentShip = SpaceObjectFactory.getInstance().getObjectById(ScreenBuilder.readString(dis));
-			sis.selectionDirection = 0;
-		} catch (IOException e) {
-			AliteLog.e("Ship Intro Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		alite.setScreen(sis);
-		return true;
 	}
 }

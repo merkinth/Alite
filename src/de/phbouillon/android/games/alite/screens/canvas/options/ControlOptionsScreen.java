@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -29,7 +28,6 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.tutorial.TutIntroduction;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class ControlOptionsScreen extends OptionsScreen {
 	private Button shipControlMode;
 	private Button controlDisplaySide;
@@ -41,8 +39,7 @@ public class ControlOptionsScreen extends OptionsScreen {
 	private Button back;
 	private boolean forwardToIntroduction;
 
-	public ControlOptionsScreen(Alite game, boolean forwardToIntroduction) {
-		super(game);
+	public ControlOptionsScreen(boolean forwardToIntroduction) {
 		this.forwardToIntroduction = forwardToIntroduction;
 		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_OPTIONS);
 	}
@@ -131,7 +128,7 @@ public class ControlOptionsScreen extends OptionsScreen {
 				Settings.save(game.getFileIO());
 			} else if (buttonPositionOptions.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new InFlightButtonsOptionsScreen(game);
+				newScreen = new InFlightButtonsOptionsScreen();
 			} else if (linearLayout.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.flatButtonDisplay = !Settings.flatButtonDisplay;
@@ -139,7 +136,7 @@ public class ControlOptionsScreen extends OptionsScreen {
 				Settings.save(game.getFileIO());
 			} else if (back.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = forwardToIntroduction ? new TutIntroduction() : new OptionsScreen(game);
+				newScreen = forwardToIntroduction ? new TutIntroduction() : new OptionsScreen();
 			} else if (reverseDiveClimb.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.reversePitch = !Settings.reversePitch;
@@ -166,14 +163,4 @@ public class ControlOptionsScreen extends OptionsScreen {
 		dos.writeBoolean(forwardToIntroduction);
 	}
 
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		boolean forward = false;
-		try {
-			forward = dis.readBoolean();
-		} catch (IOException e) {
-			AliteLog.e("Error in initializer", "Error in initializer", e);
-		}
-		alite.setScreen(new ControlOptionsScreen(alite, forward));
-		return true;
-	}
 }

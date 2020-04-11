@@ -43,8 +43,8 @@ import de.phbouillon.android.games.alite.screens.opengl.IAdditionalGLParameterSe
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.PlanetSpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.SphericalSpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectAI;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteHud;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteButtons;
@@ -94,8 +94,10 @@ public class FlightScreen extends GlScreen implements Serializable {
 	private Vector3f v1 = new Vector3f(0, 0, 0);
 	private Vector3f v2 = new Vector3f(0, 0, 0);
 
-	public FlightScreen(Alite game) {
-		this(game, true);
+	// default public constructor is required for navigation bar
+	@SuppressWarnings("unused")
+	public FlightScreen() {
+		this(true);
 		try {
 			AliteLog.d("[ALITE]", "Performing autosave. [Launch]");
 			game.autoSave();
@@ -105,8 +107,8 @@ public class FlightScreen extends GlScreen implements Serializable {
 		InGameManager.safeZoneViolated = false;
 	}
 
-	public FlightScreen(Alite game, boolean fromStation) {
-		this.game = game;
+	public FlightScreen(boolean fromStation) {
+		game = Alite.get();
 		AliteLog.d("Flight Screen Constructor", "FSC -- fromStation == " + fromStation);
 		SHIP_ENTRY_POSITION.z = Settings.enterInSafeZone ? 685000.0f : 400000.0f;
 		this.fromStation = fromStation;
@@ -125,28 +127,14 @@ public class FlightScreen extends GlScreen implements Serializable {
 		ObjectSpawnManager.VIPERS_ENABLED = true;
 	}
 
-	public static FlightScreen createScreen(Alite alite, final DataInputStream dis) throws IOException, ClassNotFoundException {
-		alite.loadCommander(dis);
+	public static FlightScreen createScreen(final DataInputStream dis) throws IOException, ClassNotFoundException {
+		Alite.get().loadCommander(dis);
 		ObjectInputStream ois = new ObjectInputStream(dis);
 		AliteLog.d("Initializing Flight Screen", "---------------------------------------------------------------");
-		FlightScreen fs = (FlightScreen) ois.readObject();
-		fs.needsActivation = false;
-		fs.resetSpaceStation = false;
-		return fs;
-	}
-
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		try {
-			FlightScreen fs = createScreen(alite, dis);
-			alite.setScreen(fs);
-			AliteLog.d("Flight Screen created from state", "---------------------------------------------------------------");
-			return true;
-		} catch (ClassNotFoundException e) {
-			AliteLog.e("Class not found", e.getMessage(), e);
-		} catch (IOException e) {
-			AliteLog.e("Error in Initializer", e.getMessage(), e);
-		}
-		return false;
+		FlightScreen screen = (FlightScreen) ois.readObject();
+		screen.needsActivation = false;
+		screen.resetSpaceStation = false;
+		return screen;
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
@@ -210,6 +198,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 				return inGame.getShip().getSpeed();
 			}
 		}), "textures/star_map.png", lightPosition, fromStation, true);
+		game.setInGame(inGame);
 		PlayerCobra cobra = game.getCobra();
 		cobra.setMissileTargetting(false);
 		cobra.setMissileLocked(false);
@@ -217,8 +206,8 @@ public class FlightScreen extends GlScreen implements Serializable {
 		cobra.setCabinTemperature(0);
 		cobra.setAltitude(fromStation ? PlayerCobra.MAX_ALTITUDE / 2 : PlayerCobra.MAX_ALTITUDE);
 		cobra.setEnergy(PlayerCobra.MAX_ENERGY);
-		cobra.setFrontShield((int) PlayerCobra.MAX_SHIELD);
-		cobra.setRearShield((int) PlayerCobra.MAX_SHIELD);
+		cobra.setFrontShield(PlayerCobra.MAX_SHIELD);
+		cobra.setRearShield(PlayerCobra.MAX_SHIELD);
 		if (fromStation) {
 			inGame.getShip().applyDeltaRotation(180.0f, 0, 0);
 		}
@@ -423,13 +412,13 @@ public class FlightScreen extends GlScreen implements Serializable {
 	    				v0.add(v1, v2);
 	    				tie.setPosition(v2);
 						tie.orientTowards(inGame.getShip(), 0);
-						tie.setAIState(AIState.IDLE, (Object[]) null);
+						tie.setAIState(SpaceObjectAI.AI_STATE_GLOBAL, (Object[]) null);
 	    				count++;
 	    			} else {
 	    				v0.sub(v1, v2);
 	    				tie.setPosition(v2);
 	    				tie.orientTowards(inGame.getShip(), 0);
-	    				tie.setAIState(AIState.IDLE, (Object[]) null);
+	    				tie.setAIState(SpaceObjectAI.AI_STATE_GLOBAL, (Object[]) null);
 	    				inGame.getStation().getPosition().sub(inGame.getShip().getPosition(), v2);
 	    				v2.scale(0.1f);
 	    				v0.add(v2);

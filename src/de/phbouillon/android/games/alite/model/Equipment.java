@@ -32,18 +32,25 @@ public class Equipment implements Serializable {
 	private final int name;
 	private final int cost;
 	private final int shortName;
-	private final boolean canBeLost;
+	private final String lostSoundFilename;
 
-	public Equipment(int id, int name, int cost, int shortName, boolean canBeLost) {
+	public Equipment(int id, int name, int cost, int shortName) {
 		this.id = id;
 		this.name = name;
 		this.cost = cost;
 		this.shortName = shortName;
-		this.canBeLost = canBeLost;
+		this.lostSoundFilename = null;
 	}
 
-	private void writeObject(ObjectOutputStream out)
-            throws IOException {
+	public Equipment(int id, int name, int cost, int shortName, String lostSoundFilename) {
+		this.id = id;
+		this.name = name;
+		this.cost = cost;
+		this.shortName = shortName;
+		this.lostSoundFilename = lostSoundFilename;
+	}
+
+	private void writeObject(ObjectOutputStream out) throws IOException {
 		try {
 			out.defaultWriteObject();
 		} catch(IOException e) {
@@ -69,6 +76,6 @@ public class Equipment implements Serializable {
 	}
 
 	boolean canBeLost() {
-		return canBeLost;
+		return lostSoundFilename != null;
 	}
 }

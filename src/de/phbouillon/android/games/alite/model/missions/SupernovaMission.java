@@ -25,7 +25,6 @@ import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.Equipment;
-import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
@@ -46,8 +45,8 @@ public class SupernovaMission extends Mission implements Serializable {
 	private final TimedEvent preStartEvent;
 	private Timer timer;
 
-	public SupernovaMission(final Alite alite) {
-		super(alite, ID);
+	public SupernovaMission() {
+		super(ID);
 		preStartEvent = new TimedEvent(100000000);
 		preStartEvent.addAlarmEvent(new IMethodHook() {
 			private static final long serialVersionUID = -6824297537488646688L;
@@ -89,20 +88,20 @@ public class SupernovaMission extends Mission implements Serializable {
 		alite.getPlayer().addActiveMission(this);
 		if (state == 1) {
 			alite.getCobra().clearInventory();
-			alite.getCobra().addSpecialCargo(TradeGoodStore.GOOD_UNHAPPY_REFUGEES, alite.getCobra().isEquipmentInstalled(EquipmentStore.largeCargoBay) ? Weight.tonnes(35) : Weight.tonnes(20));
+			alite.getCobra().setTradeGood(TradeGoodStore.get().getGoodById(TradeGoodStore.UNHAPPY_REFUGEES), alite.getCobra().getFreeCargo(), 0);
 		}
 	}
 
 	@Override
 	public void onMissionComplete() {
 		active = false;
-		alite.getCobra().removeSpecialCargo(TradeGoodStore.GOOD_UNHAPPY_REFUGEES);
-		alite.getCobra().addTradeGood(TradeGoodStore.get().gemStones(), Weight.kilograms(1), 0);
+		alite.getCobra().removeTradeGood(TradeGoodStore.get().getGoodById(TradeGoodStore.UNHAPPY_REFUGEES));
+		alite.getCobra().addTradeGood(TradeGoodStore.get().getGoodById(TradeGoodStore.GEM_STONES), Weight.kilograms(1), 0);
 	}
 
 	@Override
 	public AliteScreen getMissionScreen() {
-		return new SupernovaScreen(alite, 0);
+		return new SupernovaScreen(0);
 	}
 
 	@Override
@@ -111,7 +110,7 @@ public class SupernovaMission extends Mission implements Serializable {
 			return null;
 		}
 		if (state == 1 && !positionMatchesTarget()) {
-			return new SupernovaScreen(alite, 3);
+			return new SupernovaScreen(3);
 		}
 		if (state == 2 && !positionMatchesTarget()) {
 			active = false;

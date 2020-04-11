@@ -20,50 +20,79 @@ package de.phbouillon.android.games.alite.model;
 
 import android.graphics.Color;
 import de.phbouillon.android.games.alite.R;
+import de.phbouillon.android.games.alite.model.statistics.WeaponType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class EquipmentStore {
-	static final int ENTRIES = 18;
+	public static final int FUEL = 0;
+	public static final int MISSILES = 1;
+	public static final int LARGE_CARGO_BAY = 2;
+	public static final int ECM_SYSTEM = 3;
+	public static final int PULSE_LASER = 4;
+	public static final int BEAM_LASER = 5;
+	public static final int FUEL_SCOOP = 6;
+	public static final int ESCAPE_CAPSULE = 7;
+	public static final int ENERGY_BOMB = 8;
+	public static final int EXTRA_ENERGY_UNIT = 9;
+	public static final int DOCKING_COMPUTER = 10;
+	public static final int GALACTIC_HYPERDRIVE = 11;
+	public static final int MINING_LASER = 12;
+	public static final int MILITARY_LASER = 13;
+	public static final int RETRO_ROCKETS = 14;
+	public static final int NAVAL_ENERGY_UNIT = 15;
+	public static final int CLOAKING_DEVICE = 16;
+	public static final int ECM_JAMMER = 17;
 
-	public static final Equipment fuel = new Equipment(0, R.string.equip_fuel, -1, R.string.equip_short_fuel, false);
-	public static final Equipment missiles = new Equipment(1,R.string.equip_missiles, 300, R.string.equip_short_missiles, false);
-	public static final Equipment largeCargoBay = new Equipment(2, R.string.equip_large_cargo_bay, 4000, R.string.equip_short_large_cargo_bay, false);
-	public static final Equipment ecmSystem = new Equipment(3, R.string.equip_ecm_system, 6000, R.string.equip_short_ecm_system, true);
-	public static final Laser pulseLaser = new Laser(4, R.string.equip_pulse_laser, 4000, R.string.equip_short_pulse_laser, 0, 598802395L, 5, Color.YELLOW, false);
-	public static final Laser beamLaser = new Laser(5, R.string.equip_beam_laser, 10000, R.string.equip_short_beam_laser, 1, 359281437L, 9, Color.BLUE, true);
-	public static final Equipment fuelScoop = new Equipment(6, R.string.equip_fuel_scoop, 5250, R.string.equip_short_fuel_scoop, true);
-	public static final Equipment escapeCapsule = new Equipment(7, R.string.equip_escape_capsule, 10000, R.string.equip_short_escape_capsule, true);
-	public static final Equipment energyBomb = new Equipment(8, R.string.equip_energy_bomb, 9000, R.string.equip_short_energy_bomb, true);
-	public static final Equipment extraEnergyUnit = new Equipment(9, R.string.equip_extra_energy_unit, 15000, R.string.equip_short_extra_energy_unit, true);
-	public static final Equipment dockingComputer = new Equipment(10, R.string.equip_docking_computer, 15000, R.string.equip_short_docking_computer, true);
-	public static final Equipment galacticHyperdrive = new Equipment(11, R.string.equip_galactic_hyperdrive, 50000, R.string.equip_short_galactic_hyperdrive, true);
-	public static final Laser miningLaser = new Laser(12, R.string.equip_mining_laser, 8000, R.string.equip_short_mining_laser, 2, 479041916L, 7, Color.GREEN, false);
-	public static final Laser militaryLaser = new Laser(13, R.string.equip_military_laser, 60000, R.string.equip_short_military_laser, 3, 179640718L, 11, Color.MAGENTA, true);
-	public static final Equipment retroRockets = new Equipment(14, R.string.equip_retro_rockets, 80000, R.string.equip_short_retro_rockets, true);
+	private static EquipmentStore instance;
+	private final List<Equipment> equipments = new ArrayList<>();
 
-	public static final Equipment navalEnergyUnit = new Equipment(15, R.string.equip_naval_energy_unit, 15000, R.string.equip_short_naval_energy_unit, false);
-	public static final Equipment cloakingDevice = new Equipment(16, R.string.equip_cloaking_device, 150000, R.string.equip_short_cloaking_device, false);
-	public static final Equipment ecmJammer = new Equipment(17, R.string.equip_ecm_jammer, 150000, R.string.equip_short_ecm_jammer, false);
+	public static EquipmentStore get() {
+		if (instance == null) {
+			instance = new EquipmentStore();
+		}
+		return instance;
+	}
 
-	public static Equipment fromInt(int val) {
-		switch (val) {
-			case 0: return fuel;
-			case 1: return missiles;
-			case 2: return largeCargoBay;
-			case 3: return ecmSystem;
-			case 4: return pulseLaser;
-			case 5: return beamLaser;
-			case 6: return fuelScoop;
-			case 7: return escapeCapsule;
-			case 8: return energyBomb;
-			case 9: return extraEnergyUnit;
-			case 10: return dockingComputer;
-			case 11: return galacticHyperdrive;
-			case 12: return miningLaser;
-			case 13: return militaryLaser;
-			case 14: return retroRockets;
-			case 15: return navalEnergyUnit;
-			case 16: return cloakingDevice;
-			case 17: return ecmJammer;
+	private EquipmentStore() {
+		equipments.add(new Equipment(FUEL, R.string.equip_fuel, -1, R.string.equip_short_fuel));
+		equipments.add(new Equipment(MISSILES,R.string.equip_missiles, 300, R.string.equip_short_missiles));
+		equipments.add(new Equipment(LARGE_CARGO_BAY, R.string.equip_large_cargo_bay, 4000, R.string.equip_short_large_cargo_bay));
+		equipments.add(new Equipment(ECM_SYSTEM, R.string.equip_ecm_system, 6000, R.string.equip_short_ecm_system, "lost_ecm"));
+		equipments.add(new Laser(PULSE_LASER, R.string.equip_pulse_laser, 4000, R.string.equip_short_pulse_laser, WeaponType.PulseLaser, 598802395L, 5, Color.YELLOW, false));
+		equipments.add(new Laser(BEAM_LASER, R.string.equip_beam_laser, 10000, R.string.equip_short_beam_laser, WeaponType.BeamLaser, 359281437L, 9, Color.BLUE, true));
+		equipments.add(new Equipment(FUEL_SCOOP, R.string.equip_fuel_scoop, 5250, R.string.equip_short_fuel_scoop, "lost_fuel_scoop"));
+		equipments.add(new Equipment(ESCAPE_CAPSULE, R.string.equip_escape_capsule, 10000, R.string.equip_short_escape_capsule, "lost_escape"));
+		equipments.add(new Equipment(ENERGY_BOMB, R.string.equip_energy_bomb, 9000, R.string.equip_short_energy_bomb, "lost_bomb"));
+		equipments.add(new Equipment(EXTRA_ENERGY_UNIT, R.string.equip_extra_energy_unit, 15000, R.string.equip_short_extra_energy_unit, "lost_energy"));
+		equipments.add(new Equipment(DOCKING_COMPUTER, R.string.equip_docking_computer, 15000, R.string.equip_short_docking_computer, "lost_docking"));
+		equipments.add(new Equipment(GALACTIC_HYPERDRIVE, R.string.equip_galactic_hyperdrive, 50000, R.string.equip_short_galactic_hyperdrive, "lost_galactic"));
+		equipments.add(new Laser(MINING_LASER, R.string.equip_mining_laser, 8000, R.string.equip_short_mining_laser, WeaponType.MiningLaser, 479041916L, 7, Color.GREEN, false));
+		equipments.add(new Laser(MILITARY_LASER, R.string.equip_military_laser, 60000, R.string.equip_short_military_laser, WeaponType.MilitaryLaser, 179640718L, 11, Color.MAGENTA, true));
+		equipments.add(new Equipment(RETRO_ROCKETS, R.string.equip_retro_rockets, 80000, R.string.equip_short_retro_rockets, "lost_retro_rockets"));
+
+		equipments.add(new Equipment(NAVAL_ENERGY_UNIT, R.string.equip_naval_energy_unit, 15000, R.string.equip_short_naval_energy_unit));
+		equipments.add(new Equipment(CLOAKING_DEVICE, R.string.equip_cloaking_device, 150000, R.string.equip_short_cloaking_device));
+		equipments.add(new Equipment(ECM_JAMMER, R.string.equip_ecm_jammer, 150000, R.string.equip_short_ecm_jammer));
+	}
+
+	public Equipment getEquipment(int index) {
+		return index < 0 || index >= equipments.size() ? null : equipments.get(index);
+	}
+
+	public void addEquipment(Equipment equipment) {
+		equipments.add(equipment);
+	}
+
+	public Equipment getEquipmentById(int id) {
+		if (id < 0) {
+			return null;
+		}
+		for(Equipment equipment : equipments) {
+			if (equipment.getId() == id) {
+				return equipment;
+			}
 		}
 		return null;
 	}

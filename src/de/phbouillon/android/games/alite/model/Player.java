@@ -30,6 +30,7 @@ import de.phbouillon.android.games.alite.model.generator.enums.Government;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.trading.AliteMarket;
 import de.phbouillon.android.games.alite.model.trading.Market;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 
 public class Player {
 	private static final int LAVE_INDEX = 7;
@@ -44,18 +45,16 @@ public class Player {
 	private int score;
 	private int killCount;
 	private PlayerCobra cobra;
-	private final Alite alite;
 	private final Market market;
 	private int legalValue;
 	private final Point position = new Point(-1, -1);
 	private int jumpCounter = 0;
 	private int intergalacticJumpCounter = 0;
-	private final List <Mission> activeMissions = new ArrayList<Mission>();
-	private final List <Mission> completedMissions = new ArrayList<Mission>();
+	private final List <Mission> activeMissions = new ArrayList<>();
+	private final List <Mission> completedMissions = new ArrayList<>();
 	private boolean cheater;
 
-	public Player(Alite alite) {
-		this.alite = alite;
+	public Player() {
 		market = new AliteMarket();
 		reset();
 	}
@@ -70,9 +69,10 @@ public class Player {
 		cash = 1000;
 		score = 0;
 		killCount = 0;
-		this.alite.getGenerator().buildGalaxy(1);
-		currentSystem = this.alite.getGenerator().getSystems()[LAVE_INDEX];
-		hyperspaceSystem = this.alite.getGenerator().getSystems()[LAVE_INDEX];
+		Alite alite = Alite.get();
+		alite.getGenerator().buildGalaxy(1);
+		currentSystem = alite.getGenerator().getSystems()[LAVE_INDEX];
+		hyperspaceSystem = alite.getGenerator().getSystems()[LAVE_INDEX];
 		market.setFluct(0);
 		market.setSystem(currentSystem);
 		market.generate();
@@ -123,8 +123,24 @@ public class Player {
 
 	public void setCondition(Condition newCondition) {
 		condition = newCondition;
-		if((condition != Condition.GREEN) && (condition != Condition.YELLOW))
-			alite.setTimeFactor(1);
+		if(condition != Condition.GREEN && condition != Condition.YELLOW)
+			Alite.get().setTimeFactor(1);
+	}
+
+	public void increaseAlertLevel() {
+		if (condition == Condition.GREEN) {
+			condition = Condition.YELLOW;
+		} else if (condition == Condition.YELLOW) {
+			condition = Condition.RED;
+		}
+	}
+
+	public void decreaseAlertLevel() {
+		if (condition == Condition.RED) {
+			condition = Condition.YELLOW;
+		} else if (condition == Condition.YELLOW) {
+			condition = Condition.GREEN;
+		}
 	}
 
 	public LegalStatus getLegalStatus() {
@@ -175,8 +191,14 @@ public class Player {
 		return killCount;
 	}
 
+	public void setLegalValueByContraband(float legalityType, int buyAmount) {
+		if (Math.random() * 100 < getLegalProblemLikelihoodInPercent()) {
+			setLegalValue(legalValue + (int) (legalityType * buyAmount));
+		}
+	}
+
 	public void setLegalValue(int legalValue) {
-		this.legalValue = legalValue < 0 ? 0 : legalValue > 255 ? 255 : legalValue;
+		this.legalValue = legalValue < 0 ? 0 : Math.min(legalValue, 255);
 		if (this.legalValue == 0) {
 			setLegalStatus(LegalStatus.CLEAN);
 		} else if (this.legalValue < 32) {
@@ -197,6 +219,15 @@ public class Player {
 
 	public Point getPosition() {
 		return position;
+	}
+
+	public int computeDistance() {
+		if (currentSystem != null) {
+			return hyperspaceSystem.computeDistance(currentSystem);
+		}
+		int dx = position.x - hyperspaceSystem.getX();
+		int dy = position.y - hyperspaceSystem.getY();
+		return (int) Math.sqrt(dx * dx + dy * dy) << 2;
 	}
 
 	public void increaseJumpCounter() {
@@ -281,4 +312,39 @@ public class Player {
 		}
 		return 0;
 	}
+
+	public void computeLegalStatusAfterFriendlyHit(int hullStrength) {
+		computeLegalStatusAfterHit(hullStrength, currentSystem == null ||
+			currentSystem.getGovernment() != Government.ANARCHY, 64);
+	}
+	public void computeLegalStatusAfterStationHit(int hullStrength) {
+		computeLegalStatusAfterHit(hullStrength, true, 64);
+	}
+
+	public void computeLegalStatusAtLaunchMissile() {
+		computeLegalStatusAfterHit(0, true, 32);
+	}
+
+	private void computeLegalStatusAfterHit(int hullStrength, boolean safeZoneViolated, int maxIncrement) {
+		if (InGameManager.playerInSafeZone && safeZoneViolated) {
+			InGameManager.safeZoneViolated = true;
+		}
+		int increment = 0;
+		if (currentSystem != null) {
+			switch (currentSystem.getGovernment()) {
+				case ANARCHY: break; // In anarchies, you can do whatever you want.
+				case FEUDAL: if (hullStrength < 10 && Math.random() > 0.9) { increment = 16; } break;
+				case MULTI_GOVERNMENT: if (hullStrength < 10 && Math.random() > 0.8) { increment = 24; } break;
+				case DICTATORSHIP: if (hullStrength < 10 && Math.random() > 0.6) { increment = 32; } break;
+				case COMMUNIST: if (hullStrength < 20 && Math.random() > 0.4) { increment = 40; } break;
+				case CONFEDERACY: if (hullStrength < 30 && Math.random() > 0.2) { increment = 48; } break;
+				case DEMOCRACY: increment = 56; break;
+				case CORPORATE_STATE: increment = 64; break;
+			}
+		} else {
+			increment = 64;
+		}
+		setLegalValue(legalValue + Math.min(increment, maxIncrement));
+	}
+
 }

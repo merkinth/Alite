@@ -30,7 +30,7 @@ import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.model.Laser;
-import de.phbouillon.android.games.alite.model.PlayerCobra;
+import de.phbouillon.android.games.alite.model.statistics.WeaponType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 
 public class AliteHud extends Sprite implements Serializable {
@@ -60,14 +60,11 @@ public class AliteHud extends Sprite implements Serializable {
 	private final Sprite aliteText;
 	private final Sprite safeIcon;
 	private final Sprite ecmIcon;
-	private final Sprite frontViewport;
-	private final Sprite rearViewport;
-	private final Sprite leftViewport;
-	private final Sprite rightViewport;
+	private final Sprite[] viewport = new Sprite[4];
 	private boolean enemiesVisible = true;
 
 	private int viewDirection = 0;
-	private int currentLaserIndex = 0;
+	private WeaponType currentLaserIndex = WeaponType.PulseLaser;
 
 	static final String TEXTURE_FILE = "textures/radar_final.png";
 
@@ -91,10 +88,10 @@ public class AliteHud extends Sprite implements Serializable {
 		aliteText     = genSprite("alite", 864, 1030);
 		safeIcon      = genSprite("s", 1284, RADAR_Y2 - 68);
 		ecmIcon       = genSprite("e", RADAR_X1 - 40, RADAR_Y2 - 68);
-		frontViewport = genSprite("front", (RADAR_X2 + RADAR_X1 >> 1) - 133, RADAR_Y1);
-		rearViewport  = genSprite("rear",  (RADAR_X2 + RADAR_X1 >> 1) - 133, RADAR_Y2 + RADAR_Y1 >> 1);
-		leftViewport  = genSprite("left", RADAR_X1, (RADAR_Y2 + RADAR_Y1 >> 1) - 73);
-		rightViewport = genSprite("right", RADAR_X2 + RADAR_X1 >> 1, (RADAR_Y2 + RADAR_Y1 >> 1) - 73);
+		viewport[0]   = genSprite("front", (RADAR_X2 + RADAR_X1 >> 1) - 133, RADAR_Y1);
+		viewport[1]   = genSprite("right", RADAR_X2 + RADAR_X1 >> 1, (RADAR_Y2 + RADAR_Y1 >> 1) - 73);
+		viewport[2]   = genSprite("rear",  (RADAR_X2 + RADAR_X1 >> 1) - 133, RADAR_Y2 + RADAR_Y1 >> 1);
+		viewport[3]   = genSprite("left", RADAR_X1, (RADAR_Y2 + RADAR_Y1 >> 1) - 73);
 		infoGauges    = new InfoGaugeRenderer(this);
 		compass       = new CompassRenderer(this);
 		if (Settings.controlMode == ShipControl.CONTROL_PAD) {
@@ -119,7 +116,7 @@ public class AliteHud extends Sprite implements Serializable {
 			Alite.get().getTextureManager().addTexture(TEXTURE_FILE);
 			SpriteData spriteData = Alite.get().getTextureManager().getSprite(TEXTURE_FILE, "radar");
 			setTextureCoords(spriteData.x, spriteData.y, spriteData.x2, spriteData.y2);
-			currentLaserIndex = -1;
+			currentLaserIndex = null;
 			computeLaser();
 			AliteLog.d("readObject", "AliteHud.readObject II");
 		} catch (ClassNotFoundException e) {
@@ -128,33 +125,25 @@ public class AliteHud extends Sprite implements Serializable {
 	}
 
 	Sprite genSprite(String name, int x, int y) {
-		Alite alite = Alite.get();
-		SpriteData spriteData = alite.getTextureManager().getSprite(TEXTURE_FILE, name);
+		SpriteData spriteData = Alite.get().getTextureManager().getSprite(TEXTURE_FILE, name);
 		return new Sprite(x, y, x + spriteData.origWidth, y + spriteData.origHeight,
 			spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, TEXTURE_FILE);
 	}
 
 	private void computeLaser() {
-		Laser laser = null;
 		Alite alite = Alite.get();
-		switch (viewDirection) {
-			case 0: laser = alite.getPlayer().getCobra().getLaser(PlayerCobra.DIR_FRONT); break;
-			case 1: laser = alite.getPlayer().getCobra().getLaser(PlayerCobra.DIR_RIGHT); break;
-			case 2: laser = alite.getPlayer().getCobra().getLaser(PlayerCobra.DIR_REAR);  break;
-			case 3: laser = alite.getPlayer().getCobra().getLaser(PlayerCobra.DIR_LEFT);  break;
-		}
+		Laser laser = alite.getPlayer().getCobra().getLaser(viewDirection);
 		if (laser != null) {
-			if (laser.getIndex() != currentLaserIndex) {
+			if (laser.getWeaponType() != currentLaserIndex) {
 				SpriteData spriteData =  alite.getTextureManager().getSprite(TEXTURE_FILE,
-						laser.getIndex() == 0 ? "pulse_laser" :
-						laser.getIndex() == 1 ? "beam_laser" :
-						laser.getIndex() == 2 ? "mining_laser" :
-							"military_laser");
-				currentLaserIndex = laser.getIndex();
+					laser.getWeaponType() == WeaponType.PulseLaser ? "pulse_laser" :
+					laser.getWeaponType() == WeaponType.BeamLaser ? "beam_laser" :
+					laser.getWeaponType() == WeaponType.MiningLaser ? "mining_laser" : "military_laser");
+				currentLaserIndex = laser.getWeaponType();
 				this.laser.setTextureCoords(spriteData.x, spriteData.y, spriteData.x2, spriteData.y2);
 			}
 		} else {
-			currentLaserIndex = -1;
+			currentLaserIndex = null;
 		}
 	}
 
@@ -247,12 +236,8 @@ public class AliteHud extends Sprite implements Serializable {
 		}
 	}
 
-	public boolean isWitchSpace() {
-		return witchSpace;
-	}
-
-	public void setWitchSpace(boolean b) {
-		witchSpace = b;
+	public void setWitchSpace() {
+		witchSpace = true;
 	}
 
 	public void setViewDirection(int viewDirection) {
@@ -321,7 +306,7 @@ public class AliteHud extends Sprite implements Serializable {
 		GLES11.glDrawArrays(GLES11.GL_TRIANGLE_STRIP, 0, 4);
 
 		computeLaser();
-		if (currentLaserIndex >= 0) {
+		if (currentLaserIndex != null) {
 			laser.simpleRender();
 		}
 		if (!witchSpace) {
@@ -347,12 +332,7 @@ public class AliteHud extends Sprite implements Serializable {
 		}
 
 		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE);
-		switch (viewDirection) {
-			case 0: frontViewport.justRender(); break;
-			case 1: rightViewport.justRender(); break;
-			case 2: rearViewport.justRender();  break;
-			case 3: leftViewport.justRender();  break;
-		}
+		viewport[viewDirection].justRender();
 
 		GLES11.glDisableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
 		GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, 0);

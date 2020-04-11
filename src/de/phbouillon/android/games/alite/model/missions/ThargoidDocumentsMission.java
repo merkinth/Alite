@@ -43,8 +43,8 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 
 	private TimedEvent conditionRedEvent;
 
-	public ThargoidDocumentsMission(Alite alite) {
-		super(alite, ID);
+	public ThargoidDocumentsMission() {
+		super(ID);
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 			alite.getPlayer().addActiveMission(this);
 			alite.getCobra().setMissiles(4);
 			alite.getCobra().setFuel(70);
-			alite.getCobra().addSpecialCargo(TradeGoodStore.GOOD_THARGOID_DOCUMENTS, Weight.grams(482));
+			alite.getCobra().setTradeGood(TradeGoodStore.get().getGoodById(TradeGoodStore.THARGOID_DOCUMENTS), Weight.grams(482), 0);
 			state = 1;
 			resetTargetName();
 		} else {
@@ -72,14 +72,14 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 	@Override
 	public void onMissionComplete() {
 		active = false;
-		alite.getCobra().removeSpecialCargo(TradeGoodStore.GOOD_THARGOID_DOCUMENTS);
-		alite.getCobra().removeEquipment(EquipmentStore.extraEnergyUnit);
-		alite.getCobra().addEquipment(EquipmentStore.navalEnergyUnit);
+		alite.getCobra().removeTradeGood(TradeGoodStore.get().getGoodById(TradeGoodStore.THARGOID_DOCUMENTS));
+		alite.getCobra().removeEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.EXTRA_ENERGY_UNIT));
+		alite.getCobra().addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.NAVAL_ENERGY_UNIT));
 	}
 
 	@Override
 	public AliteScreen getMissionScreen() {
-		return new ThargoidDocumentsScreen(alite, 0);
+		return new ThargoidDocumentsScreen(0);
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 			return null;
 		}
 		if (state == 1 && positionMatchesTarget()) {
-			return new ThargoidDocumentsScreen(alite, 2);
+			return new ThargoidDocumentsScreen(2);
 		}
 		return null;
 	}

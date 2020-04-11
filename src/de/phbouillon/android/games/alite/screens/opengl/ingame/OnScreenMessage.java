@@ -107,7 +107,7 @@ class OnScreenMessage implements Serializable {
 		return !activationTime.hasPassedSeconds(durationInSec);
 	}
 
-	void render(Alite alite) {
+	void render() {
 		DelayedText toBeRemoved = null;
 		for (DelayedText dt: delayedTexts) {
 			if (dt.passed()) {
@@ -122,7 +122,7 @@ class OnScreenMessage implements Serializable {
 		}
 		if (isActive()) {
 			lastRepetitionInactive.reset();
-			alite.getGraphics().drawCenteredText(text, 960, 650, ColorScheme.get(ColorScheme.COLOR_HUD_MESSAGE),
+			Alite.get().getGraphics().drawCenteredText(text, 960, 650, ColorScheme.get(ColorScheme.COLOR_HUD_MESSAGE),
 				Assets.regularFont, scale);
 			return;
 		}

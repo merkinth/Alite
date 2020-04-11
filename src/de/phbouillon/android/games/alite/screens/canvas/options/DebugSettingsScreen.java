@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -30,7 +29,6 @@ import de.phbouillon.android.games.alite.model.Rating;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class DebugSettingsScreen extends AliteScreen {
 	private Button logToFile;
 	private Button memDebug;
@@ -48,8 +46,7 @@ public class DebugSettingsScreen extends AliteScreen {
     private Button laserDoesNotOverheat;
     private Button more;
 
-	DebugSettingsScreen(Alite game) {
-		super(game);
+	public DebugSettingsScreen() {
 		game.getPlayer().setCheater(true);
 	}
 
@@ -210,7 +207,7 @@ public class DebugSettingsScreen extends AliteScreen {
 		}
 		if (addDockingComputer.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			game.getCobra().addEquipment(EquipmentStore.dockingComputer);
+			game.getCobra().addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.DOCKING_COMPUTER));
 			return;
 		}
 		if (unlimitedFuel.isTouched(touch.x, touch.y)) {
@@ -243,7 +240,7 @@ public class DebugSettingsScreen extends AliteScreen {
 		}
 		if (more.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new MoreDebugSettingsScreen(game);
+			newScreen = new MoreDebugSettingsScreen();
 		}
 	}
 
@@ -252,8 +249,4 @@ public class DebugSettingsScreen extends AliteScreen {
 		return ScreenCodes.DEBUG_SCREEN;
 	}
 
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		alite.setScreen(new DebugSettingsScreen(alite));
-		return true;
-	}
 }

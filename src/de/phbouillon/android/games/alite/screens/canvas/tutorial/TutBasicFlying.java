@@ -40,7 +40,6 @@ import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteBut
 //This screen never needs to be serialized, as it is not part of the InGame state,
 //also, all used inner classes (IMethodHook, etc.) will be reset upon state loading,
 //hence they never need to be serialized, either.
-@SuppressWarnings("serial")
 public class TutBasicFlying extends TutorialScreen {
 
 	private static final int TUTORIAL_INDEX = 6;
@@ -55,13 +54,8 @@ public class TutBasicFlying extends TutorialScreen {
 	private SpaceObject blueTarget;
 	private SpaceObject dockingBuoy;
 
-	TutBasicFlying(final Alite alite) {
-		this(alite, null);
-	}
-
-	private TutBasicFlying(final Alite alite, FlightScreen flight) {
-		super(alite, true);
-
+	protected TutBasicFlying(FlightScreen flight) {
+		super(true);
 		this.flight = flight;
 
 		ObjectSpawnManager.SHUTTLES_ENABLED = false;
@@ -118,6 +112,26 @@ public class TutBasicFlying extends TutorialScreen {
 		initLine_34();
 	}
 
+	public TutBasicFlying(DataInputStream dis) throws IOException, ClassNotFoundException {
+		this(FlightScreen.createScreen(dis));
+		currentLineIndex = dis.readInt();
+		resetShipPosition = dis.readBoolean();
+
+		yellowTarget = (SpaceObject) flight.findObjectById(YELLOW_TARGET_ID);
+		if (yellowTarget != null) {
+			yellowTarget.setSaving(false);
+		}
+		blueTarget = (SpaceObject) flight.findObjectById(BLUE_TARGET_ID);
+		if (blueTarget != null) {
+			blueTarget.setSaving(false);
+		}
+		SpaceObject buoy = (SpaceObject) flight.findObjectById(DOCKING_BUOY_ID);
+		if (buoy != null) {
+			buoy.setSaving(false);
+		}
+		loadScreenState(dis);
+	}
+
 	private TutorialLine addTopLine(String text) {
 		return addLine(TUTORIAL_INDEX, text).setX(250).setWidth(1420).setY(20).setHeight(140);
 	}
@@ -130,7 +144,7 @@ public class TutBasicFlying extends TutorialScreen {
 				});
 
 		if (flight == null) {
-			flight = new FlightScreen(game, true);
+			flight = new FlightScreen(true);
 		}
 	}
 
@@ -554,7 +568,7 @@ public class TutBasicFlying extends TutorialScreen {
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			startFlightWithButtons();
 			if (flight.getInGameManager().getLaserManager().isUnderCross(
-					(SpaceObject) flight.getInGameManager().getStation(),
+					flight.getInGameManager().getStation(),
 					flight.getInGameManager().getShip(),
 					flight.getInGameManager().getViewDirection())) {
 				line.setFinished();
@@ -581,7 +595,7 @@ public class TutBasicFlying extends TutorialScreen {
 				flight.setPostDockingHook(deltaTime1 -> dispose());
 			}
 			if (flight.getInGameManager().getActualPostDockingScreen() == null) {
-				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen(game));
+				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen());
 			}
 		}).setFinishHook(deltaTime -> finishFlight());
 	}
@@ -612,33 +626,6 @@ public class TutBasicFlying extends TutorialScreen {
 		ObjectSpawnManager.THARGONS_ENABLED = false;
 		ObjectSpawnManager.TRADERS_ENABLED = false;
 		ObjectSpawnManager.VIPERS_ENABLED = false;
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			TutBasicFlying tb = new TutBasicFlying(alite, FlightScreen.createScreen(alite, dis));
-			tb.currentLineIndex = dis.readInt();
-			tb.resetShipPosition = dis.readBoolean();
-
-			tb.yellowTarget = (SpaceObject) tb.flight.findObjectById(YELLOW_TARGET_ID);
-			if (tb.yellowTarget != null) {
-				tb.yellowTarget.setSaving(false);
-			}
-			tb.blueTarget = (SpaceObject) tb.flight.findObjectById(BLUE_TARGET_ID);
-			if (tb.blueTarget != null) {
-				tb.blueTarget.setSaving(false);
-			}
-			SpaceObject buoy = (SpaceObject) tb.flight.findObjectById(DOCKING_BUOY_ID);
-			if (buoy != null) {
-				buoy.setSaving(false);
-			}
-			tb.loadScreenState(dis);
-			alite.setScreen(tb);
-		} catch (IOException | ClassNotFoundException e) {
-			AliteLog.e("Tutorial Basic Flying Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
 	}
 
 	@Override

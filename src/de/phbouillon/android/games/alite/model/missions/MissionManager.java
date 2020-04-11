@@ -24,10 +24,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.annotation.SuppressLint;
-import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
+import de.phbouillon.android.games.alite.Assets;
 
 public class MissionManager {
-	public static final String DIRECTORY_SOUND_MISSION = LoadingScreen.DIRECTORY_SOUND + "mission" + File.separator;
+	public static final String DIRECTORY_SOUND_MISSION = Assets.DIRECTORY_SOUND + "mission" + File.separator;
 
 	private static final MissionManager instance = new MissionManager();
 

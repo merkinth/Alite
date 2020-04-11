@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.model.trading;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,9 +18,7 @@ package de.phbouillon.android.games.alite.model.trading;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -31,10 +29,10 @@ public abstract class Market {
 	protected final Map <TradeGood, Integer> quantity;
 	protected final Map <TradeGood, Integer> price;
 	protected final TradeGoodStore store;
-	
+
 	protected Market(TradeGoodStore store) {
-		quantity   = new HashMap<TradeGood, Integer>();
-		price      = new HashMap<TradeGood, Integer>();
+		quantity   = new HashMap<>();
+		price      = new HashMap<>();
 		fluct      = 0;
 		this.store = store;
 	}
@@ -42,38 +40,30 @@ public abstract class Market {
 	public void setSystem(SystemData system) {
 		this.system = system;
 	}
-	
+
 	public int getFluct() {
 		return fluct;
 	}
-	
+
 	public void setFluct(int fluct) {
 		this.fluct = fluct;
 	}
 
 	public abstract void generate();
-	
+
 	public int getPrice(TradeGood good) {
-		return price.get(good);
-	}	
-	
+		Integer p = price.get(good);
+		return p == null ? 0 : p;
+	}
+
 	public int getQuantity(TradeGood good) {
-		return quantity.get(good);
+		Integer q = quantity.get(good);
+		return q == null ? 0 : q;
 	}
-	
-	public List <Integer> getQuantities() {
-		ArrayList <Integer> result = new ArrayList<Integer>();
-		for (TradeGood tg: TradeGoodStore.get().goods) {
-			result.add(quantity.get(tg));
-		}
-		return result;
-	}
-	
+
 	public void setQuantity(TradeGood good, int newQuantity) {
-		quantity.put(good, newQuantity);
+		if (good != null) {
+			quantity.put(good, newQuantity);
+		}
 	}
-	
-	public TradeGood [] getGoods() {
-		return store.goods;
-	}	
 }

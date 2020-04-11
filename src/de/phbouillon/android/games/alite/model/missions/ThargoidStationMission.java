@@ -63,7 +63,7 @@ public class ThargoidStationMission extends Mission implements Serializable {
 							thargoid.setUpdater(null);
 							thargoid.setInBay(false);
 							thargoid.setIgnoreSafeZone();
-							thargoid.setAIState(AIState.ATTACK, spawnManager.getInGameManager().getShip());
+							thargoid.setAIState(SpaceObjectAI.AI_STATE_ATTACK, spawnManager.getInGameManager().getShip());
 						}
 					});
 				}
@@ -71,8 +71,8 @@ public class ThargoidStationMission extends Mission implements Serializable {
 		}
 	}
 
-	public ThargoidStationMission(Alite alite) {
-		super(alite, ID);
+	public ThargoidStationMission() {
+		super(ID);
 	}
 
 	@Override
@@ -91,12 +91,12 @@ public class ThargoidStationMission extends Mission implements Serializable {
 	@Override
 	public void onMissionComplete() {
 		active = false;
-		alite.getCobra().addEquipment(EquipmentStore.ecmJammer);
+		alite.getCobra().addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_JAMMER));
 	}
 
 	@Override
 	public AliteScreen getMissionScreen() {
-		return new ThargoidStationScreen(alite, 0);
+		return new ThargoidStationScreen(0);
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class ThargoidStationMission extends Mission implements Serializable {
 			return null;
 		}
 		if (state == 3) {
-			return new ThargoidStationScreen(alite, 1);
+			return new ThargoidStationScreen(1);
 		}
 		return null;
 	}

@@ -18,33 +18,34 @@ package de.phbouillon.android.games.alite.model.trading;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class TradeGoodStore {
-	public static final String GOOD_THARGOID_DOCUMENTS = "Thargoid Documents";
-	public static final String GOOD_UNHAPPY_REFUGEES = "Unhappy Refugees";
+	public static final int FOOD             =  0;
+	public static final int TEXTILES         =  1;
+	public static final int RADIOACTIVES     =  2;
+	public static final int SLAVES           =  3;
+	public static final int LIQUOR_WINES     =  4;
+	public static final int LUXURIES         =  5;
+	public static final int NARCOTICS        =  6;
+	public static final int COMPUTERS        =  7;
+	public static final int MACHINERY        =  8;
+	public static final int ALLOYS           =  9;
+	public static final int FIREARMS         = 10;
+	public static final int FURS             = 11;
+	public static final int MINERALS         = 12;
+	public static final int GOLD             = 13;
+	public static final int PLATINUM         = 14;
+	public static final int GEM_STONES       = 15;
+	public static final int ALIEN_ITEMS      = 16;
+	public static final int MEDICAL_SUPPLIES = 17;
 
-	public static final int NUMBER_OF_GOODS = 18;
-
-	static final int FOOD             =  0;
-	static final int TEXTILES         =  1;
-	static final int RADIOACTIVES     =  2;
-	static final int SLAVES           =  3;
-	static final int LIQUOR_WINES     =  4;
-	static final int LUXURIES         =  5;
-	static final int NARCOTICS        =  6;
-	static final int COMPUTERS        =  7;
-	static final int MACHINERY        =  8;
-	static final int ALLOYS           =  9;
-	static final int FIREARMS         = 10;
-	static final int FURS             = 11;
-	static final int MINERALS         = 12;
-	static final int GOLD             = 13;
-	static final int PLATINUM         = 14;
-	static final int GEM_STONES       = 15;
-	static final int ALIEN_ITEMS      = 16;
-	static final int MEDICAL_SUPPLIES = 17;
+	public static final int THARGOID_DOCUMENTS = 100;
+	public static final int UNHAPPY_REFUGEES = 101;
 
 	private static TradeGoodStore instance = null;
-	protected final TradeGood [] goods = new TradeGood[NUMBER_OF_GOODS];
+	private final List<TradeGood> goods = new ArrayList<>();
 
 	protected TradeGoodStore() {
 		initialize();
@@ -59,40 +60,28 @@ public abstract class TradeGoodStore {
 		return instance;
 	}
 
-	public TradeGood[] goods() {
+	public List<TradeGood> goods() {
 		return goods;
 	}
 
-	public TradeGood fromNumber(int number) {
-		return goods[number];
+	public void addTradeGood(TradeGood tradeGood) {
+		goods.add(tradeGood);
+	}
+
+	public TradeGood getGoodById(int id) {
+		for(TradeGood good : goods) {
+			if (good.getId() == id) {
+				return good;
+			}
+		}
+		return null;
 	}
 
 	public TradeGood getRandomTradeGoodForContainer() {
-		int num;
-
+		TradeGood good;
 		do {
-			num = (int) (Math.random() * NUMBER_OF_GOODS);
-		} while (num == ALIEN_ITEMS);
-
-		return goods[num];
+			good = goods.get((int) (Math.random() * goods.size()));
+		} while (good.getId() == ALIEN_ITEMS || good.isSpecialGood());
+		return good;
 	}
-
-	public TradeGood food()              { return goods[FOOD];             }
-	public TradeGood textiles()          { return goods[TEXTILES];         }
-	public TradeGood radioactives()      { return goods[RADIOACTIVES];     }
-	public TradeGood slaves()            { return goods[SLAVES];           }
-	public TradeGood liquorWines()       { return goods[LIQUOR_WINES];     }
-	public TradeGood luxuries()          { return goods[LUXURIES];         }
-	public TradeGood narcotics()         { return goods[NARCOTICS];        }
-	public TradeGood computers()         { return goods[COMPUTERS];        }
-	public TradeGood machinery()         { return goods[MACHINERY];        }
-	public TradeGood alloys()            { return goods[ALLOYS];           }
-	public TradeGood firearms()          { return goods[FIREARMS];         }
-	public TradeGood furs()              { return goods[FURS];             }
-	public TradeGood minerals()          { return goods[MINERALS];         }
-	public TradeGood gold()              { return goods[GOLD];             }
-	public TradeGood platinum()          { return goods[PLATINUM];         }
-	public TradeGood gemStones()         { return goods[GEM_STONES];       }
-	public TradeGood alienItems()        { return goods[ALIEN_ITEMS];      }
-	public TradeGood medicalSupplies()   { return goods[MEDICAL_SUPPLIES]; }
 }

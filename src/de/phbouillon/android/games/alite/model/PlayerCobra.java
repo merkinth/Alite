@@ -19,13 +19,11 @@ package de.phbouillon.android.games.alite.model;
  */
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
-import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 
 public class PlayerCobra {
 	public static final int   DIR_FRONT = 0;
@@ -33,7 +31,6 @@ public class PlayerCobra {
 	public static final int   DIR_REAR  = 2;
 	public static final int   DIR_LEFT  = 3;
 
-	public static final int   EQUIPMENT_ITEMS       = EquipmentStore.ENTRIES - 2;
 	public static final int   MAXIMUM_FUEL          = 70;
 	public static final int   MAXIMUM_MISSILES      = 4;
 	public static final int   DEFAULT_MISSILES      = 3;
@@ -41,7 +38,7 @@ public class PlayerCobra {
 	public static final float MAX_SPEED             = 367.4f;   // m/s -- about 1320 km/h; just faster than sonic speed on Earth
 	public static final float TORUS_SPEED           = 33400.0f; // torus drive speed
 	public static final float TORUS_TEST_SPEED      = 10000.0f; // value to use to test if torus is engaged
-	public static final float MAX_SHIELD            = 24;
+	public static final int   MAX_SHIELD            = 24;
 	public static final float MAX_FUEL              = 70;
 	public static final float MAX_CABIN_TEMPERATURE = 30;
 	public static final float MAX_LASER_TEMPERATURE = 48;
@@ -49,184 +46,113 @@ public class PlayerCobra {
 	public static final int   MAX_ENERGY_BANK       = 24;
 	public static final int   MAX_ENERGY            = 96;
 
-	private int fuel;
-	private int missiles;
-	private final Laser [] lasers = new Laser [] {EquipmentStore.pulseLaser, null, null, null};
-	private final Equipment [] equipment;
-	private final boolean [] equipmentInstalled;
+	private int fuel = MAXIMUM_FUEL;
+	private int missiles = DEFAULT_MISSILES;
+	private final Equipment[] lasers = new Equipment[] {EquipmentStore.get().getEquipmentById(EquipmentStore.PULSE_LASER), null, null, null};
+	private final List<Equipment> equipmentInstalled = new ArrayList<>();
 	private Weight maxCargoHold = Weight.tonnes(20);
-	private final InventoryItem [] inventory;
+	private final List<InventoryItem> inventory = new ArrayList<>();
 	private int retroRocketsUseCount = 0;
-	private final Map <String, Weight> specialCargo = new HashMap<String, Weight>();
 
-	private int frontShield;
-	private int rearShield;
-	private int [] energyBank;
-	private int laserTemperature = 0;
-	private int cabinTemperature = 0;
+	private int frontShield = MAX_SHIELD;
+	private int rearShield = MAX_SHIELD;
+	private int[] energyBank = new int[] {MAX_ENERGY_BANK, MAX_ENERGY_BANK, MAX_ENERGY_BANK, MAX_ENERGY_BANK};
+	private int laserTemperature;
+	private int cabinTemperature;
 	private float altitude = MAX_ALTITUDE;
-	private float pitch = 0f;
-	private float roll = 0f;
+	private float pitch;
+	private float roll;
 	private boolean missileLocked = false;
-	private boolean missileTargetting = false;
-	private final List <Equipment> equipmentList = new ArrayList<Equipment>();
+	private boolean missileTargeting = false;
 
-	public PlayerCobra() {
-		equipment = new Equipment[EQUIPMENT_ITEMS];
-		equipmentInstalled = new boolean[EQUIPMENT_ITEMS];
-		inventory = new InventoryItem[TradeGoodStore.get().goods().length];
-		for (int i = 0; i < inventory.length; i++) {
-		  inventory[i] = new InventoryItem();
-		}
-		fillEquipment();
-		fillTradeGoods();
-		lasers[0] = EquipmentStore.pulseLaser;
-		for (int i = 1; i < 4; i++) {
-			lasers[i] = null;
-		}
-		for (int i = 0; i < equipment.length; i++) {
-			equipmentInstalled[i] = false;
-		}
-		fuel = MAXIMUM_FUEL;
-		missiles = DEFAULT_MISSILES;
-		energyBank = new int[4];
-		laserTemperature = 0;
-		resetEnergy();
-	}
-
-	private void fillEquipment() {
-		equipment[0] = EquipmentStore.largeCargoBay;
-		equipment[1] = EquipmentStore.ecmSystem;
-		equipment[2] = EquipmentStore.pulseLaser;
-		equipment[3] = EquipmentStore.beamLaser;
-		equipment[4] = EquipmentStore.fuelScoop;
-		equipment[5] = EquipmentStore.escapeCapsule;
-		equipment[6] = EquipmentStore.energyBomb;
-		equipment[7] = EquipmentStore.extraEnergyUnit;
-		equipment[8] = EquipmentStore.dockingComputer;
-		equipment[9] = EquipmentStore.galacticHyperdrive;
-		equipment[10] = EquipmentStore.miningLaser;
-		equipment[11] = EquipmentStore.militaryLaser;
-		equipment[12] = EquipmentStore.retroRockets;
-		equipment[13] = EquipmentStore.navalEnergyUnit;
-		equipment[14] = EquipmentStore.cloakingDevice;
-		equipment[15] = EquipmentStore.ecmJammer;
-	}
-
-	private void fillTradeGoods() {
-		for (int i = 0; i < TradeGoodStore.get().goods().length; i++) {
-			inventory[i].clear();
-		}
-	}
-
-	public Laser setLaser(int where, Laser laser) {
-		Laser oldLaser = lasers[where];
+	public void setLaser(int where, Laser laser) {
 		lasers[where] = laser;
-		return oldLaser;
 	}
 
 	public Laser getLaser(int where) {
-		return lasers[where];
+		return (Laser) lasers[where];
 	}
 
 	public void addTradeGood(TradeGood good, Weight weight, long price) {
-		inventory[good.getId()].add(weight, price);
+		getItem(good).add(weight, price);
+	}
+
+	private InventoryItem getItem(TradeGood good) {
+		InventoryItem item = getInventoryItemByGood(good);
+		if (item != null) {
+			return item;
+		}
+		item = new InventoryItem(good);
+		inventory.add(item);
+		return item;
 	}
 
 	public void addUnpunishedTradeGood(TradeGood good, Weight weight) {
-		inventory[good.getId()].addUnpunished(weight);
+		getItem(good).addUnpunished(weight);
 	}
 
 	public void subUnpunishedTradeGood(TradeGood good, Weight weight) {
-		inventory[good.getId()].subUnpunished(weight);
+		getItem(good).subUnpunished(weight);
 	}
 
 	public void setTradeGood(TradeGood good, Weight weight, long price) {
-		inventory[good.getId()].set(weight, price);
+		getItem(good).set(weight, price);
 	}
 
 	public void setUnpunishedTradeGood(TradeGood good, Weight unpunished) {
-		inventory[good.getId()].resetUnpunished();
-		inventory[good.getId()].addUnpunished(unpunished);
+		getItem(good).resetUnpunished();
+		getItem(good).addUnpunished(unpunished);
 	}
 
 	public void removeTradeGood(TradeGood good) {
-		inventory[good.getId()].clear();
+		InventoryItem item = getInventoryItemByGood(good);
+		if (item != null) {
+			inventory.remove(item);
+		}
 	}
 
 	public void addEquipment(Equipment equip) {
-		for (int i = 0; i < equipment.length; i++) {
-			if (equipment[i] == equip) {
-				if (equip == EquipmentStore.largeCargoBay) {
-					maxCargoHold = Weight.tonnes(35);
-				}
-				equipmentInstalled[i] = true;
-				return;
+		if (equip != null && equipmentInstalled.indexOf(equip) < 0) {
+			equipmentInstalled.add(equip);
+			if (equip == EquipmentStore.get().getEquipmentById(EquipmentStore.LARGE_CARGO_BAY)) {
+				maxCargoHold = Weight.tonnes(35);
 			}
 		}
 	}
 
 	public void removeEquipment(Equipment equip) {
-		for (int i = 0; i < equipment.length; i++) {
-			if (equipment[i] == equip) {
-				if (equip == EquipmentStore.largeCargoBay) {
-					maxCargoHold = Weight.tonnes(20);
-				}
-				equipmentInstalled[i] = false;
-				return;
+		if (equipmentInstalled.remove(equip)) {
+			if (equip == EquipmentStore.get().getEquipmentById(EquipmentStore.LARGE_CARGO_BAY)) {
+				maxCargoHold = Weight.tonnes(20);
 			}
 		}
 	}
 
 	public void clearEquipment() {
-		for (int i = 0; i < equipment.length; i++) {
-			equipmentInstalled[i] = false;
-			if (equipment[i] == EquipmentStore.largeCargoBay) {
-				maxCargoHold = Weight.tonnes(20);
-			}
-		}
-		lasers[0] = EquipmentStore.pulseLaser;
+		equipmentInstalled.clear();
+		maxCargoHold = Weight.tonnes(20);
+		lasers[0] = EquipmentStore.get().getEquipmentById(EquipmentStore.PULSE_LASER);
 		for (int i = 1; i < 4; i++) {
 			lasers[i] = null;
 		}
 	}
 
 	public boolean isEquipmentInstalled(Equipment equip) {
-		for (int i = 0; i < equipment.length; i++) {
-			if (equipment[i] == equip) {
-				return equipmentInstalled[i];
-			}
-		}
-		return false;
+		return equipmentInstalled.contains(equip);
 	}
 
 	public List<Equipment> getInstalledEquipment() {
-		equipmentList.clear();
-		for (int i = 0; i < equipmentInstalled.length; i++) {
-			if (equipmentInstalled[i] && !(equipment[i] instanceof Laser)) {
-				equipmentList.add(equipment[i]);
-			}
-		}
-		return equipmentList;
+		return equipmentInstalled;
 	}
 
 	public List<Equipment> getInstalledLosableEquipment() {
-		equipmentList.clear();
-		for (int i = 0; i < equipmentInstalled.length; i++) {
-			if (equipmentInstalled[i] && equipment[i].canBeLost()) {
-				equipmentList.add(equipment[i]);
+		List<Equipment> losableEquipments = new ArrayList<>();
+		for (Equipment e : equipmentInstalled) {
+			if (e.canBeLost()) {
+				losableEquipments.add(e);
 			}
 		}
-		return equipmentList;
-	}
-
-	public Equipment getEquipment(int index) {
-		if (index == 0) {
-			return EquipmentStore.fuel;
-		} else if (index == 1) {
-			return EquipmentStore.missiles;
-		}
-		return equipment[index - 2];
+		return losableEquipments;
 	}
 
 	public Weight getFreeCargo() {
@@ -234,39 +160,28 @@ public class PlayerCobra {
 		for (InventoryItem i: inventory) {
 			freeCargo = freeCargo.sub(i.getWeight());
 		}
-		for (Weight w: specialCargo.values()) {
-			freeCargo = freeCargo.sub(w);
-		}
 		return freeCargo;
 	}
 
-	public InventoryItem [] getInventory() {
+	public List<InventoryItem> getInventory() {
 		return inventory;
 	}
 
 	public boolean hasCargo() {
-		for (int i = 0; i < TradeGoodStore.get().goods().length; i++) {
-			if (inventory[i].getWeight().getWeightInGrams() > 0) {
-				return true;
-			}
-		}
-		return false;
+		return !inventory.isEmpty();
 	}
 
-	public boolean hasCargo(TradeGood good) {
-		return inventory[good.getId()].getWeight().getWeightInGrams() > 0;
+	public InventoryItem getInventoryItemByGood(TradeGood good) {
+		for (InventoryItem item : inventory) {
+			if (item.getGood() == good) {
+				return item;
+			}
+		}
+		return null;
 	}
 
 	public void clearInventory() {
-		fillTradeGoods();
-	}
-
-	public void setInventory(InventoryItem [] data) {
-		clearInventory();
-		for (int i = 0; i < data.length; i++) {
-			setTradeGood(TradeGoodStore.get().goods()[i], data[i].getWeight(), data[i].getPrice());
-			setUnpunishedTradeGood(TradeGoodStore.get().goods()[i], data[i].getUnpunished());
-		}
+		inventory.clear();
 	}
 
 	public int getMissiles() {
@@ -285,12 +200,12 @@ public class PlayerCobra {
 		if (newFuel < 0) {
 			newFuel = 0;
 		}
-		this.fuel = newFuel;
+		fuel = newFuel;
 	}
 
 	public void resetEnergy() {
-		frontShield   = (int) MAX_SHIELD;
-		rearShield    = (int) MAX_SHIELD;
+		frontShield   = MAX_SHIELD;
+		rearShield    = MAX_SHIELD;
 		energyBank[0] = MAX_ENERGY_BANK;
 		energyBank[1] = MAX_ENERGY_BANK;
 		energyBank[2] = MAX_ENERGY_BANK;
@@ -315,7 +230,7 @@ public class PlayerCobra {
 
 	public void setFrontShield(int newVal) {
 		if (newVal > MAX_SHIELD + Settings.shieldPowerOverride) {
-			newVal = (int) MAX_SHIELD + Settings.shieldPowerOverride;
+			newVal = MAX_SHIELD + Settings.shieldPowerOverride;
 		}
 		if (newVal < 0) {
 			newVal = 0;
@@ -325,7 +240,7 @@ public class PlayerCobra {
 
 	public void setRearShield(int newVal) {
 		if (newVal > MAX_SHIELD + Settings.shieldPowerOverride) {
-			newVal = (int) MAX_SHIELD + Settings.shieldPowerOverride;
+			newVal = MAX_SHIELD + Settings.shieldPowerOverride;
 		}
 		if (newVal < 0) {
 			newVal = 0;
@@ -340,42 +255,14 @@ public class PlayerCobra {
 		if (newVal < 0) {
 			newVal = 0;
 		}
-		energyBank[0] = MAX_ENERGY_BANK;
-		energyBank[1] = MAX_ENERGY_BANK;
-		energyBank[2] = MAX_ENERGY_BANK;
-		energyBank[3] = MAX_ENERGY_BANK;
-		if (newVal <= 0) {
-			energyBank[0] = 0;
-			energyBank[1] = 0;
-			energyBank[2] = 0;
-			energyBank[3] = 0;
-		} else {
-			if (newVal > 3 * MAX_ENERGY_BANK) {
-				energyBank[0] = newVal - (3 * MAX_ENERGY_BANK);
-			} else if (newVal > 2 * MAX_ENERGY_BANK) {
-				energyBank[0] = 0;
-				energyBank[1] = newVal - (2 * MAX_ENERGY_BANK);
-			} else if (newVal > MAX_ENERGY_BANK) {
-				energyBank[0] = 0;
-				energyBank[1] = 0;
-				energyBank[2] = newVal - MAX_ENERGY_BANK;
-			} else {
-				energyBank[0] = 0;
-				energyBank[1] = 0;
-				energyBank[2] = 0;
-				energyBank[3] = newVal;
-			}
-		}
+		energyBank[0] = Math.max(newVal - 3 * MAX_ENERGY_BANK, 0);
+		energyBank[1] = Math.max(newVal - energyBank[0] - 2 * MAX_ENERGY_BANK, 0);
+		energyBank[2] = Math.max(newVal - energyBank[0] - energyBank[1] - MAX_ENERGY_BANK, 0);
+		energyBank[3] = Math.max(newVal - energyBank[0] - energyBank[1] - energyBank[2], 0);
 	}
 
 	public void setLaserTemperature(int temp) {
-		if (temp < 0) {
-			temp = 0;
-		}
-		if (temp > 48) {
-			temp = 48;
-		}
-		this.laserTemperature = temp;
+		laserTemperature = temp < 0 ? 0 : Math.min(temp, 48);
 	}
 
 	public int getLaserTemperature() {
@@ -417,20 +304,20 @@ public class PlayerCobra {
 
 	public void setMissileLocked(boolean b) {
 		if (b) {
-			missileTargetting = false;
+			missileTargeting = false;
 		}
 		missileLocked = b;
 	}
 
 	public boolean isMissileTargetting() {
-		return missileTargetting;
+		return missileTargeting;
 	}
 
 	public void setMissileTargetting(boolean b) {
 		if (b) {
 			missileLocked = false;
 		}
-		missileTargetting = b;
+		missileTargeting = b;
 	}
 
 	public int getRetroRocketsUseCount() {
@@ -440,33 +327,16 @@ public class PlayerCobra {
 	public void setRetroRocketsUseCount(int newCount) {
 		retroRocketsUseCount = newCount;
 		if (newCount == 0) {
-			removeEquipment(EquipmentStore.retroRockets);
+			removeEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.RETRO_ROCKETS));
 		}
 	}
 
-	public boolean containsSpecialCargo() {
-		return !specialCargo.isEmpty();
-	}
-
-	public Weight getSpecialCargo(String name) {
-		return specialCargo.get(name);
-	}
-
 	public void clearSpecialCargo() {
-		specialCargo.clear();
-	}
-
-	public void removeSpecialCargo(String name) {
-		specialCargo.remove(name);
-	}
-
-	public void addSpecialCargo(String name, Weight weight) {
-		specialCargo.put(name, weight);
-	}
-
-	public void reset() {
-		clearInventory();
-		clearSpecialCargo();
-		clearEquipment();
+		final Iterator<InventoryItem> i = inventory.iterator();
+		while (i.hasNext()) {
+			if (i.next().getGood().isSpecialGood()) {
+				i.remove();
+			}
+		}
 	}
 }

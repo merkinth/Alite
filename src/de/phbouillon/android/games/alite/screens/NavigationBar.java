@@ -36,7 +36,6 @@ public class NavigationBar {
 	private int activeIndex;
 	private int pendingIndex = -1;
 	private boolean active = true;
-	private final Alite game;
 
 	static class NavigationEntry {
 		String title;
@@ -54,10 +53,9 @@ public class NavigationBar {
 
 	private final List <NavigationEntry> targets = new ArrayList<>();
 
-	public NavigationBar(Alite game) {
+	public NavigationBar() {
 		position = 0;
-		this.game = game;
-
+		Alite game = Alite.get();
 		Assets.launchIcon    = game.getGraphics().newPixmap("navigation_icons/launch_icon.png");
 		Assets.statusIcon    = game.getGraphics().newPixmap("navigation_icons/status_icon.png");
 		Assets.buyIcon       = game.getGraphics().newPixmap("navigation_icons/buy_icon.png");
@@ -117,7 +115,7 @@ public class NavigationBar {
 		targets.get(Alite.NAVIGATION_BAR_LAUNCH).title = L.string(b ? R.string.navbar_front : R.string.navbar_launch);
 		targets.get(Alite.NAVIGATION_BAR_DISK).visible = !b;
 		targets.get(Alite.NAVIGATION_BAR_ACADEMY).visible = !b;
-		targets.get(Alite.NAVIGATION_BAR_HACKER).visible = !b && game.isHackerActive();
+		targets.get(Alite.NAVIGATION_BAR_HACKER).visible = !b && Alite.get().isHackerActive();
 	}
 
 	public void setVisible(int index, boolean visible) {
@@ -223,7 +221,7 @@ public class NavigationBar {
 		}
 	}
 
-	public Screen touched(Alite game, int x, int y) {
+	public Screen touched(int x, int y) {
 		if (x < AliteConfig.DESKTOP_WIDTH || !active) {
 			return null;
 		}
@@ -255,21 +253,22 @@ public class NavigationBar {
 
 		if (L.string(R.string.navbar_front).equals(entry.title)) {
 			SoundManager.play(Assets.click);
-			((FlightScreen) game.getCurrentScreen()).setForwardView();
-			((FlightScreen) game.getCurrentScreen()).setInformationScreen(null);
+			FlightScreen flightScreen = (FlightScreen) Alite.get().getCurrentScreen();
+			flightScreen.setForwardView();
+			flightScreen.setInformationScreen(null);
 			return null;
 		}
 
 		if (entry.navigationTarget != null) {
 			SoundManager.play(Assets.click);
+			String name = getClass().getPackage().getName() + "." + entry.navigationTarget;
 			try {
-				Screen newScreen = (Screen) Class.forName(getClass().getPackage().getName() + "." + entry.navigationTarget).
-					getConstructor(Alite.class).newInstance(game);
+				Screen newScreen = (Screen) Class.forName(name).getConstructor().newInstance();
 				pendingIndex = index;
 				return newScreen;
 			} catch (NoSuchMethodException | IllegalArgumentException | IllegalAccessException |
 				InvocationTargetException | ClassNotFoundException | InstantiationException e) {
-				AliteLog.e("Navigation bar", "Screen cannot be opened", e);
+				AliteLog.e("Navigation bar", "Screen " + name + " cannot be opened", e);
 			}
 		}
 		return null;

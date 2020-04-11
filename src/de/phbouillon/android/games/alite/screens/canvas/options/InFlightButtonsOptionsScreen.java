@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -30,7 +29,6 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class InFlightButtonsOptionsScreen extends AliteScreen {
 	private ButtonConfigData[] uiButton = new ButtonConfigData[12];
 
@@ -56,19 +54,22 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 	private boolean groupSelectionMode = true;
 	private boolean confirmReset = false;
 
-	class ButtonConfigData {
+	private static class ButtonConfigData {
 		Button button;
 		int groupIndex;
 		int settingsPosition;
 		String name;
 	}
 
-	class ButtonConfigGroup {
+	private static class ButtonConfigGroup {
 		ButtonConfigData[] buttons = new ButtonConfigData[3];
 	}
 
-	InFlightButtonsOptionsScreen(Alite game) {
-		super(game);
+	InFlightButtonsOptionsScreen() {
+	}
+
+	public InFlightButtonsOptionsScreen(boolean groupSelectionMode) {
+		this.groupSelectionMode = groupSelectionMode;
 	}
 
 	@Override
@@ -259,7 +260,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		messageResult = RESULT_NONE;
 		if (back.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new ControlOptionsScreen(game, false);
+			newScreen = new ControlOptionsScreen(false);
 			return;
 		}
 		if (selectionMode.isTouched(touch.x, touch.y)) {
@@ -383,15 +384,4 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		dos.writeBoolean(groupSelectionMode);
 	}
 
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		InFlightButtonsOptionsScreen ifbos = new InFlightButtonsOptionsScreen(alite);
-		try {
-			ifbos.groupSelectionMode = dis.readBoolean();
-		} catch (IOException e) {
-			AliteLog.e("Inflight Button Configuration Initialize", "Error in initializer.", e);
-			return false;
-		}
-		alite.setScreen(ifbos);
-		return true;
-	}
 }

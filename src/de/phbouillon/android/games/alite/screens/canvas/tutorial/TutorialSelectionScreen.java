@@ -18,13 +18,12 @@ package de.phbouillon.android.games.alite.screens.canvas.tutorial;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
-
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class TutorialSelectionScreen extends AliteScreen {
@@ -35,10 +34,6 @@ public class TutorialSelectionScreen extends AliteScreen {
 	private Button hud;
 	private Button basicFlying;
 	private Button advancedFlying;
-
-	public TutorialSelectionScreen(Alite game) {
-		super(game);
-	}
 
 	private Button createButton(int row, String text) {
 		return Button.createGradientTitleButton(50, 130 * (row + 1), 1620, 100, text);
@@ -82,32 +77,32 @@ public class TutorialSelectionScreen extends AliteScreen {
 		}
 		if (trading.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new TutTrading(game);
+			newScreen = new TutTrading();
 			return;
 		}
 		if (equipment.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new TutEquipment(game);
+			newScreen = new TutEquipment();
 			return;
 		}
 		if (navigation.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new TutNavigation(game);
+			newScreen = new TutNavigation();
 			return;
 		}
 		if (hud.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new TutHud(game);
+			newScreen = new TutHud((FlightScreen) null);
 			return;
 		}
 		if (basicFlying.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new TutBasicFlying(game);
+			newScreen = new TutBasicFlying((FlightScreen) null);
 			return;
 		}
 		if (advancedFlying.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new TutAdvancedFlying(game, 0);
+			newScreen = new TutAdvancedFlying(0);
 		}
 	}
 
@@ -116,8 +111,4 @@ public class TutorialSelectionScreen extends AliteScreen {
 		return ScreenCodes.TUTORIAL_SELECTION_SCREEN;
 	}
 
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		alite.setScreen(new TutorialSelectionScreen(alite));
-		return true;
-	}
 }

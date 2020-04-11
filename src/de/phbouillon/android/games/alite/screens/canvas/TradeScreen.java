@@ -21,25 +21,32 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.*;
 import de.phbouillon.android.framework.Input.TouchEvent;
+import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.InventoryItem;
 import de.phbouillon.android.games.alite.model.Player;
+import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.*;
+
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public abstract class TradeScreen extends AliteScreen {
+	private String pendingSelection;
+
 	int X_OFFSET = 150;
 	int Y_OFFSET = 100;
 	int SIZE     = 225;
 	int GAP_X    = 300;
 	int GAP_Y    = 300;
 	int COLUMNS  = 5;
-	int ROWS     = 3;
 
 	Pixmap[] beam;
-	Pixmap[] tradeGoods;
-	Button[][] tradeButton = null;
+	Map<TradeGood,Pixmap> tradeGoods = new HashMap<>();
+	List<Button> tradeButton = new ArrayList<>();
 
 	int currentFrame = 0;
 	final Timer selectionTimer = new Timer().setAutoReset();
@@ -49,36 +56,51 @@ public abstract class TradeScreen extends AliteScreen {
 	String cashLeft = null;
 	String errorText = null;
 
-	TradeScreen(Alite game, boolean continuousAnimation) {
-		super(game);
+	TradeScreen(boolean continuousAnimation, String pendingSelection) {
 		this.continuousAnimation = continuousAnimation;
+		this.pendingSelection = pendingSelection;
 	}
 
 	protected abstract void createButtons();
 
-	protected abstract String getCost(int row, int column);
-	protected abstract void performTrade(int row, int column);
-	protected abstract void presentSelection(int row, int column);
+	protected abstract String getCost(int index);
+	protected abstract void performTrade(int index);
+	protected abstract void presentSelection(int index);
 
-	protected void drawAdditionalTradeGoodInformation(int row, int column, float deltaTime) {
+	protected void drawAdditionalTradeGoodInformation(int index, float deltaTime) {
 		// The default implementation does nothing.
 	}
 
-	int getSelectionIndex() {
-		if (selection == null) {
-			return -1;
+	@Override
+	public void activate() {
+		createButtons();
+		if (pendingSelection == null) {
+			return;
 		}
-		for (int y = 0; y < ROWS; y++) {
-			for (int x = 0; x < COLUMNS; x++) {
-				if (tradeButton[x][y] == null) {
-					continue;
-				}
-				if (selection == tradeButton[x][y]) {
-					return y * COLUMNS + x;
-				}
+		for (Button b: tradeButton) {
+			if (b == null || b.getName() == null) {
+				continue;
+			}
+			if (pendingSelection.equals(b.getName())) {
+				selection = b;
+				b.setSelected(true);
+				loadSelectedAnimationCheck();
 			}
 		}
-		return -1;
+		pendingSelection = null;
+	}
+
+	private void loadSelectedAnimationCheck() {
+		if (Settings.animationsEnabled) {
+			loadSelectedAnimation();
+		}
+	}
+
+	protected void loadSelectedAnimation() {
+	}
+
+	int getSelectionIndex() {
+		return selection == null ? -1 : tradeButton.indexOf(selection);
 	}
 
 	private void computeCurrentFrame() {
@@ -125,42 +147,41 @@ public abstract class TradeScreen extends AliteScreen {
 		g.drawText(spareText, currentX, 1000, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 	}
 
-	protected void performTradeWhileInFlight(int row, int column) {
+	protected void performTradeWhileInFlight(int index) {
 		SoundManager.play(Assets.error);
 		errorText = L.string(R.string.state_not_docked);
 	}
 
 	void presentTradeGoods(float deltaTime) {
 		Graphics g = game.getGraphics();
-
-		for (int y = 0; y < ROWS; y++) {
-			for (int x = 0; x < COLUMNS; x++) {
-				if (tradeButton[x][y] == null) {
-					continue;
-				}
-				if (selection == tradeButton[x][y]) {
-					if (Settings.animationsEnabled) {
-						computeCurrentFrame();
-					}
-					tradeButton[x][y].render(g, currentFrame);
-					GLES11.glEnable(GLES11.GL_BLEND);
-					GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE);
-					GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
-					g.fillRect(tradeButton[x][y].getX(), tradeButton[x][y].getY(), tradeButton[x][y].getWidth(),
-						tradeButton[x][y].getHeight(), ColorScheme.get(ColorScheme.COLOR_HIGHLIGHT_COLOR));
-					GLES11.glDisable(GLES11.GL_BLEND);
-					if (errorText == null) {
-						presentSelection(y, x);
-					}
-				} else {
-					tradeButton[x][y].render(g);
-				}
-				String price = getCost(y, x);
-				int halfWidth =  g.getTextWidth(price, Assets.regularFont) >> 1;
-				g.drawText(price, x * GAP_X + X_OFFSET + (SIZE >> 1) - halfWidth, y * GAP_Y + Y_OFFSET + SIZE + 35,
-					ColorScheme.get(ColorScheme.COLOR_PRICE), Assets.regularFont);
-				drawAdditionalTradeGoodInformation(y, x, deltaTime);
+		int index = 0;
+		for (Button b : tradeButton) {
+			if (b == null) {
+				index++;
+				continue;
 			}
+			if (selection == b) {
+				if (Settings.animationsEnabled) {
+					computeCurrentFrame();
+				}
+				b.render(g, currentFrame);
+				GLES11.glEnable(GLES11.GL_BLEND);
+				GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE);
+				GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
+				g.fillRect(b.getX(), b.getY(), b.getWidth(), b.getHeight(), ColorScheme.get(ColorScheme.COLOR_HIGHLIGHT_COLOR));
+				GLES11.glDisable(GLES11.GL_BLEND);
+				if (errorText == null) {
+					presentSelection(index);
+				}
+			} else {
+				b.render(g);
+			}
+			String price = getCost(index);
+			int halfWidth =  g.getTextWidth(price, Assets.regularFont) >> 1;
+			g.drawText(price, index % COLUMNS * GAP_X + X_OFFSET + (SIZE >> 1) - halfWidth,
+				index / COLUMNS * GAP_Y + Y_OFFSET + SIZE + 35, ColorScheme.get(ColorScheme.COLOR_PRICE), Assets.regularFont);
+			drawAdditionalTradeGoodInformation(index, deltaTime);
+			index++;
 		}
 		if (errorText != null) {
 			game.getGraphics().drawText(errorText, X_OFFSET, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
@@ -175,55 +196,46 @@ public abstract class TradeScreen extends AliteScreen {
 		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
-		for (int y = 0; y < ROWS; y++) {
-			for (int x = 0; x < COLUMNS; x++) {
-				if (tradeButton[x][y] == null || !tradeButton[x][y].isTouched(touch.x, touch.y)) {
-					continue;
-				}
-				if (selection == tradeButton[x][y]) {
-					if (game.getCurrentScreen() instanceof FlightScreen) {
-						performTradeWhileInFlight(y, x);
-					} else {
-						SoundManager.play(Assets.click);
-						performTrade(y, x);
-					}
-					continue;
-				}
-				errorText = null;
-				selectionTimer.reset();
-				currentFrame = 0;
-				selection = tradeButton[x][y];
-				cashLeft = null;
-				SoundManager.play(Assets.click);
+		int index = 0;
+		for (Button b : tradeButton) {
+			if (b == null || !b.isTouched(touch.x, touch.y)) {
+				index++;
+				continue;
 			}
+			if (selection == b) {
+				if (game.getCurrentScreen() instanceof FlightScreen) {
+					performTradeWhileInFlight(index);
+				} else {
+					SoundManager.play(Assets.click);
+					performTrade(index);
+				}
+				index++;
+				continue;
+			}
+			errorText = null;
+			disposeSelectedAnimationCheck();
+			selection = b;
+			loadSelectedAnimationCheck();
+			selectionTimer.reset();
+			currentFrame = 0;
+			cashLeft = null;
+			SoundManager.play(Assets.click);
+			index++;
 		}
+	}
+
+	private void disposeSelectedAnimationCheck() {
+		int index = getSelectionIndex();
+		if (index != -1) {
+			disposeSelectedAnimation(index);
+		}
+	}
+
+	protected void disposeSelectedAnimation(int index) {
 	}
 
 	public Screen getNewScreen() {
 		return newScreen;
-	}
-
-	private void readTradegoods() {
-		Graphics g = game.getGraphics();
-		tradeGoods = new Pixmap[18];
-		tradeGoods[ 0] = g.newPixmap("trade_icons/food.png");
-		tradeGoods[ 1] = g.newPixmap("trade_icons/textiles.png");
-		tradeGoods[ 2] = g.newPixmap("trade_icons/radioactives.png");
-		tradeGoods[ 3] = g.newPixmap("trade_icons/slaves.png");
-		tradeGoods[ 4] = g.newPixmap("trade_icons/liquor_wines.png");
-		tradeGoods[ 5] = g.newPixmap("trade_icons/luxuries.png");
-		tradeGoods[ 6] = g.newPixmap("trade_icons/narcotics.png");
-		tradeGoods[ 7] = g.newPixmap("trade_icons/computers.png");
-		tradeGoods[ 8] = g.newPixmap("trade_icons/machinery.png");
-		tradeGoods[ 9] = g.newPixmap("trade_icons/alloys.png");
-		tradeGoods[10] = g.newPixmap("trade_icons/firearms.png");
-		tradeGoods[11] = g.newPixmap("trade_icons/furs.png");
-		tradeGoods[12] = g.newPixmap("trade_icons/minerals.png");
-		tradeGoods[13] = g.newPixmap("trade_icons/gold.png");
-		tradeGoods[14] = g.newPixmap("trade_icons/platinum.png");
-		tradeGoods[15] = g.newPixmap("trade_icons/gem_stones.png");
-		tradeGoods[16] = g.newPixmap("trade_icons/alien_items.png");
-		tradeGoods[17] = g.newPixmap("trade_icons/medical_supplies.png");
 	}
 
 	private void readBeamAnimation() {
@@ -235,12 +247,27 @@ public abstract class TradeScreen extends AliteScreen {
 		}
 	}
 
-	void loadTradeGoodAssets() {
+	void loadTradeGoodAssets(List<TradeGood> goods) {
 		if (beam == null && Settings.animationsEnabled) {
 			readBeamAnimation();
 		}
-		if (tradeGoods == null) {
-			readTradegoods();
+		for (TradeGood good : goods) {
+			addGoodIcon(good);
+		}
+	}
+
+	private void addGoodIcon(TradeGood good) {
+		if (tradeGoods.get(good) == null) {
+			tradeGoods.put(good, game.getGraphics().newPixmap(good.getIconName()));
+		}
+	}
+
+	void loadTradeGoodAssetsByInventory(List<InventoryItem> items) {
+		if (beam == null && Settings.animationsEnabled) {
+			readBeamAnimation();
+		}
+		for (InventoryItem item : items) {
+			addGoodIcon(item.getGood());
 		}
 	}
 
@@ -251,16 +278,18 @@ public abstract class TradeScreen extends AliteScreen {
 			}
 			beam = null;
 		}
-		if (tradeGoods != null) {
-			for (Pixmap p: tradeGoods) {
-				p.dispose();
-			}
-			tradeGoods = null;
+		for (Pixmap p: tradeGoods.values()) {
+			p.dispose();
 		}
+		tradeGoods.clear();
 	}
 
 	String getCashLeftString() {
 		return L.getOneDecimalFormatString(R.string.cash_left, game.getPlayer().getCash());
 	}
 
+	@Override
+	public void saveScreenState(DataOutputStream dos) throws IOException {
+		ScreenBuilder.writeString(dos, selection == null ? null : selection.getName());
+	}
 }

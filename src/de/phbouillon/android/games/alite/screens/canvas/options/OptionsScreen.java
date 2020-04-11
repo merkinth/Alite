@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.IOException;
 
 import android.content.Intent;
@@ -31,11 +30,7 @@ import de.phbouillon.android.framework.PluginModel;
 import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.LegalStatus;
-import de.phbouillon.android.games.alite.model.Player;
-import de.phbouillon.android.games.alite.model.PlayerCobra;
-import de.phbouillon.android.games.alite.model.Rating;
+import de.phbouillon.android.games.alite.model.*;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.PluginsScreen;
@@ -59,10 +54,6 @@ public class OptionsScreen extends AliteScreen {
 	private boolean confirmReset = false;
 	private int rowSize = 130;
 	private int buttonSize = 100;
-
-	public OptionsScreen(Alite game) {
-		super(game);
-	}
 
 	Button createButton(int row, String text) {
 		return Button.createGradientTitleButton(50, rowSize * (row + 1), 1620, buttonSize, text);
@@ -168,11 +159,7 @@ public class OptionsScreen extends AliteScreen {
 	}
 
 	public static int cycleFromZeroTo(int current, int max) {
-		current++;
-		if (current > max) {
-			current = 0;
-		}
-		return current;
+		return current < max ? current + 1 : 0;
 	}
 
 	@Override
@@ -190,22 +177,22 @@ public class OptionsScreen extends AliteScreen {
 
 		if (gameplayOptions.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new GameplayOptionsScreen(game);
+			newScreen = new GameplayOptionsScreen();
 			return;
 		}
 		if (displayOptions.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new DisplayOptionsScreen(game);
+			newScreen = new DisplayOptionsScreen();
 			return;
 		}
 		if (audioOptions.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new AudioOptionsScreen(game);
+			newScreen = new AudioOptionsScreen();
 			return;
 		}
 		if (controlOptions.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new ControlOptionsScreen(game, false);
+			newScreen = new ControlOptionsScreen(false);
 			return;
 		}
 		if (languages.isTouched(touch.x, touch.y)) {
@@ -215,12 +202,12 @@ public class OptionsScreen extends AliteScreen {
 				game.getFileIO().getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
 			game.changeLocale();
 			Settings.save(game.getFileIO());
-			newScreen = new OptionsScreen(game);
+			newScreen = new OptionsScreen();
 			return;
 		}
 		if (extensionPacks.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new PluginsScreen(game);
+			newScreen = new PluginsScreen(0);
 			return;
 		}
 		if (resetGame.isTouched(touch.x, touch.y)) {
@@ -231,13 +218,13 @@ public class OptionsScreen extends AliteScreen {
 		}
 		if (about.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new AboutScreen(game);
+			newScreen = new AboutScreen();
 			return;
 		}
 		if (debug.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
 			if (SHOW_DEBUG_MENU) {
-				newScreen = new DebugSettingsScreen(game);
+				newScreen = new DebugSettingsScreen();
 			} else {
 				Settings.logToFile = !Settings.logToFile;
 				debug.setText(L.string(R.string.debug_settings_log_to_file,
@@ -266,20 +253,20 @@ public class OptionsScreen extends AliteScreen {
 			player.setCurrentSystem(game.getGenerator()
 					.getSystem(84));
 			player.setHyperspaceSystem(game.getGenerator().getSystem(84));
-			cobra.addEquipment(EquipmentStore.fuelScoop);
-			cobra.addEquipment(EquipmentStore.retroRockets);
-			cobra.addEquipment(EquipmentStore.galacticHyperdrive);
-			cobra.addEquipment(EquipmentStore.dockingComputer);
-			cobra.addEquipment(EquipmentStore.extraEnergyUnit);
-			cobra.addEquipment(EquipmentStore.energyBomb);
-			cobra.addEquipment(EquipmentStore.escapeCapsule);
-			cobra.addEquipment(EquipmentStore.ecmSystem);
-			cobra.addEquipment(EquipmentStore.largeCargoBay);
+			cobra.addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP));
+			cobra.addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.RETRO_ROCKETS));
+			cobra.addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE));
+			cobra.addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.DOCKING_COMPUTER));
+			cobra.addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.EXTRA_ENERGY_UNIT));
+			cobra.addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.ENERGY_BOMB));
+			cobra.addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.ESCAPE_CAPSULE));
+			cobra.addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_SYSTEM));
+			cobra.addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.LARGE_CARGO_BAY));
 			cobra.setMissiles(4);
-			cobra.setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.militaryLaser);
-			cobra.setLaser(PlayerCobra.DIR_REAR, EquipmentStore.militaryLaser);
-			cobra.setLaser(PlayerCobra.DIR_LEFT, EquipmentStore.militaryLaser);
-			cobra.setLaser(PlayerCobra.DIR_RIGHT, EquipmentStore.militaryLaser);
+			cobra.setLaser(PlayerCobra.DIR_FRONT, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
+			cobra.setLaser(PlayerCobra.DIR_REAR, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
+			cobra.setLaser(PlayerCobra.DIR_LEFT, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
+			cobra.setLaser(PlayerCobra.DIR_RIGHT, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
 
 			game.setGameTime(283216L * 1000L * 1000L * 1000L);
 			try {
@@ -299,8 +286,4 @@ public class OptionsScreen extends AliteScreen {
 		return ScreenCodes.OPTIONS_SCREEN;
 	}
 
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		alite.setScreen(new OptionsScreen(alite));
-		return true;
-	}
 }

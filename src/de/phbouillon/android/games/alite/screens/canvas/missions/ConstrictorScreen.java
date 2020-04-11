@@ -25,12 +25,10 @@ import java.io.IOException;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.media.MediaPlayer;
-import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Timer;
-import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
@@ -73,8 +71,7 @@ public class ConstrictorScreen extends AliteScreen {
 	private final Mission mission;
 	private final int givenState;
 
-	public ConstrictorScreen(Alite game, int state) {
-		super(game);
+	public ConstrictorScreen(int state) {
 		givenState = state;
 		mission = MissionManager.getInstance().get(ConstrictorMission.ID);
 		mediaPlayer = new MediaPlayer();
@@ -110,6 +107,15 @@ public class ConstrictorScreen extends AliteScreen {
 			}
 		} catch (IOException e) {
 			AliteLog.e("Error reading mission", "Could not read mission audio.", e);
+		}
+	}
+
+	public ConstrictorScreen(DataInputStream dis) throws IOException {
+		this(dis.readInt());
+		if (givenState == 3) {
+			targetSystem = Alite.get().getGenerator().getSystems()[dis.readInt()];
+			// Mission (model) state has been increased in constructor; now reduce it again...
+			mission.setTarget(Alite.get().getGenerator().getCurrentGalaxy(), targetSystem.getIndex(), mission.getState() - 1);
 		}
 	}
 
@@ -152,12 +158,12 @@ public class ConstrictorScreen extends AliteScreen {
 			if (acceptButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				mission.setPlayerAccepts(true);
-				newScreen = new ConstrictorScreen(game, 1);
+				newScreen = new ConstrictorScreen(1);
 			}
 			if (declineButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				mission.setPlayerAccepts(false);
-				newScreen = new StatusScreen(game);
+				newScreen = new StatusScreen();
 			}
 		}
 	}
@@ -183,7 +189,7 @@ public class ConstrictorScreen extends AliteScreen {
 		}
 
 		if (constrictor != null) {
-			displayShip();
+			displayObject(constrictor, 1.0f, 100000.0f);
 		} else if (targetSystem != null) {
 			displayStarMap();
 		} else {
@@ -242,35 +248,6 @@ public class ConstrictorScreen extends AliteScreen {
 		setUpForDisplay(visibleArea);
 	}
 
-	private void displayShip() {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		float aspectRatio = visibleArea.width() / (float) visibleArea.height();
-		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
-		GLES11.glEnable(GLES11.GL_CULL_FACE);
-		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, aspectRatio, 1.0f, 100000.0f);
-		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-		GLES11.glLoadIdentity();
-
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
-		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
-		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
-		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
-		GLES11.glDepthFunc(GLES11.GL_LESS);
-		GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT);
-
-		GLES11.glPushMatrix();
-		GLES11.glMultMatrixf(constrictor.getMatrix(), 0);
-		constrictor.render();
-		GLES11.glPopMatrix();
-
-		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
-		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
-		setUpForDisplay(visibleArea);
-	}
-
 	@Override
 	public void activate() {
 		initGl();
@@ -280,23 +257,6 @@ public class ConstrictorScreen extends AliteScreen {
 			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, acceptIcon);
 			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, declineIcon);
 		}
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			int state = dis.readInt();
-			ConstrictorScreen cs = new ConstrictorScreen(alite, state);
-			if (state == 3) {
-				cs.targetSystem = alite.getGenerator().getSystems()[dis.readInt()];
-				// Mission (model) state has been increased in constructor; now reduce it again...
-				cs.mission.setTarget(alite.getGenerator().getCurrentGalaxy(), cs.targetSystem.getIndex(), cs.mission.getState() - 1);
-			}
-			alite.setScreen(cs);
-		} catch (IOException e) {
-			AliteLog.e("Constrictor Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
 	}
 
 	@Override

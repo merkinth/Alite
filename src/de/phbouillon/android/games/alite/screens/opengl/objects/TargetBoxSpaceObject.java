@@ -20,44 +20,21 @@ package de.phbouillon.android.games.alite.screens.opengl.objects;
 
 import java.io.Serializable;
 
-import android.graphics.Color;
 import de.phbouillon.android.framework.impl.gl.TargetBox;
-import de.phbouillon.android.games.alite.screens.opengl.IAdditionalGLParameterSetter;
 
 public class TargetBoxSpaceObject extends AliteObject implements Serializable {
 	private static final long serialVersionUID = -1997397445908867511L;
 
 	private final TargetBox box;
-	private IAdditionalGLParameterSetter additionalParameters = null;
 
-	public TargetBoxSpaceObject(String name, float width, float height, float depth) {
-		super(name);
-		box = new TargetBox(width, height, depth);
-		boundingSphereRadius = (float) Math.sqrt(width * width + height * height + depth * depth);
-		hudColor = Color.WHITE;
+	public TargetBoxSpaceObject(float size) {
+		super("targetBox");
+		box = new TargetBox(size, size, size);
+		boundingSphereRadius = (float) Math.sqrt(size * size + size * size + size * size);
 		setDepthTest(false);
 	}
 
-	@Override
-	public void render() {
-		if (additionalParameters != null) {
-			additionalParameters.setUp();
-		}
-		box.render();
-		if (additionalParameters != null) {
-			additionalParameters.tearDown();
-		}
-	}
-
-	public void setColor(int color) {
-		box.setColor(color);
-	}
-
-	public void setAlpha(float a) {
-		box.setAlpha(a);
-	}
-
-	public void setAdditionalGLParameters(IAdditionalGLParameterSetter additionalParameters) {
-		this.additionalParameters = additionalParameters;
+	public void render(int color, float a) {
+		box.render(color, a);
 	}
 }

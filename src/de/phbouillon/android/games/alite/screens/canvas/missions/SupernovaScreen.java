@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.missions;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -52,8 +51,7 @@ public class SupernovaScreen extends AliteScreen {
 	private final Mission mission;
 	private final int givenState;
 
-	public SupernovaScreen(Alite game, int state) {
-		super(game);
+	public SupernovaScreen(int state) {
 		givenState = state;
 		mission = MissionManager.getInstance().get(SupernovaMission.ID);
 		mediaPlayer = new MediaPlayer();
@@ -119,7 +117,7 @@ public class SupernovaScreen extends AliteScreen {
 				SoundManager.play(Assets.click);
 				mission.setState(1);
 				mission.setPlayerAccepts(true);
-				newScreen = new SupernovaScreen(game, 2);
+				newScreen = new SupernovaScreen(2);
 			}
 			if (declineButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
@@ -129,7 +127,7 @@ public class SupernovaScreen extends AliteScreen {
 				// though.
 				mission.setState(2);
 				mission.setPlayerAccepts(true);
-				newScreen = new SupernovaScreen(game, 1);
+				newScreen = new SupernovaScreen(1);
 			}
 		}
 	}
@@ -167,17 +165,6 @@ public class SupernovaScreen extends AliteScreen {
 			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, acceptIcon);
 			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, declineIcon);
 		}
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			int state = dis.readInt();
-			alite.setScreen(new SupernovaScreen(alite, state));
-		} catch (IOException e) {
-			AliteLog.e("Supernova Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
 	}
 
 	@Override

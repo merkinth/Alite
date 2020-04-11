@@ -31,13 +31,11 @@ import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.SoundManager;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class HyperspaceScreen extends GlScreen {
 	private final Timer timer = new Timer().setAutoReset();
 	private static final float[] sScratch = new float[32];
@@ -67,33 +65,20 @@ public class HyperspaceScreen extends GlScreen {
     private transient boolean screenLoad = false;
 	private Alite game;
 
-	public HyperspaceScreen(Alite game, boolean intergal) {
-		this.game = game;
+	public HyperspaceScreen(boolean intergal) {
+		game = Alite.get();
 		this.intergal = intergal;
 	}
 
-	public static HyperspaceScreen createScreen(Alite alite, DataInputStream dis) throws IOException {
-		boolean intergal = dis.readBoolean();
-		HyperspaceScreen hs = new HyperspaceScreen(alite, intergal);
-		hs.counter = dis.readFloat();
-		hs.red = dis.readFloat();
-		hs.green = dis.readFloat();
-		hs.blue = dis.readFloat();
-		hs.increase = dis.readInt();
-		hs.restartedSound = dis.readBoolean();
-		hs.screenLoad = true;
-		return hs;
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			HyperspaceScreen hs = createScreen(alite, dis);
-			alite.setScreen(hs);
-		} catch (IOException e) {
-			AliteLog.e("Hyperspace Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
+	public HyperspaceScreen(DataInputStream dis) throws IOException {
+		this(dis.readBoolean());
+		counter = dis.readFloat();
+		red = dis.readFloat();
+		green = dis.readFloat();
+		blue = dis.readFloat();
+		increase = dis.readInt();
+		restartedSound = dis.readBoolean();
+		screenLoad = true;
 	}
 
 	@Override

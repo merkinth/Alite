@@ -18,8 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 import android.graphics.Color;
@@ -39,80 +37,42 @@ import de.phbouillon.android.games.alite.model.Unit;
 public class BuyScreen extends TradeScreen {
 	private static final int[] availColors = new int[] {Color.RED, 0xFFFF3E00, 0xFFFF7D00,
 		0xFFFFBD00, Color.YELLOW, 0xFFFFFF3B, 0xFFFFFF7D, 0xFFFFFFBF, Color.WHITE };
-	private int currentAvailabiltyColor;
+	private int currentAvailabilityColor;
 	private int boughtAmount;
 	private float elapsedTime;
-	private String pendingSelection = null;
 	private TradeGood goodToBuy;
 
-	public BuyScreen(Alite game) {
-		super(game, false);
+	// default public constructor is required for navigation bar
+	public BuyScreen() {
+		super(false, null);
 		X_OFFSET = 50;
 		GAP_X = 270;
 		GAP_Y = 290;
 		COLUMNS = 6;
 	}
 
-	@Override
-	public void activate() {
-		if (tradeButton == null) {
-			createButtons();
-		}
-		if (pendingSelection != null) {
-			for (Button[] bs: tradeButton) {
-				for (Button b: bs) {
-					if (pendingSelection.equals(b.getName())) {
-						selection = b;
-						b.setSelected(true);
-					}
-				}
-			}
-			pendingSelection = null;
-		}
-	}
-
-	static BuyScreen readScreen(Alite alite, final DataInputStream dis) {
-		BuyScreen bs = new BuyScreen(alite);
-		try {
-			bs.pendingSelection = ScreenBuilder.readString(dis);
-		} catch (IOException e) {
-			AliteLog.e("Buy Screen Initialize", "Error in initializer.", e);
-			return null;
-		}
-		return bs;
-	}
-
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		BuyScreen bs = readScreen(alite, dis);
-		if (bs == null) {
-			return false;
-		}
-		alite.setScreen(bs);
-		return true;
-	}
-
-	@Override
-	public void saveScreenState(DataOutputStream dos) throws IOException {
-		ScreenBuilder.writeString(dos, selection == null ? null : selection.getName());
+	public BuyScreen(String pendingSelection) {
+		super(false, pendingSelection);
 	}
 
 	@Override
 	protected void createButtons() {
-		tradeButton = new Button[COLUMNS][ROWS];
-
-		for (int y = 0; y < ROWS; y++) {
-			for (int x = 0; x < COLUMNS; x++) {
-				tradeButton[x][y] = Button.createOverlayButton(x * GAP_X + X_OFFSET,
-						y * GAP_Y + Y_OFFSET, SIZE, SIZE, tradeGoods[y * COLUMNS + x], beam)
-					.setName(TradeGoodStore.get().goods()[y * COLUMNS + x].getName());
+		tradeButton.clear();
+		int index = 0;
+		for (TradeGood good : TradeGoodStore.get().goods()) {
+			if (!good.isSpecialGood()) {
+				tradeButton.add(Button.createOverlayButton(index % COLUMNS * GAP_X + X_OFFSET,
+						index / COLUMNS * GAP_Y + Y_OFFSET, SIZE, SIZE, tradeGoods.get(good), beam)
+					.setName(good.getName()));
+				index++;
 			}
 		}
 	}
 
 	@Override
-	protected String getCost(int row, int column) {
+	protected String getCost(int index) {
 		return L.getOneDecimalFormatString(R.string.cash_amount_value_ccy,
-			game.getPlayer().getMarket().getPrice(TradeGoodStore.get().goods()[row * COLUMNS + column]));
+			game.getPlayer().getMarket().getPrice(TradeGoodStore.get().goods().get(index)));
 	}
 
 	public void resetSelection() {
@@ -124,7 +84,7 @@ public class BuyScreen extends TradeScreen {
 		if (index < 0) {
 			return null;
 		}
-		return TradeGoodStore.get().goods()[index];
+		return TradeGoodStore.get().goods().get(index);
 	}
 
 	public TradeGood getGoodToBuy() {
@@ -142,25 +102,25 @@ public class BuyScreen extends TradeScreen {
 		displayTitle(L.string(R.string.title_buy_cargo));
 
 		elapsedTime+= deltaTime;
-		currentAvailabiltyColor = (int) (elapsedTime % availColors.length);
+		currentAvailabilityColor = (int) (elapsedTime % availColors.length);
 		presentTradeGoods(deltaTime);
 		presentTradeStatus();
 	}
 
 	@Override
-	protected void drawAdditionalTradeGoodInformation(int row, int column, float deltaTime) {
-		TradeGood tradeGood = TradeGoodStore.get().goods()[row * COLUMNS + column];
+	protected void drawAdditionalTradeGoodInformation(int index, float deltaTime) {
+		TradeGood tradeGood = TradeGoodStore.get().goods().get(index);
 		int avail = game.getPlayer().getMarket().getQuantity(tradeGood);
 		if (avail > 0) {
 			int height = SIZE * avail / 63 + 1;
-			game.getGraphics().fillRect(column * GAP_X + X_OFFSET + SIZE + 1,
-				row * GAP_Y + Y_OFFSET + SIZE - 1 - height, 20, height, availColors[currentAvailabiltyColor]);
+			game.getGraphics().fillRect(index % COLUMNS * GAP_X + X_OFFSET + SIZE + 1,
+				index / COLUMNS * GAP_Y + Y_OFFSET + SIZE - 1 - height, 20, height, availColors[currentAvailabilityColor]);
 		}
 	}
 
 	@Override
-	protected void presentSelection(int row, int column) {
-		TradeGood tradeGood = TradeGoodStore.get().goods()[row * COLUMNS + column];
+	protected void presentSelection(int index) {
+		TradeGood tradeGood = TradeGoodStore.get().goods().get(index);
 		int avail = game.getPlayer().getMarket().getQuantity(tradeGood);
 		String average = L.getOneDecimalFormatString(R.string.cash_amount_value_ccy, game.getGenerator().getAveragePrice(tradeGood));
 		game.getGraphics().drawText(L.string(R.string.trade_good_info, tradeGood.getName(), avail,
@@ -173,8 +133,8 @@ public class BuyScreen extends TradeScreen {
 	}
 
     @Override
-	public void performTrade(int row, int column) {
-		TradeGood tradeGood = TradeGoodStore.get().goods()[row * COLUMNS + column];
+	public void performTrade(int index) {
+		TradeGood tradeGood = TradeGoodStore.get().goods().get(index);
 		Player player = game.getPlayer();
 		Market market = player.getMarket();
 		for (Mission mission: player.getActiveMissions()) {
@@ -190,9 +150,9 @@ public class BuyScreen extends TradeScreen {
 		}
 		String maxAmountString = avail + tradeGood.getUnit().toUnitString();
 		if (boughtAmount == 0) {
-			goodToBuy = TradeGoodStore.get().goods()[row * COLUMNS + column];
-			newScreen = new QuantityPadScreen(this, game,
-				maxAmountString, column < 3 ? 1075 : 215, 200, row, column);
+			goodToBuy = tradeGood;
+			newScreen = new QuantityPadScreen(this,
+				maxAmountString, index % COLUMNS < 3 ? 1075 : 215, 200, index);
 			return;
 		}
 
@@ -224,11 +184,7 @@ public class BuyScreen extends TradeScreen {
 		SoundManager.play(Assets.kaChing);
 		cashLeft = getCashLeftString();
 		selection = null;
-		int chanceInPercent = game.getPlayer().getLegalProblemLikelihoodInPercent();
-		if (Math.random() * 100 < chanceInPercent) {
-			game.getPlayer().setLegalValue(
-				game.getPlayer().getLegalValue() + (int) (tradeGood.getLegalityType() * buyAmount));
-		}
+		game.getPlayer().setLegalValueByContraband(tradeGood.getLegalityType(), (int) buyAmount);
 		try {
 			game.autoSave();
 		} catch (IOException e) {
@@ -238,7 +194,7 @@ public class BuyScreen extends TradeScreen {
 
 	@Override
 	public void loadAssets() {
-		loadTradeGoodAssets();
+		loadTradeGoodAssets(TradeGoodStore.get().goods());
 		super.loadAssets();
 	}
 

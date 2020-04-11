@@ -71,7 +71,7 @@ public class WitchSpaceRender implements Serializable {
 		Alite.get().getPlayer().setHyperspaceSystem(null);
 		hyperdriveMalfunction = true;
 		if (inGame.getHud() != null) {
-			inGame.getHud().setWitchSpace(true);
+			inGame.getHud().setWitchSpace();
 		}
 		inGame.getMessage().repeatText(L.string(R.string.com_hyperdrive_malfunction), 1, 4, 1);
 		SoundManager.play(Assets.com_hyperdriveMalfunction);

@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.missions;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -56,8 +55,7 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 	private final Mission mission;
 	private final int givenState;
 
-	public ThargoidDocumentsScreen(Alite game, int state) {
-		super(game);
+	public ThargoidDocumentsScreen(int state) {
 		givenState = state;
 		mission = MissionManager.getInstance().get(ThargoidDocumentsMission.ID);
 		mediaPlayer = new MediaPlayer();
@@ -115,12 +113,12 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 			if (acceptButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				mission.setPlayerAccepts(true);
-				newScreen = new ThargoidDocumentsScreen(game, 1);
+				newScreen = new ThargoidDocumentsScreen(1);
 			}
 			if (declineButton.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				mission.setPlayerAccepts(false);
-				newScreen = new StatusScreen(game);
+				newScreen = new StatusScreen();
 			}
 		}
 	}
@@ -204,17 +202,6 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, acceptIcon);
 			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, declineIcon);
 		}
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			int state = dis.readInt();
-			alite.setScreen(new ThargoidDocumentsScreen(alite, state));
-		} catch (IOException e) {
-			AliteLog.e("Thargoid Documents Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
 	}
 
 	@Override

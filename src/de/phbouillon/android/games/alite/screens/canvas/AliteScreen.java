@@ -44,6 +44,7 @@ import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
+import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public abstract class AliteScreen extends Screen {
@@ -91,8 +92,8 @@ public abstract class AliteScreen extends Screen {
 	protected static final int RESULT_YES = 1;
 	protected static final int RESULT_NO = -1;
 
-	public AliteScreen(Alite game) {
-		this.game = game;
+	public AliteScreen() {
+		game = Alite.get();
 		Rect visibleArea = game.getGraphics().getVisibleArea();
 		setUpForDisplay(visibleArea);
 	}
@@ -377,7 +378,7 @@ public abstract class AliteScreen extends Screen {
 		}
 		if (event.type == TouchEvent.TOUCH_UP) {
 			if (Math.abs(startX - event.x) < 20 && Math.abs(startY - event.y) < 20) {
-				return navBar.touched(game, event.x, event.y);
+				return navBar.touched(event.x, event.y);
 			}
 		}
 		return null;
@@ -552,6 +553,35 @@ public abstract class AliteScreen extends Screen {
 
 	@Override
 	public void postNavigationRender(float deltaTime) {
+	}
+
+	protected final void displayObject(AliteObject object, float zNear, float zFar) {
+		Rect visibleArea = game.getGraphics().getVisibleArea();
+		float aspectRatio = visibleArea.width() / (float) visibleArea.height();
+		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
+		GLES11.glEnable(GLES11.GL_CULL_FACE);
+		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
+		GLES11.glLoadIdentity();
+		GlUtils.gluPerspective(game, 45.0f, aspectRatio, zNear, zFar);
+		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
+		GLES11.glLoadIdentity();
+
+		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
+		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
+		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
+		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
+		GLES11.glDepthFunc(GLES11.GL_LESS);
+		GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT);
+
+		GLES11.glPushMatrix();
+		GLES11.glMultMatrixf(object.getMatrix(), 0);
+		object.render();
+		GLES11.glPopMatrix();
+
+		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
+		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
+		setUpForDisplay(visibleArea);
 	}
 
 	protected final void setUpForDisplay(Rect visibleArea) {

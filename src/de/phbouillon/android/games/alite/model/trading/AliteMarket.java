@@ -26,16 +26,19 @@ public class AliteMarket extends Market {
 	@Override
 	public void generate() {
 		for (TradeGood tradeGood: store.goods()) {
+			if (tradeGood.isSpecialGood()) {
+				continue;
+			}
 			int product = system.getEconomy().ordinal() * tradeGood.getGradient();
 			int changing = fluct & tradeGood.getMaskByte();
-			char q = (char) (((char) (tradeGood.getBaseQuantity() + changing - product)) & 0x00FF);
+			char q = (char) ((char) (tradeGood.getBaseQuantity() + changing - product) & 0x00FF);
 			if ((q & 0x80) > 0) {
 				q = 0;
 			}
-			int val = tradeGood == store.alienItems() ? 0 : q & 0x3f;
+			int val = tradeGood.getId() == TradeGoodStore.ALIEN_ITEMS ? 0 : q & 0x3f;
 			quantity.put(tradeGood, val);
 
-			q = (char) (((char) (tradeGood.getBasePrice() + changing + product)));
+			q = (char) (tradeGood.getBasePrice() + changing + product);
 			val = q * 4;
 			price.put(tradeGood, val);
 		}

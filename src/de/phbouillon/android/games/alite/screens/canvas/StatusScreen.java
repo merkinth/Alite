@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -41,7 +40,6 @@ import de.phbouillon.android.games.alite.screens.canvas.options.ControlOptionsSc
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class StatusScreen extends AliteScreen {
 	private static final int SHIP_X                 = 360;
 	private static final int SHIP_Y                 = 400;
@@ -50,10 +48,6 @@ public class StatusScreen extends AliteScreen {
 	private AliteScreen forwardingScreen = null;
 	private boolean requireAnswer = false;
 	private boolean pendingShowControlOptions = false;
-
-	public StatusScreen(Alite game) {
-		super(game);
-	}
 
 	@Override
 	public void activate() {
@@ -229,7 +223,7 @@ public class StatusScreen extends AliteScreen {
 		if (requireAnswer && messageResult != RESULT_NONE) {
 			requireAnswer = false;
 			if (messageResult == RESULT_YES) {
-				newScreen = new ControlOptionsScreen(game, !pendingShowControlOptions);
+				newScreen = new ControlOptionsScreen(!pendingShowControlOptions);
 			} else if (!pendingShowControlOptions) {
 				showLargeModalQuestionDialog(L.string(R.string.intro_new_player_info));
 				requireAnswer = true;
@@ -273,11 +267,6 @@ public class StatusScreen extends AliteScreen {
 		}
 		cobra = game.getGraphics().newPixmap("cobra_small.png");
 		super.loadAssets();
-	}
-
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		alite.setScreen(new StatusScreen(alite));
-		return true;
 	}
 
 	@Override

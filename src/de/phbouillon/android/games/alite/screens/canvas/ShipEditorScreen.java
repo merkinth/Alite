@@ -22,13 +22,12 @@ import android.graphics.Rect;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.EngineExhaust;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectAI;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 import java.io.DataOutputStream;
@@ -82,8 +81,7 @@ public class ShipEditorScreen extends AliteScreen {
 
 	private ExhaustParameters exp = new ExhaustParameters();
 
-	public ShipEditorScreen(Alite game) {
-		super(game);
+	public ShipEditorScreen() {
 		currentShip = SpaceObjectFactory.getInstance().getObjectById("cobra_mk_iii");
 		List<EngineExhaust> exhausts = currentShip.getExhausts();
 		exhausts.clear();
@@ -101,7 +99,7 @@ public class ShipEditorScreen extends AliteScreen {
 		exhausts.add(new EngineExhaust(13.0f, 13.0f, 300.0f, -50.0f, 0, 0));
 		exhausts.add(new EngineExhaust(13.0f, 13.0f, 300.0f,  50.0f, 0, 0));
 		currentShip.setPosition(0, 0, -700.0f);
-		currentShip.setAIState(AIState.IDLE, (Object[]) null);
+		currentShip.setAIState(SpaceObjectAI.AI_STATE_GLOBAL, (Object[]) null);
 		currentShip.setSpeed(-currentShip.getMaxSpeed());
 	}
 
@@ -320,37 +318,8 @@ public class ShipEditorScreen extends AliteScreen {
 		a1.render(g);
 
 		if (currentShip != null) {
-			displayShip();
+			displayObject(currentShip, 1.0f, 900000.0f);
 		}
-	}
-
-	private void displayShip() {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		float aspectRatio = visibleArea.width() / (float) visibleArea.height();
-		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
-		GLES11.glEnable(GLES11.GL_CULL_FACE);
-		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, aspectRatio, 1.0f, 900000.0f);
-		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-		GLES11.glLoadIdentity();
-
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
-		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
-		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
-
-		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
-		GLES11.glDepthFunc(GLES11.GL_LESS);
-		GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT);
-		GLES11.glPushMatrix();
-		GLES11.glMultMatrixf(currentShip.getMatrix(), 0);
-		currentShip.render();
-		GLES11.glPopMatrix();
-
-		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
-		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
-		setUpForDisplay(visibleArea);
 	}
 
 	@Override

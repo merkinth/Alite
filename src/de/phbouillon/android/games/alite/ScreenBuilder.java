@@ -24,6 +24,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import de.phbouillon.android.framework.Screen;
+import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.canvas.*;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ConstrictorScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.CougarScreen;
@@ -51,90 +52,102 @@ import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 public class ScreenBuilder {
-	static boolean createScreen(Alite alite, byte[] state) {
+	static boolean createScreen(byte[] state) {
 		int screen = state[0];
 		if (screen != ScreenCodes.FLIGHT_SCREEN) {
 			try {
 				AliteLog.d("[ALITE]", "Loading autosave.");
-				alite.autoLoad();
+				Alite.get().autoLoad();
 			} catch (IOException e) {
 				AliteLog.e("[ALITE]", "Loading autosave commander failed.", e);
 			}
 		}
 		try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(state, 1, state.length - 1))) {
-			switch (screen) {
-				case ScreenCodes.INTRO_SCREEN: AliteLog.e("ScreenBuilder", "ScreenBuilderError: Cannot create Intro Screen here -- wrong Activity."); break;
-				case ScreenCodes.BUY_SCREEN: return BuyScreen.initialize(alite, dis);
-				case ScreenCodes.EQUIP_SCREEN: return EquipmentScreen.initialize(alite, dis);
-				case ScreenCodes.INVENTORY_SCREEN: return InventoryScreen.initialize(alite, dis);
-				case ScreenCodes.GALAXY_SCREEN: return GalaxyScreen.initialize(alite, dis);
-				case ScreenCodes.LOCAL_SCREEN: return LocalScreen.initialize(alite, dis);
-				case ScreenCodes.SHIP_INTRO_SCREEN: return ShipIntroScreen.initialize(alite, dis);
-				case ScreenCodes.STATUS_SCREEN: return StatusScreen.initialize(alite, dis);
-				case ScreenCodes.PLANET_SCREEN: return PlanetScreen.initialize(alite, dis);
-				case ScreenCodes.QUANTITY_PAD_SCREEN: return QuantityPadScreen.initialize(alite, dis);
-				case ScreenCodes.DISK_SCREEN: return DiskScreen.initialize(alite, dis);
-				case ScreenCodes.LOAD_SCREEN: return LoadScreen.initialize(alite, dis);
-				case ScreenCodes.SAVE_SCREEN: return SaveScreen.initialize(alite, dis);
-				case ScreenCodes.CATALOG_SCREEN: return CatalogScreen.initialize(alite, dis);
-				case ScreenCodes.OPTIONS_SCREEN: return OptionsScreen.initialize(alite, dis);
-				case ScreenCodes.DISPLAY_OPTIONS_SCREEN: return DisplayOptionsScreen.initialize(alite, dis);
-				case ScreenCodes.PLUGINS_SCREEN: return PluginsScreen.initialize(alite, dis);
-				case ScreenCodes.AUDIO_OPTIONS_SCREEN: return AudioOptionsScreen.initialize(alite, dis);
-				case ScreenCodes.CONTROL_OPTIONS_SCREEN: return ControlOptionsScreen.initialize(alite, dis);
-				case ScreenCodes.GAMEPLAY_OPTIONS_SCREEN: return GameplayOptionsScreen.initialize(alite, dis);
-				case ScreenCodes.INFLIGHT_BUTTONS_OPTIONS_SCREEN: return InFlightButtonsOptionsScreen.initialize(alite, dis);
-				case ScreenCodes.DEBUG_SCREEN: return DebugSettingsScreen.initialize(alite, dis);
-				case ScreenCodes.MORE_DEBUG_OPTIONS_SCREEN: return MoreDebugSettingsScreen.initialize(alite, dis);
-				case ScreenCodes.ABOUT_SCREEN: return AboutScreen.initialize(alite, dis);
-				case ScreenCodes.LIBRARY_SCREEN: return LibraryScreen.initialize(alite, dis);
-				case ScreenCodes.LIBRARY_PAGE_SCREEN: return LibraryPageScreen.initialize(alite, dis);
-				case ScreenCodes.TUTORIAL_SELECTION_SCREEN: return TutorialSelectionScreen.initialize(alite, dis);
-				case ScreenCodes.HACKER_SCREEN: return HackerScreen.initialize(alite, dis);
-				case ScreenCodes.HEX_NUMBER_PAD_SCREEN: return HexNumberPadScreen.initialize(alite, dis);
-				case ScreenCodes.CONSTRICTOR_SCREEN: return ConstrictorScreen.initialize(alite, dis);
-				case ScreenCodes.COUGAR_SCREEN: return CougarScreen.initialize(alite, dis);
-				case ScreenCodes.SUPERNOVA_SCREEN: return SupernovaScreen.initialize(alite, dis);
-				case ScreenCodes.THARGOID_DOCUMENTS_SCREEN: return ThargoidDocumentsScreen.initialize(alite, dis);
-				case ScreenCodes.THARGOID_STATION_SCREEN: return ThargoidStationScreen.initialize(alite, dis);
-				case ScreenCodes.TUT_INTRODUCTION_SCREEN: return TutIntroduction.initialize(alite, dis);
-				case ScreenCodes.TUT_TRADING_SCREEN: return TutTrading.initialize(alite, dis);
-				case ScreenCodes.TUT_EQUIPMENT_SCREEN: return TutEquipment.initialize(alite, dis);
-				case ScreenCodes.TUT_NAVIGATION_SCREEN: return TutNavigation.initialize(alite, dis);
-				case ScreenCodes.TUT_HUD_SCREEN: return TutHud.initialize(alite, dis);
-				case ScreenCodes.TUT_BASIC_FLYING_SCREEN: return TutBasicFlying.initialize(alite, dis);
-				case ScreenCodes.TUT_ADVANCED_FLYING_SCREEN: return TutAdvancedFlying.initialize(alite, dis);
-				case ScreenCodes.HYPERSPACE_SCREEN: return HyperspaceScreen.initialize(alite, dis);
-				case ScreenCodes.FLIGHT_SCREEN: return FlightScreen.initialize(alite, dis);
-			}
-		} catch (IOException ignored) {
+			AliteLog.d("[ALITE]", "Set screen, code: " + screen + ".");
+			Alite.get().setScreen(getInstanceByScreenCode(dis, screen));
+			return true;
+		} catch (IOException | ClassNotFoundException ignored) {
 		} finally {
-			moveToScreen(alite);
+			moveToScreen();
 		}
 		return false;
 	}
 
-	private static void moveToScreen(Alite alite) {
-		Screen screen = alite.getCurrentScreen();
+	private static Screen getInstanceByScreenCode(DataInputStream dis, int screenCode) throws IOException, ClassNotFoundException {
+		try {
+			switch (screenCode) {
+				case ScreenCodes.BUY_SCREEN: return new BuyScreen(readString(dis));
+				case ScreenCodes.EQUIP_SCREEN: return new EquipmentScreen(readString(dis));
+				case ScreenCodes.INVENTORY_SCREEN: return new InventoryScreen(readString(dis));
+				case ScreenCodes.GALAXY_SCREEN: return new GalaxyScreen(dis.readFloat(), dis.readInt(), dis.readInt());
+				case ScreenCodes.LOCAL_SCREEN: return new LocalScreen(dis.readFloat(), dis.readInt(), dis.readInt());
+				case ScreenCodes.SHIP_INTRO_SCREEN: return new ShipIntroScreen(readString(dis));
+				case ScreenCodes.STATUS_SCREEN: return new StatusScreen();
+				case ScreenCodes.PLANET_SCREEN: PlanetScreen.disposeInhabitantLayers(); return new PlanetScreen();
+				case ScreenCodes.QUANTITY_PAD_SCREEN: return new QuantityPadScreen(dis);
+				case ScreenCodes.DISK_SCREEN: return new DiskScreen();
+				case ScreenCodes.LOAD_SCREEN: return new LoadScreen(dis);
+				case ScreenCodes.SAVE_SCREEN: return new SaveScreen(dis);
+				case ScreenCodes.CATALOG_SCREEN: return new CatalogScreen(dis);
+				case ScreenCodes.OPTIONS_SCREEN: return new OptionsScreen();
+				case ScreenCodes.DISPLAY_OPTIONS_SCREEN: return new DisplayOptionsScreen();
+				case ScreenCodes.PLUGINS_SCREEN: return new PluginsScreen(dis.readInt());
+				case ScreenCodes.AUDIO_OPTIONS_SCREEN: return new AudioOptionsScreen();
+				case ScreenCodes.CONTROL_OPTIONS_SCREEN: return new ControlOptionsScreen(dis.readBoolean());
+				case ScreenCodes.GAMEPLAY_OPTIONS_SCREEN: return new GameplayOptionsScreen();
+				case ScreenCodes.INFLIGHT_BUTTONS_OPTIONS_SCREEN: return new InFlightButtonsOptionsScreen(dis.readBoolean());
+				case ScreenCodes.DEBUG_SCREEN: return new DebugSettingsScreen();
+				case ScreenCodes.MORE_DEBUG_OPTIONS_SCREEN: return new MoreDebugSettingsScreen();
+				case ScreenCodes.ABOUT_SCREEN: return new AboutScreen(dis.readInt(), dis.readInt(), dis.readFloat());
+				case ScreenCodes.LIBRARY_SCREEN: return new LibraryScreen(readString(dis), dis.readInt());
+				case ScreenCodes.LIBRARY_PAGE_SCREEN: return new LibraryPageScreen(dis);
+				case ScreenCodes.TUTORIAL_SELECTION_SCREEN: return new TutorialSelectionScreen();
+				case ScreenCodes.HACKER_SCREEN: return new HackerScreen(dis);
+				case ScreenCodes.HEX_NUMBER_PAD_SCREEN: return new HexNumberPadScreen(dis);
+				case ScreenCodes.CONSTRICTOR_SCREEN: return new ConstrictorScreen(dis);
+				case ScreenCodes.COUGAR_SCREEN: return new CougarScreen(dis.readInt());
+				case ScreenCodes.SUPERNOVA_SCREEN: return new SupernovaScreen(dis.readInt());
+				case ScreenCodes.THARGOID_DOCUMENTS_SCREEN: return new ThargoidDocumentsScreen(dis.readInt());
+				case ScreenCodes.THARGOID_STATION_SCREEN: return new ThargoidStationScreen(dis.readInt());
+				case ScreenCodes.TUT_INTRODUCTION_SCREEN: return new TutIntroduction(dis);
+				case ScreenCodes.TUT_TRADING_SCREEN: return new TutTrading(dis);
+				case ScreenCodes.TUT_EQUIPMENT_SCREEN: return new TutEquipment(dis);
+				case ScreenCodes.TUT_NAVIGATION_SCREEN: return new TutNavigation(dis);
+				case ScreenCodes.TUT_HUD_SCREEN: return new TutHud(dis);
+				case ScreenCodes.TUT_BASIC_FLYING_SCREEN: return new TutBasicFlying(dis);
+				case ScreenCodes.TUT_ADVANCED_FLYING_SCREEN: return new TutAdvancedFlying(dis);
+				case ScreenCodes.HYPERSPACE_SCREEN: return new HyperspaceScreen(dis);
+				case ScreenCodes.FLIGHT_SCREEN: return FlightScreen.createScreen(dis);
+				default: throw new IOException();
+			}
+		} catch (IOException | ClassNotFoundException e) {
+			AliteLog.e("ScreenBuilderError", "Error in initializer of screen " + screenCode + ".", e);
+			throw e;
+		}
+	}
+
+	private static void moveToScreen() {
+		Screen screen = Alite.get().getCurrentScreen();
 		if (screen == null) {
 			return;
 		}
+		NavigationBar navigationBar = Alite.get().getNavigationBar();
 		switch (screen.getScreenCode()) {
-			case ScreenCodes.STATUS_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS); break;
+			case ScreenCodes.STATUS_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_STATUS); break;
 
 			case ScreenCodes.BUY_SCREEN:
-			case ScreenCodes.QUANTITY_PAD_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY); break;
+			case ScreenCodes.QUANTITY_PAD_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_BUY); break;
 
-			case ScreenCodes.INVENTORY_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_INVENTORY); break;
-			case ScreenCodes.EQUIP_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP); break;
-			case ScreenCodes.GALAXY_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY); break;
-			case ScreenCodes.LOCAL_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL); break;
-			case ScreenCodes.PLANET_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET); break;
+			case ScreenCodes.INVENTORY_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_INVENTORY); break;
+			case ScreenCodes.EQUIP_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_EQUIP); break;
+			case ScreenCodes.GALAXY_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_GALAXY); break;
+			case ScreenCodes.LOCAL_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_LOCAL); break;
+			case ScreenCodes.PLANET_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_PLANET); break;
 
 			case ScreenCodes.DISK_SCREEN:
 			case ScreenCodes.CATALOG_SCREEN:
 			case ScreenCodes.LOAD_SCREEN:
-			case ScreenCodes.SAVE_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK); break;
+			case ScreenCodes.SAVE_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_DISK); break;
 
 			case ScreenCodes.DISPLAY_OPTIONS_SCREEN:
 			case ScreenCodes.GAMEPLAY_OPTIONS_SCREEN:
@@ -143,15 +156,15 @@ public class ScreenBuilder {
 			case ScreenCodes.DEBUG_SCREEN:
 			case ScreenCodes.MORE_DEBUG_OPTIONS_SCREEN:
 			case ScreenCodes.PLUGINS_SCREEN:
-			case ScreenCodes.OPTIONS_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_OPTIONS); break;
+			case ScreenCodes.OPTIONS_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_OPTIONS); break;
 
 			case ScreenCodes.LIBRARY_SCREEN:
-			case ScreenCodes.LIBRARY_PAGE_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LIBRARY); break;
+			case ScreenCodes.LIBRARY_PAGE_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_LIBRARY); break;
 
-			case ScreenCodes.TUTORIAL_SELECTION_SCREEN: alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_ACADEMY); break;
+			case ScreenCodes.TUTORIAL_SELECTION_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_ACADEMY); break;
 			case ScreenCodes.HACKER_SCREEN:
-				if (alite.isHackerActive()) {
-					alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_HACKER);
+				if (Alite.get().isHackerActive()) {
+					navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_HACKER);
 				}
 		}
 	}

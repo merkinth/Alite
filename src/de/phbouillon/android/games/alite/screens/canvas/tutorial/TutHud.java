@@ -26,6 +26,7 @@ import android.graphics.Rect;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
+import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
@@ -33,17 +34,11 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 //This screen never needs to be serialized, as it is not part of the InGame state,
 //also, all used inner classes (IMethodHook, etc.) will be reset upon state loading,
 //hence they never need to be serialized, either.
-@SuppressWarnings("serial")
 public class TutHud extends TutorialScreen {
 	private FlightScreen flight;
 
-	TutHud(final Alite alite) {
-		this(alite, null);
-	}
-
-	private TutHud(final Alite alite, final FlightScreen flight) {
-		super(alite, true);
-
+	protected TutHud(final FlightScreen flight) {
+		super(true);
 		this.flight = flight;
 
 		setInitialConditions();
@@ -89,12 +84,18 @@ public class TutHud extends TutorialScreen {
 		initLine_37();
 	}
 
+	public TutHud(DataInputStream dis) throws IOException, ClassNotFoundException {
+		this(FlightScreen.createScreen(dis));
+		currentLineIndex = dis.readInt();
+		loadScreenState(dis);
+	}
+
 	private void setInitialConditions() {
 		for (int i = 0; i < Settings.buttonPosition.length; i++) {
 			Settings.buttonPosition[i] = i;
 		}
 		game.getCobra().clearEquipment();
-		game.getCobra().setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.pulseLaser);
+		game.getCobra().setLaser(PlayerCobra.DIR_FRONT, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.PULSE_LASER));
 		game.getCobra().setLaser(PlayerCobra.DIR_RIGHT, null);
 		game.getCobra().setLaser(PlayerCobra.DIR_REAR, null);
 		game.getCobra().setLaser(PlayerCobra.DIR_LEFT, null);
@@ -116,7 +117,7 @@ public class TutHud extends TutorialScreen {
 					flight.getInGameManager().setPlayerControl(false);
 				});
 		if (flight == null) {
-			flight = new FlightScreen(game, true);
+			flight = new FlightScreen(true);
 			flight.setHandleUI(false);
 		}
 	}
@@ -427,7 +428,7 @@ public class TutHud extends TutorialScreen {
 				flight.getInGameManager().toggleDockingComputer(false);
 			}
 			if (flight.getInGameManager().getActualPostDockingScreen() == null) {
-				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen(game));
+				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen());
 			}
 			if (flight.getPostDockingHook() == null) {
 				flight.setPostDockingHook(deltaTime1 -> dispose());
@@ -446,19 +447,6 @@ public class TutHud extends TutorialScreen {
 		flight.setPause(false);
 	}
 
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			TutHud th = new TutHud(alite, FlightScreen.createScreen(alite, dis));
-			th.currentLineIndex = dis.readInt();
-			th.loadScreenState(dis);
-			alite.setScreen(th);
-		} catch (IOException | ClassNotFoundException e) {
-			AliteLog.e("Tutorial HUD Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
-	}
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {

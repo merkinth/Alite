@@ -18,21 +18,22 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
-import java.io.IOException;
-
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class LocalScreen extends GalaxyScreen {
-	public LocalScreen(Alite game) {
-		super(game);
+
+	// default public constructor is required for navigation bar
+	public LocalScreen() {
 	}
 
-	@Override
+	public LocalScreen(float zoomFactor, int centerX, int centerY) {
+		super(zoomFactor, centerX, centerY);
+	}
+
+		@Override
 	public void activate() {
 		title = L.string(R.string.title_local_nav_chart);
 		Player player = game.getPlayer();
@@ -42,43 +43,8 @@ public class LocalScreen extends GalaxyScreen {
 
 		centerX = computeCenterX(hyper == null ? player.getPosition().x : hyper.getX());
 		centerY = computeCenterY(hyper == null ? player.getPosition().y : hyper.getY());
-		targetX = centerX;
-		targetY = centerY;
-
-		if (Math.abs(pendingZoomFactor - zoomFactor) > 0.0001 && pendingZoomFactor > 0) {
-			zoomFactor = pendingZoomFactor;
-			game.getInput().setZoomFactor(zoomFactor);
-			pendingZoomFactor = -1.0f;
-		}
-		if (pendingCenterX != -1) {
-			centerX = pendingCenterX;
-			targetX = centerX;
-			pendingCenterX = -1;
-		}
-		if (pendingCenterY != -1) {
-			centerY = pendingCenterY;
-			targetY = centerY;
-			pendingCenterY = -1;
-		}
-		setupUi();
+		centerTarget();
 		normalizeSystems();
-	}
-
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		LocalScreen ls = new LocalScreen(alite);
-		try {
-			ls.zoomFactor = dis.readFloat();
-			ls.centerX = dis.readInt();
-			ls.centerY = dis.readInt();
-			ls.pendingZoomFactor = ls.zoomFactor;
-			ls.pendingCenterX = ls.centerX;
-			ls.pendingCenterY = ls.centerY;
-		} catch (IOException e) {
-			AliteLog.e("Local Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		alite.setScreen(ls);
-		return true;
 	}
 
 	@Override

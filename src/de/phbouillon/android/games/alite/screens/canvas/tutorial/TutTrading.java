@@ -33,7 +33,6 @@ import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 //This screen never needs to be serialized, as it is not part of the InGame state,
 //also, all used inner classes (IMethodHook, etc.) will be reset upon state loading,
 //hence they never need to be serialized, either.
-@SuppressWarnings("serial")
 public class TutTrading extends TutorialScreen {
 	private StatusScreen status;
 	private BuyScreen buy;
@@ -42,9 +41,8 @@ public class TutTrading extends TutorialScreen {
 	private boolean success = false;
 	private int screenToInitialize = 0;
 
-	TutTrading(final Alite alite) {
-		super(alite);
-
+	TutTrading() {
+		super(false);
 		initLine_00();
 		initLine_01();
 		initLine_02();
@@ -59,10 +57,17 @@ public class TutTrading extends TutorialScreen {
 		initLine_11();
 	}
 
+	public TutTrading(DataInputStream dis) throws IOException {
+		this();
+		currentLineIndex = dis.readInt();
+		screenToInitialize = dis.readByte();
+		loadScreenState(dis);
+	}
+
 	private void initLine_00() {
 		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_00));
 
-		status = new StatusScreen(game);
+		status = new StatusScreen();
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (updateNavBar() instanceof BuyScreen) {
 				changeToBuyScreen();
@@ -103,7 +108,7 @@ public class TutTrading extends TutorialScreen {
 			TradeGood selectedGood = buy.getSelectedGood();
 			if (selectedGood != null) {
 				line.setFinished();
-				if (selectedGood == TradeGoodStore.get().food()) {
+				if (selectedGood == TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD)) {
 					currentLineIndex++;
 				} else {
 					buy.resetSelection();
@@ -122,7 +127,7 @@ public class TutTrading extends TutorialScreen {
 			TradeGood selectedGood = buy.getSelectedGood();
 			if (selectedGood != null) {
 				line.setFinished();
-				if (selectedGood != TradeGoodStore.get().food()) {
+				if (selectedGood != TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD)) {
 					currentLineIndex--;
 					buy.resetSelection();
 				}
@@ -135,7 +140,7 @@ public class TutTrading extends TutorialScreen {
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			buy.processAllTouches();
-			if (buy.getGoodToBuy() == TradeGoodStore.get().food()) {
+			if (buy.getGoodToBuy() == TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD)) {
 				quantity = (QuantityPadScreen) buy.getNewScreen();
 				quantity.loadAssets();
 				quantity.activate();
@@ -162,7 +167,7 @@ public class TutTrading extends TutorialScreen {
 				if (success) {
 					quantity.dispose();
 					quantity = null;
-					buy.performTrade(0, 0);
+					buy.performTrade(0);
 				}
 			}
 		});
@@ -184,7 +189,7 @@ public class TutTrading extends TutorialScreen {
 			if (success) {
 				quantity.dispose();
 				quantity = null;
-				buy.performTrade(0, 0);
+				buy.performTrade(0);
 			} else {
 				quantity.clearAmount();
 			}
@@ -236,9 +241,9 @@ public class TutTrading extends TutorialScreen {
 				break;
 			case 2:
 				changeToBuyScreen();
-				int avail = game.getPlayer().getMarket().getQuantity(TradeGoodStore.get().food());
-				String maxAmountString = avail + TradeGoodStore.get().food().getUnit().toUnitString();
-				quantity = new QuantityPadScreen(buy, game, maxAmountString, 1075, 200, 0, 0);
+				int avail = game.getPlayer().getMarket().getQuantity(TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD));
+				String maxAmountString = avail + TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD).getUnit().toUnitString();
+				quantity = new QuantityPadScreen(buy, maxAmountString, 1075, 200, 0);
 				quantity.loadAssets();
 				quantity.activate();
 				break;
@@ -250,14 +255,14 @@ public class TutTrading extends TutorialScreen {
 		}
 		if (currentLineIndex <= 0) {
 			game.getCobra().clearInventory();
-			game.getPlayer().getMarket().setQuantity(TradeGoodStore.get().food(), 17);
+			game.getPlayer().getMarket().setQuantity(TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD), 17);
 			game.getPlayer().setCash(1000);
 		}
 	}
 
 	private void changeToInventoryScreen() {
 		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_INVENTORY);
-		inventory = new InventoryScreen(game);
+		inventory = new InventoryScreen();
 		inventory.loadAssets();
 		inventory.activate();
 	}
@@ -266,23 +271,9 @@ public class TutTrading extends TutorialScreen {
 		status.dispose();
 		status = null;
 		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
-		buy = new BuyScreen(game);
+		buy = new BuyScreen();
 		buy.loadAssets();
 		buy.activate();
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		TutTrading tt = new TutTrading(alite);
-		try {
-			tt.currentLineIndex = dis.readInt();
-			tt.screenToInitialize = dis.readByte();
-			tt.loadScreenState(dis);
-		} catch (IOException e) {
-			AliteLog.e("Tutorial Trading Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		alite.setScreen(tt);
-		return true;
 	}
 
 	@Override

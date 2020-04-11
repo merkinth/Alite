@@ -22,20 +22,13 @@ import java.io.File;
 import java.io.IOException;
 
 import de.phbouillon.android.framework.Sound;
-import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Settings;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class LoadingScreen extends AliteScreen {
-	public static final String DIRECTORY_SOUND = "sound" + File.separatorChar;
 	public static final String DIRECTORY_MUSIC = "music" + File.separatorChar;
-	private static final String DIRECTORY_SOUND_COMPUTER = DIRECTORY_SOUND + "computer" + File.separatorChar;
-
-	public LoadingScreen(Alite game) {
-		super(game);
-	}
 
 	@Override
 	public void activate() {
@@ -68,45 +61,42 @@ public class LoadingScreen extends AliteScreen {
 	}
 
 	private Sound newSound(String soundFileName) {
-		return game.getAudio().newSound(DIRECTORY_SOUND + soundFileName + ".ogg");
+		return game.getAudio().newSound(Assets.DIRECTORY_SOUND + soundFileName + ".ogg");
 	}
 
 	private Sound newCombatSound(String soundFileName) {
-		return game.getAudio().newCombatSound(DIRECTORY_SOUND + soundFileName + ".ogg");
+		return game.getAudio().newCombatSound(Assets.DIRECTORY_SOUND + soundFileName + ".ogg");
 	}
 
 	private void loadLocalizedSounds() {
-		Assets.com_aftShieldHasFailed = safeLoadSound("aft_shield_failed");
-		Assets.com_frontShieldHasFailed = safeLoadSound("front_shield_failed");
-		Assets.com_conditionRed = safeLoadSound("condition_red");
-		Assets.com_dockingComputerEngaged = safeLoadSound("docking_on");
-		Assets.com_dockingComputerDisengaged = safeLoadSound("docking_off");
-		Assets.com_hyperdriveMalfunction = safeLoadSound("hyperdrive_malfunction");
-		Assets.com_hyperdriveRepaired = safeLoadSound("hyperdrive_repaired");
-		Assets.com_incomingMissile = safeLoadSound("incoming_missile");
-		Assets.com_laserTemperatureCritical = safeLoadSound("laser_temperature");
-		Assets.com_cabinTemperatureCritical = safeLoadSound("cabin_temperature");
-		Assets.com_targetDestroyed = safeLoadSound("target_destroyed");
-		Assets.com_fuelSystemMalfunction = safeLoadSound("fuel_malfunction");
-		Assets.com_accessDeclined = safeLoadSound("access_declined");
+		Assets.com_aftShieldHasFailed = Assets.safeLoadSound("aft_shield_failed");
+		Assets.com_frontShieldHasFailed = Assets.safeLoadSound("front_shield_failed");
+		Assets.com_conditionRed = Assets.safeLoadSound("condition_red");
+		Assets.com_dockingComputerEngaged = Assets.safeLoadSound("docking_on");
+		Assets.com_dockingComputerDisengaged = Assets.safeLoadSound("docking_off");
+		Assets.com_hyperdriveMalfunction = Assets.safeLoadSound("hyperdrive_malfunction");
+		Assets.com_hyperdriveRepaired = Assets.safeLoadSound("hyperdrive_repaired");
+		Assets.com_incomingMissile = Assets.safeLoadSound("incoming_missile");
+		Assets.com_laserTemperatureCritical = Assets.safeLoadSound("laser_temperature");
+		Assets.com_cabinTemperatureCritical = Assets.safeLoadSound("cabin_temperature");
+		Assets.com_targetDestroyed = Assets.safeLoadSound("target_destroyed");
+		Assets.com_fuelSystemMalfunction = Assets.safeLoadSound("fuel_malfunction");
+		Assets.com_accessDeclined = Assets.safeLoadSound("access_declined");
 
-		Assets.com_lostDockingComputer = safeLoadSound("lost_docking");
-		Assets.com_lostEcm = safeLoadSound("lost_ecm");
-		Assets.com_lostEnergyBomb = safeLoadSound("lost_bomb");
-		Assets.com_lostEscapeCapsule = safeLoadSound("lost_escape");
-		Assets.com_lostExtraEnergyUnit = safeLoadSound("lost_energy");
-		Assets.com_lostFuelScoop = safeLoadSound("lost_fuel_scoop");
-		Assets.com_lostGalacticHyperdrive = safeLoadSound("lost_galactic");
-		Assets.com_lostRetroRockets = safeLoadSound("lost_retro_rockets");
-		Assets.com_escapeMalfunction = safeLoadSound("escape_malfunction");
-		Assets.com_lostCargo = safeLoadSound("lost_cargo");
-		Assets.com_launch_area_violation_1st = safeLoadSound("launch_viol1");
-		Assets.com_launch_area_violation_2nd = safeLoadSound("launch_viol2");
-		Assets.com_launch_area_violation_3rd = safeLoadSound("launch_viol3");
-	}
+		Assets.setLostEquipmentSound("lost_docking");
+		Assets.setLostEquipmentSound("lost_ecm");
+		Assets.setLostEquipmentSound("lost_bomb");
+		Assets.setLostEquipmentSound("lost_escape");
+		Assets.setLostEquipmentSound("lost_energy");
+		Assets.setLostEquipmentSound("lost_fuel_scoop");
+		Assets.setLostEquipmentSound("lost_galactic");
+		Assets.setLostEquipmentSound("lost_retro_rockets");
 
-	private Sound safeLoadSound(String soundFileName) {
-		return game.getAudio().newSoundAsset(DIRECTORY_SOUND_COMPUTER + soundFileName + ".ogg");
+		Assets.com_lostCargo = Assets.safeLoadSound("lost_cargo");
+		Assets.com_escapeMalfunction = Assets.safeLoadSound("escape_malfunction");
+		Assets.com_launch_area_violation_1st = Assets.safeLoadSound("launch_viol1");
+		Assets.com_launch_area_violation_2nd = Assets.safeLoadSound("launch_viol2");
+		Assets.com_launch_area_violation_3rd = Assets.safeLoadSound("launch_viol3");
 	}
 
 	public void changeLocale() {
@@ -141,12 +131,12 @@ public class LoadingScreen extends AliteScreen {
 			AliteLog.d("Debug-6", "Now loading Alite Game State (if present)");
 			if (!game.readState()) {
 				AliteLog.d("Debug-7", "No game state present, defaulting to SIS");
-				game.setScreen(new ShipIntroScreen(game));
+				game.setScreen(new ShipIntroScreen());
 				AliteLog.d("Debug-8", "SIS set.");
 			}
 		} catch (IOException ignored) {
 			AliteLog.d("Debug-9", "IO-Ex, defaulting to SIS");
-			game.setScreen(new ShipIntroScreen(game));
+			game.setScreen(new ShipIntroScreen());
 			AliteLog.d("Debug-10", "SIS set.");
 		}
 	}

@@ -107,10 +107,6 @@ public class Button {
 		return new Button(x, y, width, height).setPixmap(pixmap).setOverlay(overlay).setBorderOff();
 	}
 
-	public static Button createAnimatedButton(int x, int y, int width, int height, Pixmap[] animation) {
-		return new Button(x, y, width, height).setPixmap(animation[0]).setAnimation(animation).setBorderOff();
-	}
-
 	private Button(int x, int y, int width, int height) {
 		this.x = x;
 		this.y = y;

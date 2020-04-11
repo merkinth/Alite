@@ -30,14 +30,13 @@ import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.LegalStatus;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.Weight;
-import de.phbouillon.android.games.alite.model.generator.enums.Government;
 import de.phbouillon.android.games.alite.model.statistics.WeaponType;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectAI;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 class InGameHelper implements Serializable {
@@ -149,7 +148,7 @@ class InGameHelper implements Serializable {
 	private void scoop(SpaceObject cargo) {
 		// Fuel scoop must be installed and cargo must be in the lower half of the screen...
 		Alite alite  = Alite.get();
-		if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop) || cargo.getDisplayMatrix()[13] >= 0) {
+		if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP)) || cargo.getDisplayMatrix()[13] >= 0) {
 			ramCargo(cargo);
 			if (scoopCallback != null) {
 				scoopCallback.rammed(cargo);
@@ -182,16 +181,16 @@ class InGameHelper implements Serializable {
 			scoopCallback.scooped(cargo);
 		}
 		TradeGood scoopedTradeGood = cargo.getType() == ObjectType.CargoPod ? cargo.getCargoContent() :
-			cargo.getType() == ObjectType.EscapeCapsule ? TradeGoodStore.get().slaves() :
-			cargo.getType() == ObjectType.Thargon ? TradeGoodStore.get().alienItems() :
-			TradeGoodStore.get().alloys();
+			cargo.getType() == ObjectType.EscapeCapsule ? TradeGoodStore.get().getGoodById(TradeGoodStore.SLAVES) :
+			cargo.getType() == ObjectType.Thargon ? TradeGoodStore.get().getGoodById(TradeGoodStore.ALIEN_ITEMS) :
+				TradeGoodStore.get().getGoodById(TradeGoodStore.ALLOYS);
 		long price = cargo.getType() == ObjectType.CargoPod ? cargo.getCargoPrice() : 0;
 		if (scoopedTradeGood == null) {
 			AliteLog.e("Scooped null cargo!", "Scooped null cargo!");
 			scoopedTradeGood = TradeGoodStore.get().getRandomTradeGoodForContainer();
 		}
 		AliteLog.d("Scooped Cargo", "Scooped Cargo " + scoopedTradeGood.getName());
-		if (!alite.getCobra().hasCargo(scoopedTradeGood) && cargo.getType() == ObjectType.CargoPod) {
+		if (alite.getCobra().getInventoryItemByGood(scoopedTradeGood) == null && cargo.getType() == ObjectType.CargoPod) {
 			// This makes sure that if a player scoops his dropped cargo back up, the
 			// gain/loss calculation stays accurate
 			alite.getCobra().addTradeGood(scoopedTradeGood, quantity, price);
@@ -328,35 +327,14 @@ class InGameHelper implements Serializable {
 			// decided here: If the player is close enough (< 1000m (1000 * 1000 = 1000000)),
 			// he'll have a small chance to get through (10%).
 			if (target.hasEcm() && (target.getPosition().distanceSq(source.getPosition()) >= 1000000 || Math.random() > 0.1)) {
-				missile.setWillBeDestroyedByECM(true);
+				missile.setWillBeDestroyedByECM();
 			}
 			if (ObjectType.isSpaceStation(target.getType()) ||
-			    target.getType() == ObjectType.Shuttle ||
-			    target.getType() == ObjectType.Trader) {
-				Alite alite  = Alite.get();
-				int legalValue = alite.getPlayer().getLegalValue();
-				if (InGameManager.playerInSafeZone) {
-					InGameManager.safeZoneViolated = true;
-				}
-				if (alite.getPlayer().getCurrentSystem() != null) {
-					Government g = alite.getPlayer().getCurrentSystem().getGovernment();
-					switch (g) {
-		    			case ANARCHY: break; // In anarchies, you can do whatever you want.
-		    			case FEUDAL: if (Math.random() > 0.9) { legalValue += 16; } break;
-		    			case MULTI_GOVERNMENT: if (Math.random() > 0.8) { legalValue += 24; } break;
-		    			case DICTATORSHIP: if (Math.random() > 0.6) { legalValue += 32; } break;
-		    			case COMMUNIST: if (Math.random() > 0.4) { legalValue += 32; } break;
-		    			case CONFEDERACY: if (Math.random() > 0.2) { legalValue += 32; } break;
-		    			case DEMOCRACY: legalValue += 32; break;
-		    			case CORPORATE_STATE: legalValue += 32; break;
-					}
-				} else {
-					legalValue += 32;
-				}
-				alite.getPlayer().setLegalValue(legalValue);
+					target.getType() == ObjectType.Shuttle || target.getType() == ObjectType.Trader) {
+				Alite.get().getPlayer().computeLegalStatusAtLaunchMissile();
 			}
 		}
-		missile.setAIState(AIState.MISSILE_TRACK, target);
+		missile.setAIState(SpaceObjectAI.AI_STATE_MISSILE_TRACK, target);
 		inGame.addObject(missile);
 		return missile;
 	}
@@ -463,7 +441,7 @@ class InGameHelper implements Serializable {
 				cabinTemperatureAlarm = false;
 			}
 		}
-		if (cabinTemperature > 26 && alite.getCobra().isEquipmentInstalled(EquipmentStore.fuelScoop) &&
+		if (cabinTemperature > 26 && alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP)) &&
 				alite.getCobra().getFuel() < PlayerCobra.MAX_FUEL) {
 			inGame.getMessage().repeatText(L.string(R.string.msg_fuel_scoop_activated), 1);
 			fuelScoopFuel += 20 * -inGame.getShip().getSpeed() / inGame.getShip().getMaxSpeed() * deltaTime;

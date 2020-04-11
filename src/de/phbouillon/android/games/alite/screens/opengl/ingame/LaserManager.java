@@ -239,23 +239,23 @@ public class LaserManager implements Serializable {
 		Equipment lostEquip = installedLosableEquipment.get(i);
 		inGame.setMessage(L.string(R.string.msg_equipment_lost, lostEquip.getShortName()));
 		alite.getCobra().removeEquipment(lostEquip);
-		if (lostEquip == EquipmentStore.dockingComputer) {
-			SoundManager.play(Assets.com_lostDockingComputer);
+		if (lostEquip == EquipmentStore.get().getEquipmentById(EquipmentStore.DOCKING_COMPUTER)) {
+			SoundManager.play(Assets.getLostEquipmentSound("lost_docking"));
 			inGame.getDockingComputerAI().disengage();
-		} else if (lostEquip == EquipmentStore.ecmSystem) {
-			SoundManager.play(Assets.com_lostEcm);
-		} else if (lostEquip == EquipmentStore.fuelScoop) {
-			SoundManager.play(Assets.com_lostFuelScoop);
-		} else if (lostEquip == EquipmentStore.escapeCapsule) {
-			SoundManager.play(Assets.com_lostEscapeCapsule);
-		} else if (lostEquip == EquipmentStore.energyBomb) {
-			SoundManager.play(Assets.com_lostEnergyBomb);
-		} else if (lostEquip == EquipmentStore.extraEnergyUnit) {
-			SoundManager.play(Assets.com_lostExtraEnergyUnit);
-		} else if (lostEquip == EquipmentStore.galacticHyperdrive) {
-			SoundManager.play(Assets.com_lostGalacticHyperdrive);
-		} else if (lostEquip == EquipmentStore.retroRockets) {
-			SoundManager.play(Assets.com_lostRetroRockets);
+		} else if (lostEquip == EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_SYSTEM)) {
+			SoundManager.play(Assets.getLostEquipmentSound("lost_ecm"));
+		} else if (lostEquip == EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP)) {
+			SoundManager.play(Assets.getLostEquipmentSound("lost_fuel_scoop"));
+		} else if (lostEquip == EquipmentStore.get().getEquipmentById(EquipmentStore.ESCAPE_CAPSULE)) {
+			SoundManager.play(Assets.getLostEquipmentSound("lost_escape"));
+		} else if (lostEquip == EquipmentStore.get().getEquipmentById(EquipmentStore.ENERGY_BOMB)) {
+			SoundManager.play(Assets.getLostEquipmentSound("lost_bomb"));
+		} else if (lostEquip == EquipmentStore.get().getEquipmentById(EquipmentStore.EXTRA_ENERGY_UNIT)) {
+			SoundManager.play(Assets.getLostEquipmentSound("lost_energy"));
+		} else if (lostEquip == EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE)) {
+			SoundManager.play(Assets.getLostEquipmentSound("lost_galactic"));
+		} else if (lostEquip == EquipmentStore.get().getEquipmentById(EquipmentStore.RETRO_ROCKETS)) {
+			SoundManager.play(Assets.getLostEquipmentSound("lost_retro_rockets"));
 		}
 	}
 
@@ -377,7 +377,7 @@ public class LaserManager implements Serializable {
 								// Player has destroyed something
 								inGame.computeBounty((SpaceObject) eo);
 							}
-							explode((SpaceObject) eo, WeaponType.values()[laser.getLaser().getIndex()]);
+							explode((SpaceObject) eo, laser.getLaser().getWeaponType());
 							eo.setRemove(true);
 						}
 					}
@@ -463,7 +463,7 @@ public class LaserManager implements Serializable {
 			laser.setRightVector(tempVector);
 			laser.setUpVector(so.getUpVector());
 			laser.setVisible(true);
-			laser.setLaser(EquipmentStore.militaryLaser);
+			laser.setLaser((Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
 			laser.setOrigin(so);
 			laser.setAiming(false);
 			activeLasers.add(laser);
@@ -583,7 +583,7 @@ public class LaserManager implements Serializable {
 
 			@Override
 			public void execute(float deltaTime) {
-				long nd = (alite.getCobra().isEquipmentInstalled(EquipmentStore.navalEnergyUnit) ?
+				long nd = (alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.NAVAL_ENERGY_UNIT)) ?
 					NAVAL_REFRESH_RATE : NORMAL_REFRESH_RATE) / alite.getTimeFactor();
 				if (event.delay != nd) {
 					event.updateDelay(nd);
@@ -592,8 +592,8 @@ public class LaserManager implements Serializable {
 
 				int energy = alite.getCobra().getEnergy();
 				boolean updateFrontRearShields = energy == PlayerCobra.MAX_ENERGY ||
-					alite.getCobra().isEquipmentInstalled(EquipmentStore.extraEnergyUnit) ||
-					alite.getCobra().isEquipmentInstalled(EquipmentStore.navalEnergyUnit);
+					alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.EXTRA_ENERGY_UNIT)) ||
+					alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.NAVAL_ENERGY_UNIT));
 				if (energy < PlayerCobra.MAX_ENERGY) {
 					alite.getCobra().setEnergy(energy + 1);
 				}

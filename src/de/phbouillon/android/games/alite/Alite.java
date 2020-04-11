@@ -20,7 +20,6 @@ package de.phbouillon.android.games.alite;
 
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Point;
 import android.opengl.GLES11;
 import android.os.Bundle;
 import android.view.Menu;
@@ -31,7 +30,6 @@ import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.io.FileUtils;
 import de.phbouillon.android.games.alite.model.*;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
-import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.*;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
@@ -73,16 +71,17 @@ public class Alite extends AndroidGame {
 	private static Alite alite;
 	private boolean saving = false;
 	private boolean isHackerActive;
+	private InGameManager inGame;
 
 	public Alite() {
 		super(AliteConfig.SCREEN_WIDTH, AliteConfig.SCREEN_HEIGHT);
-		fileUtils = new FileUtils(this);
 		alite = this;
+		fileUtils = new FileUtils();
 	}
 
 	@Override
 	public Screen getStartScreen() {
-		return new LoadingScreen(this);
+		return new LoadingScreen();
 	}
 
 	@Override
@@ -122,18 +121,18 @@ public class Alite extends AndroidGame {
 			generator.buildGalaxy(1);
 		}
 		if (player == null) {
-			player = new Player(this);
+			player = new Player();
 		}
 	}
 
 	private void registerMissions() {
 		MissionManager.getInstance().clear();
-		MissionManager.getInstance().register(new ConstrictorMission(this));
-		MissionManager.getInstance().register(new ThargoidDocumentsMission(this));
-		MissionManager.getInstance().register(new SupernovaMission(this));
-		MissionManager.getInstance().register(new CougarMission(this));
-		MissionManager.getInstance().register(new ThargoidStationMission(this));
-		MissionManager.getInstance().register(new EndMission(this));
+		MissionManager.getInstance().register(new ConstrictorMission());
+		MissionManager.getInstance().register(new ThargoidDocumentsMission());
+		MissionManager.getInstance().register(new SupernovaMission());
+		MissionManager.getInstance().register(new CougarMission());
+		MissionManager.getInstance().register(new ThargoidStationMission());
+		MissionManager.getInstance().register(new EndMission());
 	}
 
 	public void activateHacker() {
@@ -164,6 +163,14 @@ public class Alite extends AndroidGame {
 		return player.getCobra();
 	}
 
+	public void setInGame(InGameManager inGame) {
+		this.inGame = inGame;
+	}
+
+	public InGameManager getInGame() {
+		return inGame;
+	}
+
 	public GalaxyGenerator getGenerator() {
 		return generator;
 	}
@@ -173,20 +180,8 @@ public class Alite extends AndroidGame {
 	}
 
 	public boolean isHyperspaceTargetValid() {
-		if (player.getHyperspaceSystem() == null) {
-			return false;
-		}
-		if (player.getHyperspaceSystem() == player.getCurrentSystem()) {
-			return false;
-		}
-		int distance = player.getCurrentSystem() == null ? computeDistance(player.getPosition(), player.getHyperspaceSystem()) : player.getCurrentSystem().computeDistance(player.getHyperspaceSystem());
-		return Settings.unlimitedFuel || player.getCobra().getFuel() > 0 && player.getCobra().getFuel() >= distance;
-	}
-
-	private int computeDistance(Point p, SystemData system) {
-		int dx = p.x - system.getX();
-		int dy = p.y - system.getY();
-		return (int) Math.sqrt(dx * dx + dy * dy) << 2;
+		return player.getHyperspaceSystem() != null && player.getHyperspaceSystem() != player.getCurrentSystem() &&
+			(Settings.unlimitedFuel || player.getCobra().getFuel() > 0 && player.getCobra().getFuel() >= player.computeDistance());
 	}
 
 	public void performHyperspaceJump() {
@@ -201,8 +196,7 @@ public class Alite extends AndroidGame {
 		if (player.getCobra().getPitch() <= -2.0f && player.getCobra().getRoll() <= -2.0f) {
 			willEnterWitchSpace = true;
 		}
-		int distance = player.getCurrentSystem() == null ? computeDistance(player.getPosition(), player.getHyperspaceSystem()) :
-				player.getCurrentSystem().computeDistance(player.getHyperspaceSystem());
+		int distance = player.computeDistance();
 		if (willEnterWitchSpace) {
 			distance >>= 1;
 			int x = player.getCurrentSystem() == null ? player.getPosition().x : player.getCurrentSystem().getX();
@@ -217,7 +211,7 @@ public class Alite extends AndroidGame {
 			player.setCurrentSystem(player.getHyperspaceSystem());
 		}
 		player.getCobra().setFuel(player.getCobra().getFuel() - (distance == 0 ? 1 : distance));
-		FlightScreen fs = new FlightScreen(this, false);
+		FlightScreen fs = new FlightScreen(false);
 		if (willEnterWitchSpace) {
 			fs.enterWitchSpace();
 		}
@@ -245,8 +239,8 @@ public class Alite extends AndroidGame {
 		generator.buildGalaxy(nextGal);
 		player.setCurrentSystem(generator.getSystem(player.getCurrentSystem().getIndex()));
 		player.setHyperspaceSystem(player.getCurrentSystem());
-		player.getCobra().removeEquipment(EquipmentStore.galacticHyperdrive);
-		setScreen(new FlightScreen(this, false));
+		player.getCobra().removeEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE));
+		setScreen(new FlightScreen(false));
     	GLES11.glMatrixMode(GLES11.GL_TEXTURE);
     	GLES11.glLoadIdentity();
 		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
@@ -274,10 +268,7 @@ public class Alite extends AndroidGame {
 	public final boolean readState() throws IOException {
 		byte[] state = getFileIO().readFileContents(AliteStartManager.ALITE_STATE_FILE);
 		AliteLog.d("Reading state", "State == " + (state == null || state.length == 0 ? "" : state[0]));
-		if (state != null && state.length > 0) {
-			return ScreenBuilder.createScreen(this, state);
-		}
-		return false;
+		return state != null && state.length > 0 && ScreenBuilder.createScreen(state);
 	}
 
 	@Override
@@ -336,7 +327,7 @@ public class Alite extends AndroidGame {
 
 	private void createNavigationBar() {
 		// if navigation target is defined package root of screens is screens.canvas
-		navigationBar = new NavigationBar(this);
+		navigationBar = new NavigationBar();
 		NAVIGATION_BAR_LAUNCH = navigationBar.add(L.string(R.string.navbar_launch), Assets.launchIcon, "opengl.ingame.FlightScreen");
 		NAVIGATION_BAR_STATUS = navigationBar.add(L.string(R.string.navbar_status), Assets.statusIcon, "canvas.StatusScreen");
 		NAVIGATION_BAR_BUY = navigationBar.add(L.string(R.string.navbar_buy), Assets.buyIcon, "canvas.BuyScreen");
@@ -383,7 +374,7 @@ public class Alite extends AndroidGame {
 	}
 
 	public void changeLocale() {
-		new LoadingScreen(this).changeLocale();
+		new LoadingScreen().changeLocale();
 		loadFonts();
 		createNavigationBar();
 		generator.rebuildGalaxy();

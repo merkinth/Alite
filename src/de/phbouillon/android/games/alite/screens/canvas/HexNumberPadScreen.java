@@ -47,13 +47,23 @@ public class HexNumberPadScreen extends AliteScreen {
 	private final HackerScreen hackerScreen;
 	private final int valueIndex;
 
-	HexNumberPadScreen(HackerScreen hackerScreen, Alite game, int x, int y, int valueIndex) {
-		super(game);
+	HexNumberPadScreen(HackerScreen hackerScreen, int x, int y, int valueIndex) {
 		this.x = x;
 		this.y = y;
 		this.valueIndex = valueIndex;
 		this.hackerScreen = hackerScreen;
 
+		pads = new Button[18];
+	}
+
+	public HexNumberPadScreen(final DataInputStream dis) throws IOException {
+		x = dis.readInt();
+		y = dis.readInt();
+		valueIndex = dis.readInt();
+		currentValueString = ScreenBuilder.readEmptyString(dis);
+		hackerScreen = new HackerScreen(dis);
+		hackerScreen.loadAssets();
+		hackerScreen.activate();
 		pads = new Button[18];
 	}
 
@@ -69,24 +79,6 @@ public class HexNumberPadScreen extends AliteScreen {
 		dos.writeInt(valueIndex);
 		ScreenBuilder.writeString(dos, currentValueString);
 		hackerScreen.saveScreenState(dos);
-	}
-
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		try {
-			int xPos = dis.readInt();
-			int yPos = dis.readInt();
-			int valueIndex = dis.readInt();
-			HackerScreen hackerScreen = HackerScreen.readScreen(alite, dis);
-			hackerScreen.loadAssets();
-			hackerScreen.activate();
-			HexNumberPadScreen hnps = new HexNumberPadScreen(hackerScreen, alite, xPos, yPos, valueIndex);
-			hnps.currentValueString = ScreenBuilder.readEmptyString(dis);
-			alite.setScreen(hnps);
-		} catch (IOException e) {
-			AliteLog.e("Hex Number Pad Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
 	}
 
 	private void initializeButtons() {

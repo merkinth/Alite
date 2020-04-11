@@ -18,8 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
-
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.*;
@@ -40,8 +38,7 @@ public class DisplayOptionsScreen extends OptionsScreen {
 	private Button immersion;
 	private Button back;
 
-	DisplayOptionsScreen(Alite game) {
-		super(game);
+	public DisplayOptionsScreen() {
 		ColorScheme.loadColorSchemeList(game.getFileIO(), Settings.colorScheme);
 	}
 
@@ -157,7 +154,7 @@ public class DisplayOptionsScreen extends OptionsScreen {
 					showMessageDialog(L.string(R.string.options_display_color_scheme,error));
 				}
 				Settings.save(game.getFileIO());
-				newScreen = new DisplayOptionsScreen(game);
+				newScreen = new DisplayOptionsScreen();
 			} else if (lockOrientation.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
 				Settings.lockScreen++;
@@ -185,7 +182,7 @@ public class DisplayOptionsScreen extends OptionsScreen {
 				Settings.save(game.getFileIO());
 			} else if (back.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new OptionsScreen(game);
+				newScreen = new OptionsScreen();
 			}
 		}
 	}
@@ -195,8 +192,4 @@ public class DisplayOptionsScreen extends OptionsScreen {
 		return ScreenCodes.DISPLAY_OPTIONS_SCREEN;
 	}
 
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		alite.setScreen(new DisplayOptionsScreen(alite));
-		return true;
-	}
 }

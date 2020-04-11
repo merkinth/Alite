@@ -30,6 +30,7 @@ import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.BuildConfig;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.EngineExhaust;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIMethod;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
@@ -40,10 +41,13 @@ public class OXPParser {
 	private static final String FILE_SHIP_DATA_OVERRIDES = DIRECTORY_CONFIG + "shipdata-overrides.plist";
 	private static final String FILE_SHIP_DATA = DIRECTORY_CONFIG + "shipdata.plist";
 
+	private static final String DIRECTORY_AIS = "AIs";
+
 	private String pluginName;
 	private List<OXPParser> installedPlugins;
 
 	private ResourceStream inputStreamMethod;
+	private ListerMethod listerMethod;
 	private PListParser parser;
 	private boolean manifestRequired;
 	private boolean isPluginFile;
@@ -61,6 +65,10 @@ public class OXPParser {
 	private String license;
 	private String maxVersion;
 
+	public interface ListerMethod {
+		String[] list(String directory) throws IOException;
+	}
+
 	public OXPParser(FileIO fileIO, String pluginName, List<OXPParser> installedPlugins) throws IOException {
 		this.pluginName = pluginName;
 		this.installedPlugins = installedPlugins;
@@ -72,6 +80,7 @@ public class OXPParser {
 			for (ZipResourceFile.ZipEntryRO entry : entries) {
 				if (DIRECTORY_CONFIG.equals(entry.mFileName)) {
 					inputStreamMethod = zip::getInputStream;
+					listerMethod = directory -> listZipEntries(entries, directory);
 					isPluginFile = true;
 					break;
 				}
@@ -79,6 +88,7 @@ public class OXPParser {
 		} else {
 			if (fileIO.exists(pluginName + File.separatorChar + DIRECTORY_CONFIG)) {
 				inputStreamMethod = fileName -> fileIO.readFile(pluginName + File.separatorChar + fileName);
+				listerMethod = directory -> listFiles(fileIO, pluginName + File.separatorChar + directory);
 				isPluginFile = true;
 			}
 		}
@@ -89,9 +99,10 @@ public class OXPParser {
 		name = pluginName;
 	}
 
-	public OXPParser(String pluginName, ResourceStream inputStreamMethod) {
+	public OXPParser(String pluginName, ResourceStream inputStreamMethod, ListerMethod listerMethod) {
 		this.pluginName = pluginName;
 		this.inputStreamMethod = inputStreamMethod;
+		this.listerMethod = listerMethod;
 		parser = new PListParser(inputStreamMethod);
 		name = pluginName;
 		isPluginFile = true;
@@ -147,6 +158,14 @@ public class OXPParser {
 		} catch (IOException ignored) {
 			// allowed to be missed
 		}
+
+		if (listerMethod != null) {
+			try {
+				readAIs();
+			} catch (IOException ignored) {
+				// allowed to be missed
+			}
+		}
 	}
 
 	private void readShipDataFileProperties(String fileName, boolean pending) throws IOException {
@@ -165,7 +184,6 @@ public class OXPParser {
 			if (register) {
 				if (shipData) {
 					spaceObject = new SpaceObject(id);
-					setDefaultPropertyValuesOfShip(spaceObject);
 				} else {
 					plugged = false;
 					continue;
@@ -224,6 +242,9 @@ public class OXPParser {
 				}
 			}
 			String likeShipId = setDependentProperties(spaceObject);
+			if (register) {
+				setDefaultValueToUnsetPropertiesOfShip(spaceObject);
+			}
 			if (likeShipId != null) {
 				if (!shipData || pending) {
 					AliteLog.e("Ship data reading error", "Referred object '" + likeShipId + "' not found.");
@@ -368,19 +389,25 @@ public class OXPParser {
 		return false;
 	}
 
-	private void setDefaultPropertyValuesOfShip(SpaceObject spaceObject) {
-		spaceObject.setProperty(SpaceObject.Property.missiles, 2L);
-		spaceObject.setProperty(SpaceObject.Property.missile_load_time, 4.0d); // sec
-		spaceObject.setProperty(SpaceObject.Property.laser_color, "orangeColor");
-		spaceObject.setProperty(SpaceObject.Property.roles, "");
-		spaceObject.setProperty(SpaceObject.Property.model_scale_factor, 1.0d);
-		spaceObject.setProperty(SpaceObject.Property.max_energy, 1L);
-		spaceObject.setProperty(SpaceObject.Property.cargo_carried, 0L);
-		spaceObject.setProperty(SpaceObject.Property.max_cargo, 0L);
-		spaceObject.setProperty(SpaceObject.Property.likely_cargo, 0L);
-		spaceObject.setProperty(SpaceObject.Property.affected_by_energy_bomb, 1.0d);
-		spaceObject.setProperty(SpaceObject.Property.proximity_warning, 1L);
-		spaceObject.setProperty(SpaceObject.Property.aggression_level, 10L);
+	private void setDefaultValueToUnsetPropertiesOfShip(SpaceObject spaceObject) {
+		setUnsetProperty(spaceObject, SpaceObject.Property.missiles, 2L);
+		setUnsetProperty(spaceObject, SpaceObject.Property.missile_load_time, 4.0d); // sec
+		setUnsetProperty(spaceObject, SpaceObject.Property.laser_color, "orangeColor");
+		setUnsetProperty(spaceObject, SpaceObject.Property.roles, "");
+		setUnsetProperty(spaceObject, SpaceObject.Property.model_scale_factor, 1.0d);
+		setUnsetProperty(spaceObject, SpaceObject.Property.max_energy, 1L);
+		setUnsetProperty(spaceObject, SpaceObject.Property.cargo_carried, 0L);
+		setUnsetProperty(spaceObject, SpaceObject.Property.max_cargo, 0L);
+		setUnsetProperty(spaceObject, SpaceObject.Property.likely_cargo, -1L);
+		setUnsetProperty(spaceObject, SpaceObject.Property.affected_by_energy_bomb, 1.0d);
+		setUnsetProperty(spaceObject, SpaceObject.Property.proximity_warning, 1L);
+		setUnsetProperty(spaceObject, SpaceObject.Property.aggression_level, 10L);
+	}
+
+	private void setUnsetProperty(SpaceObject spaceObject, SpaceObject.Property name, Object value) {
+		if (spaceObject.getProperty(name) == null) {
+			spaceObject.setProperty(name, value);
+		}
 	}
 
 	private String setDependentProperties(SpaceObject spaceObject) {
@@ -390,16 +417,15 @@ public class OXPParser {
 			if (likeShip == null) {
 				return likeShipId;
 			}
-			likeShip.copyPropertiesAndModelData(spaceObject);
+			likeShip.setPropertyAndModelData(spaceObject);
 		}
-		if (spaceObject.getProperty(SpaceObject.Property.max_missiles) == null) {
-			spaceObject.setProperty(SpaceObject.Property.max_missiles,
-				spaceObject.getNumericProperty(SpaceObject.Property.missiles));
-		}
+		setUnsetProperty(spaceObject, SpaceObject.Property.max_missiles,
+			spaceObject.getNumericProperty(SpaceObject.Property.missiles));
 
 		// escort_role is used instead of escort_ship
-		if (spaceObject.getProperty(SpaceObject.Property.escort_ship) != null && spaceObject.getProperty(SpaceObject.Property.escort_role) == null) {
-			spaceObject.setProperty(SpaceObject.Property.escort_role, "[" + spaceObject.getStringProperty(SpaceObject.Property.escort_ship) + "]");
+		if (spaceObject.getProperty(SpaceObject.Property.escort_ship) != null) {
+			setUnsetProperty(spaceObject, SpaceObject.Property.escort_role,
+				"[" + spaceObject.getStringProperty(SpaceObject.Property.escort_ship) + "]");
 		}
 
 		if (spaceObject.getProperty(SpaceObject.Property.exhaust) != null) {
@@ -639,6 +665,55 @@ public class OXPParser {
 	private boolean getBoolean(NSDictionary dict, String property, boolean def) {
 		NSObject value = dict == null ? null :  dict.get(property);
 		return value == null ? def : ((NSNumber) value).boolValue();
+	}
+
+	private String[] listZipEntries(ZipResourceFile.ZipEntryRO[] entries, String directory) {
+		List<String> list = new ArrayList<>();
+		directory += File.separatorChar;
+		for (ZipResourceFile.ZipEntryRO entry : entries) {
+			if (entry.mFileName.startsWith(directory)) {
+				list.add(entry.mFileName.substring(directory.length()));
+			}
+		}
+		return list.toArray(new String[0]);
+	}
+
+	private String[] listFiles(FileIO fileIO, String directory) {
+		File[] files = fileIO.getFiles(directory, ".*\\.plist");
+		if (files == null) {
+			return null;
+		}
+		String[] fileList = new String[files.length];
+		for (int i = 0; i < files.length; i++) {
+			fileList[i] = files[i].getName();
+		}
+		return fileList;
+	}
+
+	private void readAIs() throws IOException {
+		String[] fileNameList = listerMethod.list(DIRECTORY_AIS);
+		if (fileNameList == null) {
+			return;
+		}
+		for (String fileName : fileNameList) {
+			if (SpaceObjectFactory.getInstance().existsAI(fileName)) {
+				continue;
+			}
+			NSDictionary ai = parser.parseFile(DIRECTORY_AIS + File.separatorChar + fileName);
+			for (String state : ai.keySet()) {
+				NSDictionary messages = (NSDictionary) ai.get(state);
+				for (String message : messages.keySet()) {
+					List<AIMethod> aiMethods = new ArrayList<>();
+					for (NSObject method : ((NSArray) messages.get(message)).getArray()) {
+						String methodWithParam = ((NSString) method).getContent();
+						int p = methodWithParam.indexOf(": ");
+						aiMethods.add(new AIMethod(p < 0 ? methodWithParam : methodWithParam.substring(0, p),
+							p < 0 ? null : methodWithParam.substring(p + 2)));
+					}
+					SpaceObjectFactory.getInstance().addMethodsOfStateOfAI(fileName, state, message, aiMethods);
+				}
+			}
+		}
 	}
 
 	public String getIdentifier() {

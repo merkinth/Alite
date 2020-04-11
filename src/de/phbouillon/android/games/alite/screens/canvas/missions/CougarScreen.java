@@ -18,16 +18,13 @@ package de.phbouillon.android.games.alite.screens.canvas.missions;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
 import android.graphics.Rect;
 import android.media.MediaPlayer;
-import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Timer;
-import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
@@ -55,8 +52,7 @@ public class CougarScreen extends AliteScreen {
 
 	private final int givenState;
 
-	public CougarScreen(Alite game, int state) {
-		super(game);
+	public CougarScreen(int state) {
 		givenState = state;
 		Mission mission = MissionManager.getInstance().get(CougarMission.ID);
 		mediaPlayer = new MediaPlayer();
@@ -107,40 +103,11 @@ public class CougarScreen extends AliteScreen {
 		}
 
 		if (cougar != null) {
-			displayShip();
+			displayObject(cougar, 1.0f, 100000.0f);
 		} else {
 			Rect visibleArea = game.getGraphics().getVisibleArea();
 			setUpForDisplay(visibleArea);
 		}
-	}
-
-	private void displayShip() {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		float aspectRatio = visibleArea.width() / (float) visibleArea.height();
-		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
-		GLES11.glEnable(GLES11.GL_CULL_FACE);
-		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, aspectRatio, 1.0f, 100000.0f);
-		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-		GLES11.glLoadIdentity();
-
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
-		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
-		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
-		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
-		GLES11.glDepthFunc(GLES11.GL_LESS);
-		GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT);
-
-		GLES11.glPushMatrix();
-		GLES11.glMultMatrixf(cougar.getMatrix(), 0);
-		cougar.render();
-		GLES11.glPopMatrix();
-
-		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
-		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
-		setUpForDisplay(visibleArea);
 	}
 
 	@Override
@@ -148,17 +115,6 @@ public class CougarScreen extends AliteScreen {
 		initGl();
 		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 200, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		MathHelper.getRandomRotationAngles(targetDelta);
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			int state = dis.readInt();
-			alite.setScreen(new CougarScreen(alite, state));
-		} catch (IOException e) {
-			AliteLog.e("Cougar Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
 	}
 
 	@Override

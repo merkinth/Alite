@@ -34,7 +34,6 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.CommanderData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class CatalogScreen extends AliteScreen {
 	protected String title;
 	private List<Button> button = new ArrayList<>();
@@ -52,9 +51,22 @@ public class CatalogScreen extends AliteScreen {
 	List<Integer> pendingSelectionIndices = null;
 	private boolean pendingShowMessage = false;
 
-	CatalogScreen(Alite game, String title) {
-		super(game);
+	CatalogScreen(String title) {
 		this.title = title;
+	}
+
+	public CatalogScreen(final DataInputStream dis) throws IOException {
+		title = L.string(R.string.title_catalog);
+		currentPage = dis.readInt();
+		confirmDelete = dis.readBoolean();
+		int selectionCount = dis.readInt();
+		if (selectionCount != 0) {
+			pendingSelectionIndices = new ArrayList<>();
+			for (int i = 0; i < selectionCount; i++) {
+				pendingSelectionIndices.add(dis.readInt());
+			}
+		}
+		pendingShowMessage = dis.readBoolean();
 	}
 
 	@Override
@@ -123,25 +135,18 @@ public class CatalogScreen extends AliteScreen {
 		confirmDelete = true;
 	}
 
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		CatalogScreen cs = new CatalogScreen(alite, L.string(R.string.title_catalog));
-		try {
-			cs.currentPage = dis.readInt();
-			cs.confirmDelete = dis.readBoolean();
-			int selectionCount = dis.readInt();
-			if (selectionCount != 0) {
-				cs.pendingSelectionIndices = new ArrayList<>();
-				for (int i = 0; i < selectionCount; i++) {
-					cs.pendingSelectionIndices.add(dis.readInt());
-				}
+	protected static CatalogScreen initializeScreen(final DataInputStream dis, CatalogScreen screen) throws IOException {
+		screen.currentPage = dis.readInt();
+		screen.confirmDelete = dis.readBoolean();
+		int selectionCount = dis.readInt();
+		if (selectionCount != 0) {
+			screen.pendingSelectionIndices = new ArrayList<>();
+			for (int i = 0; i < selectionCount; i++) {
+				screen.pendingSelectionIndices.add(dis.readInt());
 			}
-			cs.pendingShowMessage = dis.readBoolean();
-		} catch (IOException e) {
-			AliteLog.e("Load Screen Initialize", "Error in initializer.", e);
-			return false;
 		}
-		alite.setScreen(cs);
-		return true;
+		screen.pendingShowMessage = dis.readBoolean();
+		return screen;
 	}
 
 	@Override
@@ -167,7 +172,7 @@ public class CatalogScreen extends AliteScreen {
 		}
 		if (btnBack.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new DiskScreen(game);
+			newScreen = new DiskScreen();
 			return;
 		}
 		if (btnListForward.isTouched(touch.x, touch.y)) {
@@ -202,7 +207,7 @@ public class CatalogScreen extends AliteScreen {
 				for (CommanderData cd: selectedCommanderData) {
 					game.getFileIO().deleteFile(cd.getFileName());
 				}
-				newScreen = new CatalogScreen(game, L.string(R.string.title_catalog));
+				newScreen = new CatalogScreen(L.string(R.string.title_catalog));
 			}
 			clearSelection();
 			messageResult = RESULT_NONE;

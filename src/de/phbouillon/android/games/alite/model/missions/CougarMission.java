@@ -41,8 +41,8 @@ public class CougarMission extends Mission {
 	private final Vector3f tempVector = new Vector3f(0, 0, 0);
 	private boolean cougarCreated = false;
 
-	public CougarMission(Alite alite) {
-		super(alite, ID);
+	public CougarMission() {
+		super(ID);
 	}
 
 	class CougarCloakingUpdater implements IMethodHook {
@@ -92,7 +92,7 @@ public class CougarMission extends Mission {
 
 	@Override
 	public AliteScreen getMissionScreen() {
-		return new CougarScreen(alite, 0);
+		return new CougarScreen(0);
 	}
 
 	@Override
@@ -116,7 +116,7 @@ public class CougarMission extends Mission {
 		final float ry = tempVector.y;
 		final float rz = tempVector.z;
 		final SpaceObject cargo = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.CargoPod);
-		cargo.setSpecialCargoContent(EquipmentStore.cloakingDevice);
+		cargo.setSpecialCargoContent(EquipmentStore.get().getEquipmentById(EquipmentStore.CLOAKING_DEVICE));
 		cargo.setSpeed(0.0f);
 		final float speed = 0.2f + (cargo.getMaxSpeed() - 0.2f) * (float) Math.random();
 		cargo.setPosition(cougar.getPosition().x, cougar.getPosition().y, cougar.getPosition().z);

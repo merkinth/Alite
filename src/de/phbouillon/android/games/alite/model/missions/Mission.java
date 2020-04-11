@@ -70,8 +70,8 @@ public abstract class Mission implements Serializable {
 		return false;
 	}
 
-	protected Mission(Alite alite, int id) {
-		this.alite = alite;
+	protected Mission(int id) {
+		alite = Alite.get();
 		this.id = id;
 	}
 

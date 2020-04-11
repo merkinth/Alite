@@ -20,8 +20,6 @@ package de.phbouillon.android.games.alite.model.missions;
 
 import java.io.DataInputStream;
 
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.Rating;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -31,8 +29,8 @@ import de.phbouillon.android.games.alite.screens.canvas.missions.EndMissionScree
 public class EndMission extends Mission {
 	public static final int ID = 6;
 
-	public EndMission(Alite alite) {
-		super(alite, ID);
+	public EndMission() {
+		super(ID);
 	}
 
 	@Override
@@ -63,7 +61,7 @@ public class EndMission extends Mission {
 
 	@Override
 	public AliteScreen getMissionScreen() {
-		return new EndMissionScreen(alite, 0);
+		return new EndMissionScreen(0);
 	}
 
 	@Override

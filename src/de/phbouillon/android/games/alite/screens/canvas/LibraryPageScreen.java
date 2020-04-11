@@ -154,11 +154,21 @@ public class LibraryPageScreen extends AliteScreen {
 		}
 	}
 
-	LibraryPageScreen(Alite game, List<TocEntry> entries, int entryIndex, String currentFilter) {
-		super(game);
+	LibraryPageScreen(List<TocEntry> entries, int entryIndex, String currentFilter) {
 		this.entries = entries;
 		this.entryIndex = entryIndex;
 		this.currentFilter = currentFilter;
+	}
+
+	public LibraryPageScreen(DataInputStream dis) throws IOException {
+		entryIndex = dis.readInt();
+		AliteLog.d("Entry Number", "Read Entry Number: " + entryIndex);
+		currentFilter = ScreenBuilder.readString(dis);
+		entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
+		if (entryIndex >= entries.size()) {
+			entryIndex = 0;
+		}
+		yPosition = dis.readInt();
 	}
 
 	@Override
@@ -218,22 +228,6 @@ public class LibraryPageScreen extends AliteScreen {
 			} catch (IOException | RuntimeException ignored) { }
 		}
 		return pixmap == null ? game.getGraphics().newPixmap(imageName, width, height): pixmap;
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			int entryNo = dis.readInt();
-			AliteLog.d("Entry Number", "Read Entry Number: " + entryNo);
-			String currentFilter = ScreenBuilder.readString(dis);
-			List<TocEntry> entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
-			LibraryPageScreen lps = new LibraryPageScreen(alite, entries, entryNo >= entries.size() ? 0 : entryNo, currentFilter);
-			lps.yPosition = dis.readInt();
-			alite.setScreen(lps);
-		} catch (IOException e) {
-			AliteLog.e("Library Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
 	}
 
 	@Override
@@ -600,15 +594,15 @@ public class LibraryPageScreen extends AliteScreen {
 					}
 				}
 				if (next != null && next.isTouched(touch.x, touch.y)) {
-					newScreen = new LibraryPageScreen(game, entries, entryIndex + 1, currentFilter);
+					newScreen = new LibraryPageScreen(entries, entryIndex + 1, currentFilter);
 					SoundManager.play(Assets.click);
 				}
 				if (prev != null && prev.isTouched(touch.x, touch.y)) {
-					newScreen = new LibraryPageScreen(game, entries, entryIndex - 1, currentFilter);
+					newScreen = new LibraryPageScreen(entries, entryIndex - 1, currentFilter);
 					SoundManager.play(Assets.click);
 				}
 				if (toc.isTouched(touch.x, touch.y)) {
-					newScreen = new LibraryScreen(game, currentFilter);
+					newScreen = new LibraryScreen(currentFilter);
 					SoundManager.play(Assets.click);
 				}
 			}

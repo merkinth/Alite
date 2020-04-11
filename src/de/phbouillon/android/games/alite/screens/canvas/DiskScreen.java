@@ -18,8 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
-
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
@@ -27,7 +25,6 @@ import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class DiskScreen extends AliteScreen {
 	private static final int SIZE     = 450;
 	private static final int X_OFFSET = 150;
@@ -41,21 +38,11 @@ public class DiskScreen extends AliteScreen {
 	private Button[] button = new Button[3];
 	private final String[] text = new String[] {L.string(R.string.disk_menu_load), L.string(R.string.disk_menu_save), L.string(R.string.title_catalog)};
 
-	// public constructor(Alite) is required for navigation bar
-	public DiskScreen(Alite game) {
-		super(game);
-	}
-
 	@Override
 	public void activate() {
 		button[0] = Button.createPictureButton(X_OFFSET, Y_OFFSET, SIZE, SIZE, loadIcon);
 		button[1] = Button.createPictureButton(X_OFFSET + X_GAP + SIZE, Y_OFFSET, SIZE, SIZE, saveIcon);
 		button[2] = Button.createPictureButton(X_OFFSET + X_GAP * 2 + SIZE * 2, Y_OFFSET, SIZE, SIZE, catalogIcon);
-	}
-
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		alite.setScreen(new DiskScreen(alite));
-		return true;
 	}
 
 	@Override
@@ -81,15 +68,15 @@ public class DiskScreen extends AliteScreen {
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (button[0].isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new LoadScreen(game, L.string(R.string.title_cmdr_load));
+				newScreen = new LoadScreen(L.string(R.string.title_cmdr_load));
 			}
 			if (button[1].isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new SaveScreen(game, L.string(R.string.title_cmdr_save));
+				newScreen = new SaveScreen(L.string(R.string.title_cmdr_save));
 			}
 			if (button[2].isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new CatalogScreen(game, L.string(R.string.title_catalog));
+				newScreen = new CatalogScreen(L.string(R.string.title_catalog));
 			}
 		}
 	}

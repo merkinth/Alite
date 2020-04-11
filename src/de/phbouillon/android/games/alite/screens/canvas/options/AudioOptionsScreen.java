@@ -18,8 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
-
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -27,7 +25,6 @@ import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class AudioOptionsScreen extends OptionsScreen {
 	private Slider musicVolume;
 	private Slider soundFxVolume;
@@ -35,10 +32,6 @@ public class AudioOptionsScreen extends OptionsScreen {
 	private Slider voiceVolume;
 	private Slider vibrateLevel;
 	private Button back;
-
-	AudioOptionsScreen(Alite game) {
-		super(game);
-	}
 
 	@Override
 	public void activate() {
@@ -96,7 +89,7 @@ public class AudioOptionsScreen extends OptionsScreen {
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (back.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new OptionsScreen(game);
+				newScreen = new OptionsScreen();
 			}
 		}
 	}
@@ -106,8 +99,4 @@ public class AudioOptionsScreen extends OptionsScreen {
 		return ScreenCodes.AUDIO_OPTIONS_SCREEN;
 	}
 
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		alite.setScreen(new AudioOptionsScreen(alite));
-		return true;
-	}
 }

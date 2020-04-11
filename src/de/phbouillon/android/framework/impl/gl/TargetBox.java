@@ -23,7 +23,6 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.nio.FloatBuffer;
 
-import android.graphics.Color;
 import android.opengl.GLES11;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
@@ -33,8 +32,6 @@ public class TargetBox implements Serializable {
 
 	private transient FloatBuffer lineBuffer;
 	private final float wh, hh, dh;
-	private int color = Color.WHITE;
-	private float alpha = 1.0f;
 
 	public TargetBox(float width, float height, float depth) {
 		wh = width / 2;
@@ -79,21 +76,13 @@ public class TargetBox implements Serializable {
 		}
 	}
 
-	public void setColor(int color) {
-		this.color = color;
-	}
-
-	public void setAlpha(float alpha) {
-		this.alpha = alpha;
-	}
-
-	public void render() {
+	public void render(int color, float a) {
 		Alite.get().getTextureManager().setTexture(null);
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
 		GLES11.glDisableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
 		GLES11.glVertexPointer(3, GLES11.GL_FLOAT, 0, lineBuffer);
-		Alite.get().getGraphics().setColor(color, alpha);
+		Alite.get().getGraphics().setColor(color, a);
 		GLES11.glDisable(GLES11.GL_LIGHTING);
 		GLES11.glLineWidth(5);
 		GLES11.glDrawArrays(GLES11.GL_LINES, 0, 24);

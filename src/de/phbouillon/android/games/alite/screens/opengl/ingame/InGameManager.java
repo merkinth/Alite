@@ -182,31 +182,31 @@ public class InGameManager implements Serializable {
 
 	void initializeViperAction() {
 		safeZoneViolated = false;
-	    SystemData currentSystem = alite.getPlayer().getCurrentSystem();
-	    if (alite.getPlayer().getLegalStatus() == LegalStatus.CLEAN) {
-	    	vipersWillEngage = false;
-	    	return;
-	    }
-	    if (currentSystem != null) {
-	    	vipersWillEngage = true;
-	    	if (getStation() != null) {
-	    		int hitCount = getStation().getHitCount();
-	    		if (hitCount > 1) {
-	    			safeZoneViolated = true;
-	    			vipersWillEngage = true;
-	    		}
-	    	}
-	    	Government government = currentSystem.getGovernment();
-	    	if ((government == Government.ANARCHY ||
-	    		government == Government.FEUDAL) && !safeZoneViolated) {
-	    		vipersWillEngage = false;
-	    	}
-	    	int roll = (int) (Math.random() * 100);
-	    	if (!safeZoneViolated && roll >= alite.getPlayer().getLegalProblemLikelihoodInPercent()) {
-	    		vipersWillEngage = false;
-	    	}
-	    	AliteLog.d("Checking Viper Attack", "Roll: " + roll + ", Likelihood: " + alite.getPlayer().getLegalProblemLikelihoodInPercent() + ", Result: " + vipersWillEngage);
-	    }
+		SystemData currentSystem = alite.getPlayer().getCurrentSystem();
+		if (alite.getPlayer().getLegalStatus() == LegalStatus.CLEAN) {
+			vipersWillEngage = false;
+			return;
+		}
+		if (currentSystem == null) {
+			return;
+		}
+		vipersWillEngage = true;
+		if (getStation() != null && getStation().getHitCount() > 1) {
+			safeZoneViolated = true;
+			return;
+		}
+		Government government = currentSystem.getGovernment();
+		if (government == Government.ANARCHY || government == Government.FEUDAL) {
+			vipersWillEngage = false;
+			return;
+		}
+		int roll = (int) (Math.random() * 100);
+		int legalProblemLikelihoodInPercent = alite.getPlayer().getLegalProblemLikelihoodInPercent();
+		if (roll >= legalProblemLikelihoodInPercent) {
+			vipersWillEngage = false;
+		}
+		AliteLog.d("Checking Viper Attack", "Roll: " + roll +
+			", Likelihood: " + legalProblemLikelihoodInPercent + ", Result: " + vipersWillEngage);
 	}
 
 	public LaserManager getLaserManager() {
@@ -261,7 +261,7 @@ public class InGameManager implements Serializable {
 
 	AliteScreen getPostDockingScreen() {
 		if (postDockingScreen == null) {
-			postDockingScreen = new StatusScreen(alite);
+			postDockingScreen = new StatusScreen();
 		}
 		return postDockingScreen;
 	}
@@ -518,7 +518,7 @@ public class InGameManager implements Serializable {
 			alite.getPlayer().reset();
 		}
 		alite.getNavigationBar().setFlightMode(false);
-		newScreen = new ShipIntroScreen(alite);
+		newScreen = new ShipIntroScreen();
 	}
 
 	public void terminateToStatusScreen() {
@@ -532,7 +532,7 @@ public class InGameManager implements Serializable {
 		} catch (IOException e) {
 			AliteLog.e("[ALITE]", "Autosaving commander failed.", e);
 		}
-		newScreen = new StatusScreen(alite);
+		newScreen = new StatusScreen();
 	}
 
 	public void addObject(AliteObject object) {
@@ -618,7 +618,7 @@ public class InGameManager implements Serializable {
 			}
 			if (ao instanceof SpaceObject) {
 				((SpaceObject) ao).update(deltaTime);
-				if (((SpaceObject) ao).getAIState() != AIState.FOLLOW_CURVE) {
+				if (!SpaceObjectAI.AI_STATE_FOLLOW_CURVE.equals(((SpaceObject) ao).getAIState())) {
 					ao.moveForward(deltaTime);
 				}
 				if (((SpaceObject) ao).getType() == ObjectType.Missile) {
@@ -695,16 +695,12 @@ public class InGameManager implements Serializable {
 		laserManager.performUpdate(viewDirection, ship);
 
 		updateTimedEvents();
-		if (dockingComputerAI.isActive() && Settings.dockingComputerSpeed == 2) {
-			if (alite.getPlayer().getLegalStatus() == LegalStatus.CLEAN || !vipersWillEngage) {
-				helper.automaticDockingSequence();
-			} else if (alite.getPlayer().getCurrentSystem() == null ||
-					alite.getPlayer().getCurrentSystem().getGovernment() == Government.ANARCHY ||
-					alite.getPlayer().getCurrentSystem().getGovernment() == Government.FEUDAL) {
-				if (!safeZoneViolated) {
-					helper.automaticDockingSequence();
-				}
-			}
+		if (dockingComputerAI.isActive() && Settings.dockingComputerSpeed == 2 &&
+				(alite.getPlayer().getLegalStatus() == LegalStatus.CLEAN || !vipersWillEngage ||
+				(alite.getPlayer().getCurrentSystem() == null ||
+				alite.getPlayer().getCurrentSystem().getGovernment() == Government.ANARCHY ||
+				alite.getPlayer().getCurrentSystem().getGovernment() == Government.FEUDAL) && !safeZoneViolated)) {
+			helper.automaticDockingSequence();
 		}
 		updateObjects(deltaTime, allObjects);
 
@@ -727,11 +723,7 @@ public class InGameManager implements Serializable {
 
 	public void setViewport(int newViewDirection) {
 		if (viewDirection == newViewDirection) {
-			if (hud.getZoomFactor() > 3.5f) {
-				hud.setZoomFactor(1.0f);
-			} else {
-				hud.zoomIn();
-			}
+			toggleZoom();
 		} else {
 			laserManager.setAutoFire(false);
 			viewDirection = newViewDirection;
@@ -777,6 +769,7 @@ public class InGameManager implements Serializable {
 				alite.getCobra().setMissiles(alite.getCobra().getMissiles() - 1);
 				SoundManager.play(Assets.fireMissile);
 				helper.spawnMissile(ship, missileLock);
+				missileLock.sendAIMessage("INCOMING_MISSILE");
 				missileLock = null;
 			}
 		}
@@ -808,16 +801,9 @@ public class InGameManager implements Serializable {
 					if (!Settings.tapRadarToChangeView) {
 						if (adx > 500) {
 							if (diffX < 0) {
-								int vd = viewDirection + 1;
-								if (vd == 4) {
-									vd = 0;
-								}
-								setViewport(vd);
+								setViewport(viewDirection < 3 ? viewDirection + 1 : 0);
 							} else {
-								int vd = viewDirection - 1;
-								if (vd < 0) {
-									vd = 3;
-								}
+								int vd = viewDirection > 0 ? viewDirection - 1 : 3;
 								setViewport(vd);
 							}
 							lastX = e.x;
@@ -1221,7 +1207,7 @@ public class InGameManager implements Serializable {
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
 		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		message.render(alite);
+		message.render();
 		if (scrollingText != null) {
 			scrollingText.render(deltaTime);
 		}
@@ -1280,7 +1266,7 @@ public class InGameManager implements Serializable {
 			if (message == null) {
 				message = new OnScreenMessage();
 			}
-			message.render(alite);
+			message.render();
 			if (scrollingText != null) {
 				scrollingText.render(deltaTime);
 			} else if (feeText != null) {
@@ -1308,7 +1294,7 @@ public class InGameManager implements Serializable {
 			GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 			GLES11.glLoadIdentity();
 			GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-			message.render(alite);
+			message.render();
 			if (scrollingText != null) {
 				scrollingText.render(deltaTime);
 			}
@@ -1481,6 +1467,18 @@ public class InGameManager implements Serializable {
 		return count;
 	}
 
+	public List<SpaceObject> getObjects(ObjectType type) {
+		List<SpaceObject> objects = new ArrayList<>();
+		for (DepthBucket db: sortedObjectsToDraw) {
+			for (AliteObject eo: db.sortedObjects) {
+				if (eo instanceof SpaceObject && ((SpaceObject) eo).getType().equals(type) && !eo.mustBeRemoved()) {
+					objects.add((SpaceObject) eo);
+				}
+			}
+		}
+		return objects;
+	}
+
 	SpaceObject getShipInDockingBay() {
 		// This is called only from timed events; hence sortedObjectsToDraw still contains
 		// the objects of the last rendered frame.
@@ -1505,7 +1503,7 @@ public class InGameManager implements Serializable {
 				oldMessage = message;
 			}
 			if (scrollingText == null) {
-				scrollingText = new ScrollingText(alite);
+				scrollingText = new ScrollingText();
 			}
 			message = new OnScreenMessage();
 			message.repeatText(L.string(R.string.msg_pause_game, AliteConfig.GAME_NAME), 5, -1, 3);
@@ -1579,7 +1577,7 @@ public class InGameManager implements Serializable {
 
 	final void performHyperspaceJump(boolean isIntergalactic) {
 		killHyperspaceJump();
-		newScreen = new HyperspaceScreen(alite, isIntergalactic);
+		newScreen = new HyperspaceScreen(isIntergalactic);
 		escapeWitchSpace();
 		playerInSafeZone = false;
 		alite.setTimeFactor(1);

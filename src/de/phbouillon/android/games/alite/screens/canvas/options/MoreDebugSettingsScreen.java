@@ -18,8 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
-
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.*;
@@ -34,7 +32,6 @@ import de.phbouillon.android.games.alite.model.missions.ThargoidStationMission;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class MoreDebugSettingsScreen extends AliteScreen {
 	private Button startConstrictorMission;
 	private Button startThargoidDocumentsMission;
@@ -43,10 +40,6 @@ public class MoreDebugSettingsScreen extends AliteScreen {
 	private Button startThargoidBaseMission;
 	private Button clearMission;
     private Button back;
-
-	MoreDebugSettingsScreen(Alite game) {
-		super(game);
-	}
 
 	@Override
 	public void activate() {
@@ -146,7 +139,7 @@ public class MoreDebugSettingsScreen extends AliteScreen {
 		}
 		if (back.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new DebugSettingsScreen(game);
+			newScreen = new DebugSettingsScreen();
 		}
 	}
 
@@ -155,8 +148,4 @@ public class MoreDebugSettingsScreen extends AliteScreen {
 		return ScreenCodes.MORE_DEBUG_OPTIONS_SCREEN;
 	}
 
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		alite.setScreen(new MoreDebugSettingsScreen(alite));
-		return true;
-	}
 }

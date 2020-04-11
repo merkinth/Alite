@@ -22,13 +22,17 @@ import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SpaceObjectFactory {
 
 	private static SpaceObjectFactory instance;
 	private List<SpaceObject> objects = new ArrayList<>();
 	private List<String> demoObjectId = new ArrayList<>();
+	//         AI file     States      Messages     Methods
+	private Map<String, Map<String, Map<String, List<AIMethod>>>> AIs = new HashMap<>();
 
 	public static SpaceObjectFactory getInstance() {
 		if (instance == null) {
@@ -40,6 +44,7 @@ public class SpaceObjectFactory {
 	}
 
 	public void registerSpaceObject(SpaceObject object) {
+		object.initTargetBox();
 		objects.add(object);
 	}
 
@@ -155,4 +160,35 @@ public class SpaceObjectFactory {
 			so.clearLocaleDependentProperties();
 		}
 	}
+
+	public boolean existsAI(String aiName) {
+		return AIs.get(aiName) != null;
+	}
+
+	public void addMethodsOfStateOfAI(String aiName, String stateName, String messageName, List<AIMethod> methods) {
+		Map<String, Map<String, List<AIMethod>>> ai = AIs.get(aiName);
+		if (ai == null) {
+			ai = new HashMap<>();
+			AIs.put(aiName, ai);
+		}
+		Map<String, List<AIMethod>> state = ai.get(stateName);
+		if (state == null) {
+			state = new HashMap<>();
+			ai.put(stateName, state);
+		}
+		state.put(messageName, methods);
+	}
+
+	List<AIMethod> getMethods(String aiName, String stateName, String messageName) {
+		Map<String, Map<String, List<AIMethod>>> ai = AIs.get(aiName);
+		if (ai == null) {
+			return null;
+		}
+		Map<String, List<AIMethod>> state = ai.get(stateName);
+		if (state == null) {
+			return null;
+		}
+		return state.get(messageName);
+	}
+
 }

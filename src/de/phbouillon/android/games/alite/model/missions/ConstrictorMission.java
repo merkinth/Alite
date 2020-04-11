@@ -38,8 +38,8 @@ public class ConstrictorMission extends Mission {
 
 	private boolean constrictorCreated = false;
 
-	public ConstrictorMission(Alite alite) {
-		super(alite, ID);
+	public ConstrictorMission() {
+		super(ID);
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class ConstrictorMission extends Mission {
 
 	@Override
 	public AliteScreen getMissionScreen() {
-		return new ConstrictorScreen(alite, 0);
+		return new ConstrictorScreen(0);
 	}
 
 	@Override
@@ -78,19 +78,19 @@ public class ConstrictorMission extends Mission {
 			return null;
 		}
 		if (state == 1 && positionMatchesTarget()) {
-			return new ConstrictorScreen(alite, 2);
+			return new ConstrictorScreen(2);
 		}
 		if (state >= 2 && state <= 5 && positionMatchesTarget()) {
-			return new ConstrictorScreen(alite, 3);
+			return new ConstrictorScreen(3);
 		}
 		if (state == 6 && positionMatchesTarget()) {
 			// Player arrived at target, but _did not destroy_ the Constrictor...
 			// Try again...
 			state--;
-			return new ConstrictorScreen(alite, 3);
+			return new ConstrictorScreen(3);
 		}
 		if (state == 7 && positionMatchesTarget()) {
-			return new ConstrictorScreen(alite, 4);
+			return new ConstrictorScreen(4);
 		}
 		return null;
 	}

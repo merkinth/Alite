@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.opengl;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,7 +52,6 @@ import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 
 
 // This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class AboutScreen extends GlScreen {
 	private static final int WAIT_CYCLE_IN_50_MICROS = 60; // 3s
 
@@ -104,8 +102,9 @@ public class AboutScreen extends GlScreen {
 
 	private final List <TextData> texts;
 
-	public AboutScreen(Alite game) {
-		this.game = game;
+	// default public constructor is required for navigation bar
+	public AboutScreen() {
+		game = Alite.get();
 		visibleArea = game.getGraphics().getVisibleArea();
 		background = new Sprite(0, 0, AliteConfig.SCREEN_WIDTH, AliteConfig.SCREEN_HEIGHT,
 			0.0f, 0.0f, 1.0f, 1.0f, "textures/star_map_title.png");
@@ -119,6 +118,13 @@ public class AboutScreen extends GlScreen {
 			int e = s.indexOf(']');
 			addLine(Integer.parseInt(s.substring(b + 1, e)), s.substring(e+1));
 		}
+	}
+
+	public AboutScreen(int pendingMode, int y, float alpha) {
+		this();
+		this.pendingMode = pendingMode;
+		this.y = y;
+		this.alpha = alpha;
 	}
 
 	private void addLine(int formatIndex, String text) {
@@ -150,20 +156,6 @@ public class AboutScreen extends GlScreen {
 		initializeGl();
 		mode = pendingMode == -1 ? 0 : pendingMode;
 		pendingMode = -1;
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		AboutScreen as = new AboutScreen(alite);
-		try {
-			as.pendingMode = dis.readInt();
-			as.y = dis.readInt();
-			as.alpha = dis.readFloat();
-		} catch (IOException e) {
-			AliteLog.e("About Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		alite.setScreen(as);
-		return true;
 	}
 
 	@Override
@@ -242,7 +234,7 @@ public class AboutScreen extends GlScreen {
 		if (returnToOptions && globalAlpha < 0.01) {
 			GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT | GLES11.GL_COLOR_BUFFER_BIT);
 			GLES11.glDisable(GLES11.GL_DEPTH_TEST);
-			game.setScreen(new OptionsScreen(game));
+			game.setScreen(new OptionsScreen());
 		}
 	}
 

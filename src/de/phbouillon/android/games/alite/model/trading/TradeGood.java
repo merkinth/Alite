@@ -37,21 +37,21 @@ public class TradeGood implements Serializable {
 	private final float     legalityType;
 	private final Unit unit;
 	private final int name;
-	private final int    [] averagePrice;
+	private final int[] averagePrice;
+	private final String iconName;
+	private final boolean specialGood;
 
-	public TradeGood(int id, int basePrice, int gradient, int baseQuantity, int maskByte, Unit unit, int name, int ...averagePrice) {
-		this.id = id;
-		this.basePrice    = basePrice;
-		this.gradient     = gradient;
-		this.baseQuantity = baseQuantity;
-		this.maskByte     = maskByte;
-		this.unit         = unit;
-		this.name         = name;
-		this.legalityType = 0;
-		this.averagePrice = averagePrice;
+	public TradeGood(int id, int basePrice, int gradient, int baseQuantity, int maskByte, Unit unit, int name, String iconName, int... averagePrice) {
+		this(id, basePrice, gradient, baseQuantity, maskByte, 0, unit, name, iconName, false, averagePrice);
 	}
 
-	public TradeGood(int id, int basePrice, int gradient, int baseQuantity, int maskByte, float legalityType, Unit unit, int name, int ...averagePrice) {
+	public TradeGood(int id, int basePrice, int gradient, int baseQuantity, int maskByte, float legalityType,
+			Unit unit, int name, String iconName, int... averagePrice) {
+		this(id, basePrice, gradient, baseQuantity, maskByte, legalityType, unit, name, iconName, false, averagePrice);
+	}
+
+	private TradeGood(int id, int basePrice, int gradient, int baseQuantity, int maskByte, float legalityType,
+			Unit unit, int name, String iconName, boolean specialGood, int... averagePrice) {
 		this.id = id;
 		this.basePrice    = basePrice;
 		this.gradient     = gradient;
@@ -60,11 +60,16 @@ public class TradeGood implements Serializable {
 		this.unit         = unit;
 		this.name         = name;
 		this.legalityType = legalityType;
+		this.iconName = iconName;
+		this.specialGood = specialGood;
 		this.averagePrice = averagePrice;
 	}
 
-	private void writeObject(ObjectOutputStream out)
-            throws IOException {
+	public TradeGood(int id, Unit unit, int name, String iconName) {
+		this(id, 0, 0, 0, 0, 0, unit, name, iconName, true, (int[]) null);
+	}
+
+	private void writeObject(ObjectOutputStream out) throws IOException {
 		try {
 			out.defaultWriteObject();
 		} catch(IOException e) {
@@ -101,6 +106,10 @@ public class TradeGood implements Serializable {
 		return L.string(name);
 	}
 
+	public String getIconName() {
+		return iconName;
+	}
+
 	public float getLegalityType() {
 		return legalityType;
 	}
@@ -109,4 +118,7 @@ public class TradeGood implements Serializable {
 		return galaxyNumber > 0 && galaxyNumber < 9 ? averagePrice[galaxyNumber] : averagePrice[0];
 	}
 
+	public boolean isSpecialGood() {
+		return specialGood;
+	}
 }

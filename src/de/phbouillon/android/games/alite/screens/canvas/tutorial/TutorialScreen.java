@@ -32,15 +32,13 @@ import de.phbouillon.android.framework.impl.PulsingHighlighter;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Condition;
-import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
-import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public abstract class TutorialScreen extends AliteScreen {
 	private static final int TEXT_LINE_HEIGHT = 50;
-	private static final String DIRECTORY_SOUND_TUTORIAL = LoadingScreen.DIRECTORY_SOUND + "tutorial" + File.separatorChar;
+	private static final String DIRECTORY_SOUND_TUTORIAL = Assets.DIRECTORY_SOUND + "tutorial" + File.separatorChar;
 	private static final String PLAYER_STATE_BACKUP = "tut_player_state.dat";
 
 	private final transient List <TutorialLine> lines = new ArrayList<>();
@@ -59,19 +57,14 @@ public abstract class TutorialScreen extends AliteScreen {
 	private int currentWidth = -1;
 	private int currentHeight = -1;
 
-	TutorialScreen(Alite alite) {
-		this(alite, false);
-	}
-
-	TutorialScreen(Alite alite, boolean gl) {
-		super(alite);
+	TutorialScreen(boolean gl) {
 		isGl = gl;
 		currentLineIndex = -1;
 		currentLine = null;
 		mediaPlayer = new MediaPlayer();
 		restorePlayerState();
 		backupPlayerState();
-		alite.getPlayer().clearMissions();
+		Alite.get().getPlayer().clearMissions();
 	}
 
 	private void restorePlayerState() {
@@ -108,7 +101,7 @@ public abstract class TutorialScreen extends AliteScreen {
 	}
 
 	PulsingHighlighter makeHighlight(int x, int y, int width, int height) {
-		return new PulsingHighlighter(game, x, y, width, height, 20,
+		return new PulsingHighlighter(x, y, width, height, 20,
 			ColorScheme.get(ColorScheme.COLOR_PULSING_HIGHLIGHTER_LIGHT),
 			ColorScheme.get(ColorScheme.COLOR_PULSING_HIGHLIGHTER_DARK));
 	}
@@ -253,7 +246,7 @@ public abstract class TutorialScreen extends AliteScreen {
 			if (currentLine != null) {
 				mediaPlayer.reset();
 			}
-			newScreen = new TutorialSelectionScreen(game);
+			newScreen = new TutorialSelectionScreen();
 			performScreenChange();
 			postScreenChange();
 			tutorialAborted = true;
@@ -280,7 +273,7 @@ public abstract class TutorialScreen extends AliteScreen {
 		if (currentLine == null) {
 			currentLineIndex++;
 			if (currentLineIndex >= lines.size()) {
-				newScreen = new TutorialSelectionScreen(game);
+				newScreen = new TutorialSelectionScreen();
 				performScreenChange();
 				postScreenChange();
 				return;
@@ -344,9 +337,8 @@ public abstract class TutorialScreen extends AliteScreen {
 		super.saveScreenState(dos);
 	}
 
-	protected boolean loadScreenState(DataInputStream dis) throws IOException {
+	protected void loadScreenState(DataInputStream dis) throws IOException {
 		game.loadCommander(dis);
-		return true;
 	}
 
 }

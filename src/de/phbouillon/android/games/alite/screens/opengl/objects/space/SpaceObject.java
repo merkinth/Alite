@@ -37,13 +37,10 @@ import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.Weight;
-import de.phbouillon.android.games.alite.model.generator.SystemData;
-import de.phbouillon.android.games.alite.model.generator.enums.Government;
 import de.phbouillon.android.games.alite.model.missions.ThargoidStationMission;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.EngineExhaust;
-import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.LaserManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
@@ -99,7 +96,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		has_fuel_injection,
 		has_military_jammer, // has cloaking device
 		has_military_scanner_filter, // can see the currently cloaked object on the radar
-		has_scoop,
+		has_scoop, // ok
 		has_scoop_message,
 		has_shield_booster,
 		has_shield_enhancer,
@@ -222,13 +219,15 @@ public class SpaceObject extends AliteObject implements Serializable {
 	private static final int DEFAULT_HUD_COLOR_PUBLIC_ENEMY = 0x8C8C8C;
 	private static final int DEFAULT_HUD_COLOR_ESCAPE_CAPSULE = 0x8CF000;
 
+	private static final float MISSILE_MIN_DIST_SQ = 36000000.0f;
+
 	private String textureFilename;
 	private float[] vertexBuffer;
 	private float[] facesBuffer;
 	private float[] texCoordBuffer;
 	private transient ResourceStream textureInputStream;
 
-	private final float[] boundingBox = new float[6];
+	private float[] boundingBox = new float[6];
 	private int hullStrength; // current energy, normally started from max_energy
 	private final List<Vector3f> laserHardpoint = new ArrayList<>();
 
@@ -359,7 +358,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		}
 	}
 
-	void addObjectToSpawn(ObjectType type) {
+	private void addObjectToSpawn(ObjectType type) {
 		objectsToSpawn.add(type);
 	}
 
@@ -425,20 +424,20 @@ public class SpaceObject extends AliteObject implements Serializable {
 		}
 	}
 
-	final long getMissileCount() {
+	private long getMissileCount() {
 		return getNumericProperty(Property.missiles).longValue();
 	}
 
-	boolean canFireMissile() {
+	private boolean canFireMissile() {
 		return getMissileCount() > 0 && lastMissileTime.hasPassedSeconds(getNumericProperty(Property.missile_load_time));
 	}
 
-	int getEscapePod() {
-		return escapePod;
-	}
-
-	void setEjected() {
-		ejectedPods++;
+	void spawnMissile(SpaceObject ship) {
+		if (hullStrength > 0 && !mustBeRemoved() && !ship.isCloaked() &&
+				getPosition().distanceSq(ship.getPosition()) >= MISSILE_MIN_DIST_SQ && canFireMissile()) {
+			setProperty(Property.missiles, getMissileCount() - 1);
+			addObjectToSpawn(ObjectType.Missile);
+		}
 	}
 
 	boolean hasEjected() {
@@ -475,37 +474,14 @@ public class SpaceObject extends AliteObject implements Serializable {
 		return getNumericProperty(Property.proximity_warning).intValue() == 1 && (!drone || hasLivingMother());
 	}
 
-	void hasBeenHitByPlayer() {
+	private void hasBeenHitByPlayer() {
 		if (type == ObjectType.Trader || type == ObjectType.Shuttle || type == ObjectType.EscapeCapsule) {
-			computeLegalStatusAfterFriendlyHit();
+			Alite.get().getPlayer().computeLegalStatusAfterFriendlyHit(hullStrength);
 		}
-	}
-
-	private void computeLegalStatusAfterFriendlyHit() {
-		SystemData currentSystem = Alite.get().getPlayer().getCurrentSystem();
-		int legalValue = Alite.get().getPlayer().getLegalValue();
-		if (InGameManager.playerInSafeZone) {
-			if (ObjectType.isSpaceStation(getType()) || currentSystem == null || currentSystem.getGovernment() != Government.ANARCHY) {
-				InGameManager.safeZoneViolated = true;
-			}
+		if (type == ObjectType.Buoy || type == ObjectType.Police) {
+			sendAIMessage("OFFENCE_COMMITTED");
 		}
-		if (currentSystem != null) {
-			Government government = currentSystem.getGovernment();
-			switch (government) {
-				case ANARCHY: break; // In anarchies, you can do whatever you want.
-				case FEUDAL: if (hullStrength < 10 && Math.random() > 0.9) { legalValue += 16; } break;
-				case MULTI_GOVERNMENT: if (hullStrength < 10 && Math.random() > 0.8) { legalValue += 24; } break;
-				case DICTATORSHIP: if (hullStrength < 10 && Math.random() > 0.6) { legalValue += 32; } break;
-				case COMMUNIST: if (hullStrength < 20 && Math.random() > 0.4) { legalValue += 40; } break;
-				case CONFEDERACY: if (hullStrength < 30 && Math.random() > 0.2) { legalValue += 48; } break;
-				case DEMOCRACY: legalValue += 56; break;
-				case CORPORATE_STATE: legalValue += 64; break;
-			}
-		} else {
-			// Default behavior as a "safeguard". Shouldn't really happen...
-			legalValue += 64;
-		}
-		Alite.get().getPlayer().setLegalValue(legalValue);
+		sendAIMessage(cloaked ? "ATTACKED_BY_CLOAKED" : "ATTACKED");
 	}
 
 	public void setProximity(SpaceObject other) {
@@ -549,7 +525,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		if (dotSq > collisionSq) {
 			return;
 		}
-		if (ai.getState() == AIState.EVADE && proximity != null) {
+		if (SpaceObjectAI.AI_STATE_EVADE.equals(getAIState()) && proximity != null) {
 			getPosition().sub(proximity.getPosition(), v0);
 			v0.normalize();
 			float angleProx = getForwardVector().angleInDegrees(v0);
@@ -674,11 +650,10 @@ public class SpaceObject extends AliteObject implements Serializable {
 		if (!Settings.targetBox || targetBox == null || distSq <= SpaceObjectAI.SHOOT_DISTANCE_SQ) {
 			return;
 		}
-		float alpha = (distSq - SpaceObjectAI.SHOOT_DISTANCE_SQ) / (LaserManager.MAX_ENEMY_DISTANCE_SQ - SpaceObjectAI.SHOOT_DISTANCE_SQ);
-		targetBox.setAlpha(alpha);
 		GLES11.glEnable(GLES11.GL_BLEND);
 		GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE);
-		targetBox.render();
+		targetBox.render(hudColor, (distSq - SpaceObjectAI.SHOOT_DISTANCE_SQ) /
+			(LaserManager.MAX_ENEMY_DISTANCE_SQ - SpaceObjectAI.SHOOT_DISTANCE_SQ));
 		GLES11.glDisable(GLES11.GL_BLEND);
 	}
 
@@ -808,15 +783,23 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	public int getMaxCargoCanisters() {
-		return getNumericProperty(Property.cargo_carried).intValue();
+		return getNumericProperty(Property.max_cargo).intValue();
+	}
+
+	public boolean hasFreeSpace() {
+		return getMaxCargoCanisters() > getNumericProperty(Property.cargo_carried).longValue();
+	}
+
+	public void collectCargoCanister() {
+		long cargoCount = getNumericProperty(Property.cargo_carried).longValue();
+		if (getMaxCargoCanisters() > cargoCount) {
+			setProperty(Property.cargo_carried, cargoCount + 1);
+		}
 	}
 
 	public TradeGood getCargoType() {
-		int cargoType = getNumericProperty(Property.likely_cargo).intValue();
-		if (cargoType <= 0 || cargoType > TradeGoodStore.NUMBER_OF_GOODS) {
-			return TradeGoodStore.get().getRandomTradeGoodForContainer();
-		}
-		return TradeGoodStore.get().fromNumber(cargoType - 1);
+		TradeGood good = TradeGoodStore.get().getGoodById(getNumericProperty(Property.likely_cargo).intValue());
+		return good == null ? TradeGoodStore.get().getRandomTradeGoodForContainer() : good;
 	}
 
 	public int applyDamage(int amount) {
@@ -879,16 +862,19 @@ public class SpaceObject extends AliteObject implements Serializable {
 		ai.orientUsingRollPitchOnly(object.getPosition(), deltaTime);
 	}
 
-	public void setRandomOrientation(Vector3f origin, Vector3f up) {
+	public void setRandomOrientation(Vector3f up) {
 		up.copy(v0);
-		v1.x = (float) (0.7 - Math.random() * 1.4);
-		v1.y = (float) (0.7 - Math.random() * 1.4);
-		v1.z = (float) (0.7 - Math.random() * 1.4);
-		MathHelper.getRandomPosition(origin, v1, 16384.0f, 8192.0f);
+		MathHelper.setRandomDirection(v1);
 		ai.orient(v1, v0, 0);
 	}
 
 	public void update(float deltaTime) {
+		if (escapePod > 0 && hullStrength < 2 && !hasEjected()) {
+			if (Math.random() < 0.1) {
+				ejectedPods++;
+				addObjectToSpawn(ObjectType.EscapeCapsule);
+			}
+		}
 		ai.update(deltaTime);
 		if (Settings.engineExhaust && !exhaust.isEmpty()) {
 			for (EngineExhaust ex: exhaust) {
@@ -897,16 +883,109 @@ public class SpaceObject extends AliteObject implements Serializable {
 		}
 	}
 
-	public void setAIState(AIState newState, Object ...data) {
+	public void setAIState(String newState, Object ...data) {
 		ai.setState(newState, data);
 	}
 
-	public AIState getAIState() {
+	public String getAIState() {
 		return ai.getState();
 	}
 
 	public String getCurrentAIStack() {
 		return ai.getStateStack();
+	}
+
+	public void sendAIMessage(String message) {
+	/* Sent messages
+		ATTACKED				Ship is attacked by the player.
+		ATTACKED_BY_CLOAKED		Sent if the ship is attacked by a cloaked ship.
+		ENTER					Always sent to the new (now current) state of the AI state machine after switching to a new state.
+		EXIT					Always sent to the current state of the AI state machine before switching to a new state.
+		INCOMING_MISSILE		Sent to the target attacked by missile.
+		OFFENCE_COMMITTED		Station, buoy or police is attacked by the player
+		UPDATE					This message is sent to the current state each time the AI gets a chance to "think".
+	 */
+
+	/* Still unsent messages
+		ACCEPT_DISTRESS_CALL
+		AEGIS_CLOSE_TO_PLANET
+		AEGIS_IN_DOCKING_RANGE
+		AEGIS_LEAVING_DOCKING_RANGE
+		AEGIS_NONE
+		APPROACH_COORDINATES
+		APPROACH_START
+		APPROACH_STATION
+		CARGO_SCOOPED
+		COLLISION
+		CONDITION_GREEN
+		CONDITION_YELLOW
+		COURSE_OK
+		DEPLOYING_ESCORTS
+		DESIRED_RANGE_ACHIEVED
+		DOCKED
+		DOCKING_ABORTED
+		DOCKING_COMPLETE
+		DOCKING_REFUSED
+		DOCKING_REQUESTED
+		ECM
+		ENERGY_FULL
+		ENERGY_LOW
+		ENTERED_WITCHSPACE
+		ESCORTING
+		EXITED_WITCHSPACE 	Sent when a ship is added to the system using the addShips: script command,
+							or when it is added to replace a ship that witchespaced out;
+							see also EXITED WITCHSPACE below.
+		EXITED WITCHSPACE	Sent when a ship is resurrected in a new system after witchspacing out and being followed by the player.
+		FACING_DESTINATION
+		FIGHTING
+		FLEEING
+		FRUSTRATED
+		GONE_BEYOND_RANGE
+		GROUP_ATTACK_TARGET
+		HOLD_FULL
+		HOLD_POSITION
+		LANDED_ON_PLANET
+		LAUNCHED
+		MOTHER_LOST
+		NO_STATION_FOUND
+		NO_TARGET
+		NOT_ESCORTING
+		NOTHING_FOUND
+		ODDS_BAD
+		ODDS_GOOD
+		ODDS_LEVEL
+		REACHED_SAFETY		Sent when the ship controlled by the AI is fleeing it's primary_target and is at least desired_range kms from it.
+		RED_ALERT
+		RESTARTED			Sent when an AI state machine is made the current AI state machine
+							by becoming the top of the AI state machine stack for a particular entity.
+		STATION_FOUND
+		TARGET_CLEAN
+		TARGET_DESTROYED
+		TARGET_FOUND		Sent when searching for a target and something suitable is found.
+							The found_target can be made the primary target by calling setTargetToFoundTarget in response to this message.
+		TARGET_FUGITIVE
+		TARGET_LOST
+		TARGET_CLOAKED		Sent before TARGET_LOST when the target becomes invisible (starting in Oolite 1.71).
+		TARGET_MARKED
+		TARGET_MINOR_OFFENDER
+		TARGET_OFFENDER
+		THARGOID_DESTROYED
+		TRY_AGAIN_LATER
+		WAIT_FOR_SUN
+		WAYPOINT_SET
+		YELLOW_ALERT
+		CLOSE CONTACT		This message is sent when the ship comes close to another ship, if it is tracking close contacts.
+		POSITIVE X TRAVERSE	This message is sent when a close contact moves away in the +X direction.
+		NEGATIVE X TRAVERSE	This message is sent when a close contact moves away in the -X direction.
+		POSITIVE Y TRAVERSE	This message is sent when a close contact moves away in the +Y direction.
+		NEGATIVE Y TRAVERSE	This message is sent when a close contact moves away in the -Y direction.
+		POSITIVE Z TRAVERSE	This message is sent when a close contact moves away in the +Z direction.
+		NEGATIVE Z TRAVERSE	This message is sent when a close contact moves away in the -Z direction.
+		RACEPOINTS_SET		Sent by setRacepointsFromTarget on success (used for racing AI).
+		NAVPOINT_REACHED	Sent when the ship reaches a navigation point (used for racing AI).
+		ENDPOINT_REACHED	Sent when the ship reaches the last navigation point (used for racing AI).
+	*/
+		ai.sendAIMessage(message);
 	}
 
 	public int getNumberOfLasers() {
@@ -932,7 +1011,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		}
 	}
 
-	public void executeHit(SpaceObject player) {
+	public void executeHit(SpaceObject ship) {
 		if (ObjectType.isSpaceStation(type)) {
 			if (ThargoidStationMission.ALIEN_SPACE_STATION.equals(getId())) {
 				return;
@@ -940,11 +1019,13 @@ public class SpaceObject extends AliteObject implements Serializable {
 			Alite.get().getPlayer().setLegalValue(Alite.get().getPlayer().getLegalValue() + 10);
 			playerHitCount++;
 			if (playerHitCount > 1) {
-				computeLegalStatusAfterFriendlyHit();
+				Alite.get().getPlayer().computeLegalStatusAfterStationHit(hullStrength);
+				sendAIMessage("OFFENCE_COMMITTED");
 			}
 			return;
 		}
-		ai.executeHit(player);
+		hasBeenHitByPlayer();
+		ai.executeHit(ship);
 	}
 
 	public void registerAiStateCallbackHandler(AiStateCallback type, AiStateCallbackHandler handler) {
@@ -1025,7 +1106,6 @@ public class SpaceObject extends AliteObject implements Serializable {
 
 	public void setHudColor(int hudColor) {
 		this.hudColor = hudColor;
-		targetBox.setColor(hudColor);
 	}
 
 	@Override
@@ -1089,6 +1169,10 @@ public class SpaceObject extends AliteObject implements Serializable {
 		return Integer.parseInt(p[2].substring(1, p[2].length() - 1));
 	}
 
+	String getAIType() {
+		return getStringProperty(Property.ai_type);
+	}
+
 	public boolean isDrone() {
 		return drone;
 	}
@@ -1132,7 +1216,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 	SpaceObject cloneObject(ObjectType type) {
 		SpaceObject object = new SpaceObject(getId());
 		object.setType(type);
-		copyPropertiesAndModelData(object, false);
+		setPropertyAndModelData(object, false);
 
 		if (hudColor != 0) {
 			object.hudColor = hudColor;
@@ -1163,15 +1247,13 @@ public class SpaceObject extends AliteObject implements Serializable {
 		for (Vector3f l: laserHardpoint) {
 			object.laserHardpoint.add(new Vector3f(l.x, l.y, l.z));
 		}
-		object.initTargetBox();
+		object.targetBox = targetBox;
 		return object;
 	}
 
-	private void initTargetBox() {
+	void initTargetBox() {
 		calculateBoundingBox();
-		float size = getMaxExtentWithoutExhaust() * 1.25f;
-		targetBox = new TargetBoxSpaceObject("targetBox", size, size, size);
-		targetBox.setColor(hudColor);
+		targetBox = new TargetBoxSpaceObject(getMaxExtentWithoutExhaust() * 1.25f);
 	}
 
 	public void clearLocaleDependentProperties() {
@@ -1184,11 +1266,11 @@ public class SpaceObject extends AliteObject implements Serializable {
 		AliteLog.d("refreshLocaleDependentProperties", getId() + ": " + properties + ": " + localeDependentProperties);
 	}
 
-	public void copyPropertiesAndModelData(SpaceObject dest) {
-		copyPropertiesAndModelData(dest, true);
+	public void setPropertyAndModelData(SpaceObject dest) {
+		setPropertyAndModelData(dest, true);
 	}
 
-	private void copyPropertiesAndModelData(SpaceObject dest, boolean undefinedOnly) {
+	private void setPropertyAndModelData(SpaceObject dest, boolean undefinedOnly) {
 		dest.localeDependentProperties.clear();
 		if (undefinedOnly) {
 			for (Property p : properties.keySet()) {
@@ -1201,11 +1283,9 @@ public class SpaceObject extends AliteObject implements Serializable {
 			dest.properties.putAll(properties);
 			dest.localeDependentProperties.putAll(localeDependentProperties);
 		}
-		dest.vertexBuffer = new float[vertexBuffer.length];
-		System.arraycopy(vertexBuffer, 0, dest.vertexBuffer, 0, vertexBuffer.length);
-		dest.facesBuffer = new float[facesBuffer.length];
-		System.arraycopy(facesBuffer, 0, dest.facesBuffer, 0, facesBuffer.length);
-		System.arraycopy(boundingBox, 0, dest.boundingBox, 0, boundingBox.length);
+		dest.vertexBuffer = vertexBuffer;
+		dest.facesBuffer = facesBuffer;
+		dest.boundingBox = boundingBox;
 		dest.setTexture(textureFilename, texCoordBuffer, textureInputStream);
 	}
 
@@ -1244,8 +1324,8 @@ public class SpaceObject extends AliteObject implements Serializable {
 		return target;
 	}
 
-	public void setWillBeDestroyedByECM(boolean ecmDestroy) {
-		this.ecmDestroy = ecmDestroy;
+	public void setWillBeDestroyedByECM() {
+		ecmDestroy = true;
 	}
 
 	public boolean getWillBeDestroyedByECM() {

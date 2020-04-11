@@ -38,8 +38,7 @@ public class QuantityPadScreen extends AliteScreen {
 
 	private final int xPos;
 	private final int yPos;
-	private final int row;
-	private final int column;
+	private final int index;
 	private final String[] buttonTexts = new String[] {
 		"7", "8", "9",
 		"4", "5", "6",
@@ -50,14 +49,23 @@ public class QuantityPadScreen extends AliteScreen {
 	private int currentAmount;
 	private final BuyScreen marketScreen;
 
-	public QuantityPadScreen(BuyScreen marketScreen, Alite game, String maxAmountString, int x, int y, int row, int column) {
-		super(game);
-		this.xPos = x;
-		this.yPos = y;
-		this.row = row;
-		this.column = column;
-		this.maxAmountString = maxAmountString;
+	public QuantityPadScreen(BuyScreen marketScreen, String maxAmountString, int xPos, int yPos, int index) {
 		this.marketScreen = marketScreen;
+		this.maxAmountString = maxAmountString;
+		this.xPos = xPos;
+		this.yPos = yPos;
+		this.index = index;
+	}
+
+	public QuantityPadScreen(final DataInputStream dis) throws IOException {
+		xPos = dis.readInt();
+		yPos = dis.readInt();
+		index = dis.readInt();
+		maxAmountString = ScreenBuilder.readEmptyString(dis);
+		currentAmount = Integer.parseInt(ScreenBuilder.readEmptyString(dis));
+		marketScreen = new BuyScreen(ScreenBuilder.readString(dis));
+		marketScreen.loadAssets();
+		marketScreen.activate();
 	}
 
 	@Override
@@ -70,30 +78,10 @@ public class QuantityPadScreen extends AliteScreen {
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeInt(xPos);
 		dos.writeInt(yPos);
-		dos.writeInt(row);
-		dos.writeInt(column);
+		dos.writeInt(index);
 		ScreenBuilder.writeString(dos, maxAmountString);
 		ScreenBuilder.writeString(dos, Integer.toString(currentAmount));
 		marketScreen.saveScreenState(dos);
-	}
-
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		try {
-			int xPos = dis.readInt();
-			int yPos = dis.readInt();
-			int row = dis.readInt();
-			int col = dis.readInt();
-			BuyScreen marketScreen = BuyScreen.readScreen(alite, dis);
-			marketScreen.loadAssets();
-			marketScreen.activate();
-			QuantityPadScreen qps = new QuantityPadScreen(marketScreen, alite, ScreenBuilder.readEmptyString(dis), xPos, yPos, row, col);
-			qps.currentAmount = Integer.parseInt(ScreenBuilder.readEmptyString(dis));
-			alite.setScreen(qps);
-		} catch (IOException e) {
-			AliteLog.e("Quantity Pad Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
 	}
 
 	private void initializeButtons() {
@@ -164,7 +152,7 @@ public class QuantityPadScreen extends AliteScreen {
 	protected void performScreenChange() {
 		dispose();
 		game.setScreen(marketScreen);
-		marketScreen.performTrade(row, column);
+		marketScreen.performTrade(index);
 		game.getNavigationBar().performScreenChange();
 	}
 

@@ -28,6 +28,7 @@ import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
+import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
@@ -41,7 +42,6 @@ import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteBut
 //This screen never needs to be serialized, as it is not part of the InGame state,
 //also, all used inner classes (IMethodHook, etc.) will be reset upon state loading,
 //hence they never need to be serialized, either.
-@SuppressWarnings("serial")
 // TODO: pull common code base of classes TutBasicFlying and TutAdvancedFlying to new super class TutorialFlying
 public class TutAdvancedFlying extends TutorialScreen {
 	private FlightScreen flight;
@@ -51,23 +51,23 @@ public class TutAdvancedFlying extends TutorialScreen {
 	private SpaceObject adder = null;
 	private boolean scooped;
 
-	TutAdvancedFlying(final Alite alite, int lineIndex) {
-		this(alite, lineIndex, null);
+	TutAdvancedFlying(int lineIndex) {
+		this();
+		currentLineIndex = lineIndex - 1;
+		flight = new FlightScreen(currentLineIndex == -1);
+		AliteLog.d("TutAdvancedFlying", "Starting Advanced Flying: " + lineIndex);
 	}
 
-	private TutAdvancedFlying(final Alite alite, int lineIndex, FlightScreen flight) {
-		super(alite, true);
+	private TutAdvancedFlying() {
+		super(true);
 
-		this.flight = flight;
-		AliteLog.d("TutAdvancedFlying", "Starting Advanced Flying: " + lineIndex);
-
-		alite.getCobra().clearEquipment();
-		alite.getGenerator().buildGalaxy(1);
-		alite.getGenerator().setCurrentGalaxy(1);
-		alite.getPlayer().setCurrentSystem(alite.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
-		alite.getPlayer().setHyperspaceSystem(alite.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
-		alite.getCobra().setFuel(70);
-		alite.getPlayer().setLegalValue(0);
+		game.getCobra().clearEquipment();
+		game.getGenerator().buildGalaxy(1);
+		game.getGenerator().setCurrentGalaxy(1);
+		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
+		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
+		game.getCobra().setFuel(70);
+		game.getPlayer().setLegalValue(0);
 		Settings.resetButtonPosition();
 
 		initLine_00();
@@ -96,11 +96,23 @@ public class TutAdvancedFlying extends TutorialScreen {
 		initLine_23();
 		initLine_24();
 		initLine_25();
+	}
 
+	public TutAdvancedFlying(DataInputStream dis) throws IOException, ClassNotFoundException {
+		this();
+		boolean isFlight = dis.readBoolean();
+		boolean isHyper = dis.readBoolean();
+		flight = isFlight ? FlightScreen.createScreen(dis) : null;
+		hyperspace = isHyper ? new HyperspaceScreen(dis) : null;
+		int lineIndex = dis.readInt();
+		AliteLog.d("TutAdvancedFlying", "Starting Advanced Flying: " + lineIndex);
 		currentLineIndex = lineIndex - 1;
-		if (this.flight == null) {
-			this.flight = new FlightScreen(alite, currentLineIndex == -1);
+		timer.setTimer(dis.readLong());
+		adder = (SpaceObject) flight.findObjectById("Adder");
+		if (adder != null) {
+			adder.setSaving(false);
 		}
+		loadScreenState(dis);
 	}
 
 	private TutorialLine addTopLine(String text) {
@@ -132,7 +144,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 
 			if (flight != null && flight.getInGameManager().getHyperspaceHook() == null) {
 				flight.getInGameManager().setHyperspaceHook(deltaTime1 -> {
-					hyperspace = new HyperspaceScreen(game, false);
+					hyperspace = new HyperspaceScreen(false);
 					hyperspace.setNeedsSoundRestart();
 					hideCloseButton = true;
 					line.clearHighlights();
@@ -156,7 +168,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 					GLES11.glMatrixMode(GLES11.GL_TEXTURE);
 					GLES11.glLoadIdentity();
 					game.getTextureManager().clear();
-					switchScreen = new TutAdvancedFlying(game, 3);
+					switchScreen = new TutAdvancedFlying(3);
 					line.setFinished();
 				});
 			}
@@ -403,7 +415,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 				});
 			}
 			if (flight.getInGameManager().getActualPostDockingScreen() == null) {
-				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen(game));
+				flight.getInGameManager().setPostDockingScreen(new TutorialSelectionScreen());
 			}
 		});
 	}
@@ -413,8 +425,8 @@ public class TutAdvancedFlying extends TutorialScreen {
 		super.activate();
 		Settings.resetButtonPosition();
 		game.getCobra().clearEquipment();
-		game.getCobra().addEquipment(EquipmentStore.fuelScoop);
-		game.getCobra().setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.pulseLaser);
+		game.getCobra().addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP));
+		game.getCobra().setLaser(PlayerCobra.DIR_FRONT, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.PULSE_LASER));
 		game.getCobra().setLaser(PlayerCobra.DIR_RIGHT, null);
 		game.getCobra().setLaser(PlayerCobra.DIR_REAR, null);
 		game.getCobra().setLaser(PlayerCobra.DIR_LEFT, null);
@@ -447,28 +459,6 @@ public class TutAdvancedFlying extends TutorialScreen {
 		ObjectSpawnManager.THARGONS_ENABLED = false;
 		ObjectSpawnManager.TRADERS_ENABLED = false;
 		ObjectSpawnManager.VIPERS_ENABLED = false;
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			boolean flight = dis.readBoolean();
-			boolean hyper = dis.readBoolean();
-			FlightScreen fs = flight ? FlightScreen.createScreen(alite, dis) : null;
-			HyperspaceScreen hs = hyper ? HyperspaceScreen.createScreen(alite, dis) : null;
-			TutAdvancedFlying ta = new TutAdvancedFlying(alite, dis.readInt(), fs);
-			ta.hyperspace = hs;
-			ta.timer.setTimer(dis.readLong());
-			ta.adder = (SpaceObject) ta.flight.findObjectById("Adder");
-			if (ta.adder != null) {
-				ta.adder.setSaving(false);
-			}
-			ta.loadScreenState(dis);
-			alite.setScreen(ta);
-		} catch (IOException | ClassNotFoundException e) {
-			AliteLog.e("Tutorial Advanced Flying Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
 	}
 
 	@Override

@@ -30,9 +30,10 @@ public class QuitScreen extends AliteScreen {
 	private Screen callingScreen;
 	private Screen mockStatusScreen;
 
-	public QuitScreen(Alite game) {
-		super(game);
-		mockStatusScreen = new StatusScreen(game);
+	// default public constructor is required for navigation bar
+	@SuppressWarnings("unused")
+	public QuitScreen() {
+		mockStatusScreen = new StatusScreen();
 		mockStatusScreen.loadAssets();
 		if (game.getCurrentScreen() instanceof FlightScreen) {
 			callingScreen = game.getCurrentScreen();

@@ -25,7 +25,6 @@ import de.phbouillon.android.games.alite.Alite;
 public class PulsingHighlighter {
 	private static final long PULSE_UPDATE_FREQUENCY = 30; // ms
 
-	private final Alite alite;
 	private final int x;
 	private final int y;
 	private final int width;
@@ -37,8 +36,7 @@ public class PulsingHighlighter {
 	private final Timer timer = new Timer().setAutoResetWithImmediateAtFirstCall();
 	private int expansion = 1;
 
-	public PulsingHighlighter(final Alite alite, int x, int y, int width, int height, int delta, int lightColor, int darkColor) {
-		this.alite = alite;
+	public PulsingHighlighter(int x, int y, int width, int height, int delta, int lightColor, int darkColor) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
@@ -50,7 +48,7 @@ public class PulsingHighlighter {
 	}
 
 	public void display(float deltaTime) {
-		Graphics g = alite.getGraphics();
+		Graphics g = Alite.get().getGraphics();
 		g.diagonalGradientRect(x - currentDelta, y - currentDelta, width + 2 * currentDelta, height + 2 * currentDelta, lightColor, darkColor);
 		g.rec3d(x - currentDelta, y - currentDelta, width + 2 * currentDelta, height + 2 * currentDelta, 3, darkColor, lightColor);
 		if (timer.hasPassedMillis(PULSE_UPDATE_FREQUENCY)) {

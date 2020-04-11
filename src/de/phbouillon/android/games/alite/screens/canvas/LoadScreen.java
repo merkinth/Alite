@@ -21,20 +21,23 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.CommanderData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class LoadScreen extends CatalogScreen {
 	private boolean confirmedLoad = false;
 	private boolean pendingShowMessage;
 
-	LoadScreen(Alite game, String title) {
-		super(game, title);
+	LoadScreen(String title) {
+		super(title);
+	}
+
+	public LoadScreen(final DataInputStream dis) throws IOException {
+		super(dis);
+		title = L.string(R.string.title_cmdr_load);
 	}
 
 	@Override
@@ -46,27 +49,6 @@ public class LoadScreen extends CatalogScreen {
 			confirmDelete = false;
 			pendingShowMessage = false;
 		}
-	}
-
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		LoadScreen ls = new LoadScreen(alite, L.string(R.string.title_cmdr_load));
-		try {
-			ls.currentPage = dis.readInt();
-			ls.confirmDelete = dis.readBoolean();
-			int selectionCount = dis.readInt();
-			if (selectionCount != 0) {
-				ls.pendingSelectionIndices = new ArrayList<>();
-				for (int i = 0; i < selectionCount; i++) {
-					ls.pendingSelectionIndices.add(dis.readInt());
-				}
-			}
-			ls.pendingShowMessage = dis.readBoolean();
-		} catch (IOException e) {
-			AliteLog.e("Load Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		alite.setScreen(ls);
-		return true;
 	}
 
 	@Override
@@ -89,7 +71,7 @@ public class LoadScreen extends CatalogScreen {
 	protected void processTouch(TouchEvent touch) {
 		super.processTouch(touch);
 		if (confirmedLoad) {
-			newScreen = new StatusScreen(game);
+			newScreen = new StatusScreen();
 			confirmedLoad = false;
 		}
 		if (selectedCommanderData.size() == 1) {

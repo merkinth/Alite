@@ -36,8 +36,8 @@ class ScrollingText implements Serializable {
 	private float x = AliteConfig.SCREEN_WIDTH;
 	private int width;
 
-	ScrollingText(Alite alite) {
-		long diffInSeconds = TimeUnit.SECONDS.convert(alite.getGameTime(), TimeUnit.NANOSECONDS);
+	ScrollingText() {
+		long diffInSeconds = TimeUnit.SECONDS.convert(Alite.get().getGameTime(), TimeUnit.NANOSECONDS);
 		int diffInDays = (int) (diffInSeconds / 86400);
 		diffInSeconds -= diffInDays * 86400;
 		int diffInHours = (int) (diffInSeconds / 3600);
@@ -48,7 +48,7 @@ class ScrollingText implements Serializable {
 			AliteConfig.VERSION_STRING, L.plurals(R.plurals.game_time_days, diffInDays, diffInDays),
 			L.plurals(R.plurals.game_time_hours, diffInHours, diffInHours),
 			L.plurals(R.plurals.game_time_minutes, diffInMinutes, diffInMinutes),
-			alite.getPlayer().getScore());
+			Alite.get().getPlayer().getScore());
 		width = (int) Assets.regularFont.getWidth(textToDisplay,1.5f);
 	}
 

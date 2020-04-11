@@ -198,12 +198,14 @@ public class MultiTouchHandler implements TouchHandler {
 
 	@Override
 	public List<TouchEvent> getTouchEvents() {
-		for (TouchEvent touchEvent : touchEvents) {
-			touchEventPool.free(touchEvent);
+		synchronized (this) {
+			for (TouchEvent touchEvent : touchEvents) {
+				touchEventPool.free(touchEvent);
+			}
+			touchEvents = new ArrayList<>(touchEventsBuffer);
+			touchEventsBuffer.clear();
+			return touchEvents;
 		}
-		touchEvents = new ArrayList<>(touchEventsBuffer);
-		touchEventsBuffer.clear();
-		return touchEvents;
 	}
 
 	@Override

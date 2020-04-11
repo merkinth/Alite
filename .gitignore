@@ -1,6 +1,12 @@
 tags
 *~
 bin/
-gen/R.java.d
+gen/
 main.*.de.phbouillon.android.games.alite.obb
 /local.properties
+gradle*
+settings.gradle
+.gradle/
+gradle/
+.idea/
+build/

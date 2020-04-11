@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.missions;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -43,8 +42,7 @@ public class ThargoidStationScreen extends AliteScreen {
 	private TextData[] missionText;
 	private final int givenState;
 
-	public ThargoidStationScreen(Alite game, int state) {
-		super(game);
+	public ThargoidStationScreen(int state) {
 		givenState = state;
 		Mission mission = MissionManager.getInstance().get(ThargoidStationMission.ID);
 		mediaPlayer = new MediaPlayer();
@@ -98,17 +96,6 @@ public class ThargoidStationScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			int state = dis.readInt();
-			alite.setScreen(new ThargoidStationScreen(alite, state));
-		} catch (IOException e) {
-			AliteLog.e("ThargoidStation Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
 	}
 
 	@Override

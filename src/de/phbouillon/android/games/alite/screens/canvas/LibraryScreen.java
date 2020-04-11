@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,7 +31,6 @@ import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.Button.TextPosition;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
-import de.phbouillon.android.games.alite.model.library.LibraryPage;
 import de.phbouillon.android.games.alite.model.library.Toc;
 import de.phbouillon.android.games.alite.model.library.TocEntry;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
@@ -53,16 +51,19 @@ public class LibraryScreen extends AliteScreen {
 	private float deltaY = 0.0f;
 	private String currentFilter;
 
-	// public constructor(Alite) is required for navigation bar
-	public LibraryScreen(Alite game) {
-		this(game, null);
+	// default public constructor is required for navigation bar
+	@SuppressWarnings("unused")
+	public LibraryScreen() {
 	}
 
-	LibraryScreen(Alite game, String currentFilter) {
-		super(game);
+	LibraryScreen(String currentFilter) {
 		this.currentFilter = currentFilter;
 	}
 
+	public LibraryScreen(String currentFilter, int yPosition) {
+		this.currentFilter = currentFilter;
+		this.yPosition = yPosition;
+	}
 
 	@Override
 	public void activate() {
@@ -99,18 +100,6 @@ public class LibraryScreen extends AliteScreen {
 		if (maxY < 0) {
 			maxY = 0;
 		}
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			LibraryScreen ls = new LibraryScreen(alite, ScreenBuilder.readString(dis));
-			ls.yPosition = dis.readInt();
-			alite.setScreen(ls);
-		} catch (IOException e) {
-			AliteLog.e("Library Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		return true;
 	}
 
 	@Override
@@ -161,7 +150,7 @@ public class LibraryScreen extends AliteScreen {
 					int index = 0;
 					for (Button b: button) {
 						if (b.isTouched(touch.x, touch.y)) {
-							newScreen = new LibraryPageScreen(game, entries, index, currentFilter);
+							newScreen = new LibraryPageScreen(entries, index, currentFilter);
 							SoundManager.play(Assets.click);
 						}
 						index++;

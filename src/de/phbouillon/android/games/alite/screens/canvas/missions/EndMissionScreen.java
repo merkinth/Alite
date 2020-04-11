@@ -18,7 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.missions;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
 import java.io.IOException;
 
 import android.media.MediaPlayer;
@@ -43,8 +42,7 @@ public class EndMissionScreen extends AliteScreen {
 	private TextData[] congratulationsText;
     private int state = 0;
 
-	public EndMissionScreen(Alite game, int state) {
-		super(game);
+	public EndMissionScreen(int state) {
 		Mission mission = MissionManager.getInstance().get(EndMission.ID);
 		mediaPlayer = new MediaPlayer();
 		try {
@@ -94,11 +92,6 @@ public class EndMissionScreen extends AliteScreen {
 			missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 			congratulationsText = computeTextDisplay(game.getGraphics(), congratulationsLine.getText(), 50, 800, 800, 40, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT));
 		}
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		alite.setScreen(new EndMissionScreen(alite, 0));
-		return true;
 	}
 
 	@Override

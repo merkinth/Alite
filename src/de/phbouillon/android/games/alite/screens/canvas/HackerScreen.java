@@ -27,21 +27,12 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.model.Equipment;
-import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.InventoryItem;
-import de.phbouillon.android.games.alite.model.Laser;
-import de.phbouillon.android.games.alite.model.LegalStatus;
-import de.phbouillon.android.games.alite.model.Player;
-import de.phbouillon.android.games.alite.model.PlayerCobra;
-import de.phbouillon.android.games.alite.model.Rating;
-import de.phbouillon.android.games.alite.model.Weight;
+import de.phbouillon.android.games.alite.model.*;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
-import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
+import de.phbouillon.android.games.alite.model.trading.TradeGood;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class HackerScreen extends AliteScreen {
 	private HackerState state;
 	private int yPosition = 0;
@@ -54,7 +45,7 @@ public class HackerScreen extends AliteScreen {
 	private int offset;
 	private Button[] values = new Button[256];
 
-	class HackerState {
+	private static class HackerState {
 		byte[] values = new byte[256];
 
 		String getCommanderName() {
@@ -353,42 +344,16 @@ public class HackerScreen extends AliteScreen {
 			values[163] = (byte) index;
 		}
 
-		long getFood()                                   { return getLongFromState(0x40, 4); }
-		void setFood(long value)                         { setLongToState(value, 0x40, 4);   }
-		long getTextiles()                               { return getLongFromState(0x44, 4); }
-		void setTextiles(long value)                     { setLongToState(value, 0x44, 4);   }
-		long getRadioactives()                           { return getLongFromState(0x48, 4); }
-		void setRadioactives(long value)                 { setLongToState(value, 0x48, 4);   }
-		long getSlaves()                                 { return getLongFromState(0x4C, 4); }
-		void setSlaves(long value)                       { setLongToState(value, 0x4C, 4);   }
-		long getLiquorWines()                            { return getLongFromState(0x50, 4); }
-		void setLiquorWines(long value)                  { setLongToState(value, 0x50, 4);   }
-		long getLuxuries()                               { return getLongFromState(0x54, 4); }
-		void setLuxuries(long value)                     { setLongToState(value, 0x54, 4);   }
-		long getNarcotics()                              { return getLongFromState(0x58, 4); }
-		void setNarcotics(long value)                    { setLongToState(value, 0x58, 4);   }
-		long getComputers()                              { return getLongFromState(0x5C, 4); }
-		void setComputers(long value)                    { setLongToState(value, 0x5C, 4);   }
-		long getMachinery()                              { return getLongFromState(0x60, 4); }
-		void setMachinery(long value)                    { setLongToState(value, 0x60, 4);   }
-		long getAlloys()                                 { return getLongFromState(0x64, 4); }
-		void setAlloys(long value)                       { setLongToState(value, 0x64, 4);   }
-		long getFirearms()                               { return getLongFromState(0x68, 4); }
-		void setFirearms(long value)                     { setLongToState(value, 0x68, 4);   }
-		long getFurs()                                   { return getLongFromState(0x6C, 4); }
-		void setFurs(long value)                         { setLongToState(value, 0x6C, 4);   }
-		long getMinerals()                               { return getLongFromState(0x70, 4); }
-		void setMinerals(long value)                     { setLongToState(value, 0x70, 4);   }
-		long getGold()                                   { return getLongFromState(0x74, 4); }
-		void setGold(long value)                         { setLongToState(value, 0x74, 4);   }
-		long getPlatinum()                               { return getLongFromState(0x78, 4); }
-		void setPlatinum(long value)                     { setLongToState(value, 0x78, 4);   }
-		long getGemStones()                              { return getLongFromState(0x7C, 4); }
-		void setGemStones(long value)                    { setLongToState(value, 0x7C, 4);   }
-		long getAlienItems()                             { return getLongFromState(0x80, 4); }
-		void setAlienItems(long value)                   { setLongToState(value, 0x80, 4);   }
-		long getMedicalSupplies()                        { return getLongFromState(0x84, 4); }
-		void setMedicalSupplies(long value)              { setLongToState(value, 0x84, 4);   }
+		long getGood(TradeGood tradeGood) {
+			return getLongFromState(0x40 + 4 * tradeGood.getId(), 4);
+		}
+
+		void setGood(TradeGood tradeGood, long value) {
+			int id = tradeGood.getId();
+			if (id >= 0 && id <= 17) {
+				setLongToState(value, 0x40 + 4 * id, 4);
+			}
+		}
 
 		/*
 		 .. 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
@@ -403,7 +368,8 @@ public class HackerScreen extends AliteScreen {
 		 80 AlienItems. MedSupplies
 		 90
 		 A0 HJ HJ IJ MI Galaxy Seed...... TI ST
-		 B0 IV UR UF EE CE                                    // TODO Invulnerable, Unlimited Retro Rockets, Unlimited Fuel, ECM Jammer energy usage, Cloaking Device energy usage
+		 // TODO Invulnerable, Unlimited Retro Rockets, Unlimited Fuel, ECM Jammer energy usage, Cloaking Device energy usage
+		 B0 IV UR UF EE CE
 		 C0
 		 D0
 		 E0
@@ -417,13 +383,22 @@ public class HackerScreen extends AliteScreen {
 		*/
 	}
 
-	// public constructor(Alite) is required for navigation bar
-	public HackerScreen(Alite game) {
-		super(game);
+	// default public constructor is required for navigation bar
+	public HackerScreen() {
 		offset = game.getGraphics().getTextWidth("MM", Assets.titleFont) - 8;
 		game.getNavigationBar().setActive(false);
-		initializeState(game);
+		initializeState();
 	}
+
+	public HackerScreen(DataInputStream dis) throws IOException {
+		this();
+		dis.read(state.values, 0, 256);
+		for (int i = 0; i < 256; i++) {
+			values[i].setText(String.format("%02X", state.values[i]));
+		}
+		yPosition = dis.readInt();
+	}
+
 
 	@Override
 	public void activate() {
@@ -439,48 +414,17 @@ public class HackerScreen extends AliteScreen {
 		game.getPlayer().setCheater(true);
 	}
 
-	static HackerScreen readScreen(Alite alite, DataInputStream dis) {
-		HackerScreen hs = new HackerScreen(alite);
-		try {
-			dis.read(hs.state.values, 0, 256);
-			for (int i = 0; i < 256; i++) {
-				hs.values[i].setText(String.format("%02X", hs.state.values[i]));
-			}
-			hs.yPosition = dis.readInt();
-		} catch (IOException e) {
-			AliteLog.e("Hacker Screen Initialize", "Error in initializer.", e);
-			return null;
-		}
-		return hs;
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		HackerScreen hs = readScreen(alite, dis);
-		if (hs == null) {
-			return false;
-		}
-		alite.setScreen(hs);
-		return true;
-	}
-
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.write(state.values, 0, 256);
 		dos.writeInt(yPosition);
 	}
 
-	private int getLaserValue(PlayerCobra cobra, Laser laser) {
-		return (cobra.getLaser(PlayerCobra.DIR_FRONT) == laser ? 1 : 0) +
-			   (cobra.getLaser(PlayerCobra.DIR_RIGHT) == laser ? 2 : 0) +
-			   (cobra.getLaser(PlayerCobra.DIR_REAR)  == laser ? 4 : 0) +
-			   (cobra.getLaser(PlayerCobra.DIR_LEFT)  == laser ? 8 : 0);
-	}
-
-	private void initializeState(Alite alite) {
+	private void initializeState() {
 		state = new HackerState();
-		Player player = alite.getPlayer();
-		GalaxyGenerator generator = alite.getGenerator();
-		PlayerCobra cobra = alite.getCobra();
+		Player player = game.getPlayer();
+		GalaxyGenerator generator = game.getGenerator();
+		PlayerCobra cobra = game.getCobra();
 
 		state.setCommanderName(player.getName());
 		state.setGalaxyNumber(generator.getCurrentGalaxy());
@@ -490,44 +434,28 @@ public class HackerScreen extends AliteScreen {
 		state.setCredits(player.getCash());
 		state.setRating(player.getRating().ordinal());
 		state.setLegalStatus(player.getLegalStatus().ordinal());
-		state.setGameTime(alite.getGameTime() / 1000000);
+		state.setGameTime(game.getGameTime() / 1000000);
 		state.setScore(player.getScore());
 		state.setNumberOfMissiles(cobra.getMissiles());
-		state.setExtraEnergyUnit(cobra.isEquipmentInstalled(EquipmentStore.extraEnergyUnit) ? 1 :
-	         			         cobra.isEquipmentInstalled(EquipmentStore.navalEnergyUnit) ? 2 : 0);
-		state.setLargeCargoBay(cobra.isEquipmentInstalled(EquipmentStore.largeCargoBay));
-		state.setECM(cobra.isEquipmentInstalled(EquipmentStore.ecmSystem));
-		state.setFuelScoop(cobra.isEquipmentInstalled(EquipmentStore.fuelScoop));
-		state.setEscapeCapsule(cobra.isEquipmentInstalled(EquipmentStore.escapeCapsule));
-		state.setEnergyBomb(cobra.isEquipmentInstalled(EquipmentStore.energyBomb));
-		state.setDockingComputer(cobra.isEquipmentInstalled(EquipmentStore.dockingComputer));
-		state.setGalacticHyperdrive(cobra.isEquipmentInstalled(EquipmentStore.galacticHyperdrive));
-		state.setRetroRockets(cobra.isEquipmentInstalled(EquipmentStore.retroRockets));
-		state.setPulseLaser(getLaserValue(cobra, EquipmentStore.pulseLaser));
-		state.setBeamLaser(getLaserValue(cobra, EquipmentStore.beamLaser));
-		state.setMiningLaser(getLaserValue(cobra, EquipmentStore.miningLaser));
-		state.setMilitaryLaser(getLaserValue(cobra, EquipmentStore.militaryLaser));
-		state.setCloakingDevice(cobra.isEquipmentInstalled(EquipmentStore.cloakingDevice));
-		state.setECMJammer(cobra.isEquipmentInstalled(EquipmentStore.ecmJammer));
-		InventoryItem[] inventory = cobra.getInventory();
-		state.setFood(inventory[0].getWeight().getWeightInGrams());
-		state.setTextiles(inventory[1].getWeight().getWeightInGrams());
-		state.setRadioactives(inventory[2].getWeight().getWeightInGrams());
-		state.setSlaves(inventory[3].getWeight().getWeightInGrams());
-		state.setLiquorWines(inventory[4].getWeight().getWeightInGrams());
-		state.setLuxuries(inventory[5].getWeight().getWeightInGrams());
-		state.setNarcotics(inventory[6].getWeight().getWeightInGrams());
-		state.setComputers(inventory[7].getWeight().getWeightInGrams());
-		state.setMachinery(inventory[8].getWeight().getWeightInGrams());
-		state.setAlloys(inventory[9].getWeight().getWeightInGrams());
-		state.setFirearms(inventory[10].getWeight().getWeightInGrams());
-		state.setFurs(inventory[11].getWeight().getWeightInGrams());
-		state.setMinerals(inventory[12].getWeight().getWeightInGrams());
-		state.setGold(inventory[13].getWeight().getWeightInGrams());
-		state.setPlatinum(inventory[14].getWeight().getWeightInGrams());
-		state.setGemStones(inventory[15].getWeight().getWeightInGrams());
-		state.setAlienItems(inventory[16].getWeight().getWeightInGrams());
-		state.setMedicalSupplies(inventory[17].getWeight().getWeightInGrams());
+		state.setExtraEnergyUnit(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.EXTRA_ENERGY_UNIT)) ? 1 :
+	         			         cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.NAVAL_ENERGY_UNIT)) ? 2 : 0);
+		state.setLargeCargoBay(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.LARGE_CARGO_BAY)));
+		state.setECM(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_SYSTEM)));
+		state.setFuelScoop(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP)));
+		state.setEscapeCapsule(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.ESCAPE_CAPSULE)));
+		state.setEnergyBomb(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.ENERGY_BOMB)));
+		state.setDockingComputer(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.DOCKING_COMPUTER)));
+		state.setGalacticHyperdrive(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE)));
+		state.setRetroRockets(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.RETRO_ROCKETS)));
+		state.setPulseLaser(Laser.getLaserValue(cobra, EquipmentStore.PULSE_LASER));
+		state.setBeamLaser(Laser.getLaserValue(cobra, EquipmentStore.BEAM_LASER));
+		state.setMiningLaser(Laser.getLaserValue(cobra, EquipmentStore.MINING_LASER));
+		state.setMilitaryLaser(Laser.getLaserValue(cobra, EquipmentStore.MILITARY_LASER));
+		state.setCloakingDevice(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.CLOAKING_DEVICE)));
+		state.setECMJammer(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_JAMMER)));
+		for (InventoryItem item : cobra.getInventory()) {
+			state.setGood(item.getGood(), item.getWeight().getWeightInGrams());
+		}
 		state.setHyperspaceJumpCounter(player.getJumpCounter());
 		state.setIntergalacticJumpCounter(player.getIntergalacticJumpCounter());
 		if (!player.getActiveMissions().isEmpty()) {
@@ -544,17 +472,10 @@ public class HackerScreen extends AliteScreen {
 		}
 	}
 
-	private void equipLaser(int where, Laser laser, PlayerCobra cobra) {
-		if ((where & 1) > 0) cobra.setLaser(PlayerCobra.DIR_FRONT, laser);
-		if ((where & 2) > 0) cobra.setLaser(PlayerCobra.DIR_RIGHT, laser);
-		if ((where & 4) > 0) cobra.setLaser(PlayerCobra.DIR_REAR,  laser);
-		if ((where & 8) > 0) cobra.setLaser(PlayerCobra.DIR_LEFT,  laser);
-	}
-
-	private void assignState(Alite alite) {
-		Player player = alite.getPlayer();
-		GalaxyGenerator generator = alite.getGenerator();
-		PlayerCobra cobra = alite.getCobra();
+	private void assignState() {
+		Player player = game.getPlayer();
+		GalaxyGenerator generator = game.getGenerator();
+		PlayerCobra cobra = game.getCobra();
 
 		player.setName(state.getCommanderName());
 		generator.setCurrentGalaxy(state.getGalaxyNumber());
@@ -566,49 +487,33 @@ public class HackerScreen extends AliteScreen {
 		player.setCash(state.getCredits());
 		player.setRating(Rating.values()[state.getRating()]);
 		player.setLegalStatus(LegalStatus.values()[state.getLegalStatus()]);
-		alite.setGameTime(state.getGameTime() * 1000000);
+		game.setGameTime(state.getGameTime() * 1000000);
 		player.setScore(state.getScore());
 		cobra.setMissiles(state.getNumberOfMissiles());
 		int extraEnergyUnit = state.getExtraEnergyUnit();
-		setEquipped(cobra, EquipmentStore.extraEnergyUnit, extraEnergyUnit == 1);
-		setEquipped(cobra, EquipmentStore.navalEnergyUnit, extraEnergyUnit == 2);
-		setEquipped(cobra, EquipmentStore.largeCargoBay, state.isLargeCargoBay());
-		setEquipped(cobra, EquipmentStore.ecmSystem, state.isECM());
-		setEquipped(cobra, EquipmentStore.fuelScoop, state.isFuelScoop());
-		setEquipped(cobra, EquipmentStore.escapeCapsule, state.isEscapeCapsule());
-		setEquipped(cobra, EquipmentStore.energyBomb, state.isEnergyBomb());
-		setEquipped(cobra, EquipmentStore.dockingComputer, state.isDockingComputer());
-		setEquipped(cobra, EquipmentStore.galacticHyperdrive, state.isGalacticHyperdrive());
-		setEquipped(cobra, EquipmentStore.cloakingDevice, state.isCloakingDevice());
-		setEquipped(cobra, EquipmentStore.ecmJammer, state.isECMJammer());
-		setEquipped(cobra, EquipmentStore.retroRockets, state.isRetroRockets());
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.EXTRA_ENERGY_UNIT), extraEnergyUnit == 1);
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.NAVAL_ENERGY_UNIT), extraEnergyUnit == 2);
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.LARGE_CARGO_BAY), state.isLargeCargoBay());
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_SYSTEM), state.isECM());
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP), state.isFuelScoop());
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.ESCAPE_CAPSULE), state.isEscapeCapsule());
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.ENERGY_BOMB), state.isEnergyBomb());
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.DOCKING_COMPUTER), state.isDockingComputer());
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE), state.isGalacticHyperdrive());
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.CLOAKING_DEVICE), state.isCloakingDevice());
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_JAMMER), state.isECMJammer());
+		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.RETRO_ROCKETS), state.isRetroRockets());
 		// Punish player for cheating: If he enters values for all laser types,
 		// accept the least powerful one only... (I.e. set military laser first and
 		// overwrite it with lesser lasers if values are present...)
-		equipLaser(15, null, cobra);
-		equipLaser(state.getMilitaryLaser(), EquipmentStore.militaryLaser, cobra);
-		equipLaser(state.getBeamLaser(), EquipmentStore.beamLaser, cobra);
-		equipLaser(state.getMiningLaser(), EquipmentStore.miningLaser, cobra);
-		equipLaser(state.getPulseLaser(), EquipmentStore.pulseLaser, cobra);
-		InventoryItem[] inventory = cobra.getInventory();
-		cobra.setTradeGood(TradeGoodStore.get().food(), Weight.grams(state.getFood()), inventory[0].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().textiles(), Weight.grams(state.getTextiles()), inventory[1].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().radioactives(), Weight.grams(state.getRadioactives()), inventory[2].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().slaves(), Weight.grams(state.getSlaves()), inventory[3].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().liquorWines(), Weight.grams(state.getLiquorWines()), inventory[4].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().luxuries(), Weight.grams(state.getLuxuries()), inventory[5].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().narcotics(), Weight.grams(state.getNarcotics()), inventory[6].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().computers(), Weight.grams(state.getComputers()), inventory[7].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().machinery(), Weight.grams(state.getMachinery()), inventory[8].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().alloys(), Weight.grams(state.getAlloys()), inventory[9].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().firearms(), Weight.grams(state.getFirearms()), inventory[10].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().furs(), Weight.grams(state.getFurs()), inventory[11].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().minerals(), Weight.grams(state.getMinerals()), inventory[12].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().gold(), Weight.grams(state.getGold()), inventory[13].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().platinum(), Weight.grams(state.getPlatinum()), inventory[14].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().gemStones(), Weight.grams(state.getGemStones()), inventory[15].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().alienItems(), Weight.grams(state.getAlienItems()), inventory[16].getPrice());
-		cobra.setTradeGood(TradeGoodStore.get().medicalSupplies(), Weight.grams(state.getMedicalSupplies()), inventory[17].getPrice());
+		Laser.equipLaser(15, -1, cobra);
+		Laser.equipLaser(state.getMilitaryLaser(), EquipmentStore.MILITARY_LASER, cobra);
+		Laser.equipLaser(state.getBeamLaser(), EquipmentStore.BEAM_LASER, cobra);
+		Laser.equipLaser(state.getMiningLaser(), EquipmentStore.MINING_LASER, cobra);
+		Laser.equipLaser(state.getPulseLaser(), EquipmentStore.PULSE_LASER, cobra);
+		for (InventoryItem item : cobra.getInventory()) {
+			cobra.setTradeGood(item.getGood(), Weight.grams(state.getGood(item.getGood())), item.getPrice());
+		}
 	}
 
 	void changeState(int valueIndex, byte newValue) {
@@ -653,10 +558,10 @@ public class HackerScreen extends AliteScreen {
 			if (Math.abs(startX - touch.x) < 20 &&
 				Math.abs(startY - touch.y) < 20) {
 				if (done.isTouched(touch.x, touch.y)) {
-					assignState(game);
+					assignState();
 					game.getNavigationBar().setActive(true);
 					game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
-					newScreen = new StatusScreen(game);
+					newScreen = new StatusScreen();
 					SoundManager.play(Assets.click);
 				} else {
 					for (int i = 0; i < 256; i++) {
@@ -664,7 +569,7 @@ public class HackerScreen extends AliteScreen {
 						b.setSelected(false);
 						if (b.isTouched(touch.x, touch.y)) {
 							b.setSelected(true);
-							newScreen = new HexNumberPadScreen(this, game, i % 16 < 8 ? 975 : 60, 180, i);
+							newScreen = new HexNumberPadScreen(this, i % 16 < 8 ? 975 : 60, 180, i);
 							SoundManager.play(Assets.click);
 						}
 					}

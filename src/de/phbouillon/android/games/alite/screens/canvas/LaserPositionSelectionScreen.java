@@ -26,10 +26,8 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class LaserPositionSelectionScreen extends AliteScreen {
-	private final int row;
-	private final int column;
+	private final int index;
 	private final Button[] pads;
 	private final boolean front;
 	private final boolean right;
@@ -38,10 +36,8 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 	private final EquipmentScreen equipmentScreen;
 	private static Pixmap cobra;
 
-	LaserPositionSelectionScreen(EquipmentScreen equipmentScreen, Alite game, boolean front, boolean right, boolean rear, boolean left, int row, int column) {
-		super(game);
-		this.row = row;
-		this.column = column;
+	LaserPositionSelectionScreen(EquipmentScreen equipmentScreen, boolean front, boolean right, boolean rear, boolean left, int index) {
+		this.index = index;
 		this.front = front;
 		this.right = right;
 		this.rear = rear;
@@ -135,7 +131,7 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 	protected void performScreenChange() {
 		dispose();
 		game.setScreen(equipmentScreen);
-		equipmentScreen.performTrade(row, column);
+		equipmentScreen.performTrade(index);
 		game.getNavigationBar().performScreenChange();
 	}
 

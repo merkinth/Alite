@@ -33,7 +33,6 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +50,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 	private PluginModel pluginModel;
 	private List<Plugin> plugins;
 	private Plugin currentPlugin;
-	private int yPosition = 0;
+	private int yPosition;
 	private int startY;
 	private int startX;
 	private int lastY;
@@ -70,10 +69,9 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 	private int downloadState;
 	private DownloadProgressInfo progress;
 
-	public PluginsScreen(Alite game) {
-		super(game);
+	public PluginsScreen(int yPosition) {
+		this.yPosition = yPosition;
 	}
-
 
 	@Override
 	public void activate() {
@@ -136,18 +134,6 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		maxY = last.getY() + last.getHeight() - 870;
 		if (maxY < 0) {
 			maxY = 0;
-		}
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		try {
-			PluginsScreen screen = new PluginsScreen(alite);
-			screen.yPosition = dis.readInt();
-			alite.setScreen(screen);
-			return true;
-		} catch (IOException e) {
-			AliteLog.e("Plugins Screen Initialize", "Error in initializer.", e);
-			return false;
 		}
 	}
 
@@ -221,7 +207,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 
 			if (btnBack.isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				newScreen = new OptionsScreen(game);
+				newScreen = new OptionsScreen();
 				return;
 			}
 

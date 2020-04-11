@@ -25,7 +25,6 @@ import java.io.IOException;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.ScreenCodes;
@@ -37,7 +36,6 @@ import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 //This screen never needs to be serialized, as it is not part of the InGame state,
 //also, all used inner classes (IMethodHook, etc.) will be reset upon state loading,
 //hence they never need to be serialized, either.
-@SuppressWarnings("serial")
 public class TutIntroduction extends TutorialScreen {
 	private StatusScreen status;
 	private BuyScreen buy;
@@ -46,7 +44,7 @@ public class TutIntroduction extends TutorialScreen {
 	private Pixmap quelo;
 
 	public TutIntroduction() {
-		super(Alite.get());
+		super(false);
 
 		initLine_00();
 		initLine_01();
@@ -65,11 +63,18 @@ public class TutIntroduction extends TutorialScreen {
 		initLine_14();
 	}
 
+	public TutIntroduction(DataInputStream dis) throws IOException {
+		this();
+		currentLineIndex = dis.readByte();
+		screenToInitialize = dis.readByte();
+		loadScreenState(dis);
+	}
+
 	private void initLine_00() {
 		addLine(1, L.string(R.string.tutorial_introduction_00))
 			.setPostPresentMethod(deltaTime -> game.getGraphics().drawPixmap(quelo, 642, 200));
 
-		status = new StatusScreen(game);
+		status = new StatusScreen();
 	}
 
 	private void initLine_01() {
@@ -135,7 +140,7 @@ public class TutIntroduction extends TutorialScreen {
 				status.dispose();
 				status = null;
 				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
-				buy = new BuyScreen(game);
+				buy = new BuyScreen();
 				buy.loadAssets();
 				buy.activate();
 				line.setFinished();
@@ -152,7 +157,7 @@ public class TutIntroduction extends TutorialScreen {
 				buy.dispose();
 				buy = null;
 				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
-				galaxy = new GalaxyScreen(game);
+				galaxy = new GalaxyScreen();
 				galaxy.loadAssets();
 				galaxy.activate();
 				line.setFinished();
@@ -180,7 +185,7 @@ public class TutIntroduction extends TutorialScreen {
 				status.dispose();
 				status = null;
 				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_BUY);
-				buy = new BuyScreen(game);
+				buy = new BuyScreen();
 				buy.loadAssets();
 				buy.activate();
 				break;
@@ -188,25 +193,11 @@ public class TutIntroduction extends TutorialScreen {
 				status.dispose();
 				status = null;
 				game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
-				galaxy = new GalaxyScreen(game);
+				galaxy = new GalaxyScreen();
 				galaxy.loadAssets();
 				galaxy.activate();
 				break;
 		}
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		TutIntroduction ti = new TutIntroduction();
-		try {
-			ti.currentLineIndex = dis.readByte();
-			ti.screenToInitialize = dis.readByte();
-			ti.loadScreenState(dis);
-		} catch (IOException e) {
-			AliteLog.e("Tutorial Introduction Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		alite.setScreen(ti);
-		return true;
 	}
 
 	@Override

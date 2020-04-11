@@ -18,18 +18,13 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
-
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
-import android.graphics.Rect;
-import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.impl.ColorFilterGenerator;
-import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
@@ -72,10 +67,6 @@ public class PlanetScreen extends AliteScreen {
 	private ColorFilter hig_hairModifier;
 	private ColorFilter hig_lipModifier;
 	private ColorFilter hig_eyeModifier;
-
-	public PlanetScreen(Alite game) {
-		super(game);
-	}
 
 	@Override
 	public void activate() {
@@ -457,7 +448,7 @@ public class PlanetScreen extends AliteScreen {
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle(L.string(R.string.title_planet, system != null ? system.getName() : L.string(R.string.galaxy_unknown)));
 
-		afterDisplay();
+		displayObject(planet, 20000.0f, 1000000.0f);
 
 		displayInhabitants();
 		displayInformation();
@@ -474,14 +465,7 @@ public class PlanetScreen extends AliteScreen {
 			background.dispose();
 			background = null;
 		}
-		if (inhabitantTopLayer != null) {
-			inhabitantTopLayer.dispose();
-			inhabitantTopLayer = null;
-		}
-		if (inhabitantBottomLayer != null) {
-			inhabitantBottomLayer.dispose();
-			inhabitantBottomLayer = null;
-		}
+		disposeInhabitantLayers();
 		if (planet != null) {
 			planet.dispose();
 			planet = null;
@@ -509,51 +493,19 @@ public class PlanetScreen extends AliteScreen {
 		planet.applyDeltaRotation(16, 35, 8);
 	}
 
-	private void afterDisplay() {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		float aspectRatio = visibleArea.width() / (float) visibleArea.height();
-		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
-		GLES11.glEnable(GLES11.GL_CULL_FACE);
-		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, aspectRatio, 20000.0f, 1000000.0f);
-		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-		GLES11.glLoadIdentity();
-
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
-		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
-		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
-		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
-		GLES11.glDepthFunc(GLES11.GL_LESS);
-		GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT);
-
-		GLES11.glPushMatrix();
-		GLES11.glMultMatrixf(planet.getMatrix(), 0);
-		planet.render();
-		GLES11.glPopMatrix();
-
-		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
-		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
-		setUpForDisplay(visibleArea);
-
-	}
-
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.PLANET_SCREEN;
 	}
 
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
+	public static void disposeInhabitantLayers() {
 		if (inhabitantBottomLayer != null) {
 			inhabitantBottomLayer.dispose();
+			inhabitantBottomLayer = null;
 		}
 		if (inhabitantTopLayer != null) {
 			inhabitantTopLayer.dispose();
+			inhabitantTopLayer = null;
 		}
-		inhabitantBottomLayer = null;
-		inhabitantTopLayer = null;
-		alite.setScreen(new PlanetScreen(alite));
-		return true;
 	}
 }

@@ -23,7 +23,14 @@ import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
 public class Assets {
+	public static final String DIRECTORY_SOUND = "sound" + File.separatorChar;
+	private static final String DIRECTORY_SOUND_COMPUTER = DIRECTORY_SOUND + "computer" + File.separatorChar;
+
 	public static Pixmap launchIcon;
 	public static Pixmap statusIcon;
 	public static Pixmap buyIcon;
@@ -63,14 +70,6 @@ public class Assets {
 	public static Sound com_targetDestroyed;
 	public static Sound com_fuelSystemMalfunction;
 	public static Sound com_accessDeclined;
-	public static Sound com_lostEcm;
-	public static Sound com_lostFuelScoop;
-	public static Sound com_lostEscapeCapsule;
-	public static Sound com_lostEnergyBomb;
-	public static Sound com_lostExtraEnergyUnit;
-	public static Sound com_lostDockingComputer;
-	public static Sound com_lostGalacticHyperdrive;
-	public static Sound com_lostRetroRockets;
 	public static Sound com_escapeMalfunction;
 	public static Sound com_lostCargo;
 	public static Sound com_launch_area_violation_1st;
@@ -100,4 +99,19 @@ public class Assets {
 	public static Sound hyperspace;
 
 	public static Music danube;
+
+	private static Map<String,Sound> lostEquipmentSound = new HashMap<>();
+
+	public static Sound getLostEquipmentSound(String equipmentName) {
+		return lostEquipmentSound.get(equipmentName);
+	}
+
+	public static void setLostEquipmentSound(String equipmentName) {
+		Assets.lostEquipmentSound.put(equipmentName, safeLoadSound(equipmentName));
+	}
+
+	public static Sound safeLoadSound(String soundFileName) {
+		return Alite.get().getAudio().newSoundAsset(DIRECTORY_SOUND_COMPUTER + soundFileName + ".ogg");
+	}
+
 }

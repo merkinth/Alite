@@ -26,18 +26,17 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.*;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
-@SuppressWarnings("serial")
 public class SaveScreen extends CatalogScreen {
 	private Button saveNewCommanderButton;
 	private boolean confirmedSave = false;
 
-	SaveScreen(Alite game, String title) {
-		super(game, title);
+	SaveScreen(String title) {
+		super(title);
 	}
 
-	public static boolean initialize(Alite alite, final DataInputStream dis) {
-		alite.setScreen(new SaveScreen(alite, L.string(R.string.title_cmdr_save)));
-		return true;
+	public SaveScreen(final DataInputStream dis) throws IOException {
+		super(dis);
+		title = L.string(R.string.title_cmdr_save);
 	}
 
 	@Override
@@ -66,7 +65,7 @@ public class SaveScreen extends CatalogScreen {
 	protected void processTouch(TouchEvent touch) {
 		super.processTouch(touch);
 		if (confirmedSave) {
-			newScreen = new StatusScreen(game);
+			newScreen = new StatusScreen();
 			confirmedSave = false;
 		}
 		if (touch.type == TouchEvent.TOUCH_UP) {

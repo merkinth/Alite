@@ -33,7 +33,6 @@ import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 //This screen never needs to be serialized, as it is not part of the InGame state,
 //also, all used inner classes (IMethodHook, etc.) will be reset upon state loading,
 //hence they never need to be serialized, either.
-@SuppressWarnings("serial")
 public class TutNavigation extends TutorialScreen {
 	private StatusScreen status;
 	private GalaxyScreen galaxy;
@@ -41,8 +40,8 @@ public class TutNavigation extends TutorialScreen {
 	private LocalScreen  local;
 	private int screenToInitialize = 0;
 
-	TutNavigation(final Alite alite) {
-		super(alite);
+	TutNavigation() {
+		super(false);
 
 		initLine_00();
 		initLine_01();
@@ -57,10 +56,17 @@ public class TutNavigation extends TutorialScreen {
 		initLine_10();
 	}
 
+	public TutNavigation(DataInputStream dis) throws IOException {
+		this();
+		currentLineIndex = dis.readInt();
+		screenToInitialize = dis.readByte();
+		loadScreenState(dis);
+	}
+
 	private void initLine_00() {
 		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_00));
 
-		status = new StatusScreen(game);
+		status = new StatusScreen();
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen screen = updateNavBar();
 			if (screen instanceof GalaxyScreen && !(screen instanceof LocalScreen)) {
@@ -118,7 +124,7 @@ public class TutNavigation extends TutorialScreen {
 
 	private void changeToPlanetScreen() {
 		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_PLANET);
-		planet = new PlanetScreen(game);
+		planet = new PlanetScreen();
 		planet.loadAssets();
 		planet.activate();
 	}
@@ -224,7 +230,7 @@ public class TutNavigation extends TutorialScreen {
 
 	private void changeToLocalScreen() {
 		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_LOCAL);
-		local = new LocalScreen(game);
+		local = new LocalScreen();
 		local.loadAssets();
 		local.activate();
 	}
@@ -233,23 +239,9 @@ public class TutNavigation extends TutorialScreen {
 		status.dispose();
 		status = null;
 		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_GALAXY);
-		galaxy = new GalaxyScreen(game);
+		galaxy = new GalaxyScreen();
 		galaxy.loadAssets();
 		galaxy.activate();
-	}
-
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		TutNavigation tn = new TutNavigation(alite);
-		try {
-			tn.currentLineIndex = dis.readInt();
-			tn.screenToInitialize = dis.readByte();
-			tn.loadScreenState(dis);
-		} catch (IOException e) {
-			AliteLog.e("Tutorial Navigation Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		alite.setScreen(tn);
-		return true;
 	}
 
 	@Override

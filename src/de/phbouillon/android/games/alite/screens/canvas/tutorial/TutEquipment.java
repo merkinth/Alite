@@ -31,14 +31,13 @@ import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 //This screen never needs to be serialized, as it is not part of the InGame state,
 //also, all used inner classes (IMethodHook, etc.) will be reset upon state loading,
 //hence they never need to be serialized, either.
-@SuppressWarnings("serial")
 public class TutEquipment extends TutorialScreen {
 	private StatusScreen status;
 	private EquipmentScreen equip;
 	private int screenToInitialize = 0;
 
-	TutEquipment(final Alite alite) {
-		super(alite);
+	TutEquipment() {
+		super(false);
 		initLine_00();
 		initLine_01();
 		initLine_02();
@@ -47,10 +46,15 @@ public class TutEquipment extends TutorialScreen {
 		initLine_05();
 	}
 
+	public TutEquipment(DataInputStream dis) throws IOException {
+		this();
+		loadScreenState(dis);
+	}
+
 	private void initLine_00() {
 		addLine(3, L.string(R.string.tutorial_equipment_00)).setY(700);
 
-		status = new StatusScreen(game);
+		status = new StatusScreen();
 	}
 
 	private void initLine_01() {
@@ -73,7 +77,7 @@ public class TutEquipment extends TutorialScreen {
 		status.dispose();
 		status = null;
 		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_EQUIP);
-		equip = new EquipmentScreen(game);
+		equip = new EquipmentScreen();
 		equip.loadAssets();
 		equip.activate();
 	}
@@ -98,9 +102,9 @@ public class TutEquipment extends TutorialScreen {
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			equip.processAllTouches();
-			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.fuel) {
+			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL)) {
 				line.setFinished();
-			} else if (equip.getEquippedEquipment() == EquipmentStore.fuel) {
+			} else if (equip.getEquippedEquipment() == EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL)) {
 				line.setFinished();
 				currentLineIndex++;
 			}
@@ -113,11 +117,11 @@ public class TutEquipment extends TutorialScreen {
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			equip.processAllTouches();
-			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.fuel) {
+			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL)) {
 				line.setFinished();
 				currentLineIndex--;
 				equip.clearSelection();
-			} else if (equip.getEquippedEquipment() == EquipmentStore.fuel) {
+			} else if (equip.getEquippedEquipment() == EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL)) {
 				line.setFinished();
 			}
 		});
@@ -145,18 +149,6 @@ public class TutEquipment extends TutorialScreen {
 		}
 	}
 
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		TutEquipment te = new TutEquipment(alite);
-		try {
-			te.loadScreenState(dis);
-		} catch (IOException e) {
-			AliteLog.e("Tutorial Equipment Screen Initialize", "Error in initializer.", e);
-			return false;
-		}
-		alite.setScreen(te);
-		return true;
-	}
-
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeInt(currentLineIndex - 1);
@@ -169,10 +161,10 @@ public class TutEquipment extends TutorialScreen {
 	}
 
 	@Override
-	protected boolean loadScreenState(DataInputStream dis) throws IOException {
+	protected void loadScreenState(DataInputStream dis) throws IOException {
 		currentLineIndex = dis.readInt();
 		screenToInitialize = dis.readByte();
-		return super.loadScreenState(dis);
+		super.loadScreenState(dis);
 	}
 
 	@Override

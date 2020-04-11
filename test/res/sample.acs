@@ -39,7 +39,7 @@
         "DarkElectricBlue": "#ff085290",
         "Pink": "#ffeeacac",
         "DarkPink": "#ff885555",
-        "DkGray": "#ff444444",
+        "DarkGray": "#ff444444",
         "DkGrayMedAlpha": "#aa444444",
         "GrayMedAlpha": "#aa888888",
         "LightGreenLowAlpha": "#5500aa00",
@@ -47,7 +47,19 @@
         "LightBlue": "#ffacacee",
         "DarkBlue": "#ff555588",
         "LightRedLowAlpha": "#55aa0000",
-        "DarkRedLowAlpha": "#55770000"
+        "DarkRedLowAlpha": "#55770000",
+		"LightGray": "#ffcccccc",
+		"Cyan": "#ff00ffff",
+		"Aqua": "#ff00ffff",
+		"Fuchsia": "#ffff00ff",
+		"Lime": "#ff00ff00",
+		"Maroon": "#ff800000",
+		"Navy": "#ff000080",
+		"Olive": "#ff808000",
+		"Purple": "#ff800080",
+		"Silver": "#ffc0c0c0",
+		"Teal": "#ff008080",
+		"Brown": "#ff996633"
       }
     },
     "itemDefinitionInfo": [

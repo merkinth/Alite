@@ -53,7 +53,6 @@ public class FatalExceptionScreen extends AliteScreen {
 	private int position;
 
 	public FatalExceptionScreen(Throwable cause) {
-		super(Alite.get());
 		this.cause = cause;
 	}
 

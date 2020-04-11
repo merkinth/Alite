@@ -18,8 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.DataInputStream;
-
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.PluginManager;
@@ -34,10 +32,6 @@ public class GameplayOptionsScreen extends OptionsScreen {
 	private Button laserAutoFire;
 	private Button extensionUpdateMode;
 	private Button back;
-
-	GameplayOptionsScreen(Alite game) {
-		super(game);
-	}
 
 	@Override
 	public void activate() {
@@ -161,7 +155,7 @@ public class GameplayOptionsScreen extends OptionsScreen {
 		}
 		if (back.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			newScreen = new OptionsScreen(game);
+			newScreen = new OptionsScreen();
 		}
 	}
 
@@ -170,8 +164,4 @@ public class GameplayOptionsScreen extends OptionsScreen {
 		return ScreenCodes.GAMEPLAY_OPTIONS_SCREEN;
 	}
 
-	public static boolean initialize(Alite alite, DataInputStream dis) {
-		alite.setScreen(new GameplayOptionsScreen(alite));
-		return true;
-	}
 }
