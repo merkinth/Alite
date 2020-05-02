@@ -50,7 +50,7 @@ public abstract class TradeScreen extends AliteScreen {
 
 	int currentFrame = 0;
 	final Timer selectionTimer = new Timer().setAutoReset();
-	Button selection = null;
+	int selectionIndex = -1;
 
 	private boolean continuousAnimation;
 	String cashLeft = null;
@@ -77,12 +77,13 @@ public abstract class TradeScreen extends AliteScreen {
 		if (pendingSelection == null) {
 			return;
 		}
-		for (Button b: tradeButton) {
+		for (int i = 0; i < tradeButton.size(); i++) {
+			Button b = tradeButton.get(i);
 			if (b == null || b.getName() == null) {
 				continue;
 			}
 			if (pendingSelection.equals(b.getName())) {
-				selection = b;
+				selectionIndex = i;
 				b.setSelected(true);
 				loadSelectedAnimationCheck();
 			}
@@ -97,10 +98,6 @@ public abstract class TradeScreen extends AliteScreen {
 	}
 
 	protected void loadSelectedAnimation() {
-	}
-
-	int getSelectionIndex() {
-		return selection == null ? -1 : tradeButton.indexOf(selection);
 	}
 
 	private void computeCurrentFrame() {
@@ -155,12 +152,13 @@ public abstract class TradeScreen extends AliteScreen {
 	void presentTradeGoods(float deltaTime) {
 		Graphics g = game.getGraphics();
 		int index = 0;
-		for (Button b : tradeButton) {
+		for (int i = 0; i < tradeButton.size(); i++) {
+			Button b = tradeButton.get(i);
 			if (b == null) {
 				index++;
 				continue;
 			}
-			if (selection == b) {
+			if (selectionIndex == i) {
 				if (Settings.animationsEnabled) {
 					computeCurrentFrame();
 				}
@@ -177,7 +175,7 @@ public abstract class TradeScreen extends AliteScreen {
 				b.render(g);
 			}
 			String price = getCost(index);
-			int halfWidth =  g.getTextWidth(price, Assets.regularFont) >> 1;
+			int halfWidth = g.getTextWidth(price, Assets.regularFont) >> 1;
 			g.drawText(price, index % COLUMNS * GAP_X + X_OFFSET + (SIZE >> 1) - halfWidth,
 				index / COLUMNS * GAP_Y + Y_OFFSET + SIZE + 35, ColorScheme.get(ColorScheme.COLOR_PRICE), Assets.regularFont);
 			drawAdditionalTradeGoodInformation(index, deltaTime);
@@ -197,12 +195,13 @@ public abstract class TradeScreen extends AliteScreen {
 			return;
 		}
 		int index = 0;
-		for (Button b : tradeButton) {
+		for (int i = 0; i < tradeButton.size(); i++) {
+			Button b = tradeButton.get(i);
 			if (b == null || !b.isTouched(touch.x, touch.y)) {
 				index++;
 				continue;
 			}
-			if (selection == b) {
+			if (selectionIndex == i) {
 				if (game.getCurrentScreen() instanceof FlightScreen) {
 					performTradeWhileInFlight(index);
 				} else {
@@ -214,7 +213,7 @@ public abstract class TradeScreen extends AliteScreen {
 			}
 			errorText = null;
 			disposeSelectedAnimationCheck();
-			selection = b;
+			selectionIndex = i;
 			loadSelectedAnimationCheck();
 			selectionTimer.reset();
 			currentFrame = 0;
@@ -225,9 +224,8 @@ public abstract class TradeScreen extends AliteScreen {
 	}
 
 	private void disposeSelectedAnimationCheck() {
-		int index = getSelectionIndex();
-		if (index != -1) {
-			disposeSelectedAnimation(index);
+		if (selectionIndex != -1) {
+			disposeSelectedAnimation(selectionIndex);
 		}
 	}
 
@@ -290,6 +288,6 @@ public abstract class TradeScreen extends AliteScreen {
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
-		ScreenBuilder.writeString(dos, selection == null ? null : selection.getName());
+		ScreenBuilder.writeString(dos, selectionIndex == -1 ? null : tradeButton.get(selectionIndex).getName());
 	}
 }

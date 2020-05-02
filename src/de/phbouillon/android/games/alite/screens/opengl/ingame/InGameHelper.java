@@ -75,7 +75,7 @@ class InGameHelper implements Serializable {
 
 	private void ramCargo(SpaceObject rammedObject) {
 		rammedObject.applyDamage(4000);
-		inGame.getLaserManager().damageShip(DAMAGE_CARGO_COLLISION, true);
+		inGame.getLaserManager().collisionWithPlayerShip(rammedObject, DAMAGE_CARGO_COLLISION, true);
 	}
 
 	void checkShipStationProximity() {
@@ -250,7 +250,7 @@ class InGameHelper implements Serializable {
 					inGame.clearMissileLock();
 					automaticDockingSequence();
 				} else {
-					inGame.getLaserManager().damageShip(DAMAGE_STATION_COLLISION, so.getDisplayMatrix()[14] < 0);
+					inGame.getLaserManager().collisionWithPlayerShip(so, DAMAGE_STATION_COLLISION, so.getDisplayMatrix()[14] < 0);
 					inGame.getShip().setSpeed(0.0f);
 				}
 			} else if (objectType == ObjectType.CargoPod ||
@@ -266,7 +266,7 @@ class InGameHelper implements Serializable {
 				}
 				if (so != null && so.getHullStrength() > 0) {
 					AliteLog.d("Crash Occurred", object.getId() + " crashed into player. " + so.getCurrentAIStack());
-					inGame.getLaserManager().damageShip(DAMAGE_OBJECT_COLLISION, so.getDisplayMatrix()[14] < 0);
+					inGame.getLaserManager().collisionWithPlayerShip(so, DAMAGE_OBJECT_COLLISION, so.getDisplayMatrix()[14] < 0);
 					so.setHullStrength(0);
 					object.setRemove(true);
 					inGame.computeBounty(so);
@@ -340,7 +340,6 @@ class InGameHelper implements Serializable {
 	}
 
 	void handleMissileUpdate(SpaceObject missile, float deltaTime) {
-		missile.moveForward(deltaTime);
 		SpaceObject target = missile.getTarget();
 		// And track target object...
 		if (target == inGame.getShip() && lastMissileWarning.hasPassedSeconds(2)) {
@@ -359,7 +358,7 @@ class InGameHelper implements Serializable {
 
 		boolean willBeDestroyedByECM = missile.getWillBeDestroyedByECM();
 		missile.update(deltaTime);
-		if (willBeDestroyedByECM && missile.getPosition().distanceSq(target.getPosition()) < 40000 && !inGame.isECMJammer()) {
+		if (willBeDestroyedByECM && missile.getPosition().distanceSq(target.getPosition()) < 40000 && !inGame.getShip().isEcmJammer()) {
 			missile.setHullStrength(0);
 			inGame.getLaserManager().explode(missile, WeaponType.ECM);
 			SoundManager.play(Assets.ecm);
@@ -377,7 +376,7 @@ class InGameHelper implements Serializable {
 
 		missile.setHullStrength(0);
 		inGame.getLaserManager().explode(missile, WeaponType.SelfDestruct);
-		if (willBeDestroyedByECM && !inGame.isECMJammer()) {
+		if (willBeDestroyedByECM && !inGame.getShip().isEcmJammer()) {
 			SoundManager.play(Assets.ecm);
 			if (inGame.getHud() != null) {
 				inGame.getHud().showECM();

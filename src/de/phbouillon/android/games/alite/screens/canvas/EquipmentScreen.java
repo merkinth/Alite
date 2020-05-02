@@ -103,7 +103,7 @@ public class EquipmentScreen extends TradeScreen {
 	}
 
 	public void clearSelection() {
-		selection = null;
+		selectionIndex = -1;
 		equippedEquipment = null;
 	}
 
@@ -119,28 +119,15 @@ public class EquipmentScreen extends TradeScreen {
 	}
 
 	public Equipment getSelectedEquipment() {
-		int index = getSelectionIndex();
-		if (index < 0) {
+		if (selectionIndex < 0) {
 			return null;
 		}
-		return EquipmentStore.get().getEquipment(index);
+		return EquipmentStore.get().getEquipment(selectionIndex);
 	}
 
-	private int getNewLaserLocation(Laser laser, int index) {
-		Player player = game.getPlayer();
-		PlayerCobra cobra = player.getCobra();
-		boolean front = cobra.getLaser(PlayerCobra.DIR_FRONT) != laser;
-		boolean right = cobra.getLaser(PlayerCobra.DIR_RIGHT) != laser;
-		boolean rear  = cobra.getLaser(PlayerCobra.DIR_REAR)  != laser;
-		boolean left  = cobra.getLaser(PlayerCobra.DIR_LEFT)  != laser;
-		int freeSlots = (front ? 1 : 0) + (right ? 1 : 0) + (rear ? 1 : 0) + (left ? 1 : 0);
-
-		if (freeSlots == 0) {
-			return -1;
-		}
-
-		newScreen = new LaserPositionSelectionScreen(this, front, right, rear, left, index);
-		return 0;
+	private int maintainLaser(int pos, Laser laser) {
+		Laser laserInPos = game.getPlayer().getCobra().getLaser(pos);
+		return laserInPos == null ? 0 : laserInPos == laser ? -1 : 1;
 	}
 
 	@Override
@@ -155,13 +142,14 @@ public class EquipmentScreen extends TradeScreen {
 		PlayerCobra cobra = player.getCobra();
 		int price = equipment.getCost();
 		int where = -1;
+		int laserState = 0;
 		if (equipment instanceof Laser) {
 			if (mountLaserPosition == -1) {
-				int result = getNewLaserLocation((Laser) equipment, index);
-				if (result == -1) {
-					showMessageDialog(L.string(R.string.equip_all_lasers_mounted));
-					SoundManager.play(Assets.error);
-				}
+				newScreen = new LaserPositionSelectionScreen(this,
+					maintainLaser(PlayerCobra.DIR_FRONT, (Laser) equipment),
+					maintainLaser(PlayerCobra.DIR_RIGHT, (Laser) equipment),
+					maintainLaser(PlayerCobra.DIR_REAR, (Laser) equipment),
+					maintainLaser(PlayerCobra.DIR_LEFT, (Laser) equipment), index);
 				return;
 			}
 			if (mountLaserPosition == -2) {
@@ -171,7 +159,10 @@ public class EquipmentScreen extends TradeScreen {
 			}
 			where = mountLaserPosition;
 			mountLaserPosition = -1;
-			price = cobra.getLaser(where) == null ? equipment.getCost() : equipment.getCost() - cobra.getLaser(where).getCost();
+			laserState = maintainLaser(where, (Laser) equipment);
+			if (laserState != 0) {
+				price = laserState < 0 ? -equipment.getCost() : equipment.getCost() - cobra.getLaser(where).getCost();
+			}
 		}
 		if (player.getCash() < price) {
 			showMessageDialog(L.string(R.string.trade_not_enough_money));
@@ -200,9 +191,9 @@ public class EquipmentScreen extends TradeScreen {
 
 		if (equipment instanceof Laser) {
 			player.setCash(player.getCash() - price);
-			cobra.setLaser(where, (Laser) equipment);
-			disposeSelectedAnimation(getSelectionIndex());
-			selection = null;
+			cobra.setLaser(where, laserState < 0 ? null : (Laser) equipment);
+			disposeSelectedAnimation(selectionIndex);
+			selectionIndex = -1;
 			cashLeft = getCashLeftString();
 
 			SoundManager.play(Assets.kaChing);
@@ -222,8 +213,8 @@ public class EquipmentScreen extends TradeScreen {
 			}
 			player.setCash(player.getCash() - priceToPay);
 			player.getCobra().setFuel(PlayerCobra.MAXIMUM_FUEL);
-			disposeSelectedAnimation(getSelectionIndex());
-			selection = null;
+			disposeSelectedAnimation(selectionIndex);
+			selectionIndex = -1;
 			cashLeft = getCashLeftString();
 			SoundManager.play(Assets.kaChing);
 			equippedEquipment = EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL);
@@ -239,8 +230,8 @@ public class EquipmentScreen extends TradeScreen {
 			}
 			player.setCash(player.getCash() - price);
 			cobra.setMissiles(cobra.getMissiles() + 1);
-			disposeSelectedAnimation(getSelectionIndex());
-			selection = null;
+			disposeSelectedAnimation(selectionIndex);
+			selectionIndex = -1;
 			cashLeft = getCashLeftString();
 			SoundManager.play(Assets.kaChing);
 			equippedEquipment = EquipmentStore.get().getEquipmentById(EquipmentStore.MISSILES);
@@ -254,8 +245,8 @@ public class EquipmentScreen extends TradeScreen {
 			cobra.setRetroRocketsUseCount(4 + (int) (Math.random() * 3));
 		}
 		SoundManager.play(Assets.kaChing);
-		disposeSelectedAnimation(getSelectionIndex());
-		selection = null;
+		disposeSelectedAnimation(selectionIndex);
+		selectionIndex = -1;
 		cashLeft = getCashLeftString();
 		equippedEquipment = equipment;
 		performAutoSave();
@@ -286,9 +277,8 @@ public class EquipmentScreen extends TradeScreen {
 
 	@Override
 	protected void loadSelectedAnimation() {
-		int index = getSelectionIndex();
-		loadEquipmentAnimation(index, paths[index]);
-		selection.setAnimation(equipment[index]);
+		loadEquipmentAnimation(selectionIndex, paths[selectionIndex]);
+		tradeButton.get(selectionIndex).setAnimation(equipment[selectionIndex]);
 	}
 
 	protected void performScreenChange() {

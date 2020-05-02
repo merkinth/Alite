@@ -37,7 +37,6 @@ class EscapeCapsuleUpdater implements IMethodHook {
 	}
 
 	private final InGameManager inGame;
-	private final GraphicObject ship;
 	private final Timer timer = new Timer();
 	private EscapeCapsuleState state = EscapeCapsuleState.SPAWN;
 	private SpaceObject cobra = null;
@@ -45,9 +44,8 @@ class EscapeCapsuleUpdater implements IMethodHook {
 	private final Vector3f vec1 = new Vector3f(0, 0, 0);
 	private final Vector3f vec2 = new Vector3f(0, 0, 0);
 
-	EscapeCapsuleUpdater(InGameManager inGame, GraphicObject ship) {
+	EscapeCapsuleUpdater(InGameManager inGame) {
 		this.inGame = inGame;
-		this.ship = ship;
 	}
 
 	@Override
@@ -64,6 +62,7 @@ class EscapeCapsuleUpdater implements IMethodHook {
 	}
 
 	private void spawnShip() {
+		GraphicObject ship = inGame.getShip();
 		ship.computeMatrix();
 		cobra = SpaceObjectFactory.getInstance().getObjectById("cobra_mk_iii");
 		cobra.setUpVector(ship.getUpVector());

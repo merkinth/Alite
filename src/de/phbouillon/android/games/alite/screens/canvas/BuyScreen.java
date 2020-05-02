@@ -44,15 +44,15 @@ public class BuyScreen extends TradeScreen {
 
 	// default public constructor is required for navigation bar
 	public BuyScreen() {
-		super(false, null);
-		X_OFFSET = 50;
-		GAP_X = 270;
-		GAP_Y = 290;
-		COLUMNS = 6;
+		this(null);
 	}
 
 	public BuyScreen(String pendingSelection) {
 		super(false, pendingSelection);
+		X_OFFSET = 50;
+		GAP_X = 270;
+		GAP_Y = 290;
+		COLUMNS = 6;
 	}
 
 	@Override
@@ -76,15 +76,14 @@ public class BuyScreen extends TradeScreen {
 	}
 
 	public void resetSelection() {
-		selection = null;
+		selectionIndex = -1;
 	}
 
 	public TradeGood getSelectedGood() {
-		int index = getSelectionIndex();
-		if (index < 0) {
+		if (selectionIndex < 0) {
 			return null;
 		}
-		return TradeGoodStore.get().goods().get(index);
+		return TradeGoodStore.get().goods().get(selectionIndex);
 	}
 
 	public TradeGood getGoodToBuy() {
@@ -183,7 +182,7 @@ public class BuyScreen extends TradeScreen {
 		player.setCash(player.getCash() - totalPrice);
 		SoundManager.play(Assets.kaChing);
 		cashLeft = getCashLeftString();
-		selection = null;
+		selectionIndex = -1;
 		game.getPlayer().setLegalValueByContraband(tradeGood.getLegalityType(), (int) buyAmount);
 		try {
 			game.autoSave();

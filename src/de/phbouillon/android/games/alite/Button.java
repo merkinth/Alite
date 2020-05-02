@@ -241,7 +241,7 @@ public class Button {
 		Point result = getInterior();
 
 		if (local == TextPosition.ABOVE) {
-			result.offset((width >> 1) - halfWidth, 0);
+			result.offset((width >> 1) - halfWidth, (int) font.getSize());
 			return result;
 		}
 		if (local == TextPosition.LEFT) {

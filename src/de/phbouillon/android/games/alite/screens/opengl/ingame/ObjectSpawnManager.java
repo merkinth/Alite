@@ -857,6 +857,9 @@ public class ObjectSpawnManager implements Serializable {
 		if (currentNumberOfVipers >= maxNumberOfVipers) {
 			return;
 		}
+		if (!inGame.isPlayerAlive()) {
+			return;
+		}
 	    SystemData currentSystem = alite.getPlayer().getCurrentSystem();
 	    ObjectType shipType = ObjectType.Police;
 	    if (currentSystem != null) {

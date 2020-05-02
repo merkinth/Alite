@@ -122,6 +122,9 @@ public class Player {
 	}
 
 	public void setCondition(Condition newCondition) {
+		if (condition == Condition.DOCKED && newCondition == Condition.RED) {
+			return;
+		}
 		condition = newCondition;
 		if(condition != Condition.GREEN && condition != Condition.YELLOW)
 			Alite.get().setTimeFactor(1);

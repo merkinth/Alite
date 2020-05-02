@@ -504,7 +504,6 @@
     <string name="assisted_docking">The fee for assisted docking is %s. Accept?</string>
 
     <string name="equip_info">%s (Tap again to equip)</string>
-    <string name="equip_all_lasers_mounted">All lasers (of that type) already mounted.</string>
     <string name="equip_fuel_full">Fuel system already full (%d.%d light years).</string>
     <string name="equip_only_one_allowed">Only 1 %s allowed.</string>
     <string name="equip_max_missiles_reached">Only %d missiles allowed.</string>

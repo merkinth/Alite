@@ -236,6 +236,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 
 	private boolean hasEcm;
 	private boolean cloaked;
+	private boolean ecmJammer;
 	private int escapePod;
 	private boolean affectedByEnergyBomb;
 
@@ -468,6 +469,14 @@ public class SpaceObject extends AliteObject implements Serializable {
 
 	public boolean isCloaked() {
 		return cloaked;
+	}
+
+	public boolean isEcmJammer() {
+		return ecmJammer;
+	}
+
+	public void setEcmJammer(boolean ecmJammer) {
+		this.ecmJammer = ecmJammer;
 	}
 
 	private boolean receivesProximityWarning() {

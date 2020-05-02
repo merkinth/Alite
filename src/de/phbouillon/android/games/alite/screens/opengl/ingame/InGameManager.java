@@ -114,7 +114,7 @@ public class InGameManager implements Serializable {
 	private ViewingTransformationHelper viewingTransformationHelper = new ViewingTransformationHelper();
 	private WitchSpaceRender            witchSpace = null;
 
-	private SpaceObject                 ship;
+	private final SpaceObject           ship;
 	private AliteObject                 planet;
 	private AliteObject                 sun;
 	private AliteObject                 sunGlow;
@@ -127,7 +127,6 @@ public class InGameManager implements Serializable {
 	private boolean                     calibrated = false;
 	private boolean                     changingSpeed = false;
 	private boolean                     destroyed = false;
-	private boolean                     ecmJammerActive = false;
 	private boolean                     needsSpeedAdjustment = false;
 	private boolean                     paused = false;
 	private boolean                     planetWasSet = false;
@@ -169,7 +168,7 @@ public class InGameManager implements Serializable {
 		if (initStarDust && Settings.particleDensity > 0) {
 			starDust = new StarDust(ship.getPosition());
 		}
-		buttons = hud != null ? new AliteButtons(ship, this) : null;
+		buttons = hud != null ? new AliteButtons(this) : null;
 		laserManager = new LaserManager(this);
 		timedEvents.addAll(laserManager.registerTimedEvents());
 		Rect visibleArea = alite.getGraphics().getVisibleArea();
@@ -590,7 +589,7 @@ public class InGameManager implements Serializable {
 
 	private synchronized void updateObjects(float deltaTime, List <AliteObject> allObjects) {
 		helper.checkShipObjectCollision(allObjects);
-		laserManager.update(deltaTime, ship, allObjects);
+		laserManager.update(deltaTime, allObjects);
 		Iterator <AliteObject> objectIterator = allObjects.iterator();
 		helper.checkProximity(allObjects);
 		if (dockingComputerAI != null && dockingComputerAI.isActive()) {
@@ -692,7 +691,7 @@ public class InGameManager implements Serializable {
 			starDust.update(ship.getPosition(), ship.getForwardVector());
 		}
 
-		laserManager.performUpdate(viewDirection, ship);
+		laserManager.performUpdate();
 
 		updateTimedEvents();
 		if (dockingComputerAI.isActive() && Settings.dockingComputerSpeed == 2 &&
@@ -763,7 +762,7 @@ public class InGameManager implements Serializable {
 				alite.getCobra().setMissileLocked(false);
 				missileLock = null;
 				targetMissile = false;
-				laserManager.handleTouchUp(viewDirection, ship);
+				laserManager.handleTouchUp();
 			} else {
 				alite.getCobra().setMissileLocked(false);
 				alite.getCobra().setMissiles(alite.getCobra().getMissiles() - 1);
@@ -1154,7 +1153,7 @@ public class InGameManager implements Serializable {
 				if (alite.getCobra().getLaser(viewDirection) != null) {
 					if (go instanceof SpaceObject) {
 						if (targetMissile && alite.getCobra().getMissiles() > 0 || Settings.autoId && !((SpaceObject) go).isIdentified()) {
-							if (laserManager.isUnderCross((SpaceObject) go, ship, viewDirection)) {
+							if (laserManager.isUnderCross((SpaceObject) go)) {
 								if (targetMissile) {
 									AliteLog.d("Targetted", "Targetted " + go.getId());
 									setMessage(L.string(R.string.msg_missile_locked, go.getName()));
@@ -1562,7 +1561,11 @@ public class InGameManager implements Serializable {
 		return true;
 	}
 
-	public void toggleClocked() {
+	public boolean isHyperspaceEngaged(boolean isIntergalactic) {
+		return hyperspaceTimer != null && hyperspaceTimer.isIntergalactic() == isIntergalactic;
+	}
+
+	public void toggleCloaked() {
 		ship.setCloaked(!ship.isCloaked());
 		if (ship.isCloaked()) {
 			cloakingEvent = new CloakingEvent(this);
@@ -1680,8 +1683,8 @@ public class InGameManager implements Serializable {
 	}
 
 	public void toggleECMJammer() {
-		ecmJammerActive = !ecmJammerActive;
-		if (ecmJammerActive) {
+		ship.setEcmJammer(!ship.isEcmJammer());
+		if (ship.isEcmJammer()) {
 			jammingEvent = new JammingEvent(this);
 			timedEvents.add(jammingEvent);
 		} else {
@@ -1690,10 +1693,6 @@ public class InGameManager implements Serializable {
 			jammingEvent = null;
 			message.clearRepetition();
 		}
-	}
-
-	public boolean isECMJammer() {
-		return ecmJammerActive;
 	}
 
 	void resetHud() {

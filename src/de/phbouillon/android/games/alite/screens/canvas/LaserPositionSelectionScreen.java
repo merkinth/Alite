@@ -23,28 +23,26 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.model.PlayerCobra;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class LaserPositionSelectionScreen extends AliteScreen {
 	private final int index;
-	private final Button[] pads;
-	private final boolean front;
-	private final boolean right;
-	private final boolean rear;
-	private final boolean left;
+	private final Button[] pads = new Button[4];
+	private final int front;
+	private final int right;
+	private final int rear;
+	private final int left;
 	private final EquipmentScreen equipmentScreen;
-	private static Pixmap cobra;
+	private Pixmap cobra;
+	private Pixmap iconChange;
 
-	LaserPositionSelectionScreen(EquipmentScreen equipmentScreen, boolean front, boolean right, boolean rear, boolean left, int index) {
+	LaserPositionSelectionScreen(EquipmentScreen equipmentScreen, int front, int right, int rear, int left, int index) {
 		this.index = index;
 		this.front = front;
 		this.right = right;
 		this.rear = rear;
 		this.left = left;
 		this.equipmentScreen = equipmentScreen;
-		int count = (front ? 1 : 0) + (right ? 1 : 0) + (rear ? 1 : 0) + (left ? 1 : 0);
-		pads = new Button[count];
 	}
 
 	@Override
@@ -52,20 +50,25 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 		initializeButtons();
 	}
 
+	private Pixmap getIcon(int currentEquip) {
+		return currentEquip == 0 ? Assets.yesIcon : currentEquip < 0 ? Assets.noIcon : iconChange;
+	}
+
 	private void initializeButtons() {
-		int counter = 0;
-		if (front) {
-			pads[counter++] = Button.createRegularButton(760, 210, 200, 100, L.string(R.string.laser_pos_front));
-		}
-		if (right) {
-			pads[counter++] = Button.createRegularButton(1350, 480, 200, 200, L.string(R.string.laser_pos_right));
-		}
-		if (rear) {
-			pads[counter++] = Button.createRegularButton(760, 855, 200, 100, L.string(R.string.laser_pos_rear));
-		}
-		if (left) {
-			pads[counter] = Button.createRegularButton(170, 480, 200, 200, L.string(R.string.laser_pos_left));
-		}
+		pads[0] = Button.createGradientRegularButton(710, 210, 300, 100, L.string(R.string.laser_pos_front))
+			.setPixmap(getIcon(front))
+			.setTextPosition(Button.TextPosition.RIGHT);
+		pads[1] = Button.createGradientRegularButton(1340, 480, 200, 200, L.string(R.string.laser_pos_right))
+			.setPixmap(getIcon(right))
+			.setPixmapOffset(50, 0)
+			.setTextPosition(Button.TextPosition.BELOW);
+		pads[2] = Button.createGradientRegularButton(710, 855, 300, 100, L.string(R.string.laser_pos_rear))
+			.setPixmap(getIcon(rear))
+			.setTextPosition(Button.TextPosition.RIGHT);
+		pads[3] = Button.createGradientRegularButton(180, 480, 200, 200, L.string(R.string.laser_pos_left))
+			.setPixmap(getIcon(left))
+			.setPixmapOffset(50, 0)
+			.setTextPosition(Button.TextPosition.BELOW);
 		for (Button b: pads) {
 			b.setTextColor(ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		}
@@ -99,32 +102,14 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 			newScreen = equipmentScreen;
 			return;
 		}
-		for (Button b: pads) {
-			if (b.isTouched(touch.x, touch.y)) {
+		for (int i = 0; i < pads.length; i++) {
+			if (pads[i].isTouched(touch.x, touch.y)) {
 				SoundManager.play(Assets.click);
-				String t = b.getText();
-				if (L.string(R.string.laser_pos_front).equals(t)) {
-					equipmentScreen.setLaserPosition(PlayerCobra.DIR_FRONT);
-					newScreen = equipmentScreen;
-					return;
-				}
-				if (L.string(R.string.laser_pos_right).equals(t)) {
-					equipmentScreen.setLaserPosition(PlayerCobra.DIR_RIGHT);
-					newScreen = equipmentScreen;
-					return;
-				}
-				if (L.string(R.string.laser_pos_rear).equals(t)) {
-					equipmentScreen.setLaserPosition(PlayerCobra.DIR_REAR);
-					newScreen = equipmentScreen;
-					return;
-				}
-				if (L.string(R.string.laser_pos_left).equals(t)) {
-					equipmentScreen.setLaserPosition(PlayerCobra.DIR_LEFT);
-					newScreen = equipmentScreen;
-					return;
-				}
+				equipmentScreen.setLaserPosition(i);
+				newScreen = equipmentScreen;
+				return;
 			}
-		 }
+		}
 	}
 
 	@Override
@@ -142,13 +127,16 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 			cobra.dispose();
 			cobra = null;
 		}
+		if (iconChange != null) {
+			iconChange.dispose();
+			iconChange = null;
+		}
 	}
 
 	@Override
 	public void loadAssets() {
-		if (cobra == null) {
-			cobra = game.getGraphics().newPixmap("cobra_small.png");
-		}
+		cobra = game.getGraphics().newPixmap("cobra_small.png");
+		iconChange = game.getGraphics().newPixmap("change_icon.png");
 		super.loadAssets();
 	}
 

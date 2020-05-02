@@ -27,9 +27,11 @@ public class HyperspaceTimer extends TimedEvent {
 	private static final long serialVersionUID = -855725511472476223L;
 
 	private int countDown;
+	private boolean isIntergalactic;
 
 	HyperspaceTimer(InGameManager inGame, boolean isIntergalactic) {
 		super(1000000000L);
+		this.isIntergalactic = isIntergalactic;
 		countDown = isIntergalactic ? 30 : 10;
 		inGame.getMessage().setText(StringUtil.format("%d", countDown));
 		addAlarmEvent(new IMethodHook() {
@@ -51,4 +53,7 @@ public class HyperspaceTimer extends TimedEvent {
 		});
 	}
 
+	public boolean isIntergalactic() {
+		return isIntergalactic;
+	}
 }

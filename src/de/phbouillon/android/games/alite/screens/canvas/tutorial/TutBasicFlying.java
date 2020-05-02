@@ -264,9 +264,7 @@ public class TutBasicFlying extends TutorialScreen {
 			flight.getInGameManager().calibrate();
 			flight.getInGameManager().setPlayerControl(true);
 		}
-		if (flight.getInGameManager().getLaserManager().isUnderCross(target,
-				flight.getInGameManager().getShip(),
-				flight.getInGameManager().getViewDirection())) {
+		if (flight.getInGameManager().getLaserManager().isUnderCross(target)) {
 			SoundManager.play(Assets.identify);
 			line.setFinished();
 		}
@@ -567,10 +565,7 @@ public class TutBasicFlying extends TutorialScreen {
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			startFlightWithButtons();
-			if (flight.getInGameManager().getLaserManager().isUnderCross(
-					flight.getInGameManager().getStation(),
-					flight.getInGameManager().getShip(),
-					flight.getInGameManager().getViewDirection())) {
+			if (flight.getInGameManager().getLaserManager().isUnderCross(flight.getInGameManager().getStation())) {
 				line.setFinished();
 			}
 		}).setFinishHook(deltaTime -> {
