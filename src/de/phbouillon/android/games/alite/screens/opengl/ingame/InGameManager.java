@@ -142,6 +142,7 @@ public class InGameManager implements Serializable {
 
 	public InGameManager(AliteHud hud, String skyMap, float[] lightPosition, boolean fromStation, boolean initStarDust) {
 		alite = Alite.get();
+		alite.setInGame(this);
 		helper = new InGameHelper(this);
 		this.hud = hud;
 		this.lightPosition = lightPosition;
@@ -1595,7 +1596,7 @@ public class InGameManager implements Serializable {
 		return destroyed;
 	}
 
-	public void reduceShipEnergy(int i) {
+	public void reduceShipEnergy(float i) {
 		alite.getCobra().setEnergy(alite.getCobra().getEnergy() - i);
 		laserManager.checkEnergyLow();
 		if (alite.getCobra().getEnergy() <= 0) {

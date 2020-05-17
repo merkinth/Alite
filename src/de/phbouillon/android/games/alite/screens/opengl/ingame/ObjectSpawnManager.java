@@ -780,7 +780,7 @@ public class ObjectSpawnManager implements Serializable {
 					createdObject.getPosition().y + iy * speed * deltaTime,
 					createdObject.getPosition().z + iz * speed * deltaTime);
 				createdObject.applyDeltaRotation(rx, ry, rz);
-				if (createdObject.getPosition().distance(inGame.getShip().getPosition()) >= AliteHud.MAX_DISTANCE) {
+				if (createdObject.getPosition().distance(inGame.getShip().getPosition()) > AliteHud.MAX_DISTANCE) {
 					createdObject.setRemove(true);
 				}
 			}

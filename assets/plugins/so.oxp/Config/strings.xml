@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="equip_fuel">Fuel (WS Thru-Space Drive)</string>
+	<string name="equip_missiles">Lance And Ferman Missiles</string>
+	<string name="equip_large_cargo_bay">Mariner 35t Freight Chamber</string>
+	<string name="equip_ecm_system">Interspace Heavy Element ECM</string>
+	<string name="equip_pulse_laser">Ingram Model 1919A4 Pulse Laser</string>
+	<string name="equip_beam_laser">Ingram Model 1928A2 Beam Laser</string>
+	<string name="equip_fuel_scoop">Deep Space ReAqx Fuel Scoop</string>
+	<string name="equip_escape_capsule">Xeesian FastJet LSC Escape Capsule</string>
+	<string name="equip_energy_bomb">Medusa Pandora Energy Bomb</string>
+	<string name="equip_extra_energy_unit">Extra Zieman Energy Unit</string>
+	<string name="equip_docking_computer">SinCorn RemLock Docking Computer</string>
+	<string name="equip_galactic_hyperdrive">Xexor/Hikan Galactic Hyperdrive</string>
+	<string name="equip_mining_laser">Kruger ARM64 Sp. Mining Laser</string>
+	<string name="equip_military_laser">M1928A2 Military Laser</string>
+	<string name="equip_retro_rockets">Xasar Ion Retro-Rockets</string>
+	<string name="equip_naval_energy_unit">Naval Energy Unit</string>
+	<string name="equip_cloaking_device">Cloaking Device</string>
+	<string name="equip_ecm_jammer">ECM Jammer</string>
+
+	<string name="equip_short_fuel">Fuel</string>
+	<string name="equip_short_missiles">Missiles</string>
+	<string name="equip_short_large_cargo_bay">Large Cargo Bay</string>
+	<string name="equip_short_ecm_system">ECM System</string>
+	<string name="equip_short_pulse_laser">Pulse Laser</string>
+	<string name="equip_short_beam_laser">Beam Laser</string>
+	<string name="equip_short_fuel_scoop">Fuel Scoop</string>
+	<string name="equip_short_escape_capsule">Escape Capsule</string>
+	<string name="equip_short_energy_bomb">Energy Bomb</string>
+	<string name="equip_short_extra_energy_unit">Extra Energy Unit</string>
+	<string name="equip_short_docking_computer">Docking Computer</string>
+	<string name="equip_short_galactic_hyperdrive">Galactic Hyperdrive</string>
+	<string name="equip_short_mining_laser">Mining Laser</string>
+	<string name="equip_short_military_laser">Military Laser</string>
+	<string name="equip_short_retro_rockets">Retro Rockets</string>
+	<string name="equip_short_naval_energy_unit">Naval Energy Unit</string>
+	<string name="equip_short_cloaking_device">Cloaking Device</string>
+	<string name="equip_short_ecm_jammer">ECM Jammer</string>
+</resources>

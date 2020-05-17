@@ -191,6 +191,10 @@ public class Button {
 		return this;
 	}
 
+	public int getFrameCount() {
+		return animation == null ? 0 : animation.length;
+	}
+
 	public Button setPixmap(Pixmap pixmap) {
 		this.pixmap = pixmap;
 		return this;

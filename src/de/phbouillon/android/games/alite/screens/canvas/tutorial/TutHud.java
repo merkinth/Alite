@@ -26,7 +26,6 @@ import android.graphics.Rect;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
@@ -95,7 +94,7 @@ public class TutHud extends TutorialScreen {
 			Settings.buttonPosition[i] = i;
 		}
 		game.getCobra().clearEquipment();
-		game.getCobra().setLaser(PlayerCobra.DIR_FRONT, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.PULSE_LASER));
+		game.getCobra().setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.get().getEquipmentById(EquipmentStore.PULSE_LASER));
 		game.getCobra().setLaser(PlayerCobra.DIR_RIGHT, null);
 		game.getCobra().setLaser(PlayerCobra.DIR_REAR, null);
 		game.getCobra().setLaser(PlayerCobra.DIR_LEFT, null);

@@ -30,7 +30,6 @@ import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.LegalStatus;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.Weight;
-import de.phbouillon.android.games.alite.model.statistics.WeaponType;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
@@ -270,7 +269,7 @@ class InGameHelper implements Serializable {
 					so.setHullStrength(0);
 					object.setRemove(true);
 					inGame.computeBounty(so);
-					inGame.getLaserManager().explode(so, WeaponType.Collision);
+					inGame.getLaserManager().explodeWithCargo(so);
 				}
 				 else {
 					SoundManager.play(Assets.hullDamage);
@@ -352,7 +351,7 @@ class InGameHelper implements Serializable {
 		if (target == null || target.mustBeRemoved() || target.getHullStrength() <= 0) {
 			inGame.setMessage(L.string(R.string.msg_target_lost));
 			missile.setHullStrength(0);
-			inGame.getLaserManager().explode(missile, WeaponType.PulseLaser);
+			inGame.getLaserManager().explodeWithCargo(missile);
 			return;
 		}
 
@@ -360,7 +359,7 @@ class InGameHelper implements Serializable {
 		missile.update(deltaTime);
 		if (willBeDestroyedByECM && missile.getPosition().distanceSq(target.getPosition()) < 40000 && !inGame.getShip().isEcmJammer()) {
 			missile.setHullStrength(0);
-			inGame.getLaserManager().explode(missile, WeaponType.ECM);
+			inGame.getLaserManager().explodeWithCargo(missile);
 			SoundManager.play(Assets.ecm);
 			if (inGame.getHud() != null) {
 				inGame.getHud().showECM();
@@ -375,7 +374,7 @@ class InGameHelper implements Serializable {
 		}
 
 		missile.setHullStrength(0);
-		inGame.getLaserManager().explode(missile, WeaponType.SelfDestruct);
+		inGame.getLaserManager().explodeWithCargo(missile);
 		if (willBeDestroyedByECM && !inGame.getShip().isEcmJammer()) {
 			SoundManager.play(Assets.ecm);
 			if (inGame.getHud() != null) {
@@ -392,7 +391,7 @@ class InGameHelper implements Serializable {
 		target.setHullStrength(0);
 		target.setRemove(true);
 		inGame.computeBounty(target);
-		inGame.getLaserManager().explode(target, WeaponType.Missile);
+		inGame.getLaserManager().explodeWithCargo(target);
 	}
 
 	void checkAltitudeLowAlert() {

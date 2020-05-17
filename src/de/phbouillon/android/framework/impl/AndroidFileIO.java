@@ -238,6 +238,19 @@ public class AndroidFileIO implements FileIO {
 		if (AliteConfig.HAS_EXTENSION_APK) {
 			return new File(ObbExpansionsManager.getInstance().getMainRoot() + "assets/" + fileName).exists();
 		}
+		return existsAssetFile(fileName);
+	}
+
+	@Override
+	public InputStream readPrivateFile(String fileName) throws IOException {
+		if (AliteConfig.HAS_EXTENSION_APK) {
+			return new FileInputStream((String) getPrivatePath(fileName));
+		}
+		return readAssetFile(fileName);
+	}
+
+	@Override
+	public boolean existsAssetFile(String fileName) {
 		try {
 			assets.open(fileName).close();
 			return true;
@@ -247,10 +260,7 @@ public class AndroidFileIO implements FileIO {
 	}
 
 	@Override
-	public InputStream readPrivateFile(String fileName) throws IOException {
-		if (AliteConfig.HAS_EXTENSION_APK) {
-			return new FileInputStream((String) getPrivatePath(fileName));
-		}
+	public InputStream readAssetFile(String fileName) throws IOException {
 		return assets.open(fileName);
 	}
 

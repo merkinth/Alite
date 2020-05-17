@@ -8,13 +8,14 @@
 	shields. Once a shield is depleted, enemy lasers and missiles
 	striking that shield will take energy directly from the energy banks
 	and may even destroy items of cargo or ship fittings. When all your
-	energy banks are empty your ship will be destroyed. Using lasers or
-	an ECM system will also deplete your energy banks.</p>
+	energy banks are empty your ship will be destroyed. Using equipments
+	(e.g. ECM system) but even lasers may also deplete your energy banks.</p>
 	<p>The ship&apos;s computer will keep you informed of any damage to
 	your ship and will also warn you when energy levels are dangerously
 	low.</p>
 	<p>An Extra Energy Unit may be fitted at planets of Tech level 8 or
-	higher, and doubles the energy bank replenishment rate. This is the
+	higher, it starts replenishing the shields immediately without this it
+	would only start if the energy banks are already full. This is the
 	energy unit with the copper coloured top. No other unit looks like
 	it, or lasts like it</p>
 	<p>[b]Defensive shield specification:[/b] The shields consist of

@@ -261,10 +261,10 @@ public class OptionsScreen extends AliteScreen {
 			cobra.addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_SYSTEM));
 			cobra.addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.LARGE_CARGO_BAY));
 			cobra.setMissiles(4);
-			cobra.setLaser(PlayerCobra.DIR_FRONT, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
-			cobra.setLaser(PlayerCobra.DIR_REAR, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
-			cobra.setLaser(PlayerCobra.DIR_LEFT, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
-			cobra.setLaser(PlayerCobra.DIR_RIGHT, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
+			cobra.setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
+			cobra.setLaser(PlayerCobra.DIR_REAR, EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
+			cobra.setLaser(PlayerCobra.DIR_LEFT, EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
+			cobra.setLaser(PlayerCobra.DIR_RIGHT, EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
 
 			game.setGameTime(283216L * 1000L * 1000L * 1000L);
 			try {

@@ -56,7 +56,7 @@ public class SpaceObjectFactory {
 		double rnd = Math.random();
 		double sumWeight = 0;
 		for (SpaceObject object : objects) {
-			int allowedGalaxy = object.getNumericProperty(SpaceObject.Property.galaxy).intValue();
+			int allowedGalaxy = object.getRepoHandler().getNumericProperty(SpaceObject.Property.galaxy).intValue();
 			if (allowedGalaxy == 0 || allowedGalaxy == Alite.get().getGenerator().getCurrentGalaxy()) {
 				sumWeight += getWeight(object, type);
 				if (rnd < sumWeight / totalWeight) {
@@ -70,7 +70,7 @@ public class SpaceObjectFactory {
 	private double getTotalWeight(ObjectType type) {
 		double totalWeight = 0;
 		for (SpaceObject object : objects) {
-			int allowedGalaxy = object.getNumericProperty(SpaceObject.Property.galaxy).intValue();
+			int allowedGalaxy = object.getRepoHandler().getNumericProperty(SpaceObject.Property.galaxy).intValue();
 			if (allowedGalaxy == 0 || allowedGalaxy == Alite.get().getGenerator().getCurrentGalaxy()) {
 				totalWeight += getWeight(object, type);
 			}
@@ -79,7 +79,7 @@ public class SpaceObjectFactory {
 	}
 
 	private double getWeight(SpaceObject so, ObjectType type) {
-		for (String role: so.getStringProperty(SpaceObject.Property.roles).split(" ")) {
+		for (String role: so.getRepoHandler().getStringProperty(SpaceObject.Property.roles).split(" ")) {
 			int roleLength = type.toString().length();
 			role = role.toLowerCase().replace("-", "");
 			if (role.startsWith(type.toString().toLowerCase())) {
@@ -109,7 +109,7 @@ public class SpaceObjectFactory {
 	}
 
 	private ObjectType getDefaultRole(SpaceObject so) {
-		for (String role: so.getStringProperty(SpaceObject.Property.roles).split(" ")) {
+		for (String role: so.getRepoHandler().getStringProperty(SpaceObject.Property.roles).split(" ")) {
 			try {
 				int e = role.indexOf('(');
 				return ObjectType.valueOf(e < 0 ? role : role.substring(0, e));
@@ -157,7 +157,7 @@ public class SpaceObjectFactory {
 
 	public void clearLocaleDependentProperties() {
 		for (SpaceObject so : objects) {
-			so.clearLocaleDependentProperties();
+			so.getRepoHandler().clearLocaleDependent();
 		}
 	}
 

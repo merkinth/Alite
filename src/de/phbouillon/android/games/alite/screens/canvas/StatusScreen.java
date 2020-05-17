@@ -29,7 +29,6 @@ import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Equipment;
-import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
@@ -120,14 +119,14 @@ public class StatusScreen extends AliteScreen {
 		int lineColor = ColorScheme.get(ColorScheme.COLOR_ARROW);
 		int textColor = ColorScheme.get(ColorScheme.COLOR_EQUIPMENT_DESCRIPTION);
 
-		Laser front = cobra.getLaser(PlayerCobra.DIR_FRONT);
+		Equipment front = cobra.getLaser(PlayerCobra.DIR_FRONT);
 		if (front != null) {
 			g.drawText(front.getShortName(), SHIP_X + 630, SHIP_Y - 20, textColor, Assets.smallFont);
 			int halfWidth = g.getTextWidth(front.getShortName(), Assets.smallFont) >> 1;
 			g.drawLine(SHIP_X + 630 + halfWidth, SHIP_Y - 10, SHIP_X + 630 + halfWidth, SHIP_Y + 20, lineColor);
 			g.drawArrow(SHIP_X + 630 + halfWidth, SHIP_Y + 20, SHIP_X + 490, SHIP_Y + 20, lineColor, Graphics.ArrowDirection.LEFT);
 		}
-		Laser back = cobra.getLaser(PlayerCobra.DIR_REAR);
+		Equipment back = cobra.getLaser(PlayerCobra.DIR_REAR);
 		if (back != null) {
 			g.drawText(back.getShortName(), SHIP_X + 130, SHIP_Y + 620, textColor, Assets.smallFont);
 			int halfWidth = g.getTextWidth(back.getShortName(), Assets.smallFont) >> 1;
@@ -135,14 +134,14 @@ public class StatusScreen extends AliteScreen {
 			g.drawLine(SHIP_X + 130 + halfWidth, SHIP_Y + 580, SHIP_X + 480, SHIP_Y + 580, lineColor);
 			g.drawArrow(SHIP_X + 480, SHIP_Y + 580, SHIP_X + 480, SHIP_Y + 550, lineColor, Graphics.ArrowDirection.UP);
 		}
-		Laser right = cobra.getLaser(PlayerCobra.DIR_RIGHT);
+		Equipment right = cobra.getLaser(PlayerCobra.DIR_RIGHT);
 		if (right != null) {
 			g.drawText(right.getShortName(), SHIP_X + 1000, SHIP_Y + 420, textColor, Assets.smallFont);
 			int halfWidth = g.getTextWidth(right.getShortName(), Assets.smallFont) >> 1;
 			g.drawLine(SHIP_X + 1000 + halfWidth, SHIP_Y + 390, SHIP_X + 1000 + halfWidth, SHIP_Y + 370, lineColor);
 			g.drawArrow(SHIP_X + 940, SHIP_Y + 370, SHIP_X + 1000 + halfWidth, SHIP_Y + 370, lineColor, Graphics.ArrowDirection.LEFT);
 		}
-		Laser left = cobra.getLaser(PlayerCobra.DIR_LEFT);
+		Equipment left = cobra.getLaser(PlayerCobra.DIR_LEFT);
 		if (left != null) {
 			g.drawText(left.getShortName(), SHIP_X - 250, SHIP_Y + 420, textColor, Assets.smallFont);
 			int halfWidth = g.getTextWidth(left.getShortName(), Assets.smallFont) >> 1;

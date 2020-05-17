@@ -28,7 +28,6 @@ import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.HyperspaceScreen;
@@ -309,8 +308,8 @@ public class TutAdvancedFlying extends TutorialScreen {
 					flight.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
 					Vector3f spawnPosition = flight.getInGameManager().getSpawnManager().getSpawnPosition();
 					adder = SpaceObjectFactory.getInstance().getObjectById("adder");
-					adder.setProperty(SpaceObject.Property.aggression_level, 4L);
-					adder.setProperty(SpaceObject.Property.missiles, 0L);
+					adder.getRepoHandler().setProperty(SpaceObject.Property.aggression_level, 4L);
+					adder.getRepoHandler().setProperty(SpaceObject.Property.missiles, 0L);
 					adder.setCargoCanisterCount(2);
 					flight.getInGameManager().getSpawnManager().spawnEnemyAndAttackPlayer(adder, 0, spawnPosition);
 					adder.addDestructionCallback(3, deltaTime1 -> line.setFinished());
@@ -426,7 +425,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 		Settings.resetButtonPosition();
 		game.getCobra().clearEquipment();
 		game.getCobra().addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP));
-		game.getCobra().setLaser(PlayerCobra.DIR_FRONT, (Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.PULSE_LASER));
+		game.getCobra().setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.get().getEquipmentById(EquipmentStore.PULSE_LASER));
 		game.getCobra().setLaser(PlayerCobra.DIR_RIGHT, null);
 		game.getCobra().setLaser(PlayerCobra.DIR_REAR, null);
 		game.getCobra().setLaser(PlayerCobra.DIR_LEFT, null);

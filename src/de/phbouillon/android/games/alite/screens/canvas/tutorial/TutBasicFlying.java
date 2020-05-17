@@ -181,7 +181,7 @@ public class TutBasicFlying extends TutorialScreen {
 
 		SpaceObject buoy = SpaceObjectFactory.getInstance().getObjectById(BUOY_ID);
 		buoy.setId(id);
-		buoy.setProperty(SpaceObject.Property.name, L.string(name));
+		buoy.setName(name);
 		buoy.setPosition(position);
 		buoy.setHudColor(color);
 		buoy.scale(6.0f);
@@ -451,6 +451,8 @@ public class TutBasicFlying extends TutorialScreen {
 			.setHeight(180).setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(new IMethodHook() {
+			private static final long serialVersionUID = -7205077068988637300L;
+
 			private void writeObject(ObjectOutputStream out) throws IOException {
 				try {
 					AliteLog.d("Writing", "Writing");
@@ -477,6 +479,7 @@ public class TutBasicFlying extends TutorialScreen {
 				// which is not serializable. This causes problems, of course.
 				// Solution: Delete the destruction callbacks before calling write object....
 				blueTarget.addDestructionCallback(6, new IMethodHook() {
+					private static final long serialVersionUID = 170549515892319600L;
 					transient TutorialLine tLine = line;
 
 					private void writeObject(ObjectOutputStream out) throws IOException {
@@ -544,7 +547,7 @@ public class TutBasicFlying extends TutorialScreen {
 					dockingBuoy.setPosition(position);
 					dockingBuoy.setHudColor(0xEF0000);
 					dockingBuoy.setId(DOCKING_BUOY_ID);
-					dockingBuoy.setProperty(SpaceObject.Property.name, L.string(R.string.tutorial_basic_flying_docking_buoy));
+					dockingBuoy.setName(R.string.tutorial_basic_flying_docking_buoy);
 					flight.getInGameManager().addObject(dockingBuoy);
 				}
 			}

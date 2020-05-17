@@ -41,7 +41,9 @@ public interface FileIO {
 	void zip(String zipName, String ...fileNames) throws IOException;
 	void unzip(File zipFile, File targetDirectory) throws IOException;
 
-	InputStream readPrivateFile(String fileName) throws IOException;
 	Object getPrivatePath(String fileName) throws IOException;
+	InputStream readPrivateFile(String fileName) throws IOException;
 	boolean existsPrivateFile(String fileName);
+	InputStream readAssetFile(String fileName) throws IOException;
+	boolean existsAssetFile(String fileName);
 }

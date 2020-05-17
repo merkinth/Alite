@@ -40,6 +40,7 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.LaserManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.SpaceObjectTraverser;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 import java.io.*;
 
@@ -386,7 +387,8 @@ public class Alite extends AndroidGame {
 				private static final long serialVersionUID = -1697212661349348004L;
 				@Override
 				public boolean handle(SpaceObject so) {
-					so.refreshLocaleDependentProperties();
+					SpaceObjectFactory.getInstance().getTemplateObject(so.getId()).getRepoHandler().
+						copyLocaleDependentTo(so.getRepoHandler());
 					return false;
 				}
 			});

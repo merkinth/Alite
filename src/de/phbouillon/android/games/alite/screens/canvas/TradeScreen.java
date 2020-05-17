@@ -101,17 +101,21 @@ public abstract class TradeScreen extends AliteScreen {
 	}
 
 	private void computeCurrentFrame() {
+		if (selectionIndex < 0 || selectionIndex >= tradeButton.size()) {
+			return;
+		}
+		int maxFrames = tradeButton.get(selectionIndex).getFrameCount();
 		if (!continuousAnimation) {
 			if (selectionTimer.hasPassedSeconds(5)) {
 				currentFrame = 0;
 			}
-			if (currentFrame > 15) {
+			if (currentFrame > maxFrames) {
 				return;
 			}
 		}
 		if (selectionTimer.hasPassedMillis(42)) { // 1/24 second
 			currentFrame++;
-			if (continuousAnimation && currentFrame > 15) {
+			if (continuousAnimation && currentFrame > maxFrames) {
 				currentFrame = 1;
 			}
 		}

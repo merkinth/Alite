@@ -1,0 +1,274 @@
+(
+	(
+		0, -1, "equip_short_fuel",
+		"EQ_FUEL",
+		"equip_fuel",
+		{
+			available_to_all = true;
+			condition_script = "oolite-conditions.js";
+			requires_non_full_fuel = true;
+			icon = "equipment_icons/fuel";
+		}
+	),
+	(
+		0, 300, "equip_short_missile",
+		"EQ_MISSILE",
+		"equip_missiles",
+		{
+			available_to_all = true;
+			condition_script = "oolite-conditions.js";
+			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
+			requires_empty_pylon = true;
+			/* NOTE: this is always zero for pylon-mounted equipment */
+			damage_probability = 0;
+			icon = "equipment_icons/missiles";
+		}
+	),
+	(
+		0, 4000, "equip_short_large_cargo_bay",
+		"EQ_CARGO_BAY",
+		"equip_large_cargo_bay",
+		{
+			condition_script = "oolite-conditions.js";
+			damage_probability = 0;
+			icon = "equipment_icons/large_cargo_bay";
+		}
+	),
+	(
+		1, 6000, "equip_short_ecm_system",
+		"EQ_ECM",
+		"equip_ecm_system",
+		{
+			condition_script = "oolite-conditions.js";
+			icon = "equipment_icons/ecm";
+			lost_sound = "lost_ecm";
+		}
+	),
+	(
+		2, 4000, "equip_short_pulse_laser",
+		"EQ_WEAPON_PULSE_LASER",
+		"equip_pulse_laser",
+		{
+			condition_script = "oolite-conditions.js";
+			available_to_all = true;
+			weapon_info = {
+				range = 12500;
+				energy = 0.0;
+				damage = 5.0;
+				recharge_rate = 0.6;
+				shot_temperature = 7.0;
+				color = "yellowColor";
+				threat_assessment = 0.0;
+				crosshairs = "radar_final pulse_laser";
+				beam_length = 150;
+			};
+			icon = "equipment_icons/pulse_laser";
+		}
+	),
+	(
+		3, 10000, "equip_short_beam_laser",
+		"EQ_WEAPON_BEAM_LASER",
+		"equip_beam_laser",
+		{
+			condition_script = "oolite-conditions.js";
+			available_to_all = true;
+			weapon_info = {
+				range = 15000;
+				energy = 0.0;
+				damage = 9.0;
+				recharge_rate = 0.36;
+				shot_temperature = 3.2;
+				color = "blueColor";
+				threat_assessment = 0.5;
+				crosshairs = "radar_final beam_laser";
+				beam_length = 15000;
+			};
+			icon = "equipment_icons/beam_laser";
+		}
+	),
+	(
+		4, 5250, "equip_short_fuel_scoop",
+		"EQ_FUEL_SCOOPS",
+		"equip_fuel_scoop",
+		{
+			condition_script = "oolite-conditions.js";
+			provides = ("EQ_CARGO_SCOOPS");
+			icon = "equipment_icons/fuel_scoop";
+			lost_sound = "lost_fuel_scoop";
+		}
+	),
+	(
+		5, 10000, "equip_short_escape_capsule",
+		"EQ_ESCAPE_POD",
+		"equip_escape_capsule",
+		{
+			condition_script = "oolite-conditions.js";
+			icon = "equipment_icons/escape_capsule";
+			lost_sound = "lost_escape";
+		}
+	),
+	(
+		6, 9000, "equip_short_energy_bomb",
+		"EQ_ENERGY_BOMB",
+		"equip_energy_bomb",
+		{
+			condition_script = "oolite-conditions.js";
+			icon = "equipment_icons/energy_bomb";
+			lost_sound = "lost_bomb";
+		}
+	),
+	(
+		7, 15000, "equip_short_extra_energy_unit",
+		"EQ_ENERGY_UNIT",
+		"equip_extra_energy_unit",
+		{
+			condition_script = "oolite-conditions.js";
+			incompatible_with_equipment = "EQ_NAVAL_ENERGY_UNIT";
+			script_info = {
+				"oolite_energy_recharge_multiplier" = 1.8;
+			};
+			icon = "equipment_icons/extra_energy_unit";
+			lost_sound = "lost_energy";
+		}
+	),
+	(
+		100, 500000, "equip_short_naval_energy_unit",
+		"EQ_NAVAL_ENERGY_UNIT",
+		"equip_naval_energy_unit",
+		{
+			condition_script = "oolite-conditions.js";
+			script_info = {
+				"oolite_energy_recharge_multiplier" = 2.6;
+			};
+		}
+	),
+	(
+		8, 15000, "equip_short_docking_computer",
+		"EQ_DOCK_COMP",
+		"equip_docking_computer",
+		{
+			condition_script = "oolite-conditions.js";
+			icon = "equipment_icons/docking_computer";
+			lost_sound = "lost_docking";
+		}
+	),
+	(
+		9, 50000, "equip_short_galactic_hyperdrive",
+		"EQ_GAL_DRIVE",
+		"equip_galactic_hyperdrive",
+		{
+			condition_script = "oolite-conditions.js";
+			available_to_all = true;
+			icon = "equipment_icons/galactic_hyperdrive";
+			lost_sound = "lost_galactic";
+		}
+	),
+	(
+		9, 8000, "equip_short_mining_laser",
+		"EQ_WEAPON_MINING_LASER",
+		"equip_mining_laser",
+		{
+			condition_script = "oolite-conditions.js";
+			available_to_all = true;
+			weapon_info = {
+				range = 12500;
+				energy = 0.0;
+				damage = 7.0;
+				recharge_rate = 0.48;
+				shot_temperature = 10.0;
+				color = "greenColor";
+				is_mining_laser = 1;
+				threat_assessment = -0.5;
+				crosshairs = "radar_final mining_laser";
+				beam_length = 150;
+			};
+			icon = "equipment_icons/mining_laser";
+		}
+	),
+	(
+		9, 60000, "equip_short_military_laser",
+		"EQ_WEAPON_MILITARY_LASER",
+		"equip_military_laser",
+		{
+			condition_script = "oolite-conditions.js";
+			available_to_all = true;
+			weapon_info = {
+				range = 30000;
+				energy = 0.0;
+				damage = 11.0;
+				recharge_rate = 0.18;
+				shot_temperature = 4.25;
+				color = "magentaColor";
+				threat_assessment = 1.0;
+				crosshairs = "radar_final military_laser";
+				beam_length = 15000;
+			};
+			icon = "equipment_icons/military_laser";
+		}
+	),
+	(
+		9, 80000, "equip_short_retro_rockets",
+		"EQ_RETRO_ROCKETS",
+		"equip_retro_rockets",
+		{
+			condition_script = "oolite-conditions.js";
+			icon = "equipment_icons/retro_rockets";
+			lost_sound = "lost_retro_rockets";
+		}
+	),
+	(
+		100, 500000, "equip_short_cloaking_device",
+		"EQ_CLOAKING_DEVICE",
+		"equip_cloaking_device",
+		{
+			condition_script = "oolite-conditions.js";
+			portable_between_ships = true;
+			script = "oolite-cloaking-device-equipment.js";
+			fast_affinity_defensive = true; // tries to bind to '0' key if nothing else using it
+			available_to_all = true;
+		}
+	),
+	(
+		100, 500000, "equip_short_ecm_jammer",
+		"EQ_ECM_JAMMER",
+		"equip_ecm_jammer",
+		{
+			condition_script = "oolite-conditions.js";
+		}
+	),
+	(
+		100, 150000, "Thargoid Laser",
+		"EQ_WEAPON_THARGOID_LASER",
+		"Captured Thargoid weapon, self-aiming.",
+		{
+			available_to_player = false;
+			weapon_info = {
+				range = 17500;
+				energy = 1.1;
+				damage = 12.5;
+				recharge_rate = 1.0;
+				shot_temperature = 8.0;
+				color = "greenColor";
+				is_turret_laser = true;
+				threat_assessment = 1.0;
+			};
+		}
+	),
+	(
+		100, 0, "Remove Laser",
+		"EQ_WEAPON_NONE",
+		"Remove laser weapon from selected mounting.",
+		{
+			condition_script = "oolite-conditions.js";
+			available_to_all = true;
+			weapon_info = {
+				range = 32000;
+				energy = 0.0;
+				damage = 0.0;
+				recharge_rate = 100.0;
+				shot_temperature = 0.0;
+				threat_assessment = -1.0;
+			};
+		}
+	)
+)

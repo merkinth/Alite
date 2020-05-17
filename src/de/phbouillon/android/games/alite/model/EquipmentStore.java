@@ -18,32 +18,29 @@ package de.phbouillon.android.games.alite.model;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import android.graphics.Color;
 import de.phbouillon.android.games.alite.R;
-import de.phbouillon.android.games.alite.model.statistics.WeaponType;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class EquipmentStore {
-	public static final int FUEL = 0;
-	public static final int MISSILES = 1;
-	public static final int LARGE_CARGO_BAY = 2;
-	public static final int ECM_SYSTEM = 3;
-	public static final int PULSE_LASER = 4;
-	public static final int BEAM_LASER = 5;
-	public static final int FUEL_SCOOP = 6;
-	public static final int ESCAPE_CAPSULE = 7;
-	public static final int ENERGY_BOMB = 8;
-	public static final int EXTRA_ENERGY_UNIT = 9;
-	public static final int DOCKING_COMPUTER = 10;
-	public static final int GALACTIC_HYPERDRIVE = 11;
-	public static final int MINING_LASER = 12;
-	public static final int MILITARY_LASER = 13;
-	public static final int RETRO_ROCKETS = 14;
-	public static final int NAVAL_ENERGY_UNIT = 15;
-	public static final int CLOAKING_DEVICE = 16;
-	public static final int ECM_JAMMER = 17;
+	public static final String FUEL = "EQ_FUEL";
+	public static final String MISSILES = "EQ_MISSILE";
+	public static final String LARGE_CARGO_BAY = "EQ_CARGO_BAY";
+	public static final String ECM_SYSTEM = "EQ_ECM";
+	public static final String PULSE_LASER = "EQ_WEAPON_PULSE_LASER";
+	public static final String BEAM_LASER = "EQ_WEAPON_BEAM_LASER";
+	public static final String FUEL_SCOOP = "EQ_FUEL_SCOOPS";
+	public static final String ESCAPE_CAPSULE = "EQ_ESCAPE_POD";
+	public static final String ENERGY_BOMB = "EQ_ENERGY_BOMB";
+	public static final String EXTRA_ENERGY_UNIT = "EQ_ENERGY_UNIT";
+	public static final String DOCKING_COMPUTER = "EQ_DOCK_COMP";
+	public static final String GALACTIC_HYPERDRIVE = "EQ_GAL_DRIVE";
+	public static final String MINING_LASER = "EQ_WEAPON_MINING_LASER";
+	public static final String MILITARY_LASER = "EQ_WEAPON_MILITARY_LASER";
+	public static final String RETRO_ROCKETS = "EQ_RETRO_ROCKETS";
+	public static final String NAVAL_ENERGY_UNIT = "EQ_NAVAL_ENERGY_UNIT";
+	public static final String CLOAKING_DEVICE = "EQ_CLOAKING_DEVICE";
+	public static final String ECM_JAMMER = "EQ_ECM_JAMMER";
 
 	private static EquipmentStore instance;
 	private final List<Equipment> equipments = new ArrayList<>();
@@ -56,25 +53,6 @@ public class EquipmentStore {
 	}
 
 	private EquipmentStore() {
-		equipments.add(new Equipment(FUEL, R.string.equip_fuel, -1, R.string.equip_short_fuel));
-		equipments.add(new Equipment(MISSILES,R.string.equip_missiles, 300, R.string.equip_short_missiles));
-		equipments.add(new Equipment(LARGE_CARGO_BAY, R.string.equip_large_cargo_bay, 4000, R.string.equip_short_large_cargo_bay));
-		equipments.add(new Equipment(ECM_SYSTEM, R.string.equip_ecm_system, 6000, R.string.equip_short_ecm_system, "lost_ecm"));
-		equipments.add(new Laser(PULSE_LASER, R.string.equip_pulse_laser, 4000, R.string.equip_short_pulse_laser, WeaponType.PulseLaser, 598802395L, 5, Color.YELLOW, false));
-		equipments.add(new Laser(BEAM_LASER, R.string.equip_beam_laser, 10000, R.string.equip_short_beam_laser, WeaponType.BeamLaser, 359281437L, 9, Color.BLUE, true));
-		equipments.add(new Equipment(FUEL_SCOOP, R.string.equip_fuel_scoop, 5250, R.string.equip_short_fuel_scoop, "lost_fuel_scoop"));
-		equipments.add(new Equipment(ESCAPE_CAPSULE, R.string.equip_escape_capsule, 10000, R.string.equip_short_escape_capsule, "lost_escape"));
-		equipments.add(new Equipment(ENERGY_BOMB, R.string.equip_energy_bomb, 9000, R.string.equip_short_energy_bomb, "lost_bomb"));
-		equipments.add(new Equipment(EXTRA_ENERGY_UNIT, R.string.equip_extra_energy_unit, 15000, R.string.equip_short_extra_energy_unit, "lost_energy"));
-		equipments.add(new Equipment(DOCKING_COMPUTER, R.string.equip_docking_computer, 15000, R.string.equip_short_docking_computer, "lost_docking"));
-		equipments.add(new Equipment(GALACTIC_HYPERDRIVE, R.string.equip_galactic_hyperdrive, 50000, R.string.equip_short_galactic_hyperdrive, "lost_galactic"));
-		equipments.add(new Laser(MINING_LASER, R.string.equip_mining_laser, 8000, R.string.equip_short_mining_laser, WeaponType.MiningLaser, 479041916L, 7, Color.GREEN, false));
-		equipments.add(new Laser(MILITARY_LASER, R.string.equip_military_laser, 60000, R.string.equip_short_military_laser, WeaponType.MilitaryLaser, 179640718L, 11, Color.MAGENTA, true));
-		equipments.add(new Equipment(RETRO_ROCKETS, R.string.equip_retro_rockets, 80000, R.string.equip_short_retro_rockets, "lost_retro_rockets"));
-
-		equipments.add(new Equipment(NAVAL_ENERGY_UNIT, R.string.equip_naval_energy_unit, 15000, R.string.equip_short_naval_energy_unit));
-		equipments.add(new Equipment(CLOAKING_DEVICE, R.string.equip_cloaking_device, 150000, R.string.equip_short_cloaking_device));
-		equipments.add(new Equipment(ECM_JAMMER, R.string.equip_ecm_jammer, 150000, R.string.equip_short_ecm_jammer));
 	}
 
 	public Equipment getEquipment(int index) {
@@ -85,15 +63,20 @@ public class EquipmentStore {
 		equipments.add(equipment);
 	}
 
-	public Equipment getEquipmentById(int id) {
-		if (id < 0) {
-			return null;
-		}
+	public Equipment getEquipmentById(String name) {
+		return getEquipmentByHash(Equipment.getEquipmentId(name));
+	}
+
+	public Equipment getEquipmentByHash(int id) {
 		for(Equipment equipment : equipments) {
 			if (equipment.getId() == id) {
 				return equipment;
 			}
 		}
 		return null;
+	}
+
+	public Iterator<Equipment> getIterator() {
+		return equipments.iterator();
 	}
 }

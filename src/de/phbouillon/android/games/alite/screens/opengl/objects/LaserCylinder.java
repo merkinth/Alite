@@ -31,8 +31,7 @@ import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.colors.AliteColor;
-import de.phbouillon.android.games.alite.model.Laser;
-import de.phbouillon.android.games.alite.screens.opengl.ingame.LaserManager;
+import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.MathHelper;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 
@@ -44,7 +43,7 @@ public class LaserCylinder extends AliteObject implements Serializable {
 	private static final float [] cos = new float [] {1, sqrt1_2, 0, -sqrt1_2, -1, -sqrt1_2, 0, sqrt1_2};
 	private static final float radius = 8.0f;
 
-	private Laser laser;
+	private Equipment laser;
 	private final List<LaserCylinder> twins = new ArrayList<>();
 	private boolean aiming = false;
 	private SpaceObject origin;
@@ -59,8 +58,8 @@ public class LaserCylinder extends AliteObject implements Serializable {
 	private int removeInNFrames = -1;
 	private String textureFilename = null;
 
-	private float halfLength = 75.0f;
-	private boolean beam = false;
+	private int beamLength = 150;
+	private float halfLength = beamLength >> 1;
 
 	public LaserCylinder() {
 		super("Laser");
@@ -77,12 +76,12 @@ public class LaserCylinder extends AliteObject implements Serializable {
 		texCoordBuffer[1] = GlUtils.allocateFloatBuffer(4 * 2 * 18);
 		texCoordBuffer[2] = GlUtils.allocateFloatBuffer(4 * 2 * 10);
 
-		plotDiskPoints(diskBuffer1, normalBuffer[0], texCoordBuffer[0], radius, radius, 0, 0, -halfLength, false);
+		plotDiskPoints(diskBuffer1, normalBuffer[0], texCoordBuffer[0], radius, radius, 0, 0, -halfLength);
 		plotCylinderPoints(radius, radius, radius, radius, halfLength * 2.0f, 0, 0, -halfLength);
-		plotDiskPoints(diskBuffer2, normalBuffer[2], texCoordBuffer[2], radius, radius, 0, 0, halfLength, true);
+		plotDiskPoints(diskBuffer2, normalBuffer[2], texCoordBuffer[2], radius, radius, 0, 0, halfLength);
 		boundingSphereRadius = halfLength;
 		setZPositioningMode(ZPositioning.Front);
-		setSpeed(-LaserManager.LASER_SPEED);
+		setSpeed(calcSpeed());
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
@@ -101,9 +100,9 @@ public class LaserCylinder extends AliteObject implements Serializable {
 			texCoordBuffer[0] = GlUtils.allocateFloatBuffer(4 * 2 * 10);
 			texCoordBuffer[1] = GlUtils.allocateFloatBuffer(4 * 2 * 18);
 			texCoordBuffer[2] = GlUtils.allocateFloatBuffer(4 * 2 * 10);
-			plotDiskPoints(diskBuffer1, normalBuffer[0], texCoordBuffer[0], radius, radius, 0, 0, -halfLength, false);
+			plotDiskPoints(diskBuffer1, normalBuffer[0], texCoordBuffer[0], radius, radius, 0, 0, -halfLength);
 			plotCylinderPoints(radius, radius, radius, radius, halfLength * 2, 0, 0, -halfLength);
-			plotDiskPoints(diskBuffer2, normalBuffer[2], texCoordBuffer[2], radius, radius, 0, 0, halfLength, true);
+			plotDiskPoints(diskBuffer2, normalBuffer[2], texCoordBuffer[2], radius, radius, 0, 0, halfLength);
 			AliteLog.d("readObject", "LaserCylinder.readObject II");
 		} catch (ClassNotFoundException e) {
 			AliteLog.e("Class not found", e.getMessage(), e);
@@ -172,13 +171,13 @@ public class LaserCylinder extends AliteObject implements Serializable {
 		GLES11.glDisable(GLES11.GL_BLEND);
 	}
 
-	public void setBeam(boolean beam) {
-		if (this.beam == beam) {
+	public void setBeam(int beamLength) {
+		if (this.beamLength == beamLength) {
 			return;
 		}
-		this.beam = beam;
-		halfLength = beam ? 7500.0f : 75.0f;
-		setSpeed(-(beam ? LaserManager.LASER_BEAM_SPEED : LaserManager.LASER_SPEED));
+		this.beamLength = beamLength;
+		halfLength = beamLength >> 1;
+		setSpeed(calcSpeed());
 		diskBuffer1.clear();
 		cylinderBuffer.clear();
 		diskBuffer2.clear();
@@ -188,10 +187,16 @@ public class LaserCylinder extends AliteObject implements Serializable {
 		texCoordBuffer[0].clear();
 		texCoordBuffer[1].clear();
 		texCoordBuffer[2].clear();
-		plotDiskPoints(diskBuffer1, normalBuffer[0], texCoordBuffer[0], radius, radius, 0, 0, -halfLength, false);
+		plotDiskPoints(diskBuffer1, normalBuffer[0], texCoordBuffer[0], radius, radius, 0, 0, -halfLength);
 		plotCylinderPoints(radius, radius, radius, radius, halfLength * 2, 0, 0, -halfLength);
-		plotDiskPoints(diskBuffer2, normalBuffer[2], texCoordBuffer[1], radius, radius, 0, 0, halfLength, true);
+		plotDiskPoints(diskBuffer2, normalBuffer[2], texCoordBuffer[1], radius, radius, 0, 0, halfLength);
 		boundingSphereRadius = halfLength;
+	}
+
+	// Exponential approximation based on the two original length - speed value pairs:
+	// 15000 - 124000 for beam lasers (beam and military) and 150 - 12400 for non beam lasers (pulse and mining)
+	private float calcSpeed() {
+		return (float) (-1012.5 * Math.sqrt(beamLength));
 	}
 
 	public void setVisible(boolean b) {
@@ -229,7 +234,7 @@ public class LaserCylinder extends AliteObject implements Serializable {
 			Color.blue(color) == Color.blue(colorPattern);
 	}
 
-	private void plotDiskPoints(FloatBuffer diskBuffer, FloatBuffer normalBuffer, FloatBuffer texCoordBuffer, float rx, float ry, float x, float y, float z, boolean back) {
+	private void plotDiskPoints(FloatBuffer diskBuffer, FloatBuffer normalBuffer, FloatBuffer texCoordBuffer, float rx, float ry, float x, float y, float z) {
 		 diskBuffer.put(x);
 		 diskBuffer.put(y);
 		 diskBuffer.put(z);
@@ -302,11 +307,11 @@ public class LaserCylinder extends AliteObject implements Serializable {
 		texCoordBuffer[1].position(0);
 	}
 
-	public Laser getLaser() {
+	public Equipment getLaser() {
 		return laser;
 	}
 
-	public void setLaser(Laser laser) {
+	public void setLaser(Equipment laser) {
 		this.laser = laser;
 	}
 

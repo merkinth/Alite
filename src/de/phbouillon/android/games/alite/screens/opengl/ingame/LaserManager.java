@@ -38,17 +38,14 @@ import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.model.missions.ThargoidStationMission;
-import de.phbouillon.android.games.alite.model.statistics.WeaponType;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.Explosion;
 import de.phbouillon.android.games.alite.screens.opengl.objects.LaserCylinder;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectAI;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteHud;
 
@@ -57,23 +54,11 @@ public class LaserManager implements Serializable {
 
 	private static final long  NAVAL_REFRESH_RATE    = 898203592L;
 	private static final long  NORMAL_REFRESH_RATE   = 1437125748L;
-	public  static final float MAX_ENEMY_DISTANCE_SQ = 603979776; // (16384 + 8192) squared
-
-	public  static final int   MAX_LASERS            = 500;
-	public  static final float LASER_SPEED           = 12400.0f;
-	public  static final float LASER_BEAM_SPEED      = 124000.0f;
+	private static final int   MAX_LASERS            = 500;
 	private static final float DIST_FRONT            = -10.0f;
 	private static final float DIST_RIGHT            = 30.0f;
 	private static final float DIST_CONVERGE         = 24000.0f;
-
-	// Oolite default values are:
-	// WEAPON_PLASMA_CANNON = 6.0;
-	// WEAPON_PULSE_LASER = 15.0;
-	// WEAPON_BEAM_LASER = 15.0;
-	// WEAPON_MINING_LASER = 50.0;
-	// WEAPON_THARGOID_LASER = 12.5;
-	// WEAPON_MILITARY_LASER = 23.0
-	private static final int DAMAGE_LASER_HIT = 8; // weapon_energy / subentities type=ball_turret weapon_energy
+	private static final float WEAPON_COOLING_FACTOR = 6;
 
 	private transient Alite alite;
 	private final Vector3f shotOrigin;
@@ -155,9 +140,9 @@ public class LaserManager implements Serializable {
 		return -1.0f;
 	}
 
-	private void spawnPlatlets(final SpaceObject so, final WeaponType weaponType) {
+	private void spawnPlatlets(final SpaceObject so, final Equipment laser) {
 		int platletCount = Math.random() < 0.9 ? 0 : 1;
-		if (weaponType == WeaponType.MiningLaser) {
+		if (laser != null && laser.isMining()) {
 			platletCount = (int) (Math.random() * (so.getMaxCargoCanisters() + 1));
 		}
 		for (int i = 0; i < platletCount; i++) {
@@ -166,7 +151,7 @@ public class LaserManager implements Serializable {
 		}
 	}
 
-	private void spawnCargoCanisters(final SpaceObject so, int forceCount, WeaponType weaponType) {
+	private void spawnCargoCanisters(final SpaceObject so, int forceCount, Equipment laser) {
 		TradeGood tradeGood = so.getCargoType();
 		AliteLog.d("Spawn Cargo Canisters", so.getId() + " has Cargo type: " + tradeGood.getName() +
 			" and spawns cargo canisters: " + so.getMaxCargoCanisters());
@@ -175,7 +160,7 @@ public class LaserManager implements Serializable {
 		}
 
 		if (so.getType() == ObjectType.Asteroid) {
-			spawnPlatlets(so, weaponType);
+			spawnPlatlets(so, laser);
 			return;
 		}
 		int numberOfCanistersToSpawn = forceCount > 0 ? forceCount : (int) (Math.random() * (so.getMaxCargoCanisters() + 1));
@@ -191,9 +176,13 @@ public class LaserManager implements Serializable {
 		activeExplosions.add(new Explosion(so, inGame));
 	}
 
-	void explode(SpaceObject so, WeaponType weaponType) {
+	void explodeWithCargo(SpaceObject so, Equipment laser) {
 		explode(so);
-		spawnCargoCanisters(so, so.getCargoCanisterOverrideCount(), weaponType);
+		spawnCargoCanisters(so, so.getCargoCanisterOverrideCount(), laser);
+	}
+
+	void explodeWithCargo(SpaceObject so) {
+		explodeWithCargo(so, null);
 	}
 
 	public final boolean isUnderCross(final SpaceObject object) {
@@ -209,19 +198,21 @@ public class LaserManager implements Serializable {
 			case PlayerCobra.DIR_LEFT: ship.getRightVector().copy(shotDirection); shotDirection.negate(); break;
 		}
 		shotDirection.normalize();
-		float d = computeIntersectionDistance(shotDirection, shotOrigin, object.getPosition(), object.getBoundingSphereRadius(), tempVector);
-		if (d > 0.0f && d < AliteHud.MAX_DISTANCE) {
-			float distSq = object.getPosition().distanceSq(ship.getPosition());
-			float scaleFactor = distSq <= SpaceObjectAI.SHOOT_DISTANCE_SQ ? 1.0f :
-				1.0f + 5.0f * ((distSq - SpaceObjectAI.SHOOT_DISTANCE_SQ) / MAX_ENEMY_DISTANCE_SQ);
-			if (scaleFactor > 3.0f) {
-				scaleFactor = 3.0f;
-			} else if (scaleFactor < 1.0f) {
-				scaleFactor = 1.0f;
-			}
-			return object.intersect(shotOrigin, shotDirection, scaleFactor);
-		}
-		return false;
+		return isIntersect(object, AliteHud.MAX_DISTANCE, false);
+	}
+
+	private boolean isIntersect(SpaceObject object, float distanceToNextShot, boolean scaleRadius) {
+		float scaleFactor = getScaleFactor(object);
+		float intersectionDistance = computeIntersectionDistance(shotDirection, shotOrigin, object.getPosition(),
+			object.getBoundingSphereRadius() * (scaleRadius ? scaleFactor : 1), tempVector);
+		return intersectionDistance > 0 && intersectionDistance <= distanceToNextShot &&
+			object.intersect(shotOrigin, shotDirection, scaleFactor);
+	}
+
+	private float getScaleFactor(SpaceObject object) {
+		float distSqDiff = object.getPosition().distanceSq(inGame.getShip().getPosition()) - SpaceObject.TARGETING_DISTANCE_SQ;
+		float scaleFactor = distSqDiff <= 0 ? 1.0f : 1.0f + 5.0f * distSqDiff / AliteHud.MAX_DISTANCE_SQ;
+		return scaleFactor > 3.0f ? 3.0f : scaleFactor < 1.0f ? 1.0f : scaleFactor;
 	}
 
 	private void loseCargo() {
@@ -267,12 +258,13 @@ public class LaserManager implements Serializable {
 		damageShip(amount, front);
 	}
 
-	void damageShip(int amount, boolean front) {
+	void damageShip(float amount, boolean front) {
 		if (!inGame.isPlayerAlive()) {
 			return;
 		}
+		AliteLog.d("damageShip", "Damage " + (front ? "front " : "aft ") + amount);
 		SoundManager.play(Assets.hullDamage);
-		int shield = front ? alite.getCobra().getFrontShield() : alite.getCobra().getRearShield();
+		float shield = front ? alite.getCobra().getFrontShield() : alite.getCobra().getRearShield();
 		if (shield > 0) {
 			if (shield >= amount) {
 				shield -= amount;
@@ -298,7 +290,7 @@ public class LaserManager implements Serializable {
 		}
 		long vbLen = (long) (Settings.vibrateLevel * 30.0f);
 		if (amount > 0) {
-			int newVal = alite.getCobra().getEnergy() - amount;
+			float newVal = alite.getCobra().getEnergy() - amount;
 			if (newVal <= 0) {
 				alite.getCobra().setEnergy(0);
 				inGame.gameOver();
@@ -344,32 +336,13 @@ public class LaserManager implements Serializable {
 		}
 		laser.setVisible(false);
 		laser.clearTwins();
-		damageShip(DAMAGE_LASER_HIT, shotDirection.dot(inGame.getShip().getForwardVector()) >= 0);
+		damageShip(laser.getOrigin().getDamage(), shotDirection.dot(inGame.getShip().getForwardVector()) >= 0);
 	}
 
 	private void checkObjectHit(final LaserCylinder laser, final float distanceToNextShot, List<AliteObject> allObjects) {
 		for (AliteObject eo: allObjects) {
-			if (!(eo instanceof SpaceObject)) {
-				continue;
-			}
-			if (laser.getOrigin() == eo) {
-				continue;
-			}
-			if (((SpaceObject) eo).isCloaked()) {
-				continue;
-			}
-			float distSq = eo.getPosition().distanceSq(inGame.getShip().getPosition());
-			float scaleFactor = distSq <= SpaceObjectAI.SHOOT_DISTANCE_SQ ? 1.0f :
-				1.0f + 5.0f * ((distSq - SpaceObjectAI.SHOOT_DISTANCE_SQ) / MAX_ENEMY_DISTANCE_SQ);
-			if (scaleFactor > 3.0f) {
-				scaleFactor = 3.0f;
-			} else if (scaleFactor < 1.0f) {
-				scaleFactor = 1.0f;
-			}
-			float intersectionDistance = computeIntersectionDistance(shotDirection, shotOrigin, eo.getPosition(),
-				eo.getBoundingSphereRadius() * scaleFactor, tempVector);
-			if (intersectionDistance <= 0 || intersectionDistance > distanceToNextShot ||
-					!((SpaceObject) eo).intersect(shotOrigin, shotDirection, scaleFactor)) {
+			if (!(eo instanceof SpaceObject) || laser.getOrigin() == eo || ((SpaceObject) eo).isCloaked() ||
+					!isIntersect((SpaceObject) eo, distanceToNextShot, true)) {
 				continue;
 			}
 			// Make sure the laser is at least rendered once...
@@ -383,13 +356,13 @@ public class LaserManager implements Serializable {
 				if (Settings.laserPowerOverride != 0) {
 					alite.getPlayer().setCheater(true);
 				}
-				float hullStrength = ((SpaceObject) eo).applyDamage(laser.getLaser().getPower() + Settings.laserPowerOverride);
+				float hullStrength = ((SpaceObject) eo).applyDamage(laser.getLaser().getDamage() + Settings.laserPowerOverride);
 				if (hullStrength <= 0) {
 					if (laser.getOrigin() == null) {
 						// Player has destroyed something
 						inGame.computeBounty((SpaceObject) eo);
 					}
-					explode((SpaceObject) eo, laser.getLaser().getWeaponType());
+					explodeWithCargo((SpaceObject) eo, laser.getLaser());
 					eo.setRemove(true);
 				}
 			}
@@ -404,7 +377,8 @@ public class LaserManager implements Serializable {
 			if (laser.isVisible()) {
 				laser.getPosition().copy(shotOrigin); // Origin of shot
 				laser.moveForward(deltaTime, laser.getInitialDirection());
-				Vector3f laserPos = laser.getPosition();
+				laser.getPosition().sub(inGame.getShip().getPosition(), tempVector);
+				float distanceSq = tempVector.lengthSq();
 				laser.getPosition().copy(shotDirection);
 				shotDirection.sub(shotOrigin);
 				float distanceToNextShot = shotDirection.length();
@@ -415,11 +389,7 @@ public class LaserManager implements Serializable {
 				if (laser.getOrigin() == null && laser.getRemoveInNFrames() == -1) {
 					checkObjectHit(laser, distanceToNextShot, allObjects);
 				}
-				Vector3f shipPos  = inGame.getShip().getPosition();
-				float distanceSq = (laserPos.x - shipPos.x) * (laserPos.x - shipPos.x) +
-					           (laserPos.y - shipPos.y) * (laserPos.y - shipPos.y) +
-					           (laserPos.z - shipPos.z) * (laserPos.z - shipPos.z);
-				if (distanceSq > 1936000000.0f) {
+				if (distanceSq > AliteHud.MAX_DISTANCE_SQ) {
 					laser.setVisible(false);
 					laserPool.free(laser);
 					laserIterator.remove();
@@ -463,7 +433,7 @@ public class LaserManager implements Serializable {
 			float zd = tempVecArray2[2] - tempVector.z + off * DIST_RIGHT * so.getRightVector().z;
 			LaserCylinder laser = laserPool.newObject();
 			laser.reset();
-			laser.setBeam(false);
+			laser.setBeam(150);
 			laser.setColor(so.getLaserColor());
 			laser.clearTwins();
 			laser.setPosition(tempVecArray2[0], tempVecArray2[1], tempVecArray2[2]);
@@ -473,7 +443,7 @@ public class LaserManager implements Serializable {
 			laser.setRightVector(tempVector);
 			laser.setUpVector(so.getUpVector());
 			laser.setVisible(true);
-			laser.setLaser((Laser) EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
+			laser.setLaser(EquipmentStore.get().getEquipmentById(EquipmentStore.MILITARY_LASER));
 			laser.setOrigin(so);
 			laser.setAiming(false);
 			activeLasers.add(laser);
@@ -507,20 +477,13 @@ public class LaserManager implements Serializable {
 			ship.getForwardVector().copy(laserRight);
 			laserRight.negate();
 		}
-
-		if (!Settings.laserDoesNotOverheat) {
-			alite.getCobra().setLaserTemperature(alite.getCobra().getLaserTemperature() + 1);
-		}
-		if (alite.getCobra().getLaserTemperature() == 40 && lockTime.hasPassedSeconds(5)) {
-			SoundManager.play(Assets.com_laserTemperatureCritical);
-			inGame.setMessage(L.string(R.string.com_laser_temperature_critical));
-		}
 	}
 
-	private LaserCylinder spawnPlayerLaserCylinder(Laser laser, float x, float y, float z, float xd, float yd, float zd, boolean aiming) {
+	private LaserCylinder spawnPlayerLaserCylinder(Equipment laser, float x, float y, float z,
+			float xd, float yd, float zd, boolean aiming) {
 		LaserCylinder laserCylinder = laserPool.newObject();
 		laserCylinder.reset();
-		laserCylinder.setBeam(laser.isBeam());
+		laserCylinder.setBeam(laser.getBeamLength());
 		laserCylinder.setColor(laser.getColor());
 		laserCylinder.clearTwins();
 		laserCylinder.setOrigin(null);
@@ -538,7 +501,7 @@ public class LaserManager implements Serializable {
 		return laserCylinder;
 	}
 
-	private void playerFireLaserCylinder(Laser laser) {
+	private void playerFireLaserCylinder(Equipment laser) {
 		Vector3f shipPos = inGame.getShip().getPosition();
 		float x = shipPos.x + laserForward.x * DIST_FRONT + laserRight.x * DIST_RIGHT;
 		float y = shipPos.y + laserForward.y * DIST_FRONT+ laserRight.y * DIST_RIGHT;
@@ -577,12 +540,20 @@ public class LaserManager implements Serializable {
 		if (alite.getCobra().getLaserTemperature() >= PlayerCobra.MAX_LASER_TEMPERATURE) {
 			return;
 		}
-		Laser laser = alite.getCobra().getLaser(inGame.getViewDirection());
+		Equipment laser = alite.getCobra().getLaser(inGame.getViewDirection());
 		if (laser == null || !laser.fire()) {
 			return;
 		}
 
 		computeLaserVectors();
+		if (!Settings.laserDoesNotOverheat) {
+			alite.getCobra().setLaserTemperature(alite.getCobra().getLaserTemperature() + laser.getShotTemperature());
+		}
+		if (alite.getCobra().isLaserJustOverheated() && lockTime.hasPassedSeconds(5)) {
+			SoundManager.play(Assets.com_laserTemperatureCritical);
+			inGame.setMessage(L.string(R.string.com_laser_temperature_critical));
+		}
+		inGame.reduceShipEnergy(laser.getEnergy());
 		playerFireLaserCylinder(laser);
 	}
 
@@ -600,9 +571,9 @@ public class LaserManager implements Serializable {
 				if (event.delay != nd) {
 					event.updateDelay(nd);
 				}
-				alite.getCobra().setLaserTemperature(alite.getCobra().getLaserTemperature() - 1);
+				alite.getCobra().setLaserTemperature(alite.getCobra().getLaserTemperature() - WEAPON_COOLING_FACTOR);
 
-				int energy = alite.getCobra().getEnergy();
+				float energy = alite.getCobra().getEnergy();
 				boolean updateFrontRearShields = energy == PlayerCobra.MAX_ENERGY ||
 					alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.EXTRA_ENERGY_UNIT)) ||
 					alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.NAVAL_ENERGY_UNIT));
@@ -623,7 +594,7 @@ public class LaserManager implements Serializable {
 		if (!inGame.isPlayerAlive()) {
 			return;
 		}
-		int energy = alite.getCobra().getEnergy();
+		float energy = alite.getCobra().getEnergy();
 		if (energy < PlayerCobra.MAX_ENERGY_BANK) {
 			AliteLog.d("EnergyLow", "EnergyLow! -- Playing? " + SoundManager.isPlaying(Assets.energyLow));
 		}
@@ -641,8 +612,7 @@ public class LaserManager implements Serializable {
 	}
 
 	public void setAutoFire(boolean b) {
-		Laser laser = alite.getCobra().getLaser(inGame.getViewDirection());
-		if (laser == null) {
+		if (alite.getCobra().getLaser(inGame.getViewDirection()) == null) {
 			autoFire = false;
 			return;
 		}

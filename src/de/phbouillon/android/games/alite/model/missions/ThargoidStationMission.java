@@ -129,7 +129,7 @@ public class ThargoidStationMission extends Mission implements Serializable {
 			public void execute(float deltaTime) {
 				SpaceObject station = manager.getInGameManager().getStation();
 				station.setId(ALIEN_SPACE_STATION);
-				station.setProperty(SpaceObject.Property.name, L.string(R.string.thargoid_station_name));
+				station.setName(R.string.thargoid_station_name);
 				station.setHullStrength(1024);
 				station.denyAccess();
 				station.addDestructionCallback(2, new IMethodHook() {

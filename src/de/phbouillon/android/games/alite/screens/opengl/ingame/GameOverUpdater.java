@@ -24,7 +24,6 @@ import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
-import de.phbouillon.android.games.alite.model.statistics.WeaponType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
@@ -95,7 +94,7 @@ class GameOverUpdater implements IMethodHook {
 	private void destroyShip() {
 		if (needsDestruction) {
 			cobra.setHullStrength(0);
-			inGame.getLaserManager().explode(cobra, WeaponType.BeamLaser);
+			inGame.getLaserManager().explodeWithCargo(cobra);
 			needsDestruction = false;
 		}
 		if (startTime.hasPassedSeconds(10)) {

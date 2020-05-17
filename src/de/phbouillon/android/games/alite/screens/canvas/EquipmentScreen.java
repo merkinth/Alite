@@ -18,7 +18,9 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import java.io.File;
 import java.io.IOException;
+import java.util.*;
 
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
@@ -26,7 +28,6 @@ import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -35,25 +36,8 @@ import de.phbouillon.android.games.alite.model.missions.Mission;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class EquipmentScreen extends TradeScreen {
 	private int mountLaserPosition = -1;
-	private static Pixmap[][] equipment;
+	private static Map<Integer,List<Pixmap>> equipment;
 	private Equipment equippedEquipment = null;
-
-	private static final String[] paths = {
-			"equipment_icons/fuel",
-			"equipment_icons/missiles",
-			"equipment_icons/large_cargo_bay",
-			"equipment_icons/ecm",
-			"equipment_icons/pulse_laser",
-			"equipment_icons/beam_laser",
-			"equipment_icons/fuel_scoop",
-			"equipment_icons/escape_capsule",
-			"equipment_icons/energy_bomb",
-			"equipment_icons/extra_energy_unit",
-			"equipment_icons/docking_computer",
-			"equipment_icons/galactic_hyperdrive",
-			"equipment_icons/mining_laser",
-			"equipment_icons/military_laser",
-			"equipment_icons/retro_rockets"};
 
 	// default public constructor is required for navigation bar
 	public EquipmentScreen() {
@@ -69,29 +53,41 @@ public class EquipmentScreen extends TradeScreen {
 		tradeButton.clear();
 		SystemData currentSystem = game.getPlayer().getCurrentSystem();
 		int techLevel = currentSystem == null ? 1 : currentSystem.getTechLevel();
-		for (int i = 0; i < equipment.length; i++) {
-			Button b = Button.createPictureButton(i % COLUMNS * GAP_X + X_OFFSET,
-					i / COLUMNS* GAP_Y + Y_OFFSET, SIZE, SIZE, equipment[i][0])
-				.setName(paths[i]);
-			tradeButton.add(b);
-			if (equipment[i].length > 1) {
-				b.setAnimation(equipment[i]);
-			}
-			if (techLevel < 10 && i - techLevel > 1) {
+		Iterator<Equipment> i = EquipmentStore.get().getIterator();
+		int pos = 0;
+		while (i.hasNext()) {
+			Equipment e = i.next();
+			if (techLevel <= e.getMinTechLevel()) {
 				// Only show equipment items that are available on worlds with the given tech level.
-				return;
+				continue;
 			}
+			Button b = Button.createPictureButton(pos % COLUMNS * GAP_X + X_OFFSET,
+				pos / COLUMNS* GAP_Y + Y_OFFSET, SIZE, SIZE, equipment.get(e.getId()).get(0))
+				.setName(String.valueOf(e.getId()));
+			tradeButton.add(b);
+			if (equipment.get(e.getId()).size() > 1) {
+				b.setAnimation(equipment.get(e.getId()).toArray(new Pixmap[0]));
+			}
+			pos++;
 		}
 	}
 
 	@Override
 	protected String getCost(int index) {
-		int price = EquipmentStore.get().getEquipment(index).getCost();
+		int price = getEquipment(index).getCost();
 		if (price == -1) { // variable price for fuel
 			SystemData currentSystem = game.getPlayer().getCurrentSystem();
 			return L.getOneDecimalFormatString(R.string.cash_amount_value_ccy, currentSystem == null ? 10 : currentSystem.getFuelPrice());
 		}
 		return L.string(R.string.cash_int_amount_value_ccy, price / 10);
+	}
+
+	private Equipment getEquipment(int index) {
+		return index < 0 ? null : EquipmentStore.get().getEquipmentByHash(getEquipmentId(index));
+	}
+
+	private int getEquipmentId(int index) {
+		return Integer.parseInt(tradeButton.get(index).getName());
 	}
 
 	@Override
@@ -109,7 +105,7 @@ public class EquipmentScreen extends TradeScreen {
 
 	@Override
 	protected void presentSelection(int index) {
-		Equipment equipment = EquipmentStore.get().getEquipment(index);
+		Equipment equipment = getEquipment(index);
 		game.getGraphics().drawText(L.string(R.string.equip_info, equipment.getName()),
 			X_OFFSET, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
@@ -119,20 +115,17 @@ public class EquipmentScreen extends TradeScreen {
 	}
 
 	public Equipment getSelectedEquipment() {
-		if (selectionIndex < 0) {
-			return null;
-		}
-		return EquipmentStore.get().getEquipment(selectionIndex);
+		return getEquipment(selectionIndex);
 	}
 
-	private int maintainLaser(int pos, Laser laser) {
-		Laser laserInPos = game.getPlayer().getCobra().getLaser(pos);
+	private int maintainLaser(int pos, Equipment laser) {
+		Equipment laserInPos = game.getPlayer().getCobra().getLaser(pos);
 		return laserInPos == null ? 0 : laserInPos == laser ? -1 : 1;
 	}
 
 	@Override
 	protected void performTrade(int index) {
-		Equipment equipment = EquipmentStore.get().getEquipment(index);
+		Equipment equipment = getEquipment(index);
 		Player player = game.getPlayer();
 		for (Mission mission: player.getActiveMissions()) {
 			if (mission.performTrade(this, equipment)) {
@@ -143,13 +136,13 @@ public class EquipmentScreen extends TradeScreen {
 		int price = equipment.getCost();
 		int where = -1;
 		int laserState = 0;
-		if (equipment instanceof Laser) {
+		if (equipment.isLaser()) {
 			if (mountLaserPosition == -1) {
 				newScreen = new LaserPositionSelectionScreen(this,
-					maintainLaser(PlayerCobra.DIR_FRONT, (Laser) equipment),
-					maintainLaser(PlayerCobra.DIR_RIGHT, (Laser) equipment),
-					maintainLaser(PlayerCobra.DIR_REAR, (Laser) equipment),
-					maintainLaser(PlayerCobra.DIR_LEFT, (Laser) equipment), index);
+					maintainLaser(PlayerCobra.DIR_FRONT, equipment),
+					maintainLaser(PlayerCobra.DIR_RIGHT, equipment),
+					maintainLaser(PlayerCobra.DIR_REAR, equipment),
+					maintainLaser(PlayerCobra.DIR_LEFT, equipment), index);
 				return;
 			}
 			if (mountLaserPosition == -2) {
@@ -159,7 +152,7 @@ public class EquipmentScreen extends TradeScreen {
 			}
 			where = mountLaserPosition;
 			mountLaserPosition = -1;
-			laserState = maintainLaser(where, (Laser) equipment);
+			laserState = maintainLaser(where, equipment);
 			if (laserState != 0) {
 				price = laserState < 0 ? -equipment.getCost() : equipment.getCost() - cobra.getLaser(where).getCost();
 			}
@@ -177,7 +170,7 @@ public class EquipmentScreen extends TradeScreen {
 				return;
 			}
 		}
-		if (!(equipment instanceof Laser) && cobra.isEquipmentInstalled(equipment)) {
+		if (!equipment.isLaser() && cobra.isEquipmentInstalled(equipment)) {
 			showMessageDialog(L.string(R.string.equip_only_one_allowed, equipment.getShortName()));
 			SoundManager.play(Assets.error);
 			return;
@@ -189,9 +182,9 @@ public class EquipmentScreen extends TradeScreen {
 			return;
 		}
 
-		if (equipment instanceof Laser) {
+		if (equipment.isLaser()) {
 			player.setCash(player.getCash() - price);
-			cobra.setLaser(where, laserState < 0 ? null : (Laser) equipment);
+			cobra.setLaser(where, laserState < 0 ? null : equipment);
 			disposeSelectedAnimation(selectionIndex);
 			selectionIndex = -1;
 			cashLeft = getCashLeftString();
@@ -263,11 +256,13 @@ public class EquipmentScreen extends TradeScreen {
 	@Override
 	protected void disposeSelectedAnimation(int index) {
 		equippedEquipment = null;
-		for (int i = 1; i <= 15; i++) {
-			if (equipment[index][i] != null) {
-				equipment[index][i].dispose();
+		Iterator<Pixmap> i = equipment.get(getEquipmentId(index)).iterator();
+		if (i.hasNext()) {
+			i.next(); // skip first item
+			while (i.hasNext()) {
+				i.next().dispose();
+				i.remove();
 			}
-			equipment[index][i] = null;
 		}
 	}
 
@@ -277,8 +272,8 @@ public class EquipmentScreen extends TradeScreen {
 
 	@Override
 	protected void loadSelectedAnimation() {
-		loadEquipmentAnimation(selectionIndex, paths[selectionIndex]);
-		tradeButton.get(selectionIndex).setAnimation(equipment[selectionIndex]);
+		loadEquipmentAnimation(selectionIndex);
+		tradeButton.get(selectionIndex).setAnimation(equipment.get(getEquipmentId(selectionIndex)).toArray(new Pixmap[0]));
 	}
 
 	protected void performScreenChange() {
@@ -294,22 +289,41 @@ public class EquipmentScreen extends TradeScreen {
 		postScreenChange();
 	}
 
-	private void loadEquipmentAnimation(int offset, String path) {
-	  for (int i = 1; i <= 15; i++) {
-		equipment[offset][i] = game.getGraphics().newPixmap(path + "/" + i + ".png");
-	  }
+	private void loadEquipmentAnimation(int index) {
+		int eqId = getEquipmentId(index);
+		String path = EquipmentStore.get().getEquipmentByHash(eqId).getIcon();
+		int i = 1;
+		while(true) {
+			Pixmap icon = newAssetPixmap(path + File.separator + i);
+			if (icon == null) {
+				break;
+			}
+			equipment.get(eqId).add(icon);
+			i++;
+		}
 	}
 
-	private void readEquipmentStill(int offset, String path) {
-		equipment[offset] = new Pixmap[16];
-		equipment[offset][0] = game.getGraphics().newPixmap(path + ".png");
+	private Pixmap newAssetPixmap(String fileName) {
+		try {
+			fileName += ".png";
+			return game.getGraphics().newPixmap(fileName, game.getFileIO().readAssetFile(fileName), 225, 225);
+		} catch (IOException ignored) {
+			return null;
+		}
 	}
 
 	@Override
 	public void loadAssets() {
-		equipment = new Pixmap[15][1];
-		for (int i = 0; i < 15; i++) {
-			readEquipmentStill(i, paths[i]);
+		equipment = new HashMap<>();
+		Iterator<Equipment> i = EquipmentStore.get().getIterator();
+		while (i.hasNext()) {
+			List<Pixmap> p = new ArrayList<>();
+			Equipment e = i.next();
+			if (!game.getFileIO().existsAssetFile(e.getIcon() + ".png")) {
+				e.setDefaultIcon();
+			}
+			p.add(newAssetPixmap(e.getIcon()));
+			equipment.put(e.getId(),p);
 		}
 		super.loadAssets();
 	}
@@ -318,10 +332,9 @@ public class EquipmentScreen extends TradeScreen {
 	public void dispose() {
 		super.dispose();
 		if (equipment != null) {
-			for (Pixmap[] ps: equipment) {
-				ps[0].dispose();
+			for (List<Pixmap> ps: equipment.values()) {
+				ps.get(0).dispose();
 			}
-			equipment = null;
 		}
 	}
 

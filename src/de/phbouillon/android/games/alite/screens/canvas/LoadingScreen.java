@@ -20,11 +20,14 @@ package de.phbouillon.android.games.alite.screens.canvas;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.Settings;
+import de.phbouillon.android.games.alite.model.Equipment;
+import de.phbouillon.android.games.alite.model.EquipmentStore;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class LoadingScreen extends AliteScreen {
@@ -83,14 +86,13 @@ public class LoadingScreen extends AliteScreen {
 		Assets.com_fuelSystemMalfunction = Assets.safeLoadSound("fuel_malfunction");
 		Assets.com_accessDeclined = Assets.safeLoadSound("access_declined");
 
-		Assets.setLostEquipmentSound("lost_docking");
-		Assets.setLostEquipmentSound("lost_ecm");
-		Assets.setLostEquipmentSound("lost_bomb");
-		Assets.setLostEquipmentSound("lost_escape");
-		Assets.setLostEquipmentSound("lost_energy");
-		Assets.setLostEquipmentSound("lost_fuel_scoop");
-		Assets.setLostEquipmentSound("lost_galactic");
-		Assets.setLostEquipmentSound("lost_retro_rockets");
+		Iterator<Equipment> i = EquipmentStore.get().getIterator();
+		while (i.hasNext()) {
+			String soundFileName = i.next().getLostSound();
+			if (soundFileName != null) {
+				Assets.setLostEquipmentSound(soundFileName);
+			}
+		}
 
 		Assets.com_lostCargo = Assets.safeLoadSound("lost_cargo");
 		Assets.com_escapeMalfunction = Assets.safeLoadSound("escape_malfunction");

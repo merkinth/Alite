@@ -29,6 +29,10 @@ import de.phbouillon.android.framework.ResourceStream;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.BuildConfig;
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.model.Equipment;
+import de.phbouillon.android.games.alite.model.EquipmentStore;
+import de.phbouillon.android.games.alite.model.Repository;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.EngineExhaust;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIMethod;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
@@ -40,10 +44,11 @@ public class OXPParser {
 	private static final String FILE_SHIP_LIBRARY = DIRECTORY_CONFIG + "shiplibrary.plist";
 	private static final String FILE_SHIP_DATA_OVERRIDES = DIRECTORY_CONFIG + "shipdata-overrides.plist";
 	private static final String FILE_SHIP_DATA = DIRECTORY_CONFIG + "shipdata.plist";
+	private static final String FILE_EQUIPMENT = DIRECTORY_CONFIG + "equipment.plist";
 
 	private static final String DIRECTORY_AIS = "AIs";
 
-	private String pluginName;
+	private final String pluginName;
 	private List<OXPParser> installedPlugins;
 
 	private ResourceStream inputStreamMethod;
@@ -53,20 +58,30 @@ public class OXPParser {
 	private boolean isPluginFile;
 	private boolean plugged = true;
 	private boolean localeDependent;
-	private List<String> pendingRegistration = new ArrayList<>();
-
-	private String identifier;
-	private String minVersion;
-	private String name;
-	private String version;
-	private String category;
-	private String description;
-	private String author;
-	private String license;
-	private String maxVersion;
+	private final List<String> pendingRegistration = new ArrayList<>();
+	private final Repository<ManifestProperty> repoHandler = new Repository<>();
 
 	public interface ListerMethod {
 		String[] list(String directory) throws IOException;
+	}
+
+	private enum ManifestProperty {
+		identifier,
+		required_oolite_version,
+		title,
+		version,
+		category,
+		description,
+		download_url,
+		author,
+		file_size,
+		information_url,
+		license,
+		maximum_oolite_version,
+		tags,
+		conflict_oxps,
+		optional_oxps,
+		requires_oxps
 	}
 
 	public OXPParser(FileIO fileIO, String pluginName, List<OXPParser> installedPlugins) throws IOException {
@@ -96,7 +111,7 @@ public class OXPParser {
 			return;
 		}
 		parser = new PListParser(inputStreamMethod);
-		name = pluginName;
+		repoHandler.setProperty(ManifestProperty.title, getPluginName());
 	}
 
 	public OXPParser(String pluginName, ResourceStream inputStreamMethod, ListerMethod listerMethod) {
@@ -104,7 +119,7 @@ public class OXPParser {
 		this.inputStreamMethod = inputStreamMethod;
 		this.listerMethod = listerMethod;
 		parser = new PListParser(inputStreamMethod);
-		name = pluginName;
+		repoHandler.setProperty(ManifestProperty.title, getPluginName());
 		isPluginFile = true;
 	}
 
@@ -125,7 +140,7 @@ public class OXPParser {
 		}
 
 		try {
-			if (isEmpty(minVersion) || isEmpty(maxVersion)) {
+			if (isEmpty(getMinVersion()) || isEmpty(getMaxVersion())) {
 				readRequiresFileProperties();
 			}
 		} catch (IOException ignored) {
@@ -167,6 +182,12 @@ public class OXPParser {
 			// allowed to be missed
 		}
 
+		try {
+			readEquipmentProperties();
+		} catch (IOException ignored) {
+			// allowed to be missed
+		}
+
 		if (listerMethod != null) {
 			try {
 				readAIs();
@@ -174,6 +195,33 @@ public class OXPParser {
 				// allowed to be missed
 			}
 		}
+	}
+
+	private void readEquipmentProperties() throws IOException {
+		NSArray equipments = parser.parseArrayFile(FILE_EQUIPMENT);
+		if (equipments == null) {
+			return;
+		}
+		for (NSObject e : equipments.getArray()) {
+			NSObject[] equipment = ((NSArray)e).getArray();
+			EquipmentStore.get().addEquipment(new Equipment(((NSString)equipment[3]).getContent(),
+				p(((NSString)equipment[4]).getContent()), ((Long) getNumber((NSNumber) equipment[0])).intValue(),
+				((Long) getNumber((NSNumber) equipment[1])).intValue(), p(((NSString)equipment[2]).getContent()),
+				equipment[5]));
+		}
+	}
+
+	private String p(String value) {
+		String hash = getPluginName() + "@" + value;
+		int hashCode = -hash.hashCode();
+		if (L.string(hashCode) == null) {
+			if (localeDependent) {
+				L.getInstance().addLocalizedResource(hashCode, value);
+			} else {
+				L.getInstance().addDefaultResource(hashCode, value);
+			}
+		}
+		return hash;
 	}
 
 	private void readShipDataFileProperties(String fileName, boolean pending) throws IOException {
@@ -198,21 +246,8 @@ public class OXPParser {
 					continue;
 				}
 			}
-			NSDictionary propertyList = (NSDictionary) shipList.get(id);
-			for (String p: propertyList.keySet()) {
-				if (propertyList.get(p) instanceof NSString) {
-					if (shipData || !localeDependent) {
-						spaceObject.setProperty(SpaceObject.Property.valueOf(p), getString(propertyList, p));
-					} else {
-						spaceObject.setOverrideProperty(SpaceObject.Property.valueOf(p), getString(propertyList, p));
-					}
-				} else if (propertyList.get(p) instanceof NSNumber) {
-					if (shipData || !localeDependent) {
-						spaceObject.setProperty(SpaceObject.Property.valueOf(p), getNumber(propertyList, p));
-					} else {
-						spaceObject.setOverrideProperty(SpaceObject.Property.valueOf(p), getNumber(propertyList, p));
-					}
-				} else if (propertyList.get(p) instanceof NSArray) {
+			for (Map.Entry<String, NSObject> p: ((NSDictionary) id.getValue()).entrySet()) {
+				if (p.getValue() instanceof NSArray) {
 					ArrayList<String> list = new ArrayList<>();
 					for (NSObject items : ((NSArray) p.getValue()).getArray()) {
 						if (items instanceof NSString) {
@@ -243,11 +278,9 @@ public class OXPParser {
 							spaceObject.addSubEntity(list.get(list.size() - 1));
 						}
 					}
-					if (shipData || !localeDependent) {
-						spaceObject.setProperty(SpaceObject.Property.valueOf(p), list);
-					} else {
-						spaceObject.setOverrideProperty(SpaceObject.Property.valueOf(p), list);
-					}
+					setProperty(spaceObject, shipData, p.getKey(), list);
+				} else {
+					setProperty(spaceObject, shipData, p.getKey(), p.getValue());
 				}
 			}
 			String likeShipId = setDependentProperties(spaceObject);
@@ -262,8 +295,8 @@ public class OXPParser {
 				}
 				continue;
 			}
-			boolean modelDefined = spaceObject.getStringProperty(SpaceObject.Property.like_ship) != null &&
-				spaceObject.getProperty(SpaceObject.Property.model) == null;
+			boolean modelDefined = spaceObject.getRepoHandler().getStringProperty(SpaceObject.Property.like_ship) != null &&
+				spaceObject.getRepoHandler().getProperty(SpaceObject.Property.model) == null;
 			if (shipData && !modelDefined) {
 				modelDefined = isModelDefined(spaceObject);
 			}
@@ -271,6 +304,16 @@ public class OXPParser {
 			if (register && modelDefined) {
 				SpaceObjectFactory.getInstance().registerSpaceObject(spaceObject);
 			}
+		}
+	}
+
+	private void setProperty(SpaceObject spaceObject, boolean shipData, String p, Object value) {
+		if (shipData || !localeDependent) {
+			spaceObject.getRepoHandler().setProperty(SpaceObject.Property.valueOf(p),
+				value instanceof String ? p((String) value) : value);
+		} else {
+			spaceObject.getRepoHandler().setLocalizedProperty(SpaceObject.Property.valueOf(p),
+				value instanceof String ? p((String) value) : value);
 		}
 	}
 
@@ -284,7 +327,7 @@ public class OXPParser {
 
 	private boolean isModelDefined(SpaceObject spaceObject) throws IOException {
 		InputStream is = parser.getInputStream("Models" + File.separatorChar +
-			spaceObject.getStringProperty(SpaceObject.Property.model));
+			spaceObject.getRepoHandler().getStringProperty(SpaceObject.Property.model));
 		try(BufferedReader in = new BufferedReader(new InputStreamReader(is))) {
 			float[] vertices = null;
 			float[] faces = null;
@@ -399,28 +442,24 @@ public class OXPParser {
 	}
 
 	private void setDefaultValueToUnsetPropertiesOfShip(SpaceObject spaceObject) {
-		setUnsetProperty(spaceObject, SpaceObject.Property.missiles, 2L);
-		setUnsetProperty(spaceObject, SpaceObject.Property.missile_load_time, 4.0d); // sec
-		setUnsetProperty(spaceObject, SpaceObject.Property.laser_color, "orangeColor");
-		setUnsetProperty(spaceObject, SpaceObject.Property.roles, "");
-		setUnsetProperty(spaceObject, SpaceObject.Property.model_scale_factor, 1.0d);
-		setUnsetProperty(spaceObject, SpaceObject.Property.max_energy, 1L);
-		setUnsetProperty(spaceObject, SpaceObject.Property.cargo_carried, 0L);
-		setUnsetProperty(spaceObject, SpaceObject.Property.max_cargo, 0L);
-		setUnsetProperty(spaceObject, SpaceObject.Property.likely_cargo, -1L);
-		setUnsetProperty(spaceObject, SpaceObject.Property.affected_by_energy_bomb, 1.0d);
-		setUnsetProperty(spaceObject, SpaceObject.Property.proximity_warning, 1L);
-		setUnsetProperty(spaceObject, SpaceObject.Property.aggression_level, 10L);
-	}
-
-	private void setUnsetProperty(SpaceObject spaceObject, SpaceObject.Property name, Object value) {
-		if (spaceObject.getProperty(name) == null) {
-			spaceObject.setProperty(name, value);
-		}
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.missiles, 2L);
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.missile_load_time, 4.0d); // sec
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.forward_weapon_type, "WEAPON_NONE");
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.laser_color, "orangeColor");
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.roles, "");
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.model_scale_factor, 1.0d);
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.max_energy, 1L);
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.cargo_carried, 0L);
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.max_cargo, 0L);
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.likely_cargo, -1L);
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.affected_by_energy_bomb, 1.0d);
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.proximity_warning, 1L);
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.aggression_level, 10L);
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.ai_type, "nullAI.plist");
 	}
 
 	private String setDependentProperties(SpaceObject spaceObject) {
-		String likeShipId = spaceObject.getStringProperty(SpaceObject.Property.like_ship);
+		String likeShipId = spaceObject.getRepoHandler().getStringProperty(SpaceObject.Property.like_ship);
 		if (likeShipId != null) {
 			SpaceObject likeShip = SpaceObjectFactory.getInstance().getObjectById(likeShipId);
 			if (likeShip == null) {
@@ -428,42 +467,43 @@ public class OXPParser {
 			}
 			likeShip.setPropertyAndModelData(spaceObject);
 		}
-		setUnsetProperty(spaceObject, SpaceObject.Property.max_missiles,
-			spaceObject.getNumericProperty(SpaceObject.Property.missiles));
+		spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.max_missiles,
+			spaceObject.getRepoHandler().getNumericProperty(SpaceObject.Property.missiles));
 
 		// escort_role is used instead of escort_ship
-		if (spaceObject.getProperty(SpaceObject.Property.escort_ship) != null) {
-			setUnsetProperty(spaceObject, SpaceObject.Property.escort_role,
-				"[" + spaceObject.getStringProperty(SpaceObject.Property.escort_ship) + "]");
+		if (spaceObject.getRepoHandler().getProperty(SpaceObject.Property.escort_ship) != null) {
+			spaceObject.getRepoHandler().setUnsetProperty(SpaceObject.Property.escort_role,
+				"[" + spaceObject.getRepoHandler().getStringProperty(SpaceObject.Property.escort_ship) + "]");
 		}
 
-		if (spaceObject.getProperty(SpaceObject.Property.exhaust) != null) {
+		if (spaceObject.getRepoHandler().getProperty(SpaceObject.Property.exhaust) != null) {
 			List<EngineExhaust> exhausts = spaceObject.getExhausts();
 			exhausts.clear();
-			for (String exhaust: spaceObject.getArrayProperty(SpaceObject.Property.exhaust)) {
+			for (String exhaust: spaceObject.getRepoHandler().getArrayProperty(SpaceObject.Property.exhaust)) {
 				String[] p = exhaust.split(" ");
 				exhausts.add(new EngineExhaust(Float.parseFloat(p[3]), Float.parseFloat(p[4]), 10 * Float.parseFloat(p[5]),
 					Float.parseFloat(p[0]), Float.parseFloat(p[1]), Float.parseFloat(p[2])));
 			}
 			for (int i = 0; i < exhausts.size(); i++) {
 				EngineExhaust e = exhausts.get(i);
-				if (spaceObject.getProperty(SpaceObject.Property.exhaust_emissive_color) == null) {
+				if (spaceObject.getRepoHandler().getProperty(SpaceObject.Property.exhaust_emissive_color) == null) {
 					e.setColor(0.7f, 0.8f, 0.8f, 0.7f);
 				} else {
-					int color = spaceObject.getColor(spaceObject.getArrayProperty(SpaceObject.Property.exhaust_emissive_color).get(i));
+					int color = Repository.getColor(spaceObject.getRepoHandler().getArrayProperty(
+						SpaceObject.Property.exhaust_emissive_color).get(i));
 					e.setColor(Color.red(color) / 255.0f, Color.green(color) / 255.0f, Color.blue(color) / 255.0f, Color.alpha(color) / 255.0f);
 				}
 			}
 		}
 
-		if (spaceObject.getProperty(SpaceObject.Property.weapon_position_forward) != null) {
+		if (spaceObject.getRepoHandler().getProperty(SpaceObject.Property.weapon_position_forward) != null) {
 			List<Vector3f> laserHardpoint = spaceObject.getLaserHardpoint();
 			laserHardpoint.clear();
-			if (spaceObject.getProperty(SpaceObject.Property.weapon_position_forward) instanceof String) {
-				String[] p = spaceObject.getStringProperty(SpaceObject.Property.weapon_position_forward).split(" ");
+			if (spaceObject.getRepoHandler().getProperty(SpaceObject.Property.weapon_position_forward) instanceof String) {
+				String[] p = spaceObject.getRepoHandler().getStringProperty(SpaceObject.Property.weapon_position_forward).split(" ");
 				laserHardpoint.add(new Vector3f(Float.parseFloat(p[0]), Float.parseFloat(p[1]), Float.parseFloat(p[2])));
 			} else {
-				for (String hardpoint: spaceObject.getArrayProperty(SpaceObject.Property.weapon_position_forward)) {
+				for (String hardpoint: spaceObject.getRepoHandler().getArrayProperty(SpaceObject.Property.weapon_position_forward)) {
 					String[] p = hardpoint.split(" ");
 					laserHardpoint.add(new Vector3f(Float.parseFloat(p[0]), Float.parseFloat(p[1]), Float.parseFloat(p[2])));
 				}
@@ -480,7 +520,7 @@ public class OXPParser {
 		}
 		for (NSObject id : shipLibrary.getArray()) {
 			String objectClass = getString((NSDictionary) id, "class");
-			if (getBoolean((NSDictionary) id, "ship_data",
+			if (getBoolean(((NSDictionary) id).get("ship_data"),
 				objectClass.isEmpty() || "ship".equals(objectClass.toLowerCase()))) {
 				SpaceObjectFactory.getInstance().addToDemoList(getRequiredString((NSDictionary) id, "ship", fileName));
 			}
@@ -498,14 +538,14 @@ public class OXPParser {
 	}
 
 	private void checkRequiredVersion() throws IOException {
-		if (compareCurrentVersion(minVersion) < 0) {
+		if (compareCurrentVersion(getMinVersion()) < 0) {
 			AliteLog.d("Plugin version check", "Program version (" + BuildConfig.VERSION_NAME +
-				") is outdated, " + pluginName + " requires at least version " + minVersion + ".");
+				") is outdated, " + pluginName + " requires at least version " + getMinVersion() + ".");
 			throw new IOException("Plugin version check failed.");
 		}
-		if (compareCurrentVersion(maxVersion) > 0) {
+		if (compareCurrentVersion(getMaxVersion()) > 0) {
 			AliteLog.d("Plugin version check", "Program version (" + BuildConfig.VERSION_NAME +
-				") is high, " + pluginName + " is limited to version " + maxVersion + ".");
+				") is high, " + pluginName + " is limited to version " + getMaxVersion() + ".");
 			throw new IOException("Plugin version check failed.");
 		}
 	}
@@ -555,59 +595,58 @@ public class OXPParser {
 		if (requires == null) {
 			return;
 		}
-		if (isEmpty(minVersion)) {
-			minVersion = getRequiredString(requires, "version", fileName);
-		}
-		if (isEmpty(maxVersion)) {
-			maxVersion = getString(requires, "max_version");
-		}
+		repoHandler.setUnsetProperty(ManifestProperty.required_oolite_version,
+			getRequiredString(requires, "version", fileName));
+		repoHandler.setUnsetProperty(ManifestProperty.maximum_oolite_version,
+			getString(requires, "max_version"));
 	}
 
 	private void readManifestFileProperties() throws IOException {
 		final String fileName = "manifest.plist";
-		NSDictionary manifest = parser.parseFile(fileName);
-		if (manifest == null) {
+		NSDictionary propertyList = parser.parseFile(fileName);
+		if (propertyList == null) {
 			return;
 		}
-		identifier  = getRequiredString(manifest, "identifier", fileName);
-		name        = getRequiredString(manifest, "title", fileName);
-		version     = getRequiredString(manifest, "version", fileName);
-		category    = getString(manifest, "category");
-		description = getString(manifest, "description");
-		author      = getString(manifest, "author");
-		license     = getString(manifest, "license");
-		minVersion  = getString(manifest, "required_oolite_version");
-		maxVersion  = getString(manifest, "maximum_oolite_version");
-
-		NSArray conflictOxps = (NSArray) manifest.get("conflict_oxps");
-		if (conflictOxps != null) {
-			for (NSDictionary conflictOxp : (NSDictionary[]) conflictOxps.getArray()) {
-				OXPParser installed = getInstalledPlugin(getRequiredString(conflictOxp, "identifier", fileName));
-				String minVersion = getRequiredString(conflictOxp, "version", fileName);
-				String maxVersion = getString(conflictOxp, "maximum_version");
-				if (installed != null &&
-						"0".equals(minVersion) || compareVersions(minVersion, installed.getVersion()) <= 0 &&
-						(maxVersion.isEmpty() || compareVersions(maxVersion, installed.getVersion()) <= 0)) {
-					throw new IOException("Conflict with plugin " + installed.getIdentifier() + " v" + installed.getVersion());
+		for (Map.Entry<String, NSObject> p : propertyList.entrySet()) {
+			if (propertyList.get(p.getKey()) instanceof NSString) {
+				repoHandler.setProperty(ManifestProperty.valueOf(p.getKey()), getString(propertyList, p.getKey()));
+			} else if (p.getKey().equals("conflict_oxps")) {
+				NSArray conflictOxps = (NSArray) p.getValue();
+				if (conflictOxps != null) {
+					for (NSDictionary conflictOxp : (NSDictionary[]) conflictOxps.getArray()) {
+						OXPParser installed = getMatchingOxp(fileName, conflictOxp);
+						if (installed != null) {
+							throw new IOException("Conflict with plugin " + installed.getIdentifier() +
+								" v" + installed.getVersion());
+						}
+					}
+				}
+			} else if (p.getKey().equals("requires_oxps")) {
+				NSArray requiresOxps = (NSArray) p.getValue();
+				if (requiresOxps != null) {
+					for (NSDictionary requireOxps : (NSDictionary[]) requiresOxps.getArray()) {
+						OXPParser installed = getMatchingOxp(fileName, requireOxps);
+						if (installed == null) {
+							plugged = false;
+							return;
+						}
+					}
 				}
 			}
 		}
+		repoHandler.checkMissingRequiredProperty(fileName, Arrays.asList(ManifestProperty.identifier,
+			ManifestProperty.title, ManifestProperty.version));
 
-		NSArray requiresOxps = (NSArray) manifest.get("requires_oxps");
-		if (requiresOxps != null) {
-			for (NSDictionary requireOxps : (NSDictionary[]) requiresOxps.getArray()) {
-				OXPParser installed = getInstalledPlugin(getRequiredString(requireOxps, "identifier", fileName));
-				String minVersion = getRequiredString(requireOxps, "version", fileName);
-				String maxVersion = getString(requireOxps, "maximum_version");
-				if (installed == null ||
-					!"0".equals(minVersion) && compareVersions(minVersion, installed.getVersion()) <= 0 &&
-						(maxVersion.isEmpty() || compareVersions(maxVersion, installed.getVersion()) <= 0)) {
-					plugged = false;
-					return;
-				}
 
-			}
-		}
+	}
+
+	private OXPParser getMatchingOxp(String fileName, NSDictionary dict) throws IOException {
+		OXPParser installed = getInstalledPlugin(getRequiredString(dict, "identifier", fileName));
+		String minVersion = getRequiredString(dict, "version", fileName);
+		String maxVersion = getString(dict, "maximum_version");
+		return installed != null &&
+			"0".equals(minVersion) || compareVersions(minVersion, installed.getVersion()) <= 0 &&
+			(maxVersion.isEmpty() || compareVersions(maxVersion, installed.getVersion()) >= 0) ? installed : null;
 	}
 
 	private OXPParser getInstalledPlugin(String id) {
@@ -633,46 +672,23 @@ public class OXPParser {
 	}
 
 	private String getRequiredString(NSDictionary dict, String property, String fileName) throws IOException {
-		NSObject value = dict == null ? null : dict.get(property);
-		if (value == null) {
-			AliteLog.e(fileName + " error", "Missing property '" + property + "'.");
-			throw new IOException("Missing property '" + property + "' in file '" + fileName + "'.");
-		}
-		return ((NSString) value).getContent();
+		return Repository.throwIfMissing(fileName, property, getString(dict, property));
 	}
 
 	private String getString(NSDictionary dict, String property) {
 		NSObject value = dict == null ? null : dict.get(property);
-		if (value == null) {
-			return "";
-		}
-		return ((NSString) value).getContent();
+		return value == null ? null : ((NSString) value).getContent();
 	}
 
 	private Object getNumber(NSDictionary dict, String property) {
-		return getNumber(dict == null ? null : (NSNumber) dict.get(property));
+		return dict == null ? "" : Repository.getNumber((NSNumber) dict.get(property));
 	}
 
 	private Object getNumber(NSNumber value) {
-		if (value == null) {
-			return "";
-		}
-		switch (value.type()) {
-			case NSNumber.INTEGER: {
-				return value.longValue();
-			}
-			case NSNumber.REAL: {
-				return value.doubleValue();
-			}
-			case NSNumber.BOOLEAN: {
-				return value.boolValue();
-			}
-		}
-		return null;
+		return value == null ? "" : Repository.getNumber(value);
 	}
 
-	private boolean getBoolean(NSDictionary dict, String property, boolean def) {
-		NSObject value = dict == null ? null :  dict.get(property);
+	private boolean getBoolean(NSObject value, boolean def) {
 		return value == null ? def : ((NSNumber) value).boolValue();
 	}
 
@@ -726,30 +742,38 @@ public class OXPParser {
 	}
 
 	public String getIdentifier() {
-		return identifier;
+		return repoHandler.getStringProperty(ManifestProperty.identifier);
 	}
 
-	public String getName() {
-		return name;
+	public String getTitle() {
+		return repoHandler.getStringProperty(ManifestProperty.title);
 	}
 
 	public String getVersion() {
-		return version;
+		return repoHandler.getStringProperty(ManifestProperty.version);
+	}
+
+	public String getMinVersion() {
+		return repoHandler.getStringProperty(ManifestProperty.required_oolite_version);
+	}
+
+	public String getMaxVersion() {
+		return repoHandler.getStringProperty(ManifestProperty.maximum_oolite_version);
 	}
 
 	public String getCategory() {
-		return category;
+		return repoHandler.getStringProperty(ManifestProperty.category);
 	}
 
 	public String getDescription() {
-		return description;
+		return repoHandler.getStringProperty(ManifestProperty.description);
 	}
 
 	public String getAuthor() {
-		return author;
+		return repoHandler.getStringProperty(ManifestProperty.author);
 	}
 
 	public String getLicense() {
-		return license;
+		return repoHandler.getStringProperty(ManifestProperty.license);
 	}
 }

@@ -41,7 +41,6 @@ public final class SpaceObjectAI implements Serializable {
 	private static final long serialVersionUID = 8646121427456794783L;
 
 	private static final float MISSILE_MIN_DIST_SQ                      = 36000000.0f;
-	public  static final float SHOOT_DISTANCE_SQ                        = 81000000.0f; // subentities type=ball_turret weapon_range
 	private static final float FIRE_MISSILE_UPON_FIRST_HIT_PROBABILITY  = 5.0f;
 	private static final long  BASE_DELAY_BETWEEN_SHOOT_CHECKS          = 59880239L; // 16.7 FPS
 	private static final long  SHOOT_DELAY_REDUCE_PER_RATING_LEVEL      = 3318363L; // 1.6625 Delta FPS
@@ -395,7 +394,7 @@ public final class SpaceObjectAI implements Serializable {
 		avoidCollision();
 		float angle = executeSteering(-1);
 		float distanceSq = so.getPosition().distanceSq(target.getPosition());
-		if (angle >= 10 || distanceSq >= SHOOT_DISTANCE_SQ || so.hasEjected()) {
+		if (angle >= 10 || distanceSq >= so.getShootRangeSq() || so.hasEjected()) {
 			return;
 		}
 		if (target instanceof SpaceObject && ((SpaceObject) target).isCloaked()) {

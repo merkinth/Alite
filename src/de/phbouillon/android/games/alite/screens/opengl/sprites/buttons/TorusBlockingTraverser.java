@@ -42,6 +42,6 @@ public class TorusBlockingTraverser implements SpaceObjectTraverser, Serializabl
 			type == ObjectType.Shuttle && !Settings.freePath ||
 			type == ObjectType.Thargoid || type == ObjectType.Thargon ||
 			type == ObjectType.Trader && !Settings.freePath || type == ObjectType.Police) &&
-			so.getPosition().distanceSq(inGame.getShip().getPosition()) < AliteHud.MAX_DISTANCE_SQ;
+			so.getPosition().distanceSq(inGame.getShip().getPosition()) <= AliteHud.MAX_DISTANCE_SQ;
 	}
 }

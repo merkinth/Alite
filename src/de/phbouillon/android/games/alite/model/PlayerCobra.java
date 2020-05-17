@@ -41,7 +41,7 @@ public class PlayerCobra {
 	public static final int   MAX_SHIELD            = 24;
 	public static final float MAX_FUEL              = 70;
 	public static final float MAX_CABIN_TEMPERATURE = 30;
-	public static final float MAX_LASER_TEMPERATURE = 48;
+	public static final float MAX_LASER_TEMPERATURE = 210;
 	public static final float MAX_ALTITUDE          = 30;
 	public static final int   MAX_ENERGY_BANK       = 24;
 	public static final int   MAX_ENERGY            = 96;
@@ -54,23 +54,24 @@ public class PlayerCobra {
 	private final List<InventoryItem> inventory = new ArrayList<>();
 	private int retroRocketsUseCount = 0;
 
-	private int frontShield = MAX_SHIELD;
-	private int rearShield = MAX_SHIELD;
-	private int[] energyBank = new int[] {MAX_ENERGY_BANK, MAX_ENERGY_BANK, MAX_ENERGY_BANK, MAX_ENERGY_BANK};
-	private int laserTemperature;
+	private float frontShield = MAX_SHIELD;
+	private float rearShield = MAX_SHIELD;
+	private final float[] energyBank = new float[] {MAX_ENERGY_BANK, MAX_ENERGY_BANK, MAX_ENERGY_BANK, MAX_ENERGY_BANK};
+	private float laserTemperature;
 	private int cabinTemperature;
 	private float altitude = MAX_ALTITUDE;
 	private float pitch;
 	private float roll;
 	private boolean missileLocked = false;
 	private boolean missileTargeting = false;
+	private boolean laserOverheated;
 
-	public void setLaser(int where, Laser laser) {
+	public void setLaser(int where, Equipment laser) {
 		lasers[where] = laser;
 	}
 
-	public Laser getLaser(int where) {
-		return (Laser) lasers[where];
+	public Equipment getLaser(int where) {
+		return lasers[where];
 	}
 
 	public void addTradeGood(TradeGood good, Weight weight, long price) {
@@ -112,7 +113,7 @@ public class PlayerCobra {
 	}
 
 	public void addEquipment(Equipment equip) {
-		if (equip != null && equipmentInstalled.indexOf(equip) < 0) {
+		if (equip != null && !equipmentInstalled.contains(equip)) {
 			equipmentInstalled.add(equip);
 			if (equip == EquipmentStore.get().getEquipmentById(EquipmentStore.LARGE_CARGO_BAY)) {
 				maxCargoHold = Weight.tonnes(35);
@@ -212,23 +213,23 @@ public class PlayerCobra {
 		energyBank[3] = MAX_ENERGY_BANK;
 	}
 
-	public int getFrontShield() {
+	public float getFrontShield() {
 		return frontShield;
 	}
 
-	public int getRearShield() {
+	public float getRearShield() {
 		return rearShield;
 	}
 
-	public int getEnergy() {
+	public float getEnergy() {
 		return energyBank[0] + energyBank[1] + energyBank[2] + energyBank[3];
 	}
 
-	public int getEnergy(int idx) {
+	public float getEnergy(int idx) {
 		return energyBank[idx];
 	}
 
-	public void setFrontShield(int newVal) {
+	public void setFrontShield(float newVal) {
 		if (newVal > MAX_SHIELD + Settings.shieldPowerOverride) {
 			newVal = MAX_SHIELD + Settings.shieldPowerOverride;
 		}
@@ -238,7 +239,7 @@ public class PlayerCobra {
 		frontShield = newVal;
 	}
 
-	public void setRearShield(int newVal) {
+	public void setRearShield(float newVal) {
 		if (newVal > MAX_SHIELD + Settings.shieldPowerOverride) {
 			newVal = MAX_SHIELD + Settings.shieldPowerOverride;
 		}
@@ -248,7 +249,7 @@ public class PlayerCobra {
 		rearShield = newVal;
 	}
 
-	public void setEnergy(int newVal) {
+	public void setEnergy(float newVal) {
 		if (newVal > MAX_ENERGY) {
 			newVal = MAX_ENERGY;
 		}
@@ -261,12 +262,27 @@ public class PlayerCobra {
 		energyBank[3] = Math.max(newVal - energyBank[0] - energyBank[1] - energyBank[2], 0);
 	}
 
-	public void setLaserTemperature(int temp) {
-		laserTemperature = temp < 0 ? 0 : Math.min(temp, 48);
+	public void setLaserTemperature(float temp) {
+		laserTemperature = temp < 0 ? 0 : Math.min(temp, MAX_LASER_TEMPERATURE);
+		if (laserOverheated && !isLaserOverheated()) {
+			laserOverheated = false;
+		}
 	}
 
-	public int getLaserTemperature() {
+	public float getLaserTemperature() {
 		return laserTemperature;
+	}
+
+	public boolean isLaserJustOverheated() {
+		if (!laserOverheated && isLaserOverheated()) {
+			laserOverheated = true;
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isLaserOverheated() {
+		return laserTemperature >= PlayerCobra.MAX_LASER_TEMPERATURE * 0.85;
 	}
 
 	public int getCabinTemperature() {
@@ -338,5 +354,21 @@ public class PlayerCobra {
 				i.remove();
 			}
 		}
+	}
+
+	public int getLaserValue(String name) {
+		Equipment laser = EquipmentStore.get().getEquipmentById(name);
+		return (getLaser(PlayerCobra.DIR_FRONT) == laser ? 1 : 0) +
+			(getLaser(PlayerCobra.DIR_RIGHT) == laser ? 2 : 0) +
+			(getLaser(PlayerCobra.DIR_REAR)  == laser ? 4 : 0) +
+			(getLaser(PlayerCobra.DIR_LEFT)  == laser ? 8 : 0);
+	}
+
+	public void equipLaser(int where, String name) {
+		Equipment laser = EquipmentStore.get().getEquipmentById(name);
+		if ((where & 1) > 0) setLaser(PlayerCobra.DIR_FRONT, laser);
+		if ((where & 2) > 0) setLaser(PlayerCobra.DIR_RIGHT, laser);
+		if ((where & 4) > 0) setLaser(PlayerCobra.DIR_REAR, laser);
+		if ((where & 8) > 0) setLaser(PlayerCobra.DIR_LEFT, laser);
 	}
 }

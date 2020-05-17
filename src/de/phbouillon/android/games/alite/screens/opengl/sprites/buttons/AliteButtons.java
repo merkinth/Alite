@@ -177,7 +177,7 @@ public class AliteButtons implements Serializable {
 		buttonGroup[3] = new ButtonGroup(3, false, false);
 	}
 
-	private ButtonData genButtonData(float x, float y, int positionIndex, String name, int equipId) {
+	private ButtonData genButtonData(float x, float y, int positionIndex, String name, String equipId) {
 		return genButtonData(x, y, positionIndex, name, alite.getPlayer().getCobra().isEquipmentInstalled(
 			EquipmentStore.get().getEquipmentById(equipId)));
 	}
@@ -210,7 +210,7 @@ public class AliteButtons implements Serializable {
 		return result;
 	}
 
-	private void check(int button, int equipId, boolean yellow) {
+	private void check(int button, String equipId, boolean yellow) {
 		if (buttons[button] != null) {
 			buttons[button].active = alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(equipId));
 			buttons[button].yellow = yellow;

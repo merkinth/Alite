@@ -29,8 +29,7 @@ import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.AliteColor;
-import de.phbouillon.android.games.alite.model.Laser;
-import de.phbouillon.android.games.alite.model.statistics.WeaponType;
+import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 
 public class AliteHud extends Sprite implements Serializable {
@@ -64,7 +63,7 @@ public class AliteHud extends Sprite implements Serializable {
 	private boolean enemiesVisible = true;
 
 	private int viewDirection = 0;
-	private WeaponType currentLaserIndex = WeaponType.PulseLaser;
+	private String[] currentLaserIndex;
 
 	static final String TEXTURE_FILE = "textures/radar_final.png";
 
@@ -132,14 +131,13 @@ public class AliteHud extends Sprite implements Serializable {
 
 	private void computeLaser() {
 		Alite alite = Alite.get();
-		Laser laser = alite.getPlayer().getCobra().getLaser(viewDirection);
+		Equipment laser = alite.getPlayer().getCobra().getLaser(viewDirection);
 		if (laser != null) {
-			if (laser.getWeaponType() != currentLaserIndex) {
-				SpriteData spriteData =  alite.getTextureManager().getSprite(TEXTURE_FILE,
-					laser.getWeaponType() == WeaponType.PulseLaser ? "pulse_laser" :
-					laser.getWeaponType() == WeaponType.BeamLaser ? "beam_laser" :
-					laser.getWeaponType() == WeaponType.MiningLaser ? "mining_laser" : "military_laser");
-				currentLaserIndex = laser.getWeaponType();
+			String[] crosshairs = laser.getCrosshairs();
+			if (crosshairs != currentLaserIndex) {
+				SpriteData spriteData =  alite.getTextureManager().getSprite(
+					"textures/" + crosshairs[0] + ".png", crosshairs[1]);
+				currentLaserIndex = crosshairs;
 				this.laser.setTextureCoords(spriteData.x, spriteData.y, spriteData.x2, spriteData.y2);
 			}
 		} else {

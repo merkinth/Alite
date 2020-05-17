@@ -40,7 +40,6 @@ import de.phbouillon.android.games.alite.model.CommanderData;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.InventoryItem;
-import de.phbouillon.android.games.alite.model.Laser;
 import de.phbouillon.android.games.alite.model.LegalStatus;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
@@ -375,12 +374,12 @@ public class FileUtils {
 		val = dis.readInt();
 		AliteLog.d("LOADING COMMANDER", "Parsing Equipment " + val);
 		for (int i = 0; i < val; i++) {
-			cobra.addEquipment(EquipmentStore.get().getEquipmentById(dis.readInt()));
+			cobra.addEquipment(EquipmentStore.get().getEquipmentByHash(dis.readInt()));
 		}
-		cobra.setLaser(PlayerCobra.DIR_FRONT, (Laser) EquipmentStore.get().getEquipmentById(dis.readInt()));
-		cobra.setLaser(PlayerCobra.DIR_RIGHT, (Laser) EquipmentStore.get().getEquipmentById(dis.readInt()));
-		cobra.setLaser(PlayerCobra.DIR_REAR, (Laser) EquipmentStore.get().getEquipmentById(dis.readInt()));
-		cobra.setLaser(PlayerCobra.DIR_LEFT, (Laser) EquipmentStore.get().getEquipmentById(dis.readInt()));
+		cobra.setLaser(PlayerCobra.DIR_FRONT, EquipmentStore.get().getEquipmentByHash(dis.readInt()));
+		cobra.setLaser(PlayerCobra.DIR_RIGHT, EquipmentStore.get().getEquipmentByHash(dis.readInt()));
+		cobra.setLaser(PlayerCobra.DIR_REAR, EquipmentStore.get().getEquipmentByHash(dis.readInt()));
+		cobra.setLaser(PlayerCobra.DIR_LEFT, EquipmentStore.get().getEquipmentByHash(dis.readInt()));
 
 		player.setCheater(readByte(dis) != 0);
 		player.setKillCount(dis.readInt());
@@ -525,11 +524,11 @@ public class FileUtils {
 		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE), (equipment & 64) > 0);
 		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.RETRO_ROCKETS), (equipment & 128) > 0);
 		int laser = readByte(dis);
-		Laser.equipLaser(laser & 15, EquipmentStore.PULSE_LASER, cobra);
-		Laser.equipLaser(laser >> 4, EquipmentStore.BEAM_LASER, cobra);
+		cobra.equipLaser(laser & 15, EquipmentStore.PULSE_LASER);
+		cobra.equipLaser(laser >> 4, EquipmentStore.BEAM_LASER);
 		laser = readByte(dis);
-		Laser.equipLaser(laser & 15, EquipmentStore.MINING_LASER, cobra);
-		Laser.equipLaser(laser >> 4, EquipmentStore.MILITARY_LASER, cobra);
+		cobra.equipLaser(laser & 15, EquipmentStore.MINING_LASER);
+		cobra.equipLaser(laser >> 4, EquipmentStore.MILITARY_LASER);
 		equipment = readByte(dis);
 		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.NAVAL_ENERGY_UNIT), (equipment & 1) > 0);
 		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.CLOAKING_DEVICE), (equipment & 2) > 0);
@@ -821,8 +820,8 @@ public class FileUtils {
 			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE)) ?  64 : 0) +
 			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.RETRO_ROCKETS))       ? 128 : 0);
 		dos.writeByte(equipment);
-		dos.writeByte(Laser.getLaserValue(cobra, EquipmentStore.PULSE_LASER) + (Laser.getLaserValue(cobra, EquipmentStore.BEAM_LASER) << 4));
-		dos.writeByte(Laser.getLaserValue(cobra, EquipmentStore.MINING_LASER) + (Laser.getLaserValue(cobra, EquipmentStore.MILITARY_LASER) << 4));
+		dos.writeByte(cobra.getLaserValue(EquipmentStore.PULSE_LASER) + (cobra.getLaserValue(EquipmentStore.BEAM_LASER) << 4));
+		dos.writeByte(cobra.getLaserValue(EquipmentStore.MINING_LASER) + (cobra.getLaserValue(EquipmentStore.MILITARY_LASER) << 4));
 		equipment = (cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.NAVAL_ENERGY_UNIT)) ? 1 : 0) +
 			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.CLOAKING_DEVICE)) ? 2 : 0) +
 			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_JAMMER)) ? 4 : 0);

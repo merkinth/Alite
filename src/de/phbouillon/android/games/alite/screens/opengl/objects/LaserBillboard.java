@@ -23,12 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.model.Laser;
+import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 
 public class LaserBillboard extends Billboard implements Serializable {
 	private static final long serialVersionUID = -6567821362381241916L;
-	private Laser laser;
+	private Equipment laser;
 	private final List<LaserBillboard> twins = new ArrayList<>();
 	private boolean aiming = false;
 	private SpaceObject origin;
@@ -42,11 +42,11 @@ public class LaserBillboard extends Billboard implements Serializable {
 		updateTextureCoordinates(Alite.get().getTextureManager().getSprite("textures/lasers.png", "photon" + type));
 	}
 
-	public Laser getLaser() {
+	public Equipment getLaser() {
 		return laser;
 	}
 
-	public void setLaser(Laser laser) {
+	public void setLaser(Equipment laser) {
 		this.laser = laser;
 	}
 

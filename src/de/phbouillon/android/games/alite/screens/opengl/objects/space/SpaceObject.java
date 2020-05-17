@@ -31,23 +31,21 @@ import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Quaternion;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.colors.AliteColor;
-import de.phbouillon.android.games.alite.model.Equipment;
-import de.phbouillon.android.games.alite.model.Weight;
+import de.phbouillon.android.games.alite.*;
+import de.phbouillon.android.games.alite.model.*;
 import de.phbouillon.android.games.alite.model.missions.ThargoidStationMission;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.EngineExhaust;
-import de.phbouillon.android.games.alite.screens.opengl.ingame.LaserManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.TargetBoxSpaceObject;
+import de.phbouillon.android.games.alite.screens.opengl.sprites.AliteHud;
 
 public class SpaceObject extends AliteObject implements Serializable {
 	private static final long serialVersionUID = 5206073222641804313L;
+
+	public static final float TARGETING_DISTANCE_SQ = 81000000.0f;
 
 	public enum Property {
 		// Ship keys
@@ -84,7 +82,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		exhaust_emissive_color, // ok - currently supported formats: named colors / #aarrggbb / #rrggbb / RGBA tuples
 		explosion_type,
 		extra_cargo,
-		forward_weapon_type,
+		forward_weapon_type, // ok
 		frangible,
 		fragment_chance,
 		fuel,
@@ -204,9 +202,6 @@ public class SpaceObject extends AliteObject implements Serializable {
 		tunnel_aspect_ratio
 	}
 
-	private Map<Property,Object> properties = new HashMap<>();
-	private Map<Property,Object> localeDependentProperties = new HashMap<>();
-
 	private static final int DEFAULT_HUD_COLOR_ENEMY = 0x8CAAF0;
 	private static final int DEFAULT_HUD_COLOR_TRADER = 0xF0F000;
 	private static final int DEFAULT_HUD_COLOR_ASTEROID = 0xF000F0;
@@ -221,6 +216,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 
 	private static final float MISSILE_MIN_DIST_SQ = 36000000.0f;
 
+	private final Repository<Property> repoHandler = new Repository<>();
 	private String textureFilename;
 	private float[] vertexBuffer;
 	private float[] facesBuffer;
@@ -282,53 +278,8 @@ public class SpaceObject extends AliteObject implements Serializable {
 		setVisibleOnHud(true);
 	}
 
-	public void setProperty(Property name, Object value) {
-		try {
-//			AliteLog.d("setProperty", name + " [" + (value != null ? value.getClass().getName() : "null") + "] = " + value);
-			properties.put(name, value);
-		} catch (IllegalArgumentException ignored) {
-			AliteLog.e("Space object property error", "Unknown property '" + name + "'");
-		}
-	}
-
-	public void setOverrideProperty(Property name, Object value) {
-		try {
-//			AliteLog.d("overrideProperty", name + " [" + (value != null ? value.getClass().getName() : "null") + "] = " + value);
-			localeDependentProperties.put(name, value);
-		} catch (IllegalArgumentException ignored) {
-			AliteLog.e("Space object override property error", "Unknown property '" + name + "'");
-		}
-	}
-
-	public Object getProperty(Property name) {
-		Object property = localeDependentProperties.get(name);
-		return property != null ? property : properties.get(name);
-	}
-
-	public String getStringProperty(Property name) {
-		return (String) getProperty(name);
-	}
-
-	public Float getNumericProperty(Property name) {
-		Object value = getProperty(name);
-		if (value == null) {
-			return 0f;
-		}
-		if (value instanceof Long) {
-			return ((Long) value).floatValue();
-		}
-		if (value instanceof Double) {
-			return ((Double) value).floatValue();
-		}
-		if (value instanceof Boolean) {
-			return (boolean) value ? 1f : 0f;
-		}
-		AliteLog.e("getNumericProperty error", "Cannot get value of '" + name + "' with type " + value.getClass().getName());
-		return 0f;
-	}
-
-	public List<String> getArrayProperty(Property name) {
-		return (List<String>) getProperty(name);
+	public Repository<Property> getRepoHandler() {
+		return repoHandler;
 	}
 
 	public List<Vector3f> getLaserHardpoint() {
@@ -426,17 +377,18 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	private long getMissileCount() {
-		return getNumericProperty(Property.missiles).longValue();
+		return repoHandler.getNumericProperty(Property.missiles).longValue();
 	}
 
 	private boolean canFireMissile() {
-		return getMissileCount() > 0 && lastMissileTime.hasPassedSeconds(getNumericProperty(Property.missile_load_time));
+		return getMissileCount() > 0 && lastMissileTime.hasPassedSeconds(
+			repoHandler.getNumericProperty(Property.missile_load_time));
 	}
 
 	void spawnMissile(SpaceObject ship) {
 		if (hullStrength > 0 && !mustBeRemoved() && !ship.isCloaked() &&
 				getPosition().distanceSq(ship.getPosition()) >= MISSILE_MIN_DIST_SQ && canFireMissile()) {
-			setProperty(Property.missiles, getMissileCount() - 1);
+			repoHandler.setProperty(Property.missiles, getMissileCount() - 1);
 			addObjectToSpawn(ObjectType.Missile);
 		}
 	}
@@ -480,7 +432,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	private boolean receivesProximityWarning() {
-		return getNumericProperty(Property.proximity_warning).intValue() == 1 && (!drone || hasLivingMother());
+		return repoHandler.getNumericProperty(Property.proximity_warning).intValue() == 1 && (!drone || hasLivingMother());
 	}
 
 	private void hasBeenHitByPlayer() {
@@ -656,18 +608,17 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	public void renderTargetBox(float distSq) {
-		if (!Settings.targetBox || targetBox == null || distSq <= SpaceObjectAI.SHOOT_DISTANCE_SQ) {
+		if (!Settings.targetBox || targetBox == null || distSq <= TARGETING_DISTANCE_SQ) {
 			return;
 		}
 		GLES11.glEnable(GLES11.GL_BLEND);
 		GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE);
-		targetBox.render(hudColor, (distSq - SpaceObjectAI.SHOOT_DISTANCE_SQ) /
-			(LaserManager.MAX_ENEMY_DISTANCE_SQ - SpaceObjectAI.SHOOT_DISTANCE_SQ));
+		targetBox.render(hudColor, (distSq - TARGETING_DISTANCE_SQ) / (AliteHud.MAX_DISTANCE_SQ - TARGETING_DISTANCE_SQ));
 		GLES11.glDisable(GLES11.GL_BLEND);
 	}
 
 	public final void createFaces(float[] vertexData, float[] faces, int ...indices) {
-		float scale = getNumericProperty(Property.model_scale_factor);
+		float scale = repoHandler.getNumericProperty(Property.model_scale_factor);
 		vertexBuffer = new float[indices.length * 3];
 		facesBuffer = new float[indices.length * 3];
 
@@ -763,20 +714,24 @@ public class SpaceObject extends AliteObject implements Serializable {
 
 	@Override
 	public String getName() {
-		String name = getStringProperty(Property.display_name);
-		return name != null ? name : getStringProperty(Property.name);
+		String name = repoHandler.getStringProperty(Property.display_name);
+		return name != null ? name : repoHandler.getStringProperty(Property.name);
+	}
+
+	public void setName(int name) {
+		repoHandler.setProperty(SpaceObject.Property.name, L.string(name));
 	}
 
 	public float getMaxSpeed() {
-		return getNumericProperty(Property.max_flight_speed);
+		return repoHandler.getNumericProperty(Property.max_flight_speed);
 	}
 
 	float getMaxRollSpeed() {
-		return getNumericProperty(Property.max_flight_roll);
+		return repoHandler.getNumericProperty(Property.max_flight_roll);
 	}
 
 	float getMaxPitchSpeed() {
-		return getNumericProperty(Property.max_flight_pitch);
+		return repoHandler.getNumericProperty(Property.max_flight_pitch);
 	}
 
 	public int getHullStrength() {
@@ -788,26 +743,26 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	int getAggressionLevel() {
-		return getNumericProperty(Property.aggression_level).intValue();
+		return repoHandler.getNumericProperty(Property.aggression_level).intValue();
 	}
 
 	public int getMaxCargoCanisters() {
-		return getNumericProperty(Property.max_cargo).intValue();
+		return repoHandler.getNumericProperty(Property.max_cargo).intValue();
 	}
 
 	public boolean hasFreeSpace() {
-		return getMaxCargoCanisters() > getNumericProperty(Property.cargo_carried).longValue();
+		return getMaxCargoCanisters() > repoHandler.getNumericProperty(Property.cargo_carried).longValue();
 	}
 
 	public void collectCargoCanister() {
-		long cargoCount = getNumericProperty(Property.cargo_carried).longValue();
+		long cargoCount = repoHandler.getNumericProperty(Property.cargo_carried).longValue();
 		if (getMaxCargoCanisters() > cargoCount) {
-			setProperty(Property.cargo_carried, cargoCount + 1);
+			repoHandler.setProperty(Property.cargo_carried, cargoCount + 1);
 		}
 	}
 
 	public TradeGood getCargoType() {
-		TradeGood good = TradeGoodStore.get().getGoodById(getNumericProperty(Property.likely_cargo).intValue());
+		TradeGood good = TradeGoodStore.get().getGoodById(repoHandler.getNumericProperty(Property.likely_cargo).intValue());
 		return good == null ? TradeGoodStore.get().getRandomTradeGoodForContainer() : good;
 	}
 
@@ -1046,7 +1001,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	public int getBounty() {
-		return getNumericProperty(Property.bounty).intValue();
+		return repoHandler.getNumericProperty(Property.bounty).intValue();
 	}
 
 	public int getScore() {
@@ -1059,9 +1014,9 @@ public class SpaceObject extends AliteObject implements Serializable {
 			case Missile:
 			case TieFighter: return 0;
 			case Constrictor: return 5000;
-			case Trader: return (int) (getNumericProperty(Property.max_energy).intValue() * 0.6f);
+			case Trader: return (int) (repoHandler.getNumericProperty(Property.max_energy).intValue() * 0.6f);
 		}
-		return getNumericProperty(SpaceObject.Property.max_energy).intValue();
+		return repoHandler.getNumericProperty(SpaceObject.Property.max_energy).intValue();
 	}
 
 	@Override
@@ -1086,23 +1041,22 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	public int getLaserColor() {
-		return getColor(getStringProperty(Property.laser_color));
+		return repoHandler.getColorProperty(Property.laser_color);
 	}
 
-	public int getColor(String color) {
-		if (color.toLowerCase().endsWith("color")) {
-			return AliteColor.parseColor(color.substring(0, color.length() - 5));
-		}
-		if (color.charAt(0) == '#') {
-			return AliteColor.parseColor(color);
-		}
-		String[] factors = color.split(" ");
-		float red = Float.parseFloat(factors[0]);
-		float green = Float.parseFloat(factors[1]);
-		float blue = Float.parseFloat(factors[2]);
-		float divider = red <= 1 && green <= 1 && blue <= 1 && (factors.length < 4 || Float.parseFloat(factors[3]) <= 1) ? 1 : 255;
-		return AliteColor.argb(factors.length == 4 ? Float.parseFloat(factors[3]) / divider : 1,
-			red / divider, green / divider, blue / divider);
+	public float getDamage() {
+		// weapon_energy / subentities type=ball_turret weapon_energy override the standard weapon type
+		return getLaser().getDamage();
+	}
+
+	private Equipment getLaser() {
+		return EquipmentStore.get().getEquipmentById("EQ_" +
+			repoHandler.getStringProperty(Property.forward_weapon_type));
+	}
+
+	public float getShootRangeSq() {
+		// subentities type=ball_turret weapon_range override the standard weapon type
+		return getLaser().getRangeSq();
 	}
 
 	public boolean isIdentified() {
@@ -1127,7 +1081,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		if (!ObjectType.isSpaceStation(type)) {
 			return 50;
 		}
-		Float radius = getNumericProperty(Property.port_radius);
+		Float radius = repoHandler.getNumericProperty(Property.port_radius);
 		if (radius != 0) {
 			return radius;
 		}
@@ -1136,7 +1090,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	public float getSpaceStationRotationSpeed() {
-		float stationRoll = getNumericProperty(Property.station_roll);
+		float stationRoll = repoHandler.getNumericProperty(Property.station_roll);
 		return stationRoll == 0 ? 0.2f : stationRoll;
 	}
 
@@ -1163,23 +1117,23 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	public int getMinDrones() {
-		if (getArrayProperty(Property.escort_roles) == null) {
-			return getNumericProperty(Property.escorts).intValue();
+		if (repoHandler.getArrayProperty(Property.escort_roles) == null) {
+			return repoHandler.getNumericProperty(Property.escorts).intValue();
 		}
-		String[] p = getArrayProperty(Property.escort_roles).get(0).split(" ");
+		String[] p = repoHandler.getArrayProperty(Property.escort_roles).get(0).split(" ");
 		return Integer.parseInt(p[1].substring(1, p[1].length() - 1));
 	}
 
 	public int getMaxDrones() {
-		if (getArrayProperty(Property.escort_roles) == null) {
-			return getNumericProperty(Property.escorts).intValue();
+		if (repoHandler.getArrayProperty(Property.escort_roles) == null) {
+			return repoHandler.getNumericProperty(Property.escorts).intValue();
 		}
-		String[] p = getArrayProperty(Property.escort_roles).get(0).split(" ");
+		String[] p = repoHandler.getArrayProperty(Property.escort_roles).get(0).split(" ");
 		return Integer.parseInt(p[2].substring(1, p[2].length() - 1));
 	}
 
 	String getAIType() {
-		return getStringProperty(Property.ai_type);
+		return repoHandler.getStringProperty(Property.ai_type);
 	}
 
 	public boolean isDrone() {
@@ -1225,14 +1179,16 @@ public class SpaceObject extends AliteObject implements Serializable {
 	SpaceObject cloneObject(ObjectType type) {
 		SpaceObject object = new SpaceObject(getId());
 		object.setType(type);
-		setPropertyAndModelData(object, false);
+		repoHandler.copyLocaleDependentTo(object.repoHandler);
+		repoHandler.copyTo(object.repoHandler);
+		setModelData(object);
 
 		if (hudColor != 0) {
 			object.hudColor = hudColor;
 		}
-		object.hasEcm = hasByProbability(object.getNumericProperty(Property.has_ecm));
-		object.affectedByEnergyBomb = hasByProbability(object.getNumericProperty(Property.affected_by_energy_bomb));
-		float escapePodProbability = object.getNumericProperty(Property.has_escape_pod);
+		object.hasEcm = hasByProbability(object.repoHandler.getNumericProperty(Property.has_ecm));
+		object.affectedByEnergyBomb = hasByProbability(object.repoHandler.getNumericProperty(Property.affected_by_energy_bomb));
+		float escapePodProbability = object.repoHandler.getNumericProperty(Property.has_escape_pod);
 		if (escapePodProbability > 1) object.escapePod = (int) escapePodProbability;
 		else object.escapePod = hasByProbability(escapePodProbability) ? 1 : 0;
 		object.setMatrix(getMatrix());
@@ -1244,7 +1200,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		object.cargoWeight = cargoWeight;
 		object.specialCargoContent = specialCargoContent;
 		object.cargoPrice = cargoPrice;
-		object.hullStrength = getNumericProperty(SpaceObject.Property.max_energy).intValue();
+		object.hullStrength = repoHandler.getNumericProperty(SpaceObject.Property.max_energy).intValue();
 
 		for (SpaceObject part: parts) {
 			object.parts.add(part.cloneObject(part.getType()));
@@ -1265,33 +1221,12 @@ public class SpaceObject extends AliteObject implements Serializable {
 		targetBox = new TargetBoxSpaceObject(getMaxExtentWithoutExhaust() * 1.25f);
 	}
 
-	public void clearLocaleDependentProperties() {
-		localeDependentProperties.clear();
-	}
-
-	public void refreshLocaleDependentProperties() {
-		localeDependentProperties.clear();
-		localeDependentProperties.putAll(SpaceObjectFactory.getInstance().getTemplateObject(getId()).localeDependentProperties);
-		AliteLog.d("refreshLocaleDependentProperties", getId() + ": " + properties + ": " + localeDependentProperties);
-	}
-
 	public void setPropertyAndModelData(SpaceObject dest) {
-		setPropertyAndModelData(dest, true);
+		repoHandler.copyToIfUndefined(dest.repoHandler);
+		setModelData(dest);
 	}
 
-	private void setPropertyAndModelData(SpaceObject dest, boolean undefinedOnly) {
-		dest.localeDependentProperties.clear();
-		if (undefinedOnly) {
-			for (Property p : properties.keySet()) {
-				if (!dest.properties.containsKey(p)) {
-					dest.properties.put(p, properties.get(p));
-				}
-			}
-		} else {
-			dest.properties.clear();
-			dest.properties.putAll(properties);
-			dest.localeDependentProperties.putAll(localeDependentProperties);
-		}
+	private void setModelData(SpaceObject dest) {
 		dest.vertexBuffer = vertexBuffer;
 		dest.facesBuffer = facesBuffer;
 		dest.boundingBox = boundingBox;

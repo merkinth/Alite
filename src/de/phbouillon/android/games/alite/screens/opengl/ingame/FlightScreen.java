@@ -143,6 +143,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 			in.defaultReadObject();
 			AliteLog.d("readObject", "FlightScreen.readObject I");
 			game = Alite.get();
+			game.setInGame(inGame);
 			setPause(true);
 			AliteLog.d("readObject", "FlightScreen.readObject II");
 			isSaving = false;
@@ -198,7 +199,6 @@ public class FlightScreen extends GlScreen implements Serializable {
 				return inGame.getShip().getSpeed();
 			}
 		}), "textures/star_map.png", lightPosition, fromStation, true);
-		game.setInGame(inGame);
 		PlayerCobra cobra = game.getCobra();
 		cobra.setMissileTargetting(false);
 		cobra.setMissileLocked(false);

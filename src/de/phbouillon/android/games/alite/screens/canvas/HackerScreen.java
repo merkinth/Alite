@@ -447,10 +447,10 @@ public class HackerScreen extends AliteScreen {
 		state.setDockingComputer(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.DOCKING_COMPUTER)));
 		state.setGalacticHyperdrive(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE)));
 		state.setRetroRockets(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.RETRO_ROCKETS)));
-		state.setPulseLaser(Laser.getLaserValue(cobra, EquipmentStore.PULSE_LASER));
-		state.setBeamLaser(Laser.getLaserValue(cobra, EquipmentStore.BEAM_LASER));
-		state.setMiningLaser(Laser.getLaserValue(cobra, EquipmentStore.MINING_LASER));
-		state.setMilitaryLaser(Laser.getLaserValue(cobra, EquipmentStore.MILITARY_LASER));
+		state.setPulseLaser(cobra.getLaserValue(EquipmentStore.PULSE_LASER));
+		state.setBeamLaser(cobra.getLaserValue(EquipmentStore.BEAM_LASER));
+		state.setMiningLaser(cobra.getLaserValue(EquipmentStore.MINING_LASER));
+		state.setMilitaryLaser(cobra.getLaserValue(EquipmentStore.MILITARY_LASER));
 		state.setCloakingDevice(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.CLOAKING_DEVICE)));
 		state.setECMJammer(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_JAMMER)));
 		for (InventoryItem item : cobra.getInventory()) {
@@ -506,11 +506,11 @@ public class HackerScreen extends AliteScreen {
 		// Punish player for cheating: If he enters values for all laser types,
 		// accept the least powerful one only... (I.e. set military laser first and
 		// overwrite it with lesser lasers if values are present...)
-		Laser.equipLaser(15, -1, cobra);
-		Laser.equipLaser(state.getMilitaryLaser(), EquipmentStore.MILITARY_LASER, cobra);
-		Laser.equipLaser(state.getBeamLaser(), EquipmentStore.BEAM_LASER, cobra);
-		Laser.equipLaser(state.getMiningLaser(), EquipmentStore.MINING_LASER, cobra);
-		Laser.equipLaser(state.getPulseLaser(), EquipmentStore.PULSE_LASER, cobra);
+		cobra.equipLaser(15, "");
+		cobra.equipLaser(state.getMilitaryLaser(), EquipmentStore.MILITARY_LASER);
+		cobra.equipLaser(state.getBeamLaser(), EquipmentStore.BEAM_LASER);
+		cobra.equipLaser(state.getMiningLaser(), EquipmentStore.MINING_LASER);
+		cobra.equipLaser(state.getPulseLaser(), EquipmentStore.PULSE_LASER);
 		for (InventoryItem item : cobra.getInventory()) {
 			cobra.setTradeGood(item.getGood(), Weight.grams(state.getGood(item.getGood())), item.getPrice());
 		}
