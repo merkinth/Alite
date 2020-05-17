@@ -20,8 +20,6 @@ package de.phbouillon.android.framework;
 
 import com.google.api.client.util.DateTime;
 import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.L;
-import de.phbouillon.android.games.alite.screens.canvas.PluginsScreen;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,6 +30,8 @@ import java.io.OutputStream;
 import java.util.*;
 
 public class PluginModel {
+	public static final String DIRECTORY_LOCALES = "locales" + File.separatorChar;
+	public static final String DIRECTORY_PLUGINS = "plugins" + File.separator;
 
 	private FileIO fileIO;
 	private String metaFileName;
@@ -286,8 +286,8 @@ public class PluginModel {
 	}
 
 	public void removePlugin(Plugin plugin, String removalReason) {
-		if (fileIO.deleteFile((L.DIRECTORY_LOCALES.equals(plugin.folder + File.separator) ?
-			L.DIRECTORY_LOCALES : PluginsScreen.DIRECTORY_PLUGINS) + plugin.filename)) {
+		if (fileIO.deleteFile((DIRECTORY_LOCALES.equals(plugin.folder + File.separator) ?
+				DIRECTORY_LOCALES : DIRECTORY_PLUGINS) + plugin.filename)) {
 			plugin.status = Plugin.META_STATUS_REMOVED;
 			plugin.removalReason = removalReason;
 			saveRefreshedMetaFile();

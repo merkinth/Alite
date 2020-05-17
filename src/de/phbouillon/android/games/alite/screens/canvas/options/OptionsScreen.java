@@ -73,7 +73,7 @@ public class OptionsScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		L.getInstance().loadLocaleList(game.getFileIO(), Settings.localeFileName);
+		L.getInstance().loadLocaleList(Settings.getLocaleFiles(game.getFileIO()));
 		gameplayOptions = createSmallButton(0, true, L.string(R.string.title_gameplay_options));
 		displayOptions  = createSmallButton(0, false, L.string(R.string.title_display_options));
 		audioOptions    = createSmallButton(1, true, L.string(R.string.title_audio_options));
@@ -84,7 +84,7 @@ public class OptionsScreen extends AliteScreen {
 		addPixmapAfterText(languages, getCountryFlag(L.getInstance().getCurrentLocale().getCountry()));
 
 		int count = new PluginModel(game.getFileIO(),
-			PluginsScreen.DIRECTORY_PLUGINS + PluginsScreen.PLUGINS_META_FILE).countNewAndUpgraded();
+			PluginModel.DIRECTORY_PLUGINS + PluginsScreen.PLUGINS_META_FILE).countNewAndUpgraded();
 		extensionPacks = createSmallButton(2, false, L.string(R.string.title_plugins));
 		if (count > 0) {
 			addPixmapAfterText(extensionPacks, getNewAndUpgradedMarker(count));
@@ -197,9 +197,7 @@ public class OptionsScreen extends AliteScreen {
 		}
 		if (languages.isTouched(touch.x, touch.y)) {
 			SoundManager.play(Assets.click);
-			Settings.localeFileName = L.getInstance().getNextLocale();
-			L.getInstance().setLocale(game, Settings.DEFAULT_LOCALE_FILE.equals(Settings.localeFileName) ? Settings.localeFileName :
-				game.getFileIO().getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
+			L.getInstance().setLocale(L.getInstance().getNextLocale());
 			game.changeLocale();
 			Settings.save(game.getFileIO());
 			newScreen = new OptionsScreen();

@@ -151,7 +151,7 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		});
 		AliteLog.d("Alite Start Manager", "Alite Start Manager has been created.");
 		Settings.load(fileIO);
-		L.getInstance().setLocale(this, fileIO.getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
+		L.getInstance(this).setLocale(Settings.locale);
 
 		if (AliteConfig.HAS_EXTENSION_APK) {
 			checkDownload();
@@ -176,13 +176,14 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		if (Settings.extensionUpdateMode == PluginManager.UPDATE_MODE_NO_UPDATE) {
 			((TextView) findViewById(R.id.downloadTextView)).setText(L.string(R.string.notification_plugins_loading));
 			AliteLog.d("Alite Start Manager", "Updating plugins is disabled");
-			new PluginModel(fileIO, PluginsScreen.DIRECTORY_PLUGINS + PluginsScreen.PLUGINS_META_FILE).
-				checkPluginFiles(null, new String[]{L.DIRECTORY_LOCALES, PluginsScreen.DIRECTORY_PLUGINS});
+			new PluginModel(fileIO, PluginModel.DIRECTORY_PLUGINS + PluginsScreen.PLUGINS_META_FILE).
+				checkPluginFiles(null, new String[]{PluginModel.DIRECTORY_LOCALES, PluginModel.DIRECTORY_PLUGINS});
 		} else {
 			AliteLog.d("Alite Start Manager", "Checking plugins");
 			((TextView) findViewById(R.id.downloadTextView)).setText(L.string(R.string.notification_plugin_checking));
 			new PluginManagerImpl(this, fileIO, AliteConfig.ROOT_DRIVE_FOLDER, AliteConfig.GAME_NAME, this).
-				checkPluginFiles(PluginsScreen.DIRECTORY_PLUGINS, L.DIRECTORY_LOCALES, PluginsScreen.PLUGINS_META_FILE, Settings.extensionUpdateMode);
+				checkPluginFiles(PluginModel.DIRECTORY_PLUGINS, PluginModel.DIRECTORY_LOCALES,
+					PluginsScreen.PLUGINS_META_FILE, Settings.extensionUpdateMode);
 		}
 		onTaskCompleted = deltaTime -> startGame();
 		((TextView) findViewById(R.id.downloadTextView)).setText(L.string(R.string.notification_plugins_loading));
@@ -260,9 +261,11 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 				}
 				AliteLog.d("loadBundledPlugins", "Started");
 				for (String pluginName : plugins) {
-					new OXPParser(PluginsScreen.DIRECTORY_PLUGINS + pluginName,
-						fileName -> assetManager.open(PluginsScreen.DIRECTORY_PLUGINS + pluginName +
-							File.separatorChar + fileName)).isPlugged();
+					new OXPParser(PluginModel.DIRECTORY_PLUGINS + pluginName,
+						fileName -> assetManager.open(PluginModel.DIRECTORY_PLUGINS + pluginName +
+							File.separatorChar + fileName),
+						directory -> assetManager.list(PluginModel.DIRECTORY_PLUGINS + pluginName +
+							File.separatorChar + directory)).isPlugged();
 					pluginProgress++;
 					publishProgress(pluginName);
 				}
@@ -271,9 +274,10 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 			}
 		}
 
+		// Load from plugin directory of the files of the currently selected locale
 		void loadLocaleDependentPlugins() {
 			SpaceObjectFactory.getInstance().clearLocaleDependentProperties();
-			String[] plugins = L.getInstance().list(PluginsScreen.DIRECTORY_PLUGINS);
+			String[] plugins = L.getInstance().list(PluginModel.DIRECTORY_PLUGINS);
 			if (plugins == null) {
 				return;
 			}
@@ -298,13 +302,18 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 		}
 
 		private void loadExternalPlugins(boolean localeDependent) {
-			String directory = localeDependent ? L.DIRECTORY_LOCALES : PluginsScreen.DIRECTORY_PLUGINS;
-			String fileNamePrefix = localeDependent ? (L.getInstance().getCurrentLocale().getLanguage() + '_' +
-				L.getInstance().getCurrentLocale().getCountry() + '_').toLowerCase() : "";
-			AliteLog.d("loadExternalPlugins" + (countMode ? " (countMode)" : ""), "" +
-				"Search in directory '" + directory + "' with filename prefix '" + fileNamePrefix + "'");
-			File[] plugins = fileIO.getFiles(directory, fileNamePrefix + ".*\\.oxz|" +
-				fileNamePrefix + ".*\\.zip|" + fileNamePrefix + ".*\\.oxp");
+			String directory;
+			String fileNamePattern;
+			if (localeDependent) {
+				directory = PluginModel.DIRECTORY_LOCALES;
+				fileNamePattern = L.getLanguageCountry(L.getInstance().getCurrentLocale()) + "_.*\\.zip";
+			} else {
+				directory = PluginModel.DIRECTORY_PLUGINS;
+				fileNamePattern = ".*\\.oxz|.*\\.zip|.*\\.oxp";
+			}
+			AliteLog.d("loadExternalPlugins" + (countMode ? " (countMode)" : ""),
+				"Search '" + fileNamePattern + "' in directory '" + directory + "'");
+			File[] plugins = fileIO.getFiles(directory, fileNamePattern);
 			if (plugins == null || plugins.length == 0) {
 				AliteLog.d("loadExternalPlugins", "plugin not found.");
 				return;

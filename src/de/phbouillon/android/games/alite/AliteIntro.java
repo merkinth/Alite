@@ -94,7 +94,7 @@ public class AliteIntro extends Activity implements OnClickListener {
 			}
 		});
 		Settings.load(fileIO);
-		L.getInstance().setLocale(this, fileIO.getFileName(L.DIRECTORY_LOCALES + Settings.localeFileName));
+		L.getInstance(this).setLocale(Settings.locale);
 		Settings.setOrientation(this);
 
 		if (savedInstanceState != null) {

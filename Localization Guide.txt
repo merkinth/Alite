@@ -98,7 +98,25 @@ Guide to localization
                        same algorithm as the system name generation.
 
 
-6. Using java script
+6. Texts of plugins
+-------------------
+You have always two choices for each string type items: use as a regular string
+or think about it as a string that can be localized. In the 2nd case you have
+to define a key - value pair in Config/strings.xml file where the key must match
+to the value of the item.
+
+
+7. Localization of plugins
+--------------------------
+Language pack file can contain a 'plugins' folder. In this folder can be
+the localization of one or more plugins. Each of them has to be in a
+separate folder with name of the unique name of the plugin. Unique name is
+the value of the identifier field in its manifest file. Localized strings
+and arrays have to be in the Config/strings.xml file. Its structure is
+described in the section 3.
+
+
+8. Using java script
 --------------------
   You can define java script functions in section "js".
   It can be used in strings and items of planet_description in strings.xml.
@@ -118,7 +136,7 @@ Guide to localization
   E.g: Lave -> Lavian, Usanat -> Usanatian
 
 
-7. Control, correction, clarification, completeness
+9. Control, correction, clarification, completeness
 ---------------------------------------------------
   Even the best is to translate all texts and text audios better to dispatch
   a not fully translated language pack file sooner than a perfect one later.
@@ -127,8 +145,8 @@ Guide to localization
   better than nothing. You can improve it continuously any time.
 
 
-8. Contact
-----------
+10. Contact
+-----------
   Always provide your name and email address to receive the comments or new
   items to translate. It would be the best if you drop an email to the Alite
   mail address (currently alite.crash.report@gmail.com) we can contact if
@@ -142,8 +160,10 @@ Guide to localization
 [7]<Put your email address here>
 
 
-9. How to make language packs downloadable
-------------------------------------------
-  To share language pack you have to upload your file to the folder 'locales'
-  of Alite's Google Drive on URL https://drive.google.com/drive/folders/1Zrb9svph7iANvhjhgaQuOpjPRBJjeRvm
-  with using script https://script.google.com/macros/s/AKfycbwlUAPdycOwh8WZMFu3Q6GLaAy90z3hMoDEUIec/exec
+11. Sharing the language pack
+-----------------------------
+  Program list all the files uploaded to the folder 'locales' of Alite's
+  Google Drive on URL https://drive.google.com/drive/folders/1Zrb9svph7iANvhjhgaQuOpjPRBJjeRvm
+  if you choose Options > Extensions, languages.
+  For uploading use the script from here:
+  https://script.google.com/macros/s/AKfycbwlUAPdycOwh8WZMFu3Q6GLaAy90z3hMoDEUIec/exec

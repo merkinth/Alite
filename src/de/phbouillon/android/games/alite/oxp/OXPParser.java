@@ -35,7 +35,7 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjec
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 public class OXPParser {
-	private static final String DIRECTORY_CONFIG = "Config" + File.separatorChar;
+	public static final String DIRECTORY_CONFIG = "Config" + File.separatorChar;
 	private static final String FILE_DEMO_SHIPS = DIRECTORY_CONFIG + "demoships.plist";
 	private static final String FILE_SHIP_LIBRARY = DIRECTORY_CONFIG + "shiplibrary.plist";
 	private static final String FILE_SHIP_DATA_OVERRIDES = DIRECTORY_CONFIG + "shipdata-overrides.plist";
@@ -134,6 +134,14 @@ public class OXPParser {
 		checkRequiredVersion();
 
 		try {
+			if (!localeDependent) {
+				L.getInstance().addDefaultResource(DIRECTORY_CONFIG, inputStreamMethod, getPluginName());
+			}
+		} catch (IOException ignored) {
+			// allowed to be missed
+		}
+
+		try {
 			readDemoShipsFileProperties();
 		} catch (IOException ignored) {
 			// allowed to be missed
@@ -173,17 +181,18 @@ public class OXPParser {
 		if (shipList == null) {
 			return;
 		}
-		for (String id : shipList.keySet()) {
-			if (pending && !pendingRegistration.contains(id)) {
+		for (Map.Entry<String, NSObject> id : shipList.entrySet()) {
+			if (pending && !pendingRegistration.contains(id.getKey())) {
 				continue;
 			}
-			SpaceObject spaceObject = SpaceObjectFactory.getInstance().getTemplateObject(id);
+			SpaceObject spaceObject = SpaceObjectFactory.getInstance().getTemplateObject(id.getKey());
 			boolean register = spaceObject == null;
 			boolean shipData = FILE_SHIP_DATA.equals(fileName);
-			AliteLog.d("readShipDataFileProperties " + (pending ? "(pending) " : "") + (shipData ? "shipdata" : ""), id);
+			AliteLog.d("readShipDataFileProperties " + (pending ? "(pending) " : "") +
+				(shipData ? "shipdata" : ""), id.getKey());
 			if (register) {
 				if (shipData) {
-					spaceObject = new SpaceObject(id);
+					spaceObject = new SpaceObject(id.getKey());
 				} else {
 					plugged = false;
 					continue;
@@ -205,14 +214,14 @@ public class OXPParser {
 					}
 				} else if (propertyList.get(p) instanceof NSArray) {
 					ArrayList<String> list = new ArrayList<>();
-					for (NSObject items : ((NSArray) propertyList.get(p)).getArray()) {
+					for (NSObject items : ((NSArray) p.getValue()).getArray()) {
 						if (items instanceof NSString) {
 							list.add(((NSString) items).getContent());
-						} else if ("escort_roles".equals(p)){
+						} else if ("escort_roles".equals(p.getKey())){
 							list.add("\"" + getString((NSDictionary) items, "role") +
 								"\" \"" + getNumber((NSDictionary) items, "min") +
 								"\" \"" + getNumber((NSDictionary) items, "max") + "\"");
-						} else if ("subentities".equals(p)){
+						} else if ("subentities".equals(p.getKey())){
 							String subEntityKey = getString((NSDictionary) items, "subentity_key");
 							SpaceObject subEntity = SpaceObjectFactory.getInstance().getObjectById(subEntityKey);
 							if (subEntity == null) {
@@ -222,7 +231,7 @@ public class OXPParser {
 								if (!shipData || pending) {
 									AliteLog.e("Ship data reading error", "Referred sub-entity '" + subEntityKey + "' not found.");
 								} else {
-									pendingRegistration.add(id);
+									pendingRegistration.add(id.getKey());
 								}
 								break;
 							}
@@ -249,7 +258,7 @@ public class OXPParser {
 				if (!shipData || pending) {
 					AliteLog.e("Ship data reading error", "Referred object '" + likeShipId + "' not found.");
 				} else {
-					pendingRegistration.add(id);
+					pendingRegistration.add(id.getKey());
 				}
 				continue;
 			}

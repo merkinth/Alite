@@ -19,12 +19,14 @@ package de.phbouillon.android.games.alite;
  */
 
 import java.io.*;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.view.View;
 import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.PluginManager;
+import de.phbouillon.android.framework.PluginModel;
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
@@ -46,8 +48,6 @@ public class Settings {
 	public static final int GALACTIC_HYPERSPACE    =   9;
 	public static final int CLOAKING_DEVICE        =  10;
 	public static final int ECM_JAMMER             =  11;
-
-	public static final String DEFAULT_LOCALE_FILE = "en_US";
 
 	public static boolean animationsEnabled = true;
 	private static boolean debugActive = false;
@@ -90,21 +90,26 @@ public class Settings {
     public static int difficultyLevel = 3;
 	private static int restoredCommanderCount = 0;
     public static boolean navButtonsVisible = true;
-	public static String localeFileName = DEFAULT_LOCALE_FILE;
+	public static Locale locale = Locale.US;
 	public static int extensionUpdateMode = PluginManager.UPDATE_MODE_AUTO_UPDATE_OVER_WIFI_ONLY;
 	public static int maxGalaxies = 8;
 
 	private Settings() {
 	}
 
+	public static File[] getLocaleFiles(FileIO f) {
+		return f.getFiles(PluginModel.DIRECTORY_LOCALES, ".*\\.zip");
+	}
+
 	public static void load(FileIO files) {
+		L.getInstance().loadLocaleList(getLocaleFiles(files));
 		resetButtonPosition();
 		boolean fastDC = false;
 		try(BufferedReader in = new BufferedReader(new InputStreamReader(files.readFile(SETUP_FILE_NAME)))) {
 			animationsEnabled = Boolean.parseBoolean(in.readLine());
 			String s = in.readLine();
 			if (s != null) {
-				localeFileName = s;
+				locale = L.getLocaleOf(s);
 			}
 			debugActive = Boolean.parseBoolean(in.readLine());
 			logToFile = Boolean.parseBoolean(in.readLine()) || ALWAYS_WRITE_LOG;
@@ -187,7 +192,7 @@ public class Settings {
 	public static void save(FileIO files) {
 		try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(files.writeFile(SETUP_FILE_NAME)))) {
 			out.write(animationsEnabled + "\n");
-			out.write(localeFileName + "\n");
+			out.write(L.getLanguageCountry(L.getInstance().getCurrentLocale()) + "\n");
 			out.write(debugActive + "\n");
 			out.write(logToFile + "\n");
 			out.write(displayFrameRate + "\n");

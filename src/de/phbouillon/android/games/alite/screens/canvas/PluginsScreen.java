@@ -42,7 +42,6 @@ import java.util.Locale;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class PluginsScreen extends AliteScreen implements IDownloaderClient {
-	public static final String DIRECTORY_PLUGINS = "plugins" + File.separator;
 	public static final String PLUGINS_META_FILE = "alite_plugins.json";
 
 	private final List<Button> buttons = new ArrayList<>();
@@ -75,7 +74,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 
 	@Override
 	public void activate() {
-		pluginModel = new PluginModel(game.getFileIO(), DIRECTORY_PLUGINS + PLUGINS_META_FILE);
+		pluginModel = new PluginModel(game.getFileIO(), PluginModel.DIRECTORY_PLUGINS + PLUGINS_META_FILE);
 		plugins = pluginModel.getOrderedListOfPlugins();
 		buildPluginButtons();
 		btnBack = Button.createGradientRegularButton(1400, 950, 250, 100, L.string(R.string.options_back));
