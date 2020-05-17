@@ -289,9 +289,9 @@ public class AliteStartManager extends Activity implements IDownloaderClient {
 			AliteLog.d("loadLocaleDependentPlugins", "Started");
 			for (String pluginName : plugins) {
 				try {
-					new OXPParser(PluginsScreen.DIRECTORY_PLUGINS + pluginName,
-							fileName -> L.raw(PluginsScreen.DIRECTORY_PLUGINS + pluginName + File.separatorChar, fileName)).
-						setLocaleDependent().isPlugged();
+					new OXPParser(PluginModel.DIRECTORY_PLUGINS + pluginName,
+						fileName -> L.raw(PluginModel.DIRECTORY_PLUGINS + pluginName + File.separatorChar, fileName),
+						null).setLocaleDependent().isPlugged();
 					pluginProgress++;
 					publishProgress(pluginName);
 				} catch (IOException e) {
