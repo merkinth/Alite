@@ -82,8 +82,7 @@ public class Equipment implements Serializable {
 
 		name, // for localization
 		short_name // for localization
-
-		}
+	}
 
 	private enum WeaponProperty {
 		range,
@@ -97,9 +96,8 @@ public class Equipment implements Serializable {
 		is_turret_laser,
 		crosshairs, // only in Alite, format: texture_file atlas_name, planned format: texture_file [atlas_name | x y width height]
 		beam_length // only in Alite
-		;
-
 	}
+
 	public Equipment(String equipmentName, String name, int minTechLevel, int cost, String shortName,
 			NSObject properties) throws IOException {
 		id = getEquipmentId(equipmentName);

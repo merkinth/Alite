@@ -35,6 +35,11 @@ public class Repository<T> implements Serializable {
 			} else if (value instanceof NSNumber) {
 				value = getNumber((NSNumber) value);
 			}
+			if (value != null && !(value instanceof Serializable)) {
+				AliteLog.d("setProperty error", "Unhandled property '" + name +
+					"' with class " + value.getClass().getName() + " is ignored.");
+				return;
+			}
 //			AliteLog.d("set" + (localized ? "Localized" : "") + "Property", name + " [" +
 //				(value != null ? value.getClass().getName() : "null") + "] = " + value);
 			if (localized) {
