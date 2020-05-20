@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.impl.AndroidGame;
@@ -34,39 +35,41 @@ import de.phbouillon.android.games.alite.Settings;
 
 class StarDust extends GraphicObject implements Serializable {
 	private static final long serialVersionUID = -263791298507488418L;
-	private static final long  SIZE      = 700000;
-	private static final float SIZE_MUL  = 10.0f / SIZE;
-	private static final float SPEED     = 1000.0f;
+	private static final long SIZE = 700000;
 
 	private transient FloatBuffer dustParticles;
-	private transient FloatBuffer particleSizes;
+	private transient ShortBuffer indicesBuffer;
 	private final int particleCount;
-	private final float [] particles;
-	private final float [] sizes;
+	private final float[] particles;
+	private final short[] indices;
 
 	StarDust(Vector3f centerPosition) {
 		super("Stardust");
 		particleCount = Settings.particleDensity == 1 ? 500 : Settings.particleDensity == 2 ? 2000 : 4000;
-		particles = new float[particleCount * 3];
-		sizes = new float[particleCount];
+		particles = new float[particleCount * 3 * 2];
+		indices = new short[particleCount * 2];
 		setPosition(centerPosition);
 		for (int i = 0; i < particleCount; i++) {
-			particles[i * 3 + 0] = (float) (Math.random() * SIZE * 2 - SIZE);
+			particles[i * 3] = (float) (Math.random() * SIZE * 2 - SIZE);
 			particles[i * 3 + 1] = (float) (Math.random() * SIZE * 2 - SIZE);
 			particles[i * 3 + 2] = (float) (Math.random() * SIZE * 2 - SIZE);
-			computeSize(i);
+			particles[(i + particleCount) * 3] = particles[i * 3];
+			particles[(i + particleCount) * 3 + 1] = particles[i * 3 + 1];
+			particles[(i + particleCount) * 3 + 2] = particles[i * 3 + 2];
+			// Set up element index array for warp mode.
+			indices[i * 2] = (short) i;
+			indices[i * 2 + 1] = (short) (i + particleCount);
 		}
 		init();
 	}
 
 	private void init() {
 		dustParticles = GlUtils.toFloatBufferPositionZero(particles);
-		particleSizes = GlUtils.toFloatBufferPositionZero(sizes);
-        float[] fogColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-        GLES11.glFogfv(GLES11.GL_FOG_COLOR, fogColor, 0);
-        GLES11.glFogf(GLES11.GL_FOG_START, SIZE * 0.5f);
-        GLES11.glFogf(GLES11.GL_FOG_END, SIZE);
-        GLES11.glFogx(GLES11.GL_FOG_MODE, GLES11.GL_LINEAR);
+		indicesBuffer = GlUtils.toShortBufferPositionZero(indices);
+		GLES11.glFogfv(GLES11.GL_FOG_COLOR, new float[]{ 0.0f, 0.0f, 0.0f, 1.0f }, 0);
+		GLES11.glFogf(GLES11.GL_FOG_START, SIZE * 0.5f);
+		GLES11.glFogf(GLES11.GL_FOG_END, SIZE);
+		GLES11.glFogx(GLES11.GL_FOG_MODE, GLES11.GL_LINEAR);
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
@@ -81,47 +84,32 @@ class StarDust extends GraphicObject implements Serializable {
 		}
 	}
 
-	private void computeSize(int index) {
-		float distSq = particles[index * 3 + 0] * SIZE_MUL *
-	            	   particles[index * 3 + 0] * SIZE_MUL +
-	            	   particles[index * 3 + 1] * SIZE_MUL *
-	            	   particles[index * 3 + 1] * SIZE_MUL +
-	            	   particles[index * 3 + 2] * SIZE_MUL *
-	            	   particles[index * 3 + 2] * SIZE_MUL;
-
-		sizes[index] = 8.0f * AndroidGame.scaleFactor - distSq / 375.0f;
-											   // 375 == 3000 / 8, with 3000 being the estimated
-		                     // "drop off" point; i.e. everything farther away
-			                   // than that is too small to see anyway...
-
-		if (sizes[index] < 0.01f) {
-			sizes[index] = 0.01f;
-		}
-	}
-
-	void render() {
-        GLES11.glEnable(GLES11.GL_FOG);
+	void render(boolean torusSpeed) {
+		GLES11.glEnable(GLES11.GL_FOG);
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
-        GLES11.glDisable(GLES11.GL_LIGHTING);
+		GLES11.glDisable(GLES11.GL_LIGHTING);
 		GLES11.glDisableClientState(GLES11.GL_NORMAL_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
 		GLES11.glDisableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
 		GLES11.glDisableClientState(GLES11.GL_COLOR_ARRAY);
-		GLES11.glEnableClientState(GLES11.GL_POINT_SIZE_ARRAY_OES);
 		GLES11.glVertexPointer(3, GLES11.GL_FLOAT, 0, dustParticles);
-		GLES11.glPointSizePointerOES(GLES11.GL_FLOAT, 0, particleSizes);
-		GLES11.glColor4f(0.7f, 0.7f, 1.0f, 0.8f);
-		Alite.get().getTextureManager().setTexture("textures/glow_mask.png");
-        GLES11.glEnable(GLES11.GL_POINT_SPRITE_OES);
-        GLES11.glTexEnvf(GLES11.GL_POINT_SPRITE_OES, GLES11.GL_COORD_REPLACE_OES, GLES11.GL_TRUE);
-        GLES11.glEnable(GLES11.GL_BLEND);
-        GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE);
-        GLES11.glHint(GLES11.GL_POINT_SMOOTH_HINT, GLES11.GL_NICEST);
+		GLES11.glEnable(GLES11.GL_BLEND);
+		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE);
+		GLES11.glHint(GLES11.GL_POINT_SMOOTH_HINT, GLES11.GL_NICEST);
 		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
-		GLES11.glDrawArrays(GLES11.GL_POINTS, 0, particleCount);
-		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		GLES11.glPointSize(1.0f);
-		GLES11.glDisableClientState(GLES11.GL_POINT_SIZE_ARRAY_OES);
+		GLES11.glColor4f(0.7f, 0.7f, 1.0f, 0.8f);
+		if (torusSpeed) {
+			GLES11.glLineWidth(4 * AndroidGame.scaleFactor);
+			GLES11.glDrawElements(GLES11.GL_LINES, particleCount * 2, GLES11.GL_UNSIGNED_SHORT, indicesBuffer);
+		} else {
+			Alite.get().getTextureManager().setTexture("textures/glow_mask.png");
+			GLES11.glEnable(GLES11.GL_POINT_SPRITE_OES);
+			GLES11.glTexEnvf(GLES11.GL_POINT_SPRITE_OES, GLES11.GL_COORD_REPLACE_OES, GLES11.GL_TRUE);
+			GLES11.glDrawArrays(GLES11.GL_POINTS, 0, particleCount);
+			GLES11.glPointSize(8 * AndroidGame.scaleFactor);
+
+		}
+		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
 		GLES11.glDisableClientState(GLES11.GL_COLOR_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_NORMAL_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
@@ -130,39 +118,44 @@ class StarDust extends GraphicObject implements Serializable {
 		GLES11.glDisable(GLES11.GL_BLEND);
 		GLES11.glDisable(GLES11.GL_FOG);
 	}
-
 	private void adjustPosition(int index) {
 		for (int i = 0; i < 3; i++) {
 			if (particles[index * 3 + i] > SIZE) {
 				particles[index * 3 + i] = -SIZE + (particles[index * 3 + i] - SIZE);
+				particles[(index + particleCount) * 3 + i] = particles[index * 3 + i];
 			} else if (particles[index * 3 + i] < -SIZE) {
 				particles[index * 3 + i] = SIZE - (-SIZE - particles[index * 3 + i]);
+				particles[(index + particleCount) * 3 + i] = particles[index * 3 + i];
 			}
 		}
 	}
 
-	void update(Vector3f newShipPosition, Vector3f forward) {
-		float dx = (worldPosition.x - newShipPosition.x) * SPEED;
-		float dy = (worldPosition.y - newShipPosition.y) * SPEED;
-		float dz = (worldPosition.z - newShipPosition.z) * SPEED;
+	void update(Vector3f newShipPosition, Vector3f forward, boolean torusSpeed) {
+		float speed = torusSpeed ? 100 : 1000;
+		float dx = (worldPosition.x - newShipPosition.x) * speed;
+		float dy = (worldPosition.y - newShipPosition.y) * speed;
+		float dz = (worldPosition.z - newShipPosition.z) * speed;
+		// The world doesn’t stop even if the ship does
 		if (Math.abs(dx + dy + dz) < 0.01) {
 			dx = forward.x * 250.0f;
 			dy = forward.y * 250.0f;
 			dz = forward.z * 250.0f;
 		}
 		for (int i = 0; i < particleCount; i++) {
-			particles[i * 3 + 0] += dx;
+			particles[(i + particleCount) * 3] = particles[i * 3];
+			particles[(i + particleCount) * 3 + 1] = particles[i * 3 + 1];
+			particles[(i + particleCount) * 3 + 2] = particles[i * 3 + 2];
+			particles[i * 3] += dx;
 			particles[i * 3 + 1] += dy;
 			particles[i * 3 + 2] += dz;
 			adjustPosition(i);
-			computeSize(i);
 		}
 		setPosition(newShipPosition);
 		dustParticles.clear();
 		dustParticles.put(particles);
 		dustParticles.position(0);
-		particleSizes.clear();
-		particleSizes.put(sizes);
-		particleSizes.position(0);
+		indicesBuffer.clear();
+		indicesBuffer.put(indices);
+		indicesBuffer.position(0);
 	}
 }

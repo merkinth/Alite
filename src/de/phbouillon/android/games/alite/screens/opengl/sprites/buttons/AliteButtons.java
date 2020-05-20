@@ -281,7 +281,7 @@ public class AliteButtons implements Serializable {
 				alite.getCobra().getCabinTemperature() == 0 &&
 				!inGame.traverseObjects(torusTraverser)) {
 			buttons[TORUS_DRIVE].active = true;
-			if (isTorusDriveEngaged()) {
+			if (inGame.isTorusDriveEngaged()) {
 				buttons[TORUS_DRIVE].yellow = true;
 			} else if (isTimeDriveEngaged()) {
 				// time drive currently engaged, auto change to torus drive
@@ -293,14 +293,10 @@ public class AliteButtons implements Serializable {
 			}
 		} else {
 			buttons[TORUS_DRIVE].active = false;
-			if (isTorusDriveEngaged()) {
+			if (inGame.isTorusDriveEngaged()) {
 				toggleTorusDrive();
 			}
 		}
-	}
-
-	private boolean isTorusDriveEngaged() {
-		return inGame.getShip().getSpeed() < -PlayerCobra.TORUS_TEST_SPEED;
 	}
 
 	private boolean isTimeDriveEngaged() {
@@ -593,7 +589,7 @@ public class AliteButtons implements Serializable {
 		if (OVERRIDE_LASER || !Settings.laserButtonAutoFire) {
 			return;
 		}
-		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+		if (isTimeDriveEngaged() || inGame.isTorusDriveEngaged()) {
 			return;
 		}
 		if (alite.getLaserManager() != null) {
@@ -602,7 +598,7 @@ public class AliteButtons implements Serializable {
 	}
 
 	private void toggleCloakingDevice() {
-		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+		if (isTimeDriveEngaged() || inGame.isTorusDriveEngaged()) {
 			return;
 		}
 		inGame.toggleCloaked();
@@ -613,7 +609,7 @@ public class AliteButtons implements Serializable {
 		if (OVERRIDE_MISSILE) {
 			return;
 		}
-		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+		if (isTimeDriveEngaged() || inGame.isTorusDriveEngaged()) {
 			return;
 		}
 		ButtonData missile = buttons[MISSILE];
@@ -631,7 +627,7 @@ public class AliteButtons implements Serializable {
 	}
 
 	private void toggleECMJammer() {
-		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+		if (isTimeDriveEngaged() || inGame.isTorusDriveEngaged()) {
 			return;
 		}
 		inGame.toggleECMJammer();
@@ -639,7 +635,7 @@ public class AliteButtons implements Serializable {
 	}
 
 	private void engageEscapeCapsule() {
-		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+		if (isTimeDriveEngaged() || inGame.isTorusDriveEngaged()) {
 			return;
 		}
 		if (inGame.isWitchSpace()) {
@@ -709,7 +705,7 @@ public class AliteButtons implements Serializable {
 			return;
 		}
 
-		if (isTorusDriveEngaged()) {
+		if (inGame.isTorusDriveEngaged()) {
 			inGame.getSpawnManager().leaveTorus();
 		} else {
 			unarm();
@@ -737,7 +733,7 @@ public class AliteButtons implements Serializable {
 		if (OVERRIDE_TORUS) {
 			return;
 		}
-		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+		if (isTimeDriveEngaged() || inGame.isTorusDriveEngaged()) {
 			alite.setTimeFactor(1);
 		} else {
 			unarm();
@@ -757,7 +753,7 @@ public class AliteButtons implements Serializable {
 	}
 
 	private void engageEnergyBomb() {
-		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+		if (isTimeDriveEngaged() || inGame.isTorusDriveEngaged()) {
 			return;
 		}
 		alite.getCobra().removeEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.ENERGY_BOMB));
@@ -765,7 +761,7 @@ public class AliteButtons implements Serializable {
 	}
 
 	private void engageRetroRockets() {
-		if (isTimeDriveEngaged() || isTorusDriveEngaged()) {
+		if (isTimeDriveEngaged() || inGame.isTorusDriveEngaged()) {
 			return;
 		}
 		alite.getCobra().setRetroRocketsUseCount(alite.getCobra().getRetroRocketsUseCount() - 1);

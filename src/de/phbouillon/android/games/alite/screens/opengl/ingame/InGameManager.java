@@ -670,6 +670,10 @@ public class InGameManager implements Serializable {
 		}
 	}
 
+	public boolean isTorusDriveEngaged() {
+		return ship.getSpeed() < -PlayerCobra.TORUS_TEST_SPEED;
+	}
+
 	synchronized void performUpdate(float deltaTime, List<AliteObject> allObjects) {
 		if (paused || destroyed || helper == null) {
 			return;
@@ -689,7 +693,7 @@ public class InGameManager implements Serializable {
 		updateRetroRockets(deltaTime);
 
 		if (starDust != null) {
-			starDust.update(ship.getPosition(), ship.getForwardVector());
+			starDust.update(ship.getPosition(), ship.getForwardVector(), isTorusDriveEngaged());
 		}
 
 		laserManager.performUpdate();
@@ -1045,19 +1049,21 @@ public class InGameManager implements Serializable {
 
 	private void renderAllObjects(final float deltaTime) {
 		if (witchSpace == null) {
-			GLES11.glPushMatrix();
-			skysphere.setPosition(ship.getPosition());
-			GLES11.glMultMatrixf(skysphere.getMatrix(), 0);
-			skysphere.render();
-			GLES11.glPopMatrix();
+			if (!isTorusDriveEngaged()) {
+				GLES11.glPushMatrix();
+				skysphere.setPosition(ship.getPosition());
+				GLES11.glMultMatrixf(skysphere.getMatrix(), 0);
+				skysphere.render();
+				GLES11.glPopMatrix();
+			} else {
+				GLES11.glClearColor(0.1f, 0.1f, 0.1f, 0.7f);
+			}
 
 			if (starDust != null) {
 				// Now render star dust...
 				GLES11.glPushMatrix();
 				GLES11.glMultMatrixf(starDust.getMatrix(), 0);
-				GLES11.glDisable(GLES11.GL_DEPTH_TEST);
-				starDust.render();
-				GLES11.glEnable(GLES11.GL_DEPTH_TEST);
+				starDust.render(isTorusDriveEngaged());
 				GLES11.glPopMatrix();
 			}
 		}
