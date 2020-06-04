@@ -58,7 +58,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 	private PlanetSpaceObject    planet;
 
 	private InGameManager inGame;
-	private transient AliteScreen informationScreen;
+	private transient Screen informationScreen;
 
 	private final float[] lightAmbient  = { 0.5f, 0.5f, 0.7f, 1.0f };
 	private final float[] lightDiffuse  = { 0.4f, 0.4f, 0.8f, 1.0f };
@@ -214,7 +214,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 		inGame.forceForwardView();
 	}
 
-	public void setInformationScreen(AliteScreen newInformationScreen) {
+	public void setInformationScreen(Screen newInformationScreen) {
 		if (informationScreen != null) {
 			informationScreen.dispose();
 		}
@@ -226,7 +226,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 		game.getNavigationBar().setFlightMode(informationScreen != null);
 	}
 
-	public AliteScreen getInformationScreen() {
+	public Screen getInformationScreen() {
 		return informationScreen;
 	}
 
@@ -529,6 +529,13 @@ public class FlightScreen extends GlScreen implements Serializable {
 				return;
 			}
 			throw e;
+		}
+	}
+
+	public void renderObjects(float deltaTime) {
+		if (inGame != null) {
+			initializeGl();
+			inGame.render(deltaTime, allObjects);
 		}
 	}
 

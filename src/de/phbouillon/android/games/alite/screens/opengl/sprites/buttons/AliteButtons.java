@@ -31,6 +31,9 @@ import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
+import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
+import de.phbouillon.android.games.alite.model.generator.SystemData;
+import de.phbouillon.android.games.alite.screens.canvas.QuantityPadScreen;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
@@ -664,7 +667,21 @@ public class AliteButtons implements Serializable {
 	}
 
 	private void engageGalacticHyperspace() {
-		buttons[GAL_HYPERSPACE].yellow = inGame.toggleHyperspaceCountdown(true);
+		if (alite.getCurrentScreen() instanceof FlightScreen &&
+				!inGame.isHyperspaceEngaged(true) &&
+				Settings.maxGalaxies == GalaxyGenerator.EXTENDED_GALAXY_COUNT &&
+				alite.getPlayer().getCurrentSystem() == SystemData.RAXXLA_SYSTEM) {
+			deactivateFire();
+			new QuantityPadScreen(alite.getCurrentScreen(), GalaxyGenerator.EXTENDED_GALAXY_COUNT, "",
+				215, 200, -1).changeFromInFlightScreen();
+			return;
+		}
+		engageGalacticHyperspace(0);
+	}
+
+	public void engageGalacticHyperspace(int galacticNumber) {
+		buttons[GAL_HYPERSPACE].yellow = inGame.toggleHyperspaceCountdown(galacticNumber == 0 ?
+			alite.getGenerator().getCurrentGalaxy() + 1 : galacticNumber);
 		buttons[HYPERSPACE].yellow = false;
 	}
 
@@ -674,15 +691,8 @@ public class AliteButtons implements Serializable {
 		}
 		if (alite.getCurrentScreen() instanceof FlightScreen) {
 			deactivateFire();
-			StatusScreen screen = new StatusScreen();
-			alite.getNavigationBar().setFlightMode(true);
 			alite.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
-			screen.loadAssets();
-			screen.activate();
-			screen.resume();
-			screen.update(0);
-			alite.getGraphics().setClip(-1, -1, -1, -1);
-			((FlightScreen) alite.getCurrentScreen()).setInformationScreen(screen);
+			new StatusScreen().changeFromInFlightScreen();
 		}
 	}
 
@@ -690,7 +700,7 @@ public class AliteButtons implements Serializable {
 		if (OVERRIDE_HYPERSPACE) {
 			return;
 		}
-		buttons[HYPERSPACE].yellow = inGame.toggleHyperspaceCountdown(false);
+		buttons[HYPERSPACE].yellow = inGame.toggleHyperspaceCountdown(0);
 		buttons[GAL_HYPERSPACE].yellow = false;
 	}
 

@@ -28,6 +28,7 @@ import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class QuantityPadScreen extends AliteScreen {
@@ -45,13 +46,27 @@ public class QuantityPadScreen extends AliteScreen {
 		"1", "2", "3",
 		"0", "<-", L.string(R.string.pad_btn_hex_ok)};
 	private Button[] pads;
-	private final String maxAmountString;
+	private final String unitString;
 	private int currentAmount;
-	private final BuyScreen marketScreen;
+	private Screen parentScreen;
+	private Performer changeScreen;
+	private ParentPresenter parentPresenter;
+	private boolean notModalViewWithNavigationBar;
+	private final int maxAmount;
+	private int maxAmountLabel;
 
-	public QuantityPadScreen(BuyScreen marketScreen, String maxAmountString, int xPos, int yPos, int index) {
-		this.marketScreen = marketScreen;
-		this.maxAmountString = maxAmountString;
+	private interface Performer {
+		void perform(int value);
+	}
+
+	private interface ParentPresenter {
+		void present(float deltaTime);
+	}
+
+	public QuantityPadScreen(Screen parentScreen, int maxAmount, String unitString, int xPos, int yPos, int index) {
+		setParentScreen(parentScreen);
+		this.maxAmount = maxAmount;
+		this.unitString = unitString;
 		this.xPos = xPos;
 		this.yPos = yPos;
 		this.index = index;
@@ -61,11 +76,40 @@ public class QuantityPadScreen extends AliteScreen {
 		xPos = dis.readInt();
 		yPos = dis.readInt();
 		index = dis.readInt();
-		maxAmountString = ScreenBuilder.readEmptyString(dis);
+		maxAmount = dis.readInt();
+		unitString = ScreenBuilder.readEmptyString(dis);
 		currentAmount = Integer.parseInt(ScreenBuilder.readEmptyString(dis));
-		marketScreen = new BuyScreen(ScreenBuilder.readString(dis));
-		marketScreen.loadAssets();
-		marketScreen.activate();
+		parentScreen = new BuyScreen(ScreenBuilder.readString(dis));
+		parentScreen.loadAssets();
+		parentScreen.activate();
+		setParentScreen(parentScreen);
+	}
+
+	private void setParentScreen(Screen parentScreen) {
+		this.parentScreen = parentScreen;
+		if (parentScreen instanceof BuyScreen) {
+			changeScreen = value -> {
+				((BuyScreen) parentScreen).setBoughtAmount(value);
+				game.setScreen(parentScreen);
+				((BuyScreen) parentScreen).performTrade(index);
+			};
+			parentPresenter = parentScreen::present;
+			notModalViewWithNavigationBar = true;
+			maxAmountLabel = R.string.trade_amount_to_buy;
+			return;
+		}
+		changeScreen = value -> {
+			newScreen = parentScreen;
+			FlightScreen flightScreen = (FlightScreen) parentScreen;
+			flightScreen.getInGameManager().performIntergalacticJump(value);
+			flightScreen.setForwardView();
+			flightScreen.setInformationScreen(null);
+		};
+		parentPresenter = deltaTime -> {
+			((FlightScreen) game.getCurrentScreen()).renderObjects(deltaTime);
+			setUpForDisplay();
+		};
+		maxAmountLabel = R.string.target_galaxy_number;
 	}
 
 	@Override
@@ -79,9 +123,10 @@ public class QuantityPadScreen extends AliteScreen {
 		dos.writeInt(xPos);
 		dos.writeInt(yPos);
 		dos.writeInt(index);
-		ScreenBuilder.writeString(dos, maxAmountString);
+		dos.writeInt(maxAmount);
+		ScreenBuilder.writeString(dos, unitString);
 		ScreenBuilder.writeString(dos, Integer.toString(currentAmount));
-		marketScreen.saveScreenState(dos);
+		parentScreen.saveScreenState(dos);
 	}
 
 	private void initializeButtons() {
@@ -98,8 +143,7 @@ public class QuantityPadScreen extends AliteScreen {
 	@Override
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
-
-		marketScreen.present(deltaTime);
+		parentPresenter.present(deltaTime);
 		int width = (BUTTON_SIZE + GAP) * 3 + 2 * OFFSET_X;
 		int height =  (BUTTON_SIZE + GAP) * 4 + 2 * OFFSET_Y;
 		g.verticalGradientRect(xPos, yPos, width, height, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
@@ -107,8 +151,8 @@ public class QuantityPadScreen extends AliteScreen {
 		for (Button b: pads) {
 			b.render(g);
 		}
-		g.fillRect(50, 1018, 1670, 56, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		g.drawText(L.string(R.string.trade_amount_to_buy, maxAmountString, currentAmount == 0 ? "" : Integer.toString(currentAmount)),
+		g.fillRect(50, 1012, 1670, 54, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
+		g.drawText(L.string(maxAmountLabel, maxAmount + unitString, currentAmount == 0 ? "" : Integer.toString(currentAmount)),
 			50, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
 
@@ -120,8 +164,11 @@ public class QuantityPadScreen extends AliteScreen {
 		int width = (BUTTON_SIZE + GAP) * 3 + 2 * OFFSET_X;
 		int height =  (BUTTON_SIZE + GAP) * 4 + 2 * OFFSET_Y;
 		if (touch.x < xPos || touch.y < yPos || touch.x > xPos + width || touch.y > yPos + height) {
-			marketScreen.setBoughtAmount(0);
-			newScreen = marketScreen;
+			if (notModalViewWithNavigationBar) {
+				currentAmount = 0;
+				newScreen = parentScreen;
+			}
+			return;
 		}
 		for (Button b: pads) {
 			if (b.isTouched(touch.x, touch.y)) {
@@ -130,10 +177,12 @@ public class QuantityPadScreen extends AliteScreen {
 				if ("<-".equals(t)) {
 					currentAmount /= 10;
 				} else if (L.string(R.string.pad_btn_hex_ok).equals(t)) {
-					marketScreen.setBoughtAmount(currentAmount);
-					newScreen = marketScreen;
+					newScreen = parentScreen;
 				} else {
-					currentAmount = 10 * currentAmount + Integer.parseInt(t);
+					int testAmount = 10 * currentAmount + Integer.parseInt(t);
+					if (testAmount <= maxAmount) {
+						currentAmount = testAmount;
+					}
 				}
 			}
 		 }
@@ -151,13 +200,28 @@ public class QuantityPadScreen extends AliteScreen {
 	@Override
 	protected void performScreenChange() {
 		dispose();
-		game.setScreen(marketScreen);
-		marketScreen.performTrade(index);
+		changeScreen.perform(currentAmount);
 		game.getNavigationBar().performScreenChange();
 	}
 
 	@Override
 	public int getScreenCode() {
 		return ScreenCodes.QUANTITY_PAD_SCREEN;
+	}
+
+	@Override
+	public synchronized void update(float deltaTime) {
+		if (notModalViewWithNavigationBar) {
+			super.update(deltaTime);
+		} else {
+			updateWithoutNavigation(deltaTime);
+		}
+	}
+
+	@Override
+	public void renderNavigationBar() {
+		if (notModalViewWithNavigationBar) {
+			super.renderNavigationBar();
+		}
 	}
 }

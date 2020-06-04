@@ -1552,19 +1552,23 @@ public class InGameManager implements Serializable {
 		return false;
 	}
 
-	public boolean toggleHyperspaceCountdown(boolean isIntergalactic) {
+	public boolean toggleHyperspaceCountdown(int galacticNumber) {
 		if (killHyperspaceJump()) {
 			message.setText(L.string(R.string.msg_hyperspace_jump_aborted));
 			return false;
 		}
 		initialHyperspaceSystem = alite.getPlayer().getHyperspaceSystem();
-		hyperspaceTimer = new HyperspaceTimer(this, isIntergalactic);
+		hyperspaceTimer = new HyperspaceTimer(this, galacticNumber);
 		timedEvents.add(hyperspaceTimer);
 		return true;
 	}
 
 	public boolean isHyperspaceEngaged(boolean isIntergalactic) {
 		return hyperspaceTimer != null && hyperspaceTimer.isIntergalactic() == isIntergalactic;
+	}
+
+	public void performIntergalacticJump(int galacticNumber) {
+		buttons.engageGalacticHyperspace(galacticNumber);
 	}
 
 	public void toggleCloaked() {
@@ -1580,9 +1584,9 @@ public class InGameManager implements Serializable {
 		}
 	}
 
-	final void performHyperspaceJump(boolean isIntergalactic) {
+	final void performHyperspaceJump(int galacticNumber) {
 		killHyperspaceJump();
-		newScreen = new HyperspaceScreen(isIntergalactic);
+		newScreen = new HyperspaceScreen(galacticNumber);
 		escapeWitchSpace();
 		playerInSafeZone = false;
 		alite.setTimeFactor(1);
@@ -1642,11 +1646,12 @@ public class InGameManager implements Serializable {
 		} else if (Settings.difficultyLevel == 5) {
 			points <<= 1;
 		}
-		AliteLog.d("Player kill", "Destroyed " + destroyedObject.getId() + " at Difficulty " + Settings.difficultyLevel + " for " + points + " points.");
+		AliteLog.d("Player kill", "Destroyed " + destroyedObject.getId() +
+			" at Difficulty " + Settings.difficultyLevel + " for " + points + " points.");
 		alite.getPlayer().setScore(alite.getPlayer().getScore() + points);
 		checkPromotion();
 		if (destroyedObject.getScore() > 0) {
-			alite.getPlayer().increaseKillCount(1);
+			alite.getPlayer().increaseKillCount();
 			if (alite.getPlayer().getKillCount() % 1024 == 0) {
 				message.setText(L.string(R.string.msg_good_shooting_commander));
 			} else if (alite.getPlayer().getKillCount() % 256 == 0) {

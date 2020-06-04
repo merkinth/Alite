@@ -127,14 +127,16 @@ class InGameHelper implements Serializable {
 					objectB.setProximity(inGame.getShip());
 				}
 				if (ObjectType.isSpaceStation(objectA.getType())) {
-					float intersectionDistance = LaserManager.computeIntersectionDistance(objectB.getForwardVector(), objectB.getPosition(), objectA.getPosition(), 1000.0f, tempVector);
+					float intersectionDistance = LaserManager.computeIntersectionDistance(objectB.getForwardVector(),
+						objectB.getPosition(), objectA.getPosition(), 1000.0f, tempVector);
 					float travelDistance = -objectB.getSpeed() * 3.0f;
 					if (intersectionDistance > 0 && intersectionDistance < travelDistance) {
 						objectB.setProximity(objectA);
 					}
 				}
 				if (ObjectType.isSpaceStation(objectB.getType())) {
-					float intersectionDistance = LaserManager.computeIntersectionDistance(objectA.getForwardVector(), objectA.getPosition(), objectB.getPosition(), 1000.0f, tempVector);
+					float intersectionDistance = LaserManager.computeIntersectionDistance(objectA.getForwardVector(),
+						objectA.getPosition(), objectB.getPosition(), 1000.0f, tempVector);
 					float travelDistance = -objectA.getSpeed() * 3.0f;
 					if (intersectionDistance > 0 && intersectionDistance < travelDistance) {
 						objectA.setProximity(objectB);
@@ -146,8 +148,9 @@ class InGameHelper implements Serializable {
 
 	private void scoop(SpaceObject cargo) {
 		// Fuel scoop must be installed and cargo must be in the lower half of the screen...
-		Alite alite  = Alite.get();
-		if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP)) || cargo.getDisplayMatrix()[13] >= 0) {
+		Alite alite = Alite.get();
+		if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(
+				EquipmentStore.FUEL_SCOOP)) || cargo.getDisplayMatrix()[13] >= 0) {
 			ramCargo(cargo);
 			if (scoopCallback != null) {
 				scoopCallback.rammed(cargo);
@@ -204,15 +207,16 @@ class InGameHelper implements Serializable {
 	}
 
 	void automaticDockingSequence() {
-		if (!inGame.isPlayerAlive()) {
+		if (isNotPlayerFlying()) {
 			return;
 		}
-		Alite alite  = Alite.get();
+		Alite alite = Alite.get();
 		alite.getPlayer().setCondition(Condition.DOCKED);
 		SoundManager.stopAll();
 		inGame.getMessage().clearRepetition();
 		alite.getNavigationBar().setFlightMode(false);
 		if (inGame.getPostDockingScreen() instanceof StatusScreen) {
+			alite.getPlayer().addVisitedPlanet();
 			try {
 				AliteLog.d("[ALITE]", "Performing autosave. [Docked]");
 				alite.autoSave();
@@ -223,8 +227,12 @@ class InGameHelper implements Serializable {
 		inGame.setNewScreen(inGame.getPostDockingScreen());
 	}
 
+	private boolean isNotPlayerFlying() {
+		return !inGame.isPlayerAlive() || Alite.get().getPlayer().getCondition() == Condition.DOCKED;
+	}
+
 	final void checkShipObjectCollision(List <AliteObject> allObjects) {
-		if (!inGame.isPlayerAlive()) {
+		if (isNotPlayerFlying()) {
 			return;
 		}
 		for (AliteObject object: allObjects) {
@@ -395,10 +403,10 @@ class InGameHelper implements Serializable {
 	}
 
 	void checkAltitudeLowAlert() {
-		if (!inGame.isPlayerAlive()) {
+		if (isNotPlayerFlying()) {
 			return;
 		}
-		Alite alite  = Alite.get();
+		Alite alite = Alite.get();
 		float altitude = alite.getCobra().getAltitude();
 		if (altitude < 6 && !SoundManager.isPlaying(Assets.altitudeLow)) {
 			SoundManager.repeat(Assets.altitudeLow);
@@ -415,10 +423,10 @@ class InGameHelper implements Serializable {
 	}
 
 	void checkCabinTemperatureAlert(float deltaTime) {
-		if (!inGame.isPlayerAlive()) {
+		if (isNotPlayerFlying()) {
 			return;
 		}
-		Alite alite  = Alite.get();
+		Alite alite = Alite.get();
 		int cabinTemperature = alite.getCobra().getCabinTemperature();
 		if (cabinTemperature > 24) {
 			if (!hasCabinTemperatureSound()) {
@@ -439,8 +447,8 @@ class InGameHelper implements Serializable {
 				cabinTemperatureAlarm = false;
 			}
 		}
-		if (cabinTemperature > 26 && alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP)) &&
-				alite.getCobra().getFuel() < PlayerCobra.MAX_FUEL) {
+		if (cabinTemperature > 26 && alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(
+				EquipmentStore.FUEL_SCOOP)) && alite.getCobra().getFuel() < PlayerCobra.MAX_FUEL) {
 			inGame.getMessage().repeatText(L.string(R.string.msg_fuel_scoop_activated), 1);
 			fuelScoopFuel += 20 * -inGame.getShip().getSpeed() / inGame.getShip().getMaxSpeed() * deltaTime;
 			int newFuel = (int) fuelScoopFuel;
@@ -462,10 +470,10 @@ class InGameHelper implements Serializable {
 	}
 
 	void updatePlayerCondition() {
-		if (!inGame.isPlayerAlive()) {
+		if (isNotPlayerFlying()) {
 			return;
 		}
-		Alite alite  = Alite.get();
+		Alite alite = Alite.get();
 		if (alite.getCobra().getEnergy() < PlayerCobra.MAX_ENERGY_BANK ||
 				alite.getCobra().getCabinTemperature() > 24 ||
 				alite.getCobra().getAltitude() < 6 ||

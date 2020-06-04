@@ -22,6 +22,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
+import android.text.format.DateUtils;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.impl.ColorFilterGenerator;
@@ -31,6 +32,8 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.objects.PlanetSpaceObject;
+
+import java.util.Locale;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class PlanetScreen extends AliteScreen {
@@ -85,75 +88,59 @@ public class PlanetScreen extends AliteScreen {
 		inhabitantGenerationStep = 0;
 	}
 
-	private boolean containsInhabitant(int resId, String inhabitant) {
-		return inhabitant.contains(L.string(resId).toLowerCase() + " ");
-	}
-
-	private ColorFilter adjustColor(String inhabitant) {
-		if (containsInhabitant(R.string.inhabitant_color_green, inhabitant)) {
-			return ColorFilterGenerator.adjustColor(100, 82);
-		}
-		if (containsInhabitant(R.string.inhabitant_color_blue, inhabitant)) {
-			return ColorFilterGenerator.adjustColor(100, -148);
-		}
-		if (containsInhabitant(R.string.inhabitant_color_red, inhabitant)) {
-			return ColorFilterGenerator.adjustColor(100, -18);
-		}
-		if (containsInhabitant(R.string.inhabitant_color_yellow, inhabitant)) {
-			return ColorFilterGenerator.adjustColor(100, 45);
-		}
-		if (containsInhabitant(R.string.inhabitant_color_white, inhabitant)) {
-			return ColorFilterGenerator.adjustColor(100, 0, -100,    0);
+	private ColorFilter adjustColor(char colorCode) {
+		switch (colorCode) {
+			case '0': return ColorFilterGenerator.adjustColor(100, 82);
+			case '1': return ColorFilterGenerator.adjustColor(100, -18);
+			case '2': return ColorFilterGenerator.adjustColor(100, 45);
+			case '3': return ColorFilterGenerator.adjustColor(100, -148);
+			case '4': return ColorFilterGenerator.adjustColor(100, 0, -100, 0);
 		}
 		return null;
 	}
 
-	private String getType(String inhabitant) {
-		if (containsInhabitant(R.string.inhabitant_appearance_bony, inhabitant)) { return "boned_";    }
-		if (containsInhabitant(R.string.inhabitant_appearance_bug_eyed, inhabitant)) { return "bug_eyed_"; }
-		if (containsInhabitant(R.string.inhabitant_appearance_fat, inhabitant))      { return "fat_";      }
-		if (containsInhabitant(R.string.inhabitant_appearance_furry, inhabitant))    { return "furry_";    }
-		if (containsInhabitant(R.string.inhabitant_appearance_horned, inhabitant))   { return "horned_";   }
-		if (containsInhabitant(R.string.inhabitant_appearance_mutant, inhabitant))   { return "mutant_";   }
-		if (containsInhabitant(R.string.inhabitant_appearance_slimy, inhabitant))    { return "slimy_";    }
-		if (containsInhabitant(R.string.inhabitant_appearance_weird, inhabitant))    { return "weird_";    }
+	private String getType(char appearanceCode) {
+		switch (appearanceCode) {
+			case '0': return "slimy_";
+			case '1': return "bug_eyed_";
+			case '2': return "horned_";
+			case '3': return "boned_";
+			case '4': return "fat_";
+			case '5': return "furry_";
+			case '6': return "mutant_";
+			case '7': return "weird_";
+		}
 		return "";
 	}
 
-	private String getRace(String inhabitant) {
-		if (containsInhabitant(R.string.inhabitant_type_bird, inhabitant))     { return "bird/"; }
-		if (containsInhabitant(R.string.inhabitant_type_feline, inhabitant))   { return "feline/"; }
-		if (containsInhabitant(R.string.inhabitant_type_frog, inhabitant))     { return "frog/"; }
-		if (containsInhabitant(R.string.inhabitant_type_humanoid, inhabitant)) { return "humanoid/"; }
-		if (containsInhabitant(R.string.inhabitant_type_insect, inhabitant))   { return "insect/"; }
-		if (containsInhabitant(R.string.inhabitant_type_lizard, inhabitant))   { return "lizard/"; }
-		if (containsInhabitant(R.string.inhabitant_type_lobster, inhabitant))  { return "lobster/"; }
-		if (containsInhabitant(R.string.inhabitant_type_rodent, inhabitant))   { return "rodent/"; }
+	private String getRace(char typeCode) {
+		switch (typeCode) {
+			case '0': return "rodent/";
+			case '1': return "frog/";
+			case '2': return "lizard/";
+			case '3': return "lobster/";
+			case '4': return "bird/";
+			case '5': return "humanoid/";
+			case '6': return "feline/";
+			case '7': return "insect/";
+		}
 		return "";
 	}
 
 	private void computeAlienImage() {
 		Graphics g = game.getGraphics();
-		String inhabitant = system.getInhabitants().toLowerCase() + " ";
-		String basePath = "alien_icons/" + getRace(inhabitant) + getType(inhabitant);
-		if (system == SystemData.RAXXLA_SYSTEM || g.existsAssetsFile(basePath + "base.png")) {
-			if (inhabitantGenerationStep == 0) {
-				if (inhabitantBottomLayer == null) {
-					if (system == SystemData.RAXXLA_SYSTEM) {
-						aig_temp1 = g.newPixmap("alien_icons/treeard.png");
-					} else {
-						aig_temp1 = g.newPixmap(basePath + "base.png");
-					}
-					g.applyFilterToPixmap(aig_temp1, adjustColor(inhabitant));
-				}
-			} else if (inhabitantGenerationStep == 1) {
-				if (inhabitantTopLayer == null) {
-					if (system == SystemData.RAXXLA_SYSTEM) {
-						aig_temp2 = g.newPixmap("alien_icons/treeard.png");
-					} else {
-						aig_temp2 = g.newPixmap(basePath + "details.png");
-					}
-				}
+		String inhabitantCode = system.getInhabitantCode();
+		String basePath = "alien_icons/" + getRace(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_TYPE)) +
+			getType(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_APPEARANCE));
+		if (inhabitantCode.charAt(SystemData.INHABITANT_INDEX_RACE) == SystemData.INHABITANT_RACE_TREEARD ||
+				g.existsAssetsFile(basePath + "base.png")) {
+			if (inhabitantGenerationStep == 0 && inhabitantBottomLayer == null) {
+				aig_temp1 = g.newPixmap(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_RACE) ==
+					SystemData.INHABITANT_RACE_TREEARD ? "alien_icons/treeard.png" : basePath + "base.png");
+				g.applyFilterToPixmap(aig_temp1, adjustColor(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_COLOR)));
+			} else if (inhabitantGenerationStep == 1 && inhabitantTopLayer == null) {
+				aig_temp2 = g.newPixmap(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_RACE) ==
+					SystemData.INHABITANT_RACE_TREEARD ? "alien_icons/treeard.png" : basePath + "details.png");
 			}
 		}
 		if (inhabitantGenerationStep == 2) {
@@ -389,15 +376,23 @@ public class PlanetScreen extends AliteScreen {
 
 	private void displayInformation() {
 		Graphics g = game.getGraphics();
-		g.drawText(L.string(R.string.planet_economy),          450, 150, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.planet_government),       450, 190, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.planet_technical_level),  450, 230, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.planet_population),       450, 270, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.planet_economy),          450, 150,
+			ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.planet_government),       450, 190,
+			ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.planet_technical_level),  450, 230,
+			ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.planet_population),       450, 270,
+			ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 
-		g.drawText(system == null ? "?" : system.getEconomy().getDescription(),    800, 150, ColorScheme.get(ColorScheme.COLOR_ECONOMY), Assets.regularFont);
-		g.drawText(system == null ? "?" : system.getGovernment().getDescription(), 800, 190, ColorScheme.get(ColorScheme.COLOR_GOVERNMENT), Assets.regularFont);
-		g.drawText(system == null ? "?" : "" + system.getTechLevel(),         800, 230, ColorScheme.get(ColorScheme.COLOR_TECH_LEVEL),  Assets.regularFont);
-		g.drawText(system == null ? L.string(R.string.planet_population_unknown) : system.getPopulation(), 800, 270, ColorScheme.get(ColorScheme.COLOR_POPULATION), Assets.regularFont);
+		g.drawText(system == null ? "?" : system.getEconomy().getDescription(), 840, 150,
+			ColorScheme.get(ColorScheme.COLOR_ECONOMY), Assets.regularFont);
+		g.drawText(system == null ? "?" : system.getGovernment().getDescription(), 840, 190,
+			ColorScheme.get(ColorScheme.COLOR_GOVERNMENT), Assets.regularFont);
+		g.drawText(system == null ? "?" : "" + system.getTechLevel(), 840, 230,
+			ColorScheme.get(ColorScheme.COLOR_TECH_LEVEL),  Assets.regularFont);
+		g.drawText(system == null ? L.string(R.string.planet_population_unknown) : system.getPopulation(), 840, 270,
+			ColorScheme.get(ColorScheme.COLOR_POPULATION), Assets.regularFont);
 
 		g.drawPixmap(cobraRight, 450, 320);
 		g.drawArrow(720, 560, 1000, 560, ColorScheme.get(ColorScheme.COLOR_ARROW), Graphics.ArrowDirection.RIGHT);
@@ -414,8 +409,22 @@ public class PlanetScreen extends AliteScreen {
 		halfWidth = g.getTextWidth(diameter, Assets.regularFont) >> 1;
 		g.drawText(diameter, 1370 - halfWidth, 280, ColorScheme.get(ColorScheme.COLOR_DIAMETER), Assets.regularFont);
 
-		g.drawText(L.string(R.string.planet_gnp), 450, 840, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText(system == null ? L.string(R.string.planet_gnp_unknown) : system.getGnp(), 800, 840, ColorScheme.get(ColorScheme.COLOR_GNP), Assets.regularFont);
+		int visits = game.getPlayer().getNumberOfVisits(system.getIndex());
+		if (visits > 0) {
+			g.drawText(L.string(R.string.planet_visit_info_number), 450, 310,
+				ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+			g.drawText(Integer.toString(visits), 840, 310, ColorScheme.get(ColorScheme.COLOR_POPULATION), Assets.regularFont);
+
+			g.drawText(L.string(R.string.planet_visit_info_date), 450, 350,
+				ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+			Locale.setDefault(L.getInstance().getCurrentLocale());
+			g.drawText(DateUtils.getRelativeTimeSpanString(game.getPlayer().getLastVisitTime(system.getIndex())).toString(),
+				840, 350, ColorScheme.get(ColorScheme.COLOR_POPULATION), Assets.regularFont);
+		}
+		g.drawText(L.string(R.string.planet_gnp), 450, 840,
+			ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(system == null ? L.string(R.string.planet_gnp_unknown) : system.getGnp(), 840, 840,
+			ColorScheme.get(ColorScheme.COLOR_GNP), Assets.regularFont);
 
 		displayText(g, descriptionTextData);
 	}
@@ -430,7 +439,7 @@ public class PlanetScreen extends AliteScreen {
 			planet.applyDeltaRotation(0, deltaTime * 5.0f, 0);
 		}
 		if (inhabitantGenerationStep >= 0 && system != null) {
-			if (system.getInhabitantCode() == null) {
+			if (system.getInhabitantCode().charAt(SystemData.INHABITANT_INDEX_RACE) != SystemData.INHABITANT_RACE_HUMAN) {
 				if (inhabitantGenerationStep == 0) {
 					aig_temp1 = null;
 					aig_temp2 = null;

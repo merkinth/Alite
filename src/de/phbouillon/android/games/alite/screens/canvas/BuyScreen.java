@@ -147,11 +147,10 @@ public class BuyScreen extends TradeScreen {
 			SoundManager.play(Assets.error);
 			return;
 		}
-		String maxAmountString = avail + tradeGood.getUnit().toUnitString();
 		if (boughtAmount == 0) {
 			goodToBuy = tradeGood;
-			newScreen = new QuantityPadScreen(this,
-				maxAmountString, index % COLUMNS < 3 ? 1075 : 215, 200, index);
+			newScreen = new QuantityPadScreen(this, avail, tradeGood.getUnit().toUnitString(),
+				index % COLUMNS < 3 ? 1075 : 215, 200, index);
 			return;
 		}
 

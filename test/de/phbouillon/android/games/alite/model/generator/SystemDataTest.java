@@ -1,61 +1,57 @@
 package de.phbouillon.android.games.alite.model.generator;
 
+import de.phbouillon.android.games.alite.AliteLog;
+import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.Settings;
+import de.phbouillon.android.games.alite.TestLogger;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Locale;
 
 public class SystemDataTest {
-	private List<String> planetNameSyllable = new ArrayList<>();
-	private List<String> planetDescription = new ArrayList<>();
+	private final GalaxyGenerator generator = new GalaxyGenerator();
 
 	public static void main(String[] args) throws IOException {
-		if (args.length != 2) {
-			System.out.println("Usage:\n  SystemDataTest <strings.xml path> <output file name with path>");
+		if (args.length != 3) {
+			System.out.println("Usage:\n  SystemDataTest <path of desired non-US locale or empty> " +
+				"<locale name (in form of lang_ctry)> <output file name with path>");
 			return;
 		}
-		SystemDataTest test = new SystemDataTest();
-		test.readResources(args[0] + (args[0].isEmpty() || args[0].charAt(args[0].length()-1) == File.separatorChar ?
-			"" : File.separatorChar) + "strings.xml");
-		if (test.planetNameSyllable.size() != 32) {
-			System.out.println("planet_name_syllable is not defined or corrupted, program halted.");
-			System.exit(1);
+		AliteLog.setInstance(new TestLogger());
+		L.getInstance().addDefaultResource(new File("res\\values").getAbsolutePath(), FileInputStream::new, "");
+		Locale locale = L.getLocaleOf(args[1]);
+		if (!locale.equals(Locale.US)) {
+			L.getInstance().addLocalizedResource(new File(args[0]).getAbsolutePath(), FileInputStream::new, "");
 		}
-		test.buildGalaxies(args[1]);
-	}
+		L.getInstance().setLocale(locale);
 
-	private void readResources(String resourceName) throws IOException {
-		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(resourceName)));
-		List<String> currentData = null;
-		String line = in.readLine();
-		while (line != null) {
-			if (line.contains("planet_name_syllable")) currentData = planetNameSyllable;
-			else if (line.contains("planet_description")) currentData = planetDescription;
-			else if (currentData != null) {
-				if (line.contains("</string-array>")){ currentData = null;}
-				else currentData.add(line.substring(line.indexOf("<item>") + 6, line.indexOf("</item>")).replace("\\", ""));
-			}
-			line = in.readLine();
-		}
-		in.close();
+		Settings.maxGalaxies = GalaxyGenerator.EXTENDED_GALAXY_COUNT;
+		SystemDataTest test = new SystemDataTest();
+		test.buildGalaxies(args[2]);
 	}
 
 	private void buildGalaxies(String outputFile) throws IOException {
 		OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(outputFile));
-		GalaxyGenerator generator = new GalaxyGenerator(planetNameSyllable.toArray(new String[0]), planetDescription.toArray(new String[0]));
-		out.write("Galaxy\tName\tx\ty\tTech level\tEconomy\tGovernment\tInhabitants\tGnp\tDiameter\tPopulation\tDescription\n");
-		for (int g=1;g<=8; g++) {
+		out.write("Galaxy\tIndex\tName\tx\ty\tTech level\tEconomy\tGovernment\tInhabitants\tGnp\tDiameter" +
+			"\tPopulation\tDescription code\tDescription\tRoutes\n");
+		long time = System.currentTimeMillis();
+		for (int g = 1; g <= Settings.maxGalaxies; g++) {
 			generator.buildGalaxy(g);
 			SystemData[] systems = generator.getSystems();
 			for (SystemData system : systems) {
+				system.computeReachableSystems(systems);
 				out.write(g + "\t" + formatSystemInfo(system));
 			}
 		}
 		out.close();
+		System.out.println("Total time of generation: " + (System.currentTimeMillis() - time) + " ms");
 	}
 
 	private String formatSystemInfo(SystemData system) {
-		return system.getName() + "\t" +
+		return system.getIndex() + "\t" +
+			system.getName() + "\t" +
 			system.getX() + "\t" +
 			system.getY() + "\t" +
 			system.getTechLevel() + "\t" +
@@ -65,7 +61,21 @@ public class SystemDataTest {
 			system.getGnp() + "\t" +
 			system.getDiameter() + "\t" +
 			system.getPopulation() + "\t" +
-			system.getDescription() + "\n";
+			system.descriptionCode + "\t" +
+			system.getDescription() + "\t" +
+			(system.getReachableSystems().length - 1) + "\n";
 	}
 
+	@Test
+	public void findPlanetTest() throws IOException {
+		AliteLog.setInstance(new TestLogger());
+		L.getInstance().addDefaultResource(new File("res\\values").getAbsolutePath(), FileInputStream::new, "");
+		L.getInstance().setLocale(Locale.US);
+
+		Settings.maxGalaxies = GalaxyGenerator.EXTENDED_GALAXY_COUNT;
+		generator.buildGalaxy(8);
+		Assert.assertEquals(6, generator.findGalaxyOfPlanet("Gearge"));
+		Assert.assertEquals(244, generator.findGalaxyOfPlanet("estia"));
+		Assert.assertEquals(245, generator.findGalaxyOfPlanet("ususaon"));
+	}
 }

@@ -230,6 +230,7 @@ public class TutTrading extends TutorialScreen {
 	@Override
 	public void activate() {
 		super.activate();
+		TradeGood food = TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD);
 		switch (screenToInitialize) {
 			case 0:
 				status.activate();
@@ -241,9 +242,8 @@ public class TutTrading extends TutorialScreen {
 				break;
 			case 2:
 				changeToBuyScreen();
-				int avail = game.getPlayer().getMarket().getQuantity(TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD));
-				String maxAmountString = avail + TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD).getUnit().toUnitString();
-				quantity = new QuantityPadScreen(buy, maxAmountString, 1075, 200, 0);
+				quantity = new QuantityPadScreen(buy, game.getPlayer().getMarket().getQuantity(food),
+					food.getUnit().toUnitString(), 1075, 200, 0);
 				quantity.loadAssets();
 				quantity.activate();
 				break;
@@ -255,7 +255,7 @@ public class TutTrading extends TutorialScreen {
 		}
 		if (currentLineIndex <= 0) {
 			game.getCobra().clearInventory();
-			game.getPlayer().getMarket().setQuantity(TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD), 17);
+			game.getPlayer().getMarket().setQuantity(food, 17);
 			game.getPlayer().setCash(1000);
 		}
 	}

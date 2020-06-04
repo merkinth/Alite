@@ -349,16 +349,7 @@ public class FileUtils {
 
 		player.setLegalValue(dis.readInt());
 		cobra.setRetroRocketsUseCount(dis.readInt());
-		int currentSystem = dis.readInt();
-		int hyperspaceSystem = dis.readInt();
-		if (generator.getCurrentGalaxy() == 8 && player.getRating() == Rating.ELITE) {
-			if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == 0 && currentSystem == 1) {
-				player.setCurrentSystem(SystemData.RAXXLA_SYSTEM);
-			}
-			if (player.getHyperspaceSystem() != null && player.getHyperspaceSystem().getIndex() == 0 && hyperspaceSystem == 1) {
-				player.setHyperspaceSystem(SystemData.RAXXLA_SYSTEM);
-			}
-		}
+		setSystemsToRaxxla(dis.readInt(), dis.readInt());
 
 		AliteLog.d("LOADING COMMANDER", "Getting IJC, JC, and SCs");
 		player.setIntergalacticJumpCounter(dis.readInt());
@@ -432,6 +423,14 @@ public class FileUtils {
 				cobra.addUnpunishedTradeGood(good, Weight.grams(unpunishedWeightInGrams));
 			}
 		}
+		try {
+			val = dis.readInt();
+			for (int i = 0; i < val; i++) {
+				player.addVisitedPlanet(dis.readChar(), dis.readChar(), dis.readInt(), dis.readLong(),
+					dis.readByte(), dis.readChar());
+			}
+		} catch (EOFException ignored) {
+		}
 	}
 
 	public void loadCommanderUnderV3(DataInputStream dis) throws IOException {
@@ -478,16 +477,7 @@ public class FileUtils {
 		}
 		player.setLegalValue(dis.readInt());
 		cobra.setRetroRocketsUseCount(dis.readInt());
-		int currentSystem = dis.readInt();
-		int hyperspaceSystem = dis.readInt();
-		if (generator.getCurrentGalaxy() == 8 && player.getRating() == Rating.ELITE) {
-			if (player.getCurrentSystem() != null && player.getCurrentSystem().getIndex() == 0 && currentSystem == 1) {
-				player.setCurrentSystem(SystemData.RAXXLA_SYSTEM);
-			}
-			if (player.getHyperspaceSystem() != null && player.getHyperspaceSystem().getIndex() == 0 && hyperspaceSystem == 1) {
-				player.setHyperspaceSystem(SystemData.RAXXLA_SYSTEM);
-			}
-		}
+		setSystemsToRaxxla(dis.readInt(), dis.readInt());
 		AliteLog.d("LOADING COMMANDER", "Getting IJC, JC, and SCs");
 		player.setIntergalacticJumpCounter(dis.readInt());
 		player.setJumpCounter(dis.readInt());
@@ -606,6 +596,21 @@ public class FileUtils {
 		}
 	}
 
+	private void setSystemsToRaxxla(int currentSystem, int hyperspaceSystem) {
+		if (!game.isRaxxlaVisible()) {
+			return;
+		}
+		Player player = game.getPlayer();
+		if (player.getCurrentSystem() != null && (currentSystem << 8) +
+			player.getCurrentSystem().getIndex() == SystemData.RAXXLA_SYSTEM_INDEX) {
+			player.setCurrentSystem(SystemData.RAXXLA_SYSTEM);
+		}
+		if (player.getHyperspaceSystem() != null && (hyperspaceSystem << 8) +
+			player.getHyperspaceSystem().getIndex() == SystemData.RAXXLA_SYSTEM_INDEX) {
+			player.setHyperspaceSystem(SystemData.RAXXLA_SYSTEM);
+		}
+	}
+
 	private String loadVersionAndPlayerName(DataInputStream dis) throws IOException {
 		fileFormatVersion = dis.readByte();
 		// Before versioning player name was placed here directly
@@ -702,8 +707,8 @@ public class FileUtils {
 		dos.writeByte(generator.getCurrentGalaxy());
 		int currentSystem = player.getCurrentSystem() == null ? 0 : player.getCurrentSystem().getIndex();
 		int hyperspaceSystem = player.getHyperspaceSystem() == null ? 0 : player.getHyperspaceSystem().getIndex();
-		dos.writeByte(currentSystem == 256 ? 0 : currentSystem);
-		dos.writeByte(hyperspaceSystem == 256 ? 0 : hyperspaceSystem);
+		dos.writeByte(currentSystem % 256);
+		dos.writeByte(hyperspaceSystem % 256);
 		dos.writeByte(cobra.getFuel());
 		dos.writeLong(player.getCash());
 		dos.writeByte(player.getRating().ordinal());
@@ -718,8 +723,8 @@ public class FileUtils {
 		}
 		dos.writeInt(player.getLegalValue());
 		dos.writeInt(cobra.getRetroRocketsUseCount());
-		dos.writeInt(currentSystem == 256 ? 1 : 0);
-		dos.writeInt(hyperspaceSystem == 256 ? 1 : 0);
+		dos.writeInt(currentSystem / 256);
+		dos.writeInt(hyperspaceSystem / 256);
 		dos.writeInt(player.getIntergalacticJumpCounter());
 		dos.writeInt(player.getJumpCounter());
 		if (player.getCurrentSystem() == null && player.getPosition() != null) {
@@ -756,6 +761,7 @@ public class FileUtils {
 			dos.writeLong(item.getPrice());
 			dos.writeLong(item.getUnpunished().getWeightInGrams());
 		}
+		player.saveVisitedPlanets(dos);
 	}
 
 	private void saveCommanderUnderV3(DataOutputStream dos) throws IOException {
@@ -771,8 +777,8 @@ public class FileUtils {
 		dos.writeChar(0); // seed 2
 		int currentSystem = player.getCurrentSystem() == null ? 0 : player.getCurrentSystem().getIndex();
 		int hyperspaceSystem = player.getHyperspaceSystem() == null ? 0 : player.getHyperspaceSystem().getIndex();
-		dos.writeByte(currentSystem == 256 ? 0 : currentSystem);
-		dos.writeByte(hyperspaceSystem == 256 ? 0 : hyperspaceSystem);
+		dos.writeByte(currentSystem % 256);
+		dos.writeByte(hyperspaceSystem % 256);
 		dos.writeByte(cobra.getFuel());
 		dos.writeLong(player.getCash());
 		dos.writeByte(player.getRating().ordinal());
@@ -793,8 +799,8 @@ public class FileUtils {
 		}
 		dos.writeInt(player.getLegalValue());
 		dos.writeInt(cobra.getRetroRocketsUseCount());
-		dos.writeInt(currentSystem == 256 ? 1 : 0);
-		dos.writeInt(hyperspaceSystem == 256 ? 1 : 0);
+		dos.writeInt(currentSystem / 256);
+		dos.writeInt(hyperspaceSystem / 256);
 		dos.writeInt(player.getIntergalacticJumpCounter());
 		dos.writeInt(player.getJumpCounter());
 		InventoryItem item = cobra.getInventoryItemByGood(TradeGoodStore.get().getGoodById(TradeGoodStore.THARGOID_DOCUMENTS));

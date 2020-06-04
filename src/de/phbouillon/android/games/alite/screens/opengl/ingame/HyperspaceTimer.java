@@ -27,12 +27,12 @@ public class HyperspaceTimer extends TimedEvent {
 	private static final long serialVersionUID = -855725511472476223L;
 
 	private int countDown;
-	private boolean isIntergalactic;
+	private final int galacticNumber;
 
-	HyperspaceTimer(InGameManager inGame, boolean isIntergalactic) {
+	HyperspaceTimer(InGameManager inGame, int galacticNumber) {
 		super(1000000000L);
-		this.isIntergalactic = isIntergalactic;
-		countDown = isIntergalactic ? 30 : 10;
+		this.galacticNumber = galacticNumber;
+		countDown = galacticNumber == 0 ? 10 : 30;
 		inGame.getMessage().setText(StringUtil.format("%d", countDown));
 		addAlarmEvent(new IMethodHook() {
 			private static final long serialVersionUID = 8631878861995197334L;
@@ -45,7 +45,7 @@ public class HyperspaceTimer extends TimedEvent {
 					if (inGame.getHyperspaceHook() != null) {
 						inGame.getHyperspaceHook().execute(0);
 					} else {
-						inGame.performHyperspaceJump(isIntergalactic);
+						inGame.performHyperspaceJump(galacticNumber);
 					}
 				}
 				inGame.getMessage().setText(StringUtil.format("%d", countDown));
@@ -54,6 +54,6 @@ public class HyperspaceTimer extends TimedEvent {
 	}
 
 	public boolean isIntergalactic() {
-		return isIntergalactic;
+		return galacticNumber != 0;
 	}
 }

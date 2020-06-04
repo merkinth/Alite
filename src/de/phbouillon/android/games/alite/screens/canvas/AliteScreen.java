@@ -383,6 +383,18 @@ public abstract class AliteScreen extends Screen {
 	}
 
 	boolean inFlightScreenChange() {
+		if (game.getCurrentScreen() instanceof FlightScreen) {
+			inFlightScreenChange(newScreen);
+			return true;
+		}
+		return false;
+	}
+
+	public void changeFromInFlightScreen() {
+		inFlightScreenChange(this);
+	}
+
+	void inFlightScreenChange(Screen screen) {
 		Screen oldScreen = game.getCurrentScreen();
 		if (oldScreen instanceof FlightScreen) {
 			// We're in flight, so do not dispose the flight screen,
@@ -392,16 +404,14 @@ public abstract class AliteScreen extends Screen {
 			if (oldInformationScreen != null) {
 				oldInformationScreen.dispose();
 			}
-			newScreen.loadAssets();
-			newScreen.activate();
-			newScreen.resume();
-			newScreen.update(0);
+			screen.loadAssets();
+			screen.activate();
+			screen.resume();
+			screen.update(0);
 			game.getGraphics().setClip(-1, -1, -1, -1);
-			flightScreen.setInformationScreen((AliteScreen) newScreen);
+			flightScreen.setInformationScreen(screen);
 			game.getNavigationBar().performScreenChange();
-			return true;
 		}
-		return false;
 	}
 
 	protected void performScreenChange() {

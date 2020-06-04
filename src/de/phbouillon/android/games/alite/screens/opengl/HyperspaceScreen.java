@@ -39,38 +39,35 @@ public class HyperspaceScreen extends GlScreen {
 	private final Timer timer = new Timer().setAutoReset();
 	private static final float[] sScratch = new float[32];
 
-	private int windowWidth;
-	private int windowHeight;
+	private final int galacticNumber;
 
-    private boolean intergal;
+	protected FloatBuffer vertexBuffer;
+	private FloatBuffer textureBuffer;
+	private float counter = 0.0f;
+	private int totalIndices;
 
-    protected FloatBuffer vertexBuffer;
-    private FloatBuffer textureBuffer;
-    private float counter = 0.0f;
-    private int totalIndices;
+	private static final int CROSS_SECTION_SIDES = 20;
+	private static final int WHOLE_TORUS_SIDES = 40;
+	private static final float TORUS_RADIUS = 1.75f;
+	private static final float CROSS_SECTION_RADIUS = 0.875f;
 
-    private static final int CROSS_SECTION_SIDES = 20;
-    private static final int WHOLE_TORUS_SIDES = 40;
-    private static final float TORUS_RADIUS = 1.75f;
-    private static final float CROSS_SECTION_RADIUS = 0.875f;
-
-    private final String textureFilename = "textures/plasmabw.png";
-    private float red;
+	private final String textureFilename = "textures/plasmabw.png";
+	private float red;
 	private float green;
 	private float blue;
-    private int increase;
-    private IMethodHook finishHook = null;
-    private boolean restartedSound = true;
-    private transient boolean screenLoad = false;
-	private Alite game;
+	private int increase;
+	private IMethodHook finishHook = null;
+	private boolean restartedSound = true;
+	private transient boolean screenLoad = false;
+	private final Alite game;
 
-	public HyperspaceScreen(boolean intergal) {
+	public HyperspaceScreen(int galacticNumber) {
 		game = Alite.get();
-		this.intergal = intergal;
+		this.galacticNumber = galacticNumber;
 	}
 
 	public HyperspaceScreen(DataInputStream dis) throws IOException {
-		this(dis.readBoolean());
+		this(dis.readInt());
 		counter = dis.readFloat();
 		red = dis.readFloat();
 		green = dis.readFloat();
@@ -82,7 +79,7 @@ public class HyperspaceScreen extends GlScreen {
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
-		dos.writeBoolean(intergal);
+		dos.writeInt(galacticNumber);
 		dos.writeFloat(counter);
 		dos.writeFloat(red);
 		dos.writeFloat(green);
@@ -121,8 +118,8 @@ public class HyperspaceScreen extends GlScreen {
 			if (finishHook != null) {
 				finishHook.execute(deltaTime);
 			} else {
-				if (intergal) {
-					game.performIntergalacticJump();
+				if (galacticNumber != 0) {
+					game.performIntergalacticJump(galacticNumber);
 				} else {
 					game.performHyperspaceJump();
 				}

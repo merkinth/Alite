@@ -18,11 +18,17 @@ package de.phbouillon.android.games.alite.model;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import android.graphics.Point;
+import com.google.api.client.util.DateTime;
 import de.phbouillon.android.games.alite.Alite;
+import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -53,6 +59,39 @@ public class Player {
 	private final List <Mission> activeMissions = new ArrayList<>();
 	private final List <Mission> completedMissions = new ArrayList<>();
 	private boolean cheater;
+	private final Map<Integer,PlanetInfo> visitedPlanets = new HashMap<>();
+
+	private class PlanetInfo {
+		int galaxy;
+		int index;
+		Government government;
+		int inhabitantCode;
+		int visitCount;
+		long lastVisitedTime;
+
+		PlanetInfo() {
+			galaxy = Alite.get().getGenerator().getCurrentGalaxy();
+			index = currentSystem.getIndex();
+			government = currentSystem.getGovernment();
+			inhabitantCode = currentSystem.getInhabitantCode().charAt(SystemData.INHABITANT_INDEX_RACE) ==
+				SystemData.INHABITANT_RACE_HUMAN ? 0 : Integer.parseInt(currentSystem.getInhabitantCode());
+			revisited();
+		}
+
+		public PlanetInfo(int galaxy, int index, int visitCount, long lastVisitedTime, byte government, int inhabitantCode) {
+			this.galaxy = galaxy;
+			this.index = index;
+			this.visitCount = visitCount;
+			this.lastVisitedTime = lastVisitedTime;
+			this.government = Government.values()[government];
+			this.inhabitantCode = inhabitantCode;
+		}
+
+		void revisited() {
+			visitCount++;
+			lastVisitedTime = System.currentTimeMillis();
+		}
+	}
 
 	public Player() {
 		market = new AliteMarket();
@@ -71,8 +110,8 @@ public class Player {
 		killCount = 0;
 		Alite alite = Alite.get();
 		alite.getGenerator().buildGalaxy(1);
-		currentSystem = alite.getGenerator().getSystems()[LAVE_INDEX];
-		hyperspaceSystem = alite.getGenerator().getSystems()[LAVE_INDEX];
+		currentSystem = alite.getGenerator().getSystem(LAVE_INDEX);
+		hyperspaceSystem = currentSystem;
 		market.setFluct(0);
 		market.setSystem(currentSystem);
 		market.generate();
@@ -182,8 +221,8 @@ public class Player {
 		this.score = score;
 	}
 
-	public void increaseKillCount(int amount) {
-		killCount += amount;
+	public void increaseKillCount() {
+		killCount++;
 	}
 
 	public void setKillCount(int killCount) {
@@ -350,4 +389,55 @@ public class Player {
 		setLegalValue(legalValue + Math.min(increment, maxIncrement));
 	}
 
+	public boolean isPlanetVisited(int galaxy, int index) {
+		return getPlanetInfo(galaxy, index) != null;
+	}
+
+	private PlanetInfo getPlanetInfo(int galaxy, int index) {
+		return visitedPlanets.get((galaxy << 10) + index);
+	}
+
+	private PlanetInfo getPlanetInfo(int index) {
+		return getPlanetInfo(Alite.get().getGenerator().getCurrentGalaxy(), index);
+	}
+
+	public int getNumberOfVisits(int index) {
+		PlanetInfo planetInfo = getPlanetInfo(index);
+		return planetInfo == null ? 0 : planetInfo.visitCount;
+	}
+
+	public long getLastVisitTime(int index) {
+		PlanetInfo planetInfo = getPlanetInfo(index);
+		return planetInfo == null ? 0 : planetInfo.lastVisitedTime;
+	}
+
+	public void addVisitedPlanet() {
+		int key = (Alite.get().getGenerator().getCurrentGalaxy() << 10) + currentSystem.getIndex();
+		PlanetInfo planet = visitedPlanets.get(key);
+		if (planet == null) {
+			visitedPlanets.put(key, new PlanetInfo());
+		} else {
+			planet.revisited();
+		}
+	}
+
+	public void addVisitedPlanet(int galaxy, int index, int visitCount, long lastVisitedDate,
+			byte government, int inhabitantCode) {
+		AliteLog.d("Planet visitor info", "(" + galaxy + ":" + index + "): " +
+			visitCount + " (" + new DateTime(lastVisitedDate) + ")");
+		visitedPlanets.put((galaxy << 10) + index, new PlanetInfo(galaxy, index, visitCount,
+			lastVisitedDate, government, inhabitantCode));
+	}
+
+	public void saveVisitedPlanets(DataOutput dos) throws IOException {
+		dos.writeInt(visitedPlanets.size());
+		for (PlanetInfo planet : visitedPlanets.values()) {
+			dos.writeChar(planet.galaxy);
+			dos.writeChar(planet.index);
+			dos.writeInt(planet.visitCount);
+			dos.writeLong(planet.lastVisitedTime);
+			dos.writeByte(planet.government.ordinal());
+			dos.writeChar(planet.inhabitantCode);
+		}
+	}
 }

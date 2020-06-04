@@ -23,51 +23,51 @@ import de.phbouillon.android.games.alite.R;
 
 class InhabitantComputation {
 
-	private static String getDescription(int index) {
+	private static String getDescription(char index) {
 		switch (index) {
-			case 0: return L.string(R.string.inhabitant_desc_large);
-			case 1: return L.string(R.string.inhabitant_desc_fierce);
-			case 2: return L.string(R.string.inhabitant_desc_small);
+			case '0': return L.string(R.string.inhabitant_desc_large);
+			case '1': return L.string(R.string.inhabitant_desc_fierce);
+			case '2': return L.string(R.string.inhabitant_desc_small);
 		}
 		return "";
 	}
 
-	private static String getColor(int index) {
+	private static String getColor(char index) {
 		switch (index) {
-			case 0: return L.string(R.string.inhabitant_color_green);
-			case 1: return L.string(R.string.inhabitant_color_red);
-			case 2: return L.string(R.string.inhabitant_color_yellow);
-			case 3: return L.string(R.string.inhabitant_color_blue);
-			case 4: return L.string(R.string.inhabitant_color_white);
-			case 5: return L.string(R.string.inhabitant_color_harmless);
+			case '0': return L.string(R.string.inhabitant_color_green);
+			case '1': return L.string(R.string.inhabitant_color_red);
+			case '2': return L.string(R.string.inhabitant_color_yellow);
+			case '3': return L.string(R.string.inhabitant_color_blue);
+			case '4': return L.string(R.string.inhabitant_color_white);
+			case '5': return L.string(R.string.inhabitant_color_harmless);
 		}
 		return "";
 	}
 
-	private static String getAppearance(int index) {
+	private static String getAppearance(char index) {
 		switch (index) {
-			case 0: return L.string(R.string.inhabitant_appearance_slimy);
-			case 1: return L.string(R.string.inhabitant_appearance_bug_eyed);
-			case 2: return L.string(R.string.inhabitant_appearance_horned);
-			case 3: return L.string(R.string.inhabitant_appearance_bony);
-			case 4: return L.string(R.string.inhabitant_appearance_fat);
-			case 5: return L.string(R.string.inhabitant_appearance_furry);
-			case 6: return L.string(R.string.inhabitant_appearance_mutant);
-			case 7: return L.string(R.string.inhabitant_appearance_weird);
+			case '0': return L.string(R.string.inhabitant_appearance_slimy);
+			case '1': return L.string(R.string.inhabitant_appearance_bug_eyed);
+			case '2': return L.string(R.string.inhabitant_appearance_horned);
+			case '3': return L.string(R.string.inhabitant_appearance_bony);
+			case '4': return L.string(R.string.inhabitant_appearance_fat);
+			case '5': return L.string(R.string.inhabitant_appearance_furry);
+			case '6': return L.string(R.string.inhabitant_appearance_mutant);
+			case '7': return L.string(R.string.inhabitant_appearance_weird);
 		}
 		return "";
 	}
 
-	private static String getType(int index) {
+	private static String getType(char index) {
 		switch (index) {
-			case 0: return L.string(R.string.inhabitant_type_rodent);
-			case 1: return L.string(R.string.inhabitant_type_frog);
-			case 2: return L.string(R.string.inhabitant_type_lizard);
-			case 3: return L.string(R.string.inhabitant_type_lobster);
-			case 4: return L.string(R.string.inhabitant_type_bird);
-			case 5: return L.string(R.string.inhabitant_type_humanoid);
-			case 6: return L.string(R.string.inhabitant_type_feline);
-			case 7: return L.string(R.string.inhabitant_type_insect);
+			case '0': return L.string(R.string.inhabitant_type_rodent);
+			case '1': return L.string(R.string.inhabitant_type_frog);
+			case '2': return L.string(R.string.inhabitant_type_lizard);
+			case '3': return L.string(R.string.inhabitant_type_lobster);
+			case '4': return L.string(R.string.inhabitant_type_bird);
+			case '5': return L.string(R.string.inhabitant_type_humanoid);
+			case '6': return L.string(R.string.inhabitant_type_feline);
+			case '7': return L.string(R.string.inhabitant_type_insect);
 		}
 		return "";
 	}
@@ -95,30 +95,35 @@ class InhabitantComputation {
 		if (seed.getLoByte(2) < 128) {
 			return computeHumanColonial(seed);
 		}
-		return null;
-	}
 
-	static String computeInhabitantString(SeedType seed) {
-		if (seed.getLoByte(2) < 128) {
-			return L.string(R.string.inhabitant_human_colonial);
-		}
-		StringBuilder inhabitantName = new StringBuilder();
 		int descriptionFlag = seed.getHiByte(2) >> 2;
 		int colorFlag = descriptionFlag;
 		descriptionFlag &= 7;
-		inhabitantName.append(getDescription(descriptionFlag));
+		String inhabitantCode = Integer.toString(descriptionFlag);
 
 		colorFlag >>= 3;
 		colorFlag &= 7;
-		StringUtil.addSpaceAndStringToBuilder(getColor(colorFlag), inhabitantName);
+		inhabitantCode += Integer.toString(colorFlag);
 
 		int appearanceFlag = seed.getHiByte(0) ^ seed.getHiByte(1);
 		int temp = appearanceFlag;
 		appearanceFlag &= 7;
-		StringUtil.addSpaceAndStringToBuilder(getAppearance(appearanceFlag), inhabitantName);
+		inhabitantCode += Integer.toString(appearanceFlag);
 
 		int typeFlag = ((seed.getHiByte(2) & 3) + temp) & 7;
-		StringUtil.addSpaceAndStringToBuilder(getType(typeFlag), inhabitantName);
+		inhabitantCode += Integer.toString(typeFlag);
+		return "1" + inhabitantCode;
+	}
+
+	static String computeInhabitantString(String inhabitantCode) {
+		if (inhabitantCode.charAt(SystemData.INHABITANT_INDEX_RACE) == SystemData.INHABITANT_RACE_HUMAN) {
+			return L.string(R.string.inhabitant_human_colonial);
+		}
+		StringBuilder inhabitantName = new StringBuilder();
+		inhabitantName.append(getDescription(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_DESCRIPTION)));
+		StringUtil.addSpaceAndStringToBuilder(getColor(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_COLOR)), inhabitantName);
+		StringUtil.addSpaceAndStringToBuilder(getAppearance(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_APPEARANCE)), inhabitantName);
+		StringUtil.addSpaceAndStringToBuilder(getType(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_TYPE)), inhabitantName);
 
 		return StringUtil.toUpperFirstCase(inhabitantName.toString());
 	}

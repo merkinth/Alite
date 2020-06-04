@@ -23,24 +23,51 @@ import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.PluginManager;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
+import de.phbouillon.android.games.alite.model.generator.SystemData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class GameplayOptionsScreen extends OptionsScreen {
-	private Button difficultyLevel;
-	private Button autoId;
-	private Button dockingSpeed;
-	private Button laserAutoFire;
-	private Button extensionUpdateMode;
+	private static final int BUTTON_COUNT = 6;
+
+	private final Button[] buttons = new Button[BUTTON_COUNT];
 	private Button back;
 
 	@Override
 	public void activate() {
-		difficultyLevel   = createButton(0, getDifficultyButtonText());
-		autoId            = createButton(2, getAutoIdButtonText());
-		dockingSpeed      = createButton(3, getDockingComputerButtonText());
-		laserAutoFire     = createButton(4, getLaserButtonText());
-		extensionUpdateMode = createButton(5, getExtensionUpdateModeButtonText());
-		back              = createButton(6, L.string(R.string.options_back));
+		buttons[0] = createButton(0, getDifficultyButtonText()).setClickEvent(b -> {
+			Settings.difficultyLevel = cycleFromZeroTo(Settings.difficultyLevel, 5);
+			b.setText(getDifficultyButtonText());
+		});
+		buttons[1] = createSmallButton(2, true, getLaserButtonText()).setClickEvent(b -> {
+			Settings.laserButtonAutoFire = !Settings.laserButtonAutoFire;
+			b.setText(getLaserButtonText());
+		});
+		buttons[2] = createSmallButton(2, false, getExtendedGalaxyText()).setClickEvent(b -> {
+			if (!game.getPlayer().isPlanetVisited(SystemData.RAXXLA_GALAXY, SystemData.RAXXLA_SYSTEM_INDEX)) {
+				showLargeMessageDialog(L.string(R.string.options_gameplay_extended_galaxy_on_error));
+				return;
+			}
+			if (game.getGenerator().getCurrentGalaxy() > GalaxyGenerator.GALAXY_COUNT) {
+				showLargeMessageDialog(L.string(R.string.options_gameplay_extended_galaxy_off_error));
+				return;
+			}
+			Settings.maxGalaxies = GalaxyGenerator.EXTENDED_GALAXY_COUNT + GalaxyGenerator.GALAXY_COUNT - Settings.maxGalaxies;
+			b.setText(getExtendedGalaxyText());
+		});
+		buttons[3] = createButton(3, getAutoIdButtonText()).setClickEvent(b -> {
+			Settings.autoId = !Settings.autoId;
+			b.setText(getAutoIdButtonText());
+		});
+		buttons[4] = createButton(4, getDockingComputerButtonText()).setClickEvent(b -> {
+			Settings.dockingComputerSpeed = cycleFromZeroTo(Settings.dockingComputerSpeed, 2);
+			b.setText(getDockingComputerButtonText());
+		});
+		buttons[5] = createButton(5, getExtensionUpdateModeButtonText()).setClickEvent(b -> {
+			Settings.extensionUpdateMode = cycleFromZeroTo(Settings.extensionUpdateMode, PluginManager.UPDATE_MODE_AUTO_UPDATE_OVER_WIFI_ONLY);
+			b.setText(getExtensionUpdateModeButtonText());
+		});
+		back = createButton(6, L.string(R.string.options_back));
 	}
 
 	private String getLaserButtonText() {
@@ -54,6 +81,11 @@ public class GameplayOptionsScreen extends OptionsScreen {
 
 	private String getAutoIdButtonText() {
 		return L.string(R.string.options_gameplay_auto_id, L.string(Settings.autoId ? R.string.options_on : R.string.options_off));
+	}
+
+	private String getExtendedGalaxyText() {
+		return L.string(R.string.options_gameplay_extended_galaxy, L.string(
+			Settings.maxGalaxies == GalaxyGenerator.GALAXY_COUNT ? R.string.options_off : R.string.options_on));
 	}
 
 	private String getExtensionUpdateModeButtonText() {
@@ -103,57 +135,24 @@ public class GameplayOptionsScreen extends OptionsScreen {
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 
 		displayTitle(L.string(R.string.title_gameplay_options));
-		difficultyLevel.render(g);
 		centerText(L.string(getDifficultyDescription()), 315, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
-		autoId.render(g);
-		dockingSpeed.render(g);
-		laserAutoFire.render(g);
-		extensionUpdateMode.render(g);
-
+		for (int i = 0; i < BUTTON_COUNT; i++) {
+			buttons[i].render(g);
+		}
 		back.render(g);
 	}
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		if (touch.type != TouchEvent.TOUCH_UP) {
-			return;
+		for (int i = 0; i < BUTTON_COUNT; i++) {
+			if (buttons[i].isPressed(touch)) {
+				SoundManager.play(Assets.click);
+				buttons[i].onClicked();
+				Settings.save(game.getFileIO());
+				return;
+			}
 		}
-		if (difficultyLevel.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			Settings.difficultyLevel = cycleFromZeroTo(Settings.difficultyLevel, 5);
-			difficultyLevel.setText(getDifficultyButtonText());
-			Settings.save(game.getFileIO());
-			return;
-		}
-		if (autoId.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			Settings.autoId = !Settings.autoId;
-			autoId.setText(getAutoIdButtonText());
-			Settings.save(game.getFileIO());
-			return;
-		}
-		if (dockingSpeed.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			Settings.dockingComputerSpeed = cycleFromZeroTo(Settings.dockingComputerSpeed, 2);
-			dockingSpeed.setText(getDockingComputerButtonText());
-			Settings.save(game.getFileIO());
-			return;
-		}
-		if (laserAutoFire.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			Settings.laserButtonAutoFire = !Settings.laserButtonAutoFire;
-			laserAutoFire.setText(getLaserButtonText());
-			Settings.save(game.getFileIO());
-			return;
-		}
-		if (extensionUpdateMode.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			Settings.extensionUpdateMode = cycleFromZeroTo(Settings.extensionUpdateMode, PluginManager.UPDATE_MODE_AUTO_UPDATE_OVER_WIFI_ONLY);
-			extensionUpdateMode.setText(getExtensionUpdateModeButtonText());
-			Settings.save(game.getFileIO());
-			return;
-		}
-		if (back.isTouched(touch.x, touch.y)) {
+		if (back.isPressed(touch)) {
 			SoundManager.play(Assets.click);
 			newScreen = new OptionsScreen();
 		}

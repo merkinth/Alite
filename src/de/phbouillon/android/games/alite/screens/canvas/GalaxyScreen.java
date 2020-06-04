@@ -303,7 +303,13 @@ public class GalaxyScreen extends AliteScreen {
 		if (system.y + 40 > HALF_HEIGHT << 1) {
 			positionY = -40;
 		}
-		g.drawText(system.system.getName(), system.x + positionX, system.y + positionY, system.system.getEconomy().getColor(), Assets.regularFont);
+		g.drawText(system.system.getName(), system.x + positionX, system.y + positionY,
+			system.system.getEconomy().getColor(), Assets.regularFont);
+		if (game.getPlayer().isPlanetVisited(game.getGenerator().getCurrentGalaxy(), system.system.getIndex())) {
+			int linePos = (int) (system.y + positionY + Assets.regularFont.getDescent());
+			g.drawLine(system.x + positionX, linePos, system.x + positionX + nameWidth, linePos,
+				system.system.getEconomy().getColor());
+		}
 	}
 
 	public void updateMap() {
@@ -396,11 +402,15 @@ public class GalaxyScreen extends AliteScreen {
 		displayTitle(title);
 
 		g.setClip(0, -1, -1, 1000);
+		int r = (int) (3 * zoomFactor);
 		for (MappedSystemData system: systemData) {
-			g.fillCircle(system.x + system.xDiff, system.y, (int) (3 * zoomFactor), system.system.getEconomy().getColor(), 32);
+			g.fillCircle(system.x + system.xDiff, system.y, r, system.system.getEconomy().getColor(), 32);
 			if (zoomFactor >= 4.0f && system.x > 0 && system.x < AliteConfig.SCREEN_WIDTH &&
-				system.y > 0 && system.y < AliteConfig.SCREEN_HEIGHT) {
+					system.y > 0 && system.y < AliteConfig.SCREEN_HEIGHT) {
 				renderName(system);
+			} else if (game.getPlayer().isPlanetVisited(game.getGenerator().getCurrentGalaxy(), system.system.getIndex())) {
+				g.drawLine(system.x + system.xDiff - r, system.y + r + 2, system.x + system.xDiff + r,
+					system.y + r + 2, system.system.getEconomy().getColor());
 			}
 		}
 
@@ -472,8 +482,7 @@ public class GalaxyScreen extends AliteScreen {
 	}
 
 	private void initializeSystems() {
-		Player player = game.getPlayer();
-		int raxlaa = player.getRating() == Rating.ELITE && game.getGenerator().getCurrentGalaxy() == 8 ? 1 : 0;
+		int raxlaa = game.isRaxxlaVisible() ? 1 : 0;
 
 		SystemData[] systems = game.getGenerator().getSystems();
 		systemData = new MappedSystemData[systems.length + raxlaa];

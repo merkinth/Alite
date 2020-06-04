@@ -34,6 +34,11 @@ public class Button {
 	public static final int BORDER_SIZE = 5;
 	private static final double BUTTON_BORDER_DIFF_PERCENT = 0.1;
 
+	private final int BKG_COLOR_DARK = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK);
+	private final int BKG_COLOR_LIGHT = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT);
+	private final int BORDER_COLOR_DARK = AliteColor.lighten(BKG_COLOR_DARK, -BUTTON_BORDER_DIFF_PERCENT);
+	private final int BORDER_COLOR_LIGHT = AliteColor.lighten(BKG_COLOR_LIGHT, BUTTON_BORDER_DIFF_PERCENT);
+
 	private int x;
 	private int y;
 	private final int width;
@@ -55,10 +60,7 @@ public class Button {
 	private int buttonEnd = 0;
 	private int fingerDown = 0;
 	private int textColor = ColorScheme.get(ColorScheme.COLOR_MESSAGE);
-	private int bkgColorLt = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT);
-	private int bkgColorDk = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK);
-	private int borderColorLt = AliteColor.lighten(bkgColorLt, BUTTON_BORDER_DIFF_PERCENT);
-	private int borderColorDk = AliteColor.lighten(bkgColorDk, -BUTTON_BORDER_DIFF_PERCENT);
+	private OnClickEvent clickEvent;
 
 	private int pixmapXOffset = 0;
 	private int pixmapYOffset = 0;
@@ -69,6 +71,11 @@ public class Button {
 
 	public enum TextPosition {
 		ABOVE, LEFT, RIGHT, BELOW, ONTOP
+	}
+
+	@FunctionalInterface
+	public interface OnClickEvent {
+		void perform(Button b);
 	}
 
 	public static Button createRegularButton(int x, int y, int width, int height, String text) {
@@ -291,7 +298,7 @@ public class Button {
 
 		if (gradient && useBorder) {
 			g.diagonalGradientRect(interior.x, interior.y,
-				width - 2 * BORDER_SIZE, height - 2 * BORDER_SIZE, bkgColorLt, bkgColorDk);
+				width - 2 * BORDER_SIZE, height - 2 * BORDER_SIZE, BKG_COLOR_LIGHT, BKG_COLOR_DARK);
 		}
 		if (frame > 0 && animation != null && frame < animation.length && animation[frame] != null) {
 			g.drawPixmap(animation[frame], interior.x, interior.y);
@@ -320,9 +327,9 @@ public class Button {
 		if (useBorder) {
 			interior.offset(-BORDER_SIZE, -BORDER_SIZE);
 			if (fingerDown == 0) {
-				g.rec3d(interior.x, interior.y, width, height, BORDER_SIZE, borderColorLt, borderColorDk);
+				g.rec3d(interior.x, interior.y, width, height, BORDER_SIZE, BORDER_COLOR_LIGHT, BORDER_COLOR_DARK);
 			} else {
-				g.rec3d(interior.x, interior.y, width, height, BORDER_SIZE, borderColorDk, borderColorLt);
+				g.rec3d(interior.x, interior.y, width, height, BORDER_SIZE, BORDER_COLOR_DARK, BORDER_COLOR_LIGHT);
 			}
 			interior.offset(BORDER_SIZE, BORDER_SIZE);
 		}
@@ -364,6 +371,12 @@ public class Button {
 			touchedDown = true;
 		}
 		return false;
+	}
+
+	public void onClicked() {
+		if (clickEvent != null) {
+			clickEvent.perform(this);
+		}
 	}
 
 	public int getX() {
@@ -410,5 +423,10 @@ public class Button {
 
 	public int getCommand() {
 		return command;
+	}
+
+	public Button setClickEvent(OnClickEvent clickEvent) {
+		this.clickEvent = clickEvent;
+		return this;
 	}
 }

@@ -30,6 +30,7 @@ import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.io.FileUtils;
 import de.phbouillon.android.games.alite.model.*;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
+import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.*;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
@@ -202,12 +203,12 @@ public class Alite extends AndroidGame {
 			distance >>= 1;
 			int x = player.getCurrentSystem() == null ? player.getPosition().x : player.getCurrentSystem().getX();
 			int y = player.getCurrentSystem() == null ? player.getPosition().y : player.getCurrentSystem().getY();
-		    int dx = player.getHyperspaceSystem().getX() - x;
-		    int dy = player.getHyperspaceSystem().getY() - y;
-		    int nx = x + (dx >> 1);
-		    int ny = y + (dy >> 1);
-		    player.setPosition(nx, ny);
-		    player.setCurrentSystem(null);
+			int dx = player.getHyperspaceSystem().getX() - x;
+			int dy = player.getHyperspaceSystem().getY() - y;
+			int nx = x + (dx >> 1);
+			int ny = y + (dy >> 1);
+			player.setPosition(nx, ny);
+			player.setCurrentSystem(null);
 		} else {
 			player.setCurrentSystem(player.getHyperspaceSystem());
 		}
@@ -217,13 +218,17 @@ public class Alite extends AndroidGame {
 			fs.enterWitchSpace();
 		}
 		setScreen(fs);
-    	GLES11.glMatrixMode(GLES11.GL_TEXTURE);
-    	GLES11.glLoadIdentity();
+		GLES11.glMatrixMode(GLES11.GL_TEXTURE);
+		GLES11.glLoadIdentity();
 		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
 		player.setLegalValue(player.getLegalValue() >> 1);
 	}
 
-	public void performIntergalacticJump() {
+	public boolean isRaxxlaVisible() {
+		return generator.getCurrentGalaxy() == SystemData.RAXXLA_GALAXY && player.getRating() == Rating.ELITE;
+	}
+
+	public void performIntergalacticJump(int galacticNumber) {
 		InGameManager.safeZoneViolated = false;
 		if (player.getActiveMissions().isEmpty()) {
 			player.increaseIntergalacticJumpCounter();
@@ -233,17 +238,16 @@ public class Alite extends AndroidGame {
 				player.resetJumpCounter();
 			}
 		}
-		int nextGal = generator.getCurrentGalaxy() + 1;
-		if (nextGal > 8 || nextGal < 1) {
-			nextGal = 1;
+		if (galacticNumber > Settings.maxGalaxies || galacticNumber < 1) {
+			galacticNumber = 1;
 		}
-		generator.buildGalaxy(nextGal);
+		generator.buildGalaxy(galacticNumber);
 		player.setCurrentSystem(generator.getSystem(player.getCurrentSystem().getIndex()));
 		player.setHyperspaceSystem(player.getCurrentSystem());
 		player.getCobra().removeEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE));
 		setScreen(new FlightScreen(false));
-    	GLES11.glMatrixMode(GLES11.GL_TEXTURE);
-    	GLES11.glLoadIdentity();
+		GLES11.glMatrixMode(GLES11.GL_TEXTURE);
+		GLES11.glLoadIdentity();
 		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
 	}
 

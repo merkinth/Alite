@@ -30,6 +30,7 @@ import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
+import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 
@@ -52,13 +53,21 @@ public class EquipmentScreen extends TradeScreen {
 	protected void createButtons() {
 		tradeButton.clear();
 		SystemData currentSystem = game.getPlayer().getCurrentSystem();
-		int techLevel = currentSystem == null ? 1 : currentSystem.getTechLevel();
+		int techLevel = 1;
+		boolean orphan = false;
+		Equipment galDrive = EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE);
+		if (currentSystem != null) {
+			techLevel = currentSystem.getTechLevel();
+			orphan = game.getGenerator().isOrphan(game.getGenerator().getCurrentGalaxy(), currentSystem.getIndex());
+		}
 		Iterator<Equipment> i = EquipmentStore.get().getIterator();
 		int pos = 0;
 		while (i.hasNext()) {
 			Equipment e = i.next();
-			if (techLevel <= e.getMinTechLevel()) {
-				// Only show equipment items that are available on worlds with the given tech level.
+			if (techLevel <= e.getMinTechLevel() &&
+					(Settings.maxGalaxies == GalaxyGenerator.GALAXY_COUNT || !orphan || e != galDrive)) {
+				// Only show equipment items that are available on worlds with the given tech level or
+				// we're in extended galaxy mode on an orphan planet and it's a galactic hyperdrive.
 				continue;
 			}
 			Button b = Button.createPictureButton(pos % COLUMNS * GAP_X + X_OFFSET,

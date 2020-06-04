@@ -29,6 +29,7 @@ import de.phbouillon.android.framework.PluginManager;
 import de.phbouillon.android.framework.PluginModel;
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 
 public class Settings {
 	private static final String SETUP_FILE_NAME = ".alite";
@@ -92,7 +93,7 @@ public class Settings {
     public static boolean navButtonsVisible = true;
 	public static Locale locale = Locale.US;
 	public static int extensionUpdateMode = PluginManager.UPDATE_MODE_AUTO_UPDATE_OVER_WIFI_ONLY;
-	public static int maxGalaxies = 8;
+	public static int maxGalaxies = GalaxyGenerator.GALAXY_COUNT;
 
 	private Settings() {
 	}

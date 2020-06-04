@@ -35,6 +35,18 @@ public class SystemData implements Serializable {
 	public static final SystemData RAXXLA_SYSTEM = createRaxxlaSystem();
 	public static final int LAVE_SYSTEM_INDEX = 7;
 	public static final int ZAONCE_SYSTEM_INDEX = 129;
+	public static final int RAXXLA_SYSTEM_INDEX = GalaxyGenerator.PLANET_COUNT;
+	public static final int RAXXLA_GALAXY = 8;
+
+	public static final int INHABITANT_INDEX_RACE = 0;
+	public static final int INHABITANT_INDEX_DESCRIPTION = 1;
+	public static final int INHABITANT_INDEX_COLOR = 2;
+	public static final int INHABITANT_INDEX_APPEARANCE = 3;
+	public static final int INHABITANT_INDEX_TYPE = 4;
+
+	public static final char INHABITANT_RACE_HUMAN = '0';
+//	public static final char INHABITANT_RACE_ALIEN = '1';
+	public static final char INHABITANT_RACE_TREEARD = '2';
 
 
 	private static final String[][] DESCRIPTION_TEXT_LIST = {
@@ -103,7 +115,7 @@ public class SystemData implements Serializable {
 	private String inhabitants;
 	private String inhabitantCode;
 	private String description;
-	private String descriptionCode;
+	String descriptionCode;
 
 	private int planetTexture; // Index of the pre-generated planet texture
 	private int ringsTexture;  // Index of the ring texture or 0 for no rings
@@ -113,8 +125,12 @@ public class SystemData implements Serializable {
 
 	private final List <SystemData> reachableSystems = new ArrayList<>();
 
-	static void initialize(String[] syllables, String[] planetDescription) {
-		planetNameSyllable = syllables;
+	static void initialize() {
+		if (planetNameSyllable != null) {
+			return;
+		}
+		planetNameSyllable = L.array(R.array.planet_name_syllable);
+		String[] planetDescription = L.array(R.array.planet_description);
 		descriptionMap = new HashMap<>();
 		for (String description : planetDescription) {
 			int idIdx = description.indexOf(':');
@@ -124,11 +140,17 @@ public class SystemData implements Serializable {
 			}
 			descriptionMap.put(description.substring(0, idIdx), description.substring(idIdx + 1));
 		}
+		changeLocaleRaxxla(RAXXLA_SYSTEM);
+	}
+
+	static void changeLocale() {
+		planetNameSyllable = null;
+		initialize();
 	}
 
 	private static SystemData createRaxxlaSystem() {
 		SystemData result = new SystemData();
-		result.index = 256;
+		result.index = RAXXLA_SYSTEM_INDEX;
 		result.x = 12;
 		result.y = 127;
 		result.govType = Government.CORPORATE_STATE;
@@ -137,10 +159,8 @@ public class SystemData implements Serializable {
 		result.population = 4;
 		result.productivity = 63568;
 		result.diameter = 42000;
-		result.inhabitantCode = null;
-		result.inhabitants = L.string(R.string.inhabitant_friendly_green_treeards);
-		result.name = L.string(R.string.raxxla_name);
-		result.description = L.string(R.string.raxxla_desc);
+		result.inhabitantCode = INHABITANT_RACE_TREEARD + "0000";
+		changeLocaleRaxxla(result);
 		result.fuelPrice = 1;
 		result.planetTexture = 1;
 		result.ringsTexture = 16;
@@ -148,6 +168,12 @@ public class SystemData implements Serializable {
 		result.starTexture = 0;
 		result.dockingFee = 0;
 		return result;
+	}
+
+	private static void changeLocaleRaxxla(SystemData result) {
+		result.inhabitants = L.string(R.string.inhabitant_friendly_green_treeards);
+		result.name = L.string(R.string.raxxla_name);
+		result.description = L.string(R.string.raxxla_desc);
 	}
 
 	static SystemData createSystem(int index, SeedType seed) {
@@ -168,8 +194,8 @@ public class SystemData implements Serializable {
 		result.goatSoupSeedB = (char) (result.goatSoupSeedA ^ seed.getWord(2));
 
 		result.inhabitantCode = InhabitantComputation.computeInhabitantCode(seed);
-		result.inhabitants = InhabitantComputation.computeInhabitantString(seed);
-		result.name = result.generateRandomName(seed);
+		result.inhabitants = InhabitantComputation.computeInhabitantString(result.inhabitantCode);
+		result.name = generateRandomName(seed);
 		result.computeDescriptionString();
 
 		// The fuel price is fixed for a given system and must be
@@ -275,7 +301,7 @@ public class SystemData implements Serializable {
 		return d0;
 	}
 
-	private void tweakSeed(SeedType seed) {
+	private static void tweakSeed(SeedType seed) {
 		char temp;
 		temp = (char) (seed.getWord(0) + seed.getWord(1) + seed.getWord(2));
 		seed.setWord(0, seed.getWord(1));
@@ -283,12 +309,12 @@ public class SystemData implements Serializable {
 		seed.setWord(2, temp);
 	}
 
-	private String generateRandomName(SeedType nameSeed) {
+	static String generateRandomName(SeedType nameSeed) {
 		String planetName = "";
+		char [] pair = new char[4];
 		while (planetName.isEmpty()) {
 			char longNameFlag = (char) (nameSeed.getWord(0) & 64);
 
-			char [] pair = new char[4];
 			for (int i = 0; i < 4; i++) {
 				pair[i] = (char) (nameSeed.shiftRight(2, 8) & 31);
 				tweakSeed(nameSeed);
@@ -302,6 +328,11 @@ public class SystemData implements Serializable {
 			planetName = resultStringBuilder.toString().replaceAll("\\.", "");
 		}
 		return StringUtil.capitalize(planetName);
+	}
+
+	void changePlanetName(String planetName) {
+		name = planetName;
+		computeDescriptionString();
 	}
 
 	private String replaceCommand(String id, boolean genCode) {
@@ -364,9 +395,11 @@ public class SystemData implements Serializable {
 	}
 
 	public void computeReachableSystems(SystemData [] allSystems) {
+		if (!reachableSystems.isEmpty()) {
+			return;
+		}
 		// Computes all reachable planets. (I.e. all planets with a
 		// distance up to 7.0 light years).
-
 		for (SystemData data: allSystems) {
 			int dx = x - data.x;
 			int dy = y - data.y;

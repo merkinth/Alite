@@ -53,7 +53,7 @@ public class PlanetSpaceObject extends AliteObject implements Serializable {
 			planet = new Sphere(planetRadius, 32, 32, "textures/planets/lave.png", null, false);
 			rings = null;
 			ringShadow = null;
-		} else if (alite.getGenerator().getCurrentGalaxy() == 8 && system == SystemData.RAXXLA_SYSTEM) {
+		} else if (system == SystemData.RAXXLA_SYSTEM) {
 			alite.getTextureManager().addTexture("textures/planets/bdwarf.png");
 			planet = new Sphere(planetRadius, 32, 32, "textures/planets/bdwarf.png", null, false);
 			rings = new Disk(ringStart, ringSize, 80, 360, 60, 20, 256, "textures/planets/ring16.png");

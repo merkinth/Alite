@@ -144,7 +144,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 
 			if (flight != null && flight.getInGameManager().getHyperspaceHook() == null) {
 				flight.getInGameManager().setHyperspaceHook(deltaTime1 -> {
-					hyperspace = new HyperspaceScreen(false);
+					hyperspace = new HyperspaceScreen(0);
 					hyperspace.setNeedsSoundRestart();
 					hideCloseButton = true;
 					line.clearHighlights();
