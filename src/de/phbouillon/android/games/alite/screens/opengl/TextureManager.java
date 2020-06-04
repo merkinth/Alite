@@ -118,7 +118,9 @@ public class TextureManager {
 		Texture texture = texturePool.newObject();
 		texture.index[0] = 0;
 		GLES11.glGenTextures(1, texture.index, 0);
-		loadTexture(fileName, texture.index[0], textureInputStream);
+		if (!fileName.isEmpty()) {
+			loadTexture(fileName, texture.index[0], textureInputStream);
+		}
 		textures.put(fileName, texture);
 		return texture;
 	}
@@ -244,8 +246,8 @@ public class TextureManager {
 				throw new RuntimeException("Couldn't load bitmap from '" + fileName + "'");
 			}
 			return bitmap;
-		} catch (IOException ignored) {
-			AliteLog.e("Error loading bitmap", "Couldn't load bitmap from '" + fileName + "'");
+		} catch (IOException e) {
+			AliteLog.e("Error loading bitmap", "Couldn't load bitmap from '" + fileName + "'", e);
 		}
 		return null;
 	}

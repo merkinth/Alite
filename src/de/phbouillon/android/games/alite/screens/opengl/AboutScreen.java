@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.graphics.Rect;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.*;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -55,7 +54,6 @@ import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 public class AboutScreen extends GlScreen {
 	private static final int WAIT_CYCLE_IN_50_MICROS = 60; // 3s
 
-	private final Rect visibleArea;
 	private Sprite background;
 	private Sprite aliteLogo;
 	private final Timer timer = new Timer().setAutoReset();
@@ -66,7 +64,7 @@ public class AboutScreen extends GlScreen {
 	private int y = 1200;
 	private boolean returnToOptions = false;
 	private float musicVolume = Settings.volumes[Sound.SoundType.MUSIC.getValue()];
-	private Alite game;
+	private final Game game;
 
 	private int pendingMode = -1;
 
@@ -105,7 +103,6 @@ public class AboutScreen extends GlScreen {
 	// default public constructor is required for navigation bar
 	public AboutScreen() {
 		game = Alite.get();
-		visibleArea = game.getGraphics().getVisibleArea();
 		background = new Sprite(0, 0, AliteConfig.SCREEN_WIDTH, AliteConfig.SCREEN_HEIGHT,
 			0.0f, 0.0f, 1.0f, 1.0f, "textures/star_map_title.png");
 		aliteLogo  = new Sprite(0, 0, AliteConfig.SCREEN_WIDTH, AliteConfig.SCREEN_HEIGHT,
@@ -166,11 +163,10 @@ public class AboutScreen extends GlScreen {
 	}
 
 	private void initializeGl() {
-		float ratio = visibleArea.width() / (float) visibleArea.height();
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-		GlUtils.setViewport(visibleArea);
+		GlUtils.setViewport(game);
 		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, ratio, 10.0f, 1000.0f);
+		GlUtils.gluPerspective(game, 45.0f, 10.0f, 1000.0f);
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
 		GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -253,8 +249,7 @@ public class AboutScreen extends GlScreen {
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glPushMatrix();
 		GLES11.glLoadIdentity();
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		GlUtils.ortho(game, visibleArea);
+		GlUtils.ortho(game);
 
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();

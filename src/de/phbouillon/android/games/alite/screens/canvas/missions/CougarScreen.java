@@ -21,7 +21,6 @@ package de.phbouillon.android.games.alite.screens.canvas.missions;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import android.graphics.Rect;
 import android.media.MediaPlayer;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Timer;
@@ -105,8 +104,7 @@ public class CougarScreen extends AliteScreen {
 		if (cougar != null) {
 			displayObject(cougar, 1.0f, 100000.0f);
 		} else {
-			Rect visibleArea = game.getGraphics().getVisibleArea();
-			setUpForDisplay(visibleArea);
+			setUpForDisplay();
 		}
 	}
 

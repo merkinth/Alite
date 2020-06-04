@@ -21,7 +21,6 @@ package de.phbouillon.android.games.alite.screens.opengl;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.graphics.Rect;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.GlScreen;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -47,8 +46,6 @@ public class ControlledShipIntroScreen extends GlScreen {
 
 	private static final float START_Z = -10000.0f;
 
-	private int windowWidth;
-	private int windowHeight;
 	private final List <AliteObject> allObjects = new ArrayList<>();
 	private final InGameManager inGame;
 	private final Timer timer = new Timer().setAutoReset();
@@ -78,10 +75,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 	@Override
 	public void onActivation() {
 		AliteLog.d("Ship Intro Screen", "On Activation. glError: " + GLES11.glGetError());
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		windowWidth = visibleArea.width();
-		windowHeight = visibleArea.height();
-		initializeGl(visibleArea);
+		initializeGl();
 
 		AliteLog.d("Ship Intro Screen", "On Activation. After init. glError: " + GLES11.glGetError());
 		allObjects.clear();
@@ -93,11 +87,8 @@ public class ControlledShipIntroScreen extends GlScreen {
 		AliteLog.d("Ship Intro Screen", "On Activation done. glError: " + GLES11.glGetError());
 	}
 
-	private void initializeGl(final Rect visibleArea) {
-		AliteLog.d("Ship Intro Screen", "Initialize GL. glError: " + GLES11.glGetError());
-
-		float ratio = windowWidth / (float) windowHeight;
-		GlUtils.setViewport(visibleArea);
+	private void initializeGl() {
+		GlUtils.setViewport(game);
 		GLES11.glDisable(GLES11.GL_FOG);
 		GLES11.glPointSize(1.0f);
         GLES11.glLineWidth(1.0f);
@@ -109,7 +100,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, ratio, 1.0f, 900000.0f);
+		GlUtils.gluPerspective(game, 45.0f, 1.0f, 900000.0f);
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
 		AliteLog.d("SIS", "Matrix Setup: " + GLES11.glGetError());
@@ -236,8 +227,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 			GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 			GLES11.glPushMatrix();
 			GLES11.glLoadIdentity();
-			Rect visibleArea = game.getGraphics().getVisibleArea();
-			GlUtils.ortho(game, visibleArea);
+			GlUtils.ortho(game);
 			GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 			GLES11.glLoadIdentity();
 			GLES11.glColor4f(0.937f, 0.396f, 0.0f, 1.0f);
@@ -264,8 +254,7 @@ public class ControlledShipIntroScreen extends GlScreen {
 	@Override
 	public void resume() {
 		super.resume();
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		initializeGl(visibleArea);
+		initializeGl();
 		game.getTextureManager().reloadAllTextures();
 	}
 

@@ -94,8 +94,7 @@ public abstract class AliteScreen extends Screen {
 
 	public AliteScreen() {
 		game = Alite.get();
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		setUpForDisplay(visibleArea);
+		setUpForDisplay();
 	}
 
 	public void showMessageDialog(String message) {
@@ -292,12 +291,7 @@ public abstract class AliteScreen extends Screen {
 	}
 
 	protected void initGl() {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		int windowWidth = visibleArea.width();
-		int windowHeight = visibleArea.height();
-
-		float ratio = windowWidth / (float) windowHeight;
-		GlUtils.setViewport(visibleArea);
+		GlUtils.setViewport(game);
 		GLES11.glDisable(GLES11.GL_FOG);
 		GLES11.glPointSize(1.0f);
 		GLES11.glLineWidth(1.0f);
@@ -307,7 +301,7 @@ public abstract class AliteScreen extends Screen {
 
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, ratio, 1.0f, 900000.0f);
+		GlUtils.gluPerspective(game, 45.0f, 1.0f, 900000.0f);
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
 
@@ -556,13 +550,11 @@ public abstract class AliteScreen extends Screen {
 	}
 
 	protected final void displayObject(AliteObject object, float zNear, float zFar) {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		float aspectRatio = visibleArea.width() / (float) visibleArea.height();
 		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
 		GLES11.glEnable(GLES11.GL_CULL_FACE);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, aspectRatio, zNear, zFar);
+		GlUtils.gluPerspective(game, 45.0f, zNear, zFar);
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
 
@@ -581,10 +573,10 @@ public abstract class AliteScreen extends Screen {
 
 		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
 		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
-		setUpForDisplay(visibleArea);
+		setUpForDisplay();
 	}
 
-	protected final void setUpForDisplay(Rect visibleArea) {
+	protected final void setUpForDisplay() {
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
 		GLES11.glDisable(GLES11.GL_LIGHTING);
 		GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, 0);
@@ -592,7 +584,7 @@ public abstract class AliteScreen extends Screen {
 
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
-		GlUtils.ortho(game, visibleArea);
+		GlUtils.ortho(game);
 
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();

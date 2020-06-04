@@ -22,13 +22,11 @@ import java.io.Serializable;
 
 import android.graphics.Color;
 import de.phbouillon.android.framework.impl.gl.Disk;
-import de.phbouillon.android.games.alite.screens.opengl.IAdditionalGLParameterSetter;
 
 public class DiskSpaceObject extends AliteObject implements Serializable {
 	private static final long serialVersionUID = 5388571762772747540L;
 
 	private final Disk disk;
-	private IAdditionalGLParameterSetter additionalParameters = null;
 
 	public DiskSpaceObject(String name, float innerRadius, float outerRadius, float beginAngle, float endAngle, int sections, String texture) {
 		super(name);
@@ -39,16 +37,7 @@ public class DiskSpaceObject extends AliteObject implements Serializable {
 
 	@Override
 	public void render() {
-		if (additionalParameters != null) {
-			additionalParameters.setUp();
-		}
 		disk.render();
-		if (additionalParameters != null) {
-			additionalParameters.tearDown();
-		}
 	}
 
-	public void setAdditionalGLParameters(IAdditionalGLParameterSetter additionalParameters) {
-		this.additionalParameters = additionalParameters;
-	}
 }

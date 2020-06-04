@@ -133,7 +133,7 @@ public class InGameManager implements Serializable {
 	private boolean                     playerControl = true;
 	private boolean                     targetMissile = false;
 	private boolean                     viewDirectionChanged = false;
-    private boolean                     vipersWillEngage = false;
+	private boolean                     vipersWillEngage = false;
 
 	private int                         viewDirection = PlayerCobra.DIR_FRONT;
 	private int                         lastX = -1;
@@ -387,7 +387,7 @@ public class InGameManager implements Serializable {
 		this.sunGlow = sunGlow;
 	}
 
-	public AliteObject getSun()  {
+	public AliteObject getSun() {
 		return sun;
 	}
 
@@ -541,8 +541,8 @@ public class InGameManager implements Serializable {
 
 	private synchronized void spawnMissile(SpaceObject so) {
 		SpaceObject missile = helper.spawnMissile(so, ship);
-        message.repeatText(L.string(R.string.com_incoming_missile), 2);
-        missile.addDestructionCallback(7, new IMethodHook() {
+		message.repeatText(L.string(R.string.com_incoming_missile), 2);
+		missile.addDestructionCallback(7, new IMethodHook() {
 			private static final long serialVersionUID = -4168441227358105959L;
 
 			@Override
@@ -914,7 +914,7 @@ public class InGameManager implements Serializable {
 						if (alite.getCurrentScreen() instanceof FlightScreen) {
 							((FlightScreen) alite.getCurrentScreen()).setPause(true);
 						}
-				    } else {
+					} else {
 						SpaceObject picked = objectPicker.handleIdentify(e.x, e.y, sortedObjectsToDraw);
 						if (picked != null) {
 							SoundManager.play(Assets.identify);
@@ -972,8 +972,7 @@ public class InGameManager implements Serializable {
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glPushMatrix();
 		GLES11.glLoadIdentity();
-		Rect visibleArea = alite.getGraphics().getVisibleArea();
-		GlUtils.ortho(alite, visibleArea);
+		GlUtils.ortho(alite);
 
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
@@ -1075,13 +1074,11 @@ public class InGameManager implements Serializable {
 		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
 		GLES11.glDepthFunc(GLES11.GL_LESS);
 		GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT);
-		Rect visibleArea = alite.getGraphics().getVisibleArea();
-		float aspectRatio = visibleArea.width() / (float) visibleArea.height();
 
 		GLES11.glPushMatrix();
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(alite, 45.0f, aspectRatio, 0.1f, 1.0f);
+		GlUtils.gluPerspective(alite, 45.0f, 0.1f, 1.0f);
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glPopMatrix();
 
@@ -1104,7 +1101,7 @@ public class InGameManager implements Serializable {
 				GLES11.glPushMatrix();
 				GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 				GLES11.glLoadIdentity();
-				GlUtils.gluPerspective(alite, 45.0f, aspectRatio, bucket.near, bucket.far);
+				GlUtils.gluPerspective(alite, 45.0f, bucket.near, bucket.far);
 				GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 				GLES11.glPopMatrix();
 			}
@@ -1192,7 +1189,7 @@ public class InGameManager implements Serializable {
 		GLES11.glPushMatrix();
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(alite, 45.0f, aspectRatio, 1.0f, 900000.0f);
+		GlUtils.gluPerspective(alite, 45.0f, 1.0f, 900000.0f);
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glPopMatrix();
 		GLES11.glDisableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
@@ -1207,8 +1204,7 @@ public class InGameManager implements Serializable {
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glPushMatrix();
 		GLES11.glLoadIdentity();
-		Rect visibleArea = alite.getGraphics().getVisibleArea();
-		GlUtils.ortho(alite, visibleArea);
+		GlUtils.ortho(alite);
 
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
@@ -1263,9 +1259,9 @@ public class InGameManager implements Serializable {
 		if (hud != null) {
 			if (dockingComputerAI.isActive()) {
 				hud.mapDirections(alite.getCobra().getRoll() > 0.1,
-						          alite.getCobra().getRoll() < -0.1,
-						          alite.getCobra().getPitch() < -0.1,
-						          alite.getCobra().getPitch() > 0.1);
+				alite.getCobra().getRoll() < -0.1,
+				alite.getCobra().getPitch() < -0.1,
+				alite.getCobra().getPitch() > 0.1);
 			}
 			renderHud();
 			GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -1294,8 +1290,7 @@ public class InGameManager implements Serializable {
 			GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 			GLES11.glPushMatrix();
 			GLES11.glLoadIdentity();
-			Rect visibleArea = alite.getGraphics().getVisibleArea();
-			GlUtils.ortho(alite, visibleArea);
+			GlUtils.ortho(alite);
 
 			GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 			GLES11.glLoadIdentity();

@@ -45,7 +45,7 @@ public class QuitScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		mockStatusScreen.activate();
-		setUpForDisplay(game.getGraphics().getVisibleArea());
+		setUpForDisplay();
 		showModalQuestionDialog(L.string(R.string.quit_confirm, AliteConfig.GAME_NAME));
 	}
 

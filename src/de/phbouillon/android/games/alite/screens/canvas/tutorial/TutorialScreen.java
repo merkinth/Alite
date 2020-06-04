@@ -22,7 +22,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.graphics.Rect;
 import android.media.MediaPlayer;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
@@ -184,7 +183,7 @@ public abstract class TutorialScreen extends AliteScreen {
 
 	protected abstract void doPresent(float deltaTime);
 
-	protected void renderGlPart(float deltaTime, final Rect visibleArea) {
+	protected void renderGlPart(float deltaTime) {
 	}
 
 	protected void doUpdate(float deltaTime) {
@@ -201,9 +200,8 @@ public abstract class TutorialScreen extends AliteScreen {
 	@Override
 	public void present(float deltaTime) {
 		if (isGl) {
-			Rect visibleArea = game.getGraphics().getVisibleArea();
-			renderGlPart(deltaTime, visibleArea);
-			setUpForDisplay(visibleArea);
+			renderGlPart(deltaTime);
+			setUpForDisplay();
 		}
 		if (currentLine != null) {
 			currentLine.prePresent(deltaTime);

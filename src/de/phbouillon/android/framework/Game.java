@@ -2,7 +2,7 @@ package de.phbouillon.android.framework;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -19,12 +19,12 @@ package de.phbouillon.android.framework;
  */
 
 public interface Game {
-	public Input getInput();
-	public FileIO getFileIO();
-	public Graphics getGraphics();
-	public Audio getAudio();
-	public void setScreen(Screen screen);
-	public Screen getCurrentScreen();
-	public Screen getStartScreen();
-	public int [] getSize();
+	Input getInput();
+	FileIO getFileIO();
+	Graphics getGraphics();
+	Audio getAudio();
+	void setScreen(Screen screen);
+	Screen getCurrentScreen();
+	Screen getStartScreen();
+	float getDeviceRatio();
 }

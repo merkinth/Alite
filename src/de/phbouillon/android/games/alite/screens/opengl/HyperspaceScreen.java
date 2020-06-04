@@ -23,7 +23,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 
-import android.graphics.Rect;
 import android.opengl.GLES11;
 import android.opengl.Matrix;
 import de.phbouillon.android.framework.GlScreen;
@@ -97,13 +96,9 @@ public class HyperspaceScreen extends GlScreen {
 	}
 
 	public void onActivation() {
-		int[] size = game.getSize();
-		windowWidth = size[0];
-		windowHeight = size[1];
 		game.getTextureManager().addTexture(textureFilename);
 		makeTorus(WHOLE_TORUS_SIDES, CROSS_SECTION_SIDES, TORUS_RADIUS, CROSS_SECTION_RADIUS);
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		initializeGl(visibleArea);
+		initializeGl();
 		if (!screenLoad) {
 			increase = (int) (Math.random() * 3.0f);
 			red   = 0.2f + (float) Math.random() * 0.5f;
@@ -135,31 +130,29 @@ public class HyperspaceScreen extends GlScreen {
 		}
 	}
 
-	public void initializeGl(Rect visibleArea) {
-		float ratio = windowWidth / (float) windowHeight;
+	public void initializeGl() {
+		GlUtils.setViewport(game);
+		GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		GLES11.glPointSize(2.0f);
 
-		GlUtils.setViewport(visibleArea);
-        GLES11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        GLES11.glPointSize(2.0f);
+		GLES11.glTexEnvf(GLES11.GL_TEXTURE_ENV, GLES11.GL_TEXTURE_ENV_MODE, GLES11.GL_MODULATE);
 
-        GLES11.glTexEnvf(GLES11.GL_TEXTURE_ENV, GLES11.GL_TEXTURE_ENV_MODE, GLES11.GL_MODULATE);
+		GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE_MINUS_SRC_ALPHA);
+		GLES11.glDisable(GLES11.GL_BLEND);
 
-	    GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE_MINUS_SRC_ALPHA);
-        GLES11.glDisable(GLES11.GL_BLEND);
+		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
+		GLES11.glLoadIdentity();
+		GlUtils.gluPerspective(120f, game.getDeviceRatio(), 0.01f, 100f);
+		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
+		GLES11.glLoadIdentity();
+		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
+		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
 
-        GLES11.glMatrixMode(GLES11.GL_PROJECTION);
-        GLES11.glLoadIdentity();
-        GlUtils.gluPerspective(game, 120f, ratio, 0.01f, 100f);
-        GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
-        GLES11.glLoadIdentity();
-        GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
-        GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);
-
-        GLES11.glEnable(GLES11.GL_TEXTURE_2D);
-        GLES11.glEnable(GLES11.GL_DEPTH_TEST);
-        game.getTextureManager().setTexture(textureFilename);
-        GLES11.glDisable(GLES11.GL_LIGHTING);
+		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
+		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
+		game.getTextureManager().setTexture(textureFilename);
+		GLES11.glDisable(GLES11.GL_LIGHTING);
 	}
 
 	private void makeTorus(int sides, int csSides, float radius, float csRadius) {
@@ -209,34 +202,34 @@ public class HyperspaceScreen extends GlScreen {
 			return;
 		}
 		GLES11.glDisable(GLES11.GL_CULL_FACE);
-        GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT | GLES11.GL_DEPTH_BUFFER_BIT);
+		GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT | GLES11.GL_DEPTH_BUFFER_BIT);
 
-        counter += 0.72f;
-        if (counter > 360) {
-        	counter = 0;
-        }
-        switch (increase) {
-        	case 0: red += 0.002f; if (red > 1.0f) red = 1.0f; break;
-        	case 1: green += 0.002f; if (green > 1.0f) green = 1.0f; break;
-        	case 2: blue += 0.002f; if (blue > 1.0f) blue = 1.0f; break;
-        }
-        GLES11.glLoadIdentity();
-        lookAt(-3.5f, 0, 0,
-        	   -3.5f, 1.0f, 0,
-        	   (float) Math.sin(Math.toRadians(counter)), 0.0f, (float) Math.cos(Math.toRadians(counter)));
+		counter += 0.72f;
+		if (counter > 360) {
+			counter = 0;
+		}
+		switch (increase) {
+			case 0: red += 0.002f; if (red > 1.0f) red = 1.0f; break;
+			case 1: green += 0.002f; if (green > 1.0f) green = 1.0f; break;
+			case 2: blue += 0.002f; if (blue > 1.0f) blue = 1.0f; break;
+		}
+		GLES11.glLoadIdentity();
+		lookAt(-3.5f, 0, 0,
+			-3.5f, 1.0f, 0,
+			(float) Math.sin(Math.toRadians(counter)), 0.0f, (float) Math.cos(Math.toRadians(counter)));
 
-        GLES11.glRotatef(counter * 2, 0.0f, 0.0f, 1.0f);
-    	GLES11.glVertexPointer(3, GLES11.GL_FLOAT, 0, vertexBuffer);
-    	GLES11.glTexCoordPointer(2, GLES11.GL_FLOAT, 0, textureBuffer);
+		GLES11.glRotatef(counter * 2, 0.0f, 0.0f, 1.0f);
+		GLES11.glVertexPointer(3, GLES11.GL_FLOAT, 0, vertexBuffer);
+		GLES11.glTexCoordPointer(2, GLES11.GL_FLOAT, 0, textureBuffer);
 
-    	GLES11.glMatrixMode(GLES11.GL_TEXTURE);
-    	GLES11.glTranslatef(0.0f, -0.015f, 0.0f);
-    	GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
+		GLES11.glMatrixMode(GLES11.GL_TEXTURE);
+		GLES11.glTranslatef(0.0f, -0.015f, 0.0f);
+		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 
-    	GLES11.glColor4f(red, green, blue, 1.0f);
-    	GLES11.glDrawArrays(GLES11.GL_TRIANGLE_STRIP, 0, totalIndices);
-    	GLES11.glEnable(GLES11.GL_CULL_FACE);
-    	GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		GLES11.glColor4f(red, green, blue, 1.0f);
+		GLES11.glDrawArrays(GLES11.GL_TRIANGLE_STRIP, 0, totalIndices);
+		GLES11.glEnable(GLES11.GL_CULL_FACE);
+		GLES11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	}
 
 	@Override

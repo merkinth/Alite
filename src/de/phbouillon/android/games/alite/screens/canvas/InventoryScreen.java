@@ -141,7 +141,7 @@ public class InventoryScreen extends TradeScreen {
 		Player player = game.getPlayer();
 		Weight ejectedWeight;
 		long ejectedPrice = item.getPrice();
-		if (item.getWeight().compareTo(Weight.tonnes(4)) < 0) {
+		if (item.getWeight().compareTo(Weight.tonnes(4)) <= 0) {
 			ejectedWeight = item.getWeight();
 			player.getCobra().removeTradeGood(item.getGood());
 		} else {
@@ -182,8 +182,9 @@ public class InventoryScreen extends TradeScreen {
 		game.getPlayer().setLegalValueByContraband(item.getGood().getLegalityType(), item.getUnpunished().getQuantityInAppropriateUnit());
 		player.getCobra().removeTradeGood(item.getGood());
 		player.setCash(player.getCash() + price);
-		cashLeft = L.getOneDecimalFormatString(R.string.cash_amount, player.getCash());
 		SoundManager.play(Assets.kaChing);
+		cashLeft = L.getOneDecimalFormatString(R.string.cash_amount, player.getCash());
+		selectionIndex = -1;
 		createButtons();
 		try {
 			game.autoSave();

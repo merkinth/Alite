@@ -50,7 +50,7 @@ public class StatusScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		setUpForDisplay(game.getGraphics().getVisibleArea());
+		setUpForDisplay();
 		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
 		game.getNavigationBar().resetPending();
 		for (Mission m: MissionManager.getInstance().getMissions()) {

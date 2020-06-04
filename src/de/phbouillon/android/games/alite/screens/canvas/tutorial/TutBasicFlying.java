@@ -24,11 +24,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import android.graphics.Rect;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
+import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
@@ -72,6 +72,7 @@ public class TutBasicFlying extends TutorialScreen {
 		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
 		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
 		game.getPlayer().setLegalValue(0);
+		game.getPlayer().setCondition(Condition.GREEN);
 		game.getCobra().setFuel(70);
 		Settings.resetButtonPosition();
 
@@ -607,6 +608,7 @@ public class TutBasicFlying extends TutorialScreen {
 		game.getGenerator().setCurrentGalaxy(1);
 		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
 		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
+		game.getPlayer().setCondition(Condition.GREEN);
 		game.getCobra().setFuel(70);
 		game.getCobra().setMissiles(4);
 
@@ -653,9 +655,9 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	@Override
-	public void renderGlPart(float deltaTime, final Rect visibleArea) {
+	public void renderGlPart(float deltaTime) {
 		if (flight != null) {
-			flight.initializeGl(visibleArea);
+			flight.initializeGl();
 			flight.present(deltaTime);
 		}
 	}

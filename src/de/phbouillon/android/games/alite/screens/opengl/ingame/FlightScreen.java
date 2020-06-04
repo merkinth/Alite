@@ -26,7 +26,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import android.graphics.Rect;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.*;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -36,10 +35,9 @@ import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.Settings;
+import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
-import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
-import de.phbouillon.android.games.alite.screens.opengl.IAdditionalGLParameterSetter;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.PlanetSpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.SphericalSpaceObject;
@@ -56,8 +54,6 @@ public class FlightScreen extends GlScreen implements Serializable {
 	static final Vector3f SHIP_ENTRY_POSITION          = new Vector3f(0.0f, 0.0f, 400000.0f);
 	static final float    SUN_SIZE                     = 60000.0f;
 
-	private int windowWidth;
-	private int windowHeight;
 	private SphericalSpaceObject star;
 	private PlanetSpaceObject    planet;
 
@@ -125,6 +121,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 		ObjectSpawnManager.THARGONS_ENABLED = true;
 		ObjectSpawnManager.TRADERS_ENABLED = true;
 		ObjectSpawnManager.VIPERS_ENABLED = true;
+		game.getPlayer().setCondition(Condition.GREEN); // ship launched
 	}
 
 	public static FlightScreen createScreen(final DataInputStream dis) throws IOException, ClassNotFoundException {
@@ -134,6 +131,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 		FlightScreen screen = (FlightScreen) ois.readObject();
 		screen.needsActivation = false;
 		screen.resetSpaceStation = false;
+		screen.game.getPlayer().setCondition(Condition.GREEN); // ship launched
 		return screen;
 	}
 
@@ -177,20 +175,12 @@ public class FlightScreen extends GlScreen implements Serializable {
 
 	@Override
 	public void onActivation() {
+		initializeGl();
 		if (!needsActivation) {
 			needsActivation = true;
-			Rect visibleArea = game.getGraphics().getVisibleArea();
-			windowWidth = visibleArea.width();
-			windowHeight = visibleArea.height();
-			initializeGl(visibleArea);
 			setPause(true);
 			return;
 		}
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		windowWidth = visibleArea.width();
-		windowHeight = visibleArea.height();
-		initializeGl(visibleArea);
-
 		inGame = new InGameManager(new AliteHud(new IntFunction<Float>() {
 			private static final long serialVersionUID = 7872124707688525785L;
 
@@ -230,10 +220,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 		}
 		informationScreen = newInformationScreen;
 		if (informationScreen == null) {
-			Rect visibleArea = game.getGraphics().getVisibleArea();
-			windowWidth = visibleArea.width();
-			windowHeight = visibleArea.height();
-			initializeGl(visibleArea);
+			initializeGl();
 			inGame.resetHud();
 		}
 		game.getNavigationBar().setFlightMode(informationScreen != null);
@@ -254,63 +241,60 @@ public class FlightScreen extends GlScreen implements Serializable {
 		int starTexture = currentSystem == null ? 0 : currentSystem.getStarTexture();
 		String starTextureName;
 		float sunSize;
-        if (starTexture == 22) {
-            starTextureName = "textures/stars/dwarf/b.png";
-            sunLightEmission[0] = 0.5f; sunLightEmission[1] = 0.0f; sunLightEmission[2] = 0.0f; sunLightEmission[3] = 1.0f;
-            sunSize = 5000.0f;
-        } else if (starTexture == 21) {
-            starTextureName = "textures/stars/dwarf/a.png";
-            sunLightEmission[0] = 0.5f; sunLightEmission[1] = 0.0f; sunLightEmission[2] = 0.5f; sunLightEmission[3] = 1.0f;
-            sunSize = 10000.0f;
-        } else {
-            starTextureName = "textures/stars/" + ("123".charAt(starTexture / 7) + "/" + "obafgkm".charAt(starTexture % 7)) + ".png";
-            sunSize = SUN_SIZE - (starTexture % 7) * 7000.0f;
-            int starType = starTexture % 7;
-            switch (starType) {
-            	case 0: sunLightEmission[0] = 0.5f; sunLightEmission[1] = 0.5f; sunLightEmission[2] = 1.0f; sunLightEmission[3] = 1.0f; break;
-            	case 1: sunLightEmission[0] = 0.3f; sunLightEmission[1] = 0.3f; sunLightEmission[2] = 1.0f; sunLightEmission[3] = 1.0f; break;
-            	case 2: sunLightEmission[0] = 0.1f; sunLightEmission[1] = 0.1f; sunLightEmission[2] = 1.0f; sunLightEmission[3] = 1.0f; break;
-            	case 3: sunLightEmission[0] = 0.8f; sunLightEmission[1] = 0.8f; sunLightEmission[2] = 1.0f; sunLightEmission[3] = 1.0f; break;
-            	case 4: sunLightEmission[0] = 0.8f; sunLightEmission[1] = 0.8f; sunLightEmission[2] = 0.5f; sunLightEmission[3] = 1.0f; break;
-            	case 5: sunLightEmission[0] = 0.8f; sunLightEmission[1] = 0.5f; sunLightEmission[2] = 0.3f; sunLightEmission[3] = 1.0f; break;
-            	case 6: sunLightEmission[0] = 1.0f; sunLightEmission[1] = 0.5f; sunLightEmission[2] = 0.5f; sunLightEmission[3] = 1.0f; break;
-            }
-        }
-		star = new SphericalSpaceObject("Sun", sunSize, starTextureName);
-		star.setVisibleOnHud(false);
-		star.setAdditionalGLParameters(new IAdditionalGLParameterSetter(){
+		if (starTexture == 22) {
+			starTextureName = "textures/stars/dwarf/b.png";
+			sunLightEmission[0] = 0.5f; sunLightEmission[1] = 0.0f; sunLightEmission[2] = 0.0f; sunLightEmission[3] = 1.0f;
+			sunSize = 5000.0f;
+		} else if (starTexture == 21) {
+			starTextureName = "textures/stars/dwarf/a.png";
+			sunLightEmission[0] = 0.5f; sunLightEmission[1] = 0.0f; sunLightEmission[2] = 0.5f; sunLightEmission[3] = 1.0f;
+			sunSize = 10000.0f;
+		} else {
+			starTextureName = "textures/stars/" + ("123".charAt(starTexture / 7) + "/" + "obafgkm".charAt(starTexture % 7)) + ".png";
+			sunSize = SUN_SIZE - (starTexture % 7) * 7000.0f;
+			int starType = starTexture % 7;
+			switch (starType) {
+				case 0: sunLightEmission[0] = 0.5f; sunLightEmission[1] = 0.5f; sunLightEmission[2] = 1.0f; sunLightEmission[3] = 1.0f; break;
+				case 1: sunLightEmission[0] = 0.3f; sunLightEmission[1] = 0.3f; sunLightEmission[2] = 1.0f; sunLightEmission[3] = 1.0f; break;
+				case 2: sunLightEmission[0] = 0.1f; sunLightEmission[1] = 0.1f; sunLightEmission[2] = 1.0f; sunLightEmission[3] = 1.0f; break;
+				case 3: sunLightEmission[0] = 0.8f; sunLightEmission[1] = 0.8f; sunLightEmission[2] = 1.0f; sunLightEmission[3] = 1.0f; break;
+				case 4: sunLightEmission[0] = 0.8f; sunLightEmission[1] = 0.8f; sunLightEmission[2] = 0.5f; sunLightEmission[3] = 1.0f; break;
+				case 5: sunLightEmission[0] = 0.8f; sunLightEmission[1] = 0.5f; sunLightEmission[2] = 0.3f; sunLightEmission[3] = 1.0f; break;
+				case 6: sunLightEmission[0] = 1.0f; sunLightEmission[1] = 0.5f; sunLightEmission[2] = 0.5f; sunLightEmission[3] = 1.0f; break;
+			}
+		}
+		star = new SphericalSpaceObject("Sun", sunSize, starTextureName) {
 			private static final long serialVersionUID = -7931217736505566905L;
-
 			@Override
-			public void setUp() {
+			public void glSetUp() {
 				GLES11.glMaterialfv(GLES11.GL_FRONT_AND_BACK, GLES11.GL_EMISSION, sunLightEmission, 0);
 			}
 
 			@Override
-			public void tearDown() {
+			public void glTearDown() {
 				GLES11.glMaterialfv(GLES11.GL_FRONT_AND_BACK, GLES11.GL_EMISSION, noEmission, 0);
 			}
-		});
+		};
+		star.setVisibleOnHud(false);
 
-		SphericalSpaceObject starGlow = new SphericalSpaceObject("Glow", sunSize + 60.0f, "textures/glow_mask2.png");
-		starGlow.setDepthTest(false);
-		starGlow.setVisibleOnHud(false);
-		starGlow.setAdditionalGLParameters(new IAdditionalGLParameterSetter() {
+		SphericalSpaceObject starGlow = new SphericalSpaceObject("Glow", sunSize + 60.0f, "textures/glow_mask2.png") {
 			private static final long serialVersionUID = -7651239619882350365L;
 
 			@Override
-			public void setUp() {
+			public void glSetUp() {
 				GLES11.glDisable(GLES11.GL_CULL_FACE);
-			    GLES11.glEnable(GLES11.GL_BLEND);
+				GLES11.glEnable(GLES11.GL_BLEND);
 				GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE);
 			}
 
 			@Override
-			public void tearDown() {
+			public void glTearDown() {
 				GLES11.glEnable(GLES11.GL_CULL_FACE);
 				GLES11.glDisable(GLES11.GL_BLEND);
 			}
-		});
+		};
+		starGlow.setDepthTest(false);
+		starGlow.setVisibleOnHud(false);
 
 		planet = new PlanetSpaceObject(currentSystem, false);
 		planet.applyDeltaRotation(23, 0, 14);
@@ -346,21 +330,20 @@ public class FlightScreen extends GlScreen implements Serializable {
 		}
 	}
 
-	public void initializeGl(final Rect visibleArea) {
-		float ratio = windowWidth / (float) windowHeight;
-		GlUtils.setViewport(visibleArea);
+	public void initializeGl() {
+		GlUtils.setViewport(game);
 		GLES11.glDisable(GLES11.GL_FOG);
 		GLES11.glPointSize(1.0f);
-        GLES11.glLineWidth(1.0f);
+		GLES11.glLineWidth(1.0f);
 
-        GLES11.glTexEnvf(GLES11.GL_TEXTURE_ENV, GLES11.GL_TEXTURE_ENV_MODE, GLES11.GL_MODULATE);
+		GLES11.glTexEnvf(GLES11.GL_TEXTURE_ENV, GLES11.GL_TEXTURE_ENV_MODE, GLES11.GL_MODULATE);
 
-	    GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE_MINUS_SRC_ALPHA);
-        GLES11.glDisable(GLES11.GL_BLEND);
+		GLES11.glBlendFunc(GLES11.GL_SRC_ALPHA, GLES11.GL_ONE_MINUS_SRC_ALPHA);
+		GLES11.glDisable(GLES11.GL_BLEND);
 
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, ratio, 1.0f, 900000.0f);
+		GlUtils.gluPerspective(game, 45.0f, 1.0f, 900000.0f);
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
 
@@ -596,8 +579,7 @@ public class FlightScreen extends GlScreen implements Serializable {
 	@Override
 	public void resume() {
 		super.resume();
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		initializeGl(visibleArea);
+		initializeGl();
 		game.getTextureManager().reloadAllTextures();
 	}
 

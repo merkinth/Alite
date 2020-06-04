@@ -21,13 +21,11 @@ package de.phbouillon.android.games.alite.screens.opengl.objects;
 import android.graphics.Color;
 import de.phbouillon.android.framework.impl.gl.Box;
 import de.phbouillon.android.framework.math.Vector3f;
-import de.phbouillon.android.games.alite.screens.opengl.IAdditionalGLParameterSetter;
 
 public class BoxSpaceObject extends AliteObject {
 	private static final long serialVersionUID = -290076973449626682L;
 
 	private final Box box;
-	private IAdditionalGLParameterSetter additionalParameters = null;
 
 	public BoxSpaceObject(String name, float width, float height, float depth) {
 		super(name);
@@ -39,13 +37,7 @@ public class BoxSpaceObject extends AliteObject {
 
 	@Override
 	public void render() {
-		if (additionalParameters != null) {
-			additionalParameters.setUp();
-		}
 		box.render();
-		if (additionalParameters != null) {
-			additionalParameters.tearDown();
-		}
 	}
 
 	public void setColor(float r, float g, float b) {
@@ -58,10 +50,6 @@ public class BoxSpaceObject extends AliteObject {
 
 	public void setAlpha(float a) {
 		box.setAlpha(a);
-	}
-
-	public void setAdditionalGLParameters(IAdditionalGLParameterSetter additionalParameters) {
-		this.additionalParameters = additionalParameters;
 	}
 
 	public void setFarPlane(Vector3f far) {

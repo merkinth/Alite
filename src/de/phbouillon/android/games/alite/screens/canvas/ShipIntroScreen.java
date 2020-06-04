@@ -21,7 +21,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import android.graphics.Rect;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.*;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -161,13 +160,12 @@ public class ShipIntroScreen extends AliteScreen {
 		tapToStartButton.render(g);
 	}
 
-	private void initDisplay(final Rect visibleArea) {
-		float aspectRatio = visibleArea.width() / (float) visibleArea.height();
+	private void initDisplay() {
 		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
 		GLES11.glEnable(GLES11.GL_CULL_FACE);
 		GLES11.glMatrixMode(GLES11.GL_PROJECTION);
 		GLES11.glLoadIdentity();
-		GlUtils.gluPerspective(game, 45.0f, aspectRatio, 1.0f, 900000.0f);
+		GlUtils.gluPerspective(game, 45.0f, 1.0f, 900000.0f);
 		GLES11.glMatrixMode(GLES11.GL_MODELVIEW);
 		GLES11.glLoadIdentity();
 
@@ -191,17 +189,14 @@ public class ShipIntroScreen extends AliteScreen {
 		GLES11.glDisable(GLES11.GL_BLEND);
 	}
 
-	private void endDisplay(final Rect visibleArea) {
+	private void endDisplay() {
 		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
 		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
-
-		setUpForDisplay(visibleArea);
+		setUpForDisplay();
 	}
 
 	private void displayShip() {
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-
-		initDisplay(visibleArea);
+		initDisplay();
 
 		if (SHOW_DOCKING && coriolis != null) {
 			GLES11.glPushMatrix();
@@ -214,7 +209,7 @@ public class ShipIntroScreen extends AliteScreen {
 		currentShip.render();
 		GLES11.glPopMatrix();
 
-		endDisplay(visibleArea);
+		endDisplay();
 	}
 
 	@Override

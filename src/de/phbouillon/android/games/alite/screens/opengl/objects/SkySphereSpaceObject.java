@@ -22,12 +22,10 @@ import java.io.Serializable;
 
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.impl.gl.Skysphere;
-import de.phbouillon.android.games.alite.screens.opengl.IAdditionalGLParameterSetter;
 
 public class SkySphereSpaceObject extends AliteObject implements Serializable {
 	private static final long serialVersionUID = -3204273124041313493L;
 	private final Skysphere sphere;
-	private IAdditionalGLParameterSetter additionalParameters = null;
 
 	public SkySphereSpaceObject(String name, float radius, int slices, int stacks, String texture) {
 		super(name);
@@ -38,19 +36,9 @@ public class SkySphereSpaceObject extends AliteObject implements Serializable {
 
 	@Override
 	public void render() {
-		if (additionalParameters != null) {
-			additionalParameters.setUp();
-		}
 		GLES11.glDisable(GLES11.GL_DEPTH_TEST);
 		sphere.render();
 		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
-		if (additionalParameters != null) {
-			additionalParameters.tearDown();
-		}
-	}
-
-	public void setAdditionalGLParameters(IAdditionalGLParameterSetter additionalParameters) {
-		this.additionalParameters = additionalParameters;
 	}
 
 	public void destroy() {

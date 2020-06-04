@@ -589,7 +589,7 @@ public class ObjectSpawnManager implements Serializable {
 	}
 
 	private void handleLaunchAreaViolations() {
-		if (!lastWarningTime.hasPassedSeconds(5)) {
+		if (!lastWarningTime.hasPassedSeconds(5) || !inGame.isPlayerAlive()) {
 			return;
 		}
 		if (launchAreaViolations == 0) {

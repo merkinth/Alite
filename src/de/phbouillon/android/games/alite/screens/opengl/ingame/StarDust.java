@@ -101,13 +101,15 @@ class StarDust extends GraphicObject implements Serializable {
 		if (torusSpeed) {
 			GLES11.glLineWidth(4 * AndroidGame.scaleFactor);
 			GLES11.glDrawElements(GLES11.GL_LINES, particleCount * 2, GLES11.GL_UNSIGNED_SHORT, indicesBuffer);
+			GLES11.glLineWidth(1);
 		} else {
 			Alite.get().getTextureManager().setTexture("textures/glow_mask.png");
 			GLES11.glEnable(GLES11.GL_POINT_SPRITE_OES);
 			GLES11.glTexEnvf(GLES11.GL_POINT_SPRITE_OES, GLES11.GL_COORD_REPLACE_OES, GLES11.GL_TRUE);
-			GLES11.glDrawArrays(GLES11.GL_POINTS, 0, particleCount);
 			GLES11.glPointSize(8 * AndroidGame.scaleFactor);
-
+			GLES11.glDrawArrays(GLES11.GL_POINTS, 0, particleCount);
+			GLES11.glDisable(GLES11.GL_POINT_SPRITE_OES);
+			GLES11.glPointSize(1);
 		}
 		GLES11.glEnable(GLES11.GL_DEPTH_TEST);
 		GLES11.glDisableClientState(GLES11.GL_COLOR_ARRAY);

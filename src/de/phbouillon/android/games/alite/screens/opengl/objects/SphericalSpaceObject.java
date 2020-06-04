@@ -21,13 +21,11 @@ package de.phbouillon.android.games.alite.screens.opengl.objects;
 import java.io.Serializable;
 
 import de.phbouillon.android.framework.impl.gl.Sphere;
-import de.phbouillon.android.games.alite.screens.opengl.IAdditionalGLParameterSetter;
 
 public class SphericalSpaceObject extends AliteObject implements Serializable {
 	private static final long serialVersionUID = 5293882896307129631L;
 
 	private final Sphere sphere;
-	private IAdditionalGLParameterSetter additionalParameters = null;
 
 	public SphericalSpaceObject(String name, float radius, String texture) {
 		super(name);
@@ -47,19 +45,17 @@ public class SphericalSpaceObject extends AliteObject implements Serializable {
 		distanceFromCenterToBorder = radius;
 	}
 
-	@Override
-	public void render() {
-		if (additionalParameters != null) {
-			additionalParameters.setUp();
-		}
-		sphere.render();
-		if (additionalParameters != null) {
-			additionalParameters.tearDown();
-		}
+	protected void glSetUp() {
 	}
 
-	public void setAdditionalGLParameters(IAdditionalGLParameterSetter additionalParameters) {
-		this.additionalParameters = additionalParameters;
+	protected void glTearDown() {
+	}
+
+	@Override
+	public void render() {
+		glSetUp();
+		sphere.render();
+		glTearDown();
 	}
 
 	public void setColor(float r, float g, float b, float a) {

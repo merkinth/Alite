@@ -22,11 +22,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import android.graphics.Rect;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
+import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
@@ -67,6 +67,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
 		game.getCobra().setFuel(70);
 		game.getPlayer().setLegalValue(0);
+		game.getPlayer().setCondition(Condition.GREEN);
 		Settings.resetButtonPosition();
 
 		initLine_00();
@@ -433,6 +434,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 		game.getGenerator().setCurrentGalaxy(1);
 		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
 		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
+		game.getPlayer().setCondition(Condition.GREEN);
 		game.getCobra().setFuel(70);
 		game.getCobra().setMissiles(4);
 		game.getCobra().clearInventory();
@@ -488,9 +490,9 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	@Override
-	public void renderGlPart(float deltaTime, final Rect visibleArea) {
+	public void renderGlPart(float deltaTime) {
 		if (hyperspace != null) {
-			hyperspace.initializeGl(visibleArea);
+			hyperspace.initializeGl();
 			hyperspace.present(deltaTime);
 			if (flight != null) {
 				flight.dispose();
@@ -498,7 +500,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 			}
 		}
 		if (flight != null) {
-			flight.initializeGl(visibleArea);
+			flight.initializeGl();
 			flight.present(deltaTime);
 		}
 	}

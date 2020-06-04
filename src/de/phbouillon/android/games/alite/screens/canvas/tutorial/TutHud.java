@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import android.graphics.Rect;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
@@ -464,9 +463,9 @@ public class TutHud extends TutorialScreen {
 	}
 
 	@Override
-	public void renderGlPart(float deltaTime, final Rect visibleArea) {
+	public void renderGlPart(float deltaTime) {
 		if (flight != null) {
-			flight.initializeGl(visibleArea);
+			flight.initializeGl();
 			flight.present(deltaTime);
 		}
 	}

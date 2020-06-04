@@ -68,7 +68,6 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 	public static float fps;
 	public static float scaleFactor;
 	protected final TextureManager textureManager;
-	private int[] sizeArray = null;
 	private FatalExceptionScreen fatalException = null;
 	private TimeFactorChangeListener timeFactorChangeListener = null;
 
@@ -129,11 +128,9 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		}
 	}
 
-	public int[] getSize() {
-		if (sizeArray == null) {
-			sizeArray = new int[] {deviceWidth, deviceHeight};
-		}
-		return sizeArray;
+	@Override
+	public float getDeviceRatio() {
+		return deviceWidth / (float) deviceHeight;
 	}
 
 	@Override
@@ -265,14 +262,12 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		getDisplaySize();
 
 		Rect aspect = calculateTargetRect(new Rect(0, 0, deviceWidth, deviceHeight));
-		float ratio = aspect.width() / (float) aspect.height();
-		GlUtils.setViewport(aspect);
-		GlUtils.gluPerspective(this, 45.0f, ratio, 1.0f, 900000.0f);
-
 		AliteLog.d("Recalculating Sizes", "Sizes in OSC: Width: " + deviceWidth + ", Height: " + deviceHeight + ", Aspect: " + aspect.left + ", " + aspect.top + ", " + aspect.right + ", " + aspect.bottom);
 
 		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
 		graphics = new AndroidGraphics(fileIO, scaleFactor, aspect, textureManager);
+		GlUtils.setViewport(this);
+		GlUtils.gluPerspective(this, 45.0f, 1.0f, 900000.0f);
 
 		screen = getStartScreen();
 //		glView.onResume();

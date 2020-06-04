@@ -223,9 +223,8 @@ public class AliteButtons implements Serializable {
 		}
 		buttons[FIRE].active = alite.getCobra().getLaser(inGame.getViewDirection()) != null;
 		buttons[FIRE].yellow = alite.getLaserManager() != null && alite.getLaserManager().isAutoFire();
-		if (!Settings.laserButtonAutoFire) {
-			// Hack to prevent a green highlight if some other button was pressed
-			// during single shot finger-down...
+		if (!Settings.laserButtonAutoFire && buttons[FIRE].yellow) {
+			// Prevent a green highlight if single shot finger-down...
 			buttons[FIRE].selected = false;
 		}
 	}
@@ -404,23 +403,25 @@ public class AliteButtons implements Serializable {
 		update();
 		alite.getGraphics().setColor(AliteColor.argb(Settings.alpha, Settings.alpha, Settings.alpha, Settings.alpha));
 		for (ButtonGroup bg: buttonGroup) {
-			if (bg.active) {
-				for (ButtonData bd: bg.buttons) {
-					if (bd != null && bd.active) {
-						bd.sprite.render();
-						if (bd.selected) {
-							overlay.setPosition(bd.sprite.getPosition());
-							overlay.render();
-						}
-						if (bd.yellow) {
-							yellowOverlay.setPosition(bd.sprite.getPosition());
-							yellowOverlay.render();
-						}
-						if (bd.red) {
-							redOverlay.setPosition(bd.sprite.getPosition());
-							redOverlay.render();
-						}
-					}
+			if (!bg.active) {
+				continue;
+			}
+			for (ButtonData bd: bg.buttons) {
+				if (bd == null || !bd.active) {
+					continue;
+				}
+				bd.sprite.render();
+				if (bd.selected) {
+					overlay.setPosition(bd.sprite.getPosition());
+					overlay.render();
+				}
+				if (bd.yellow) {
+					yellowOverlay.setPosition(bd.sprite.getPosition());
+					yellowOverlay.render();
+				}
+				if (bd.red) {
+					redOverlay.setPosition(bd.sprite.getPosition());
+					redOverlay.render();
 				}
 			}
 		}
@@ -478,10 +479,8 @@ public class AliteButtons implements Serializable {
 	}
 
 	public void checkFireRelease(TouchEvent e) {
-		if (e.pointer == fireButtonPressed && e.type == TouchEvent.TOUCH_UP) {
+		if (e.pointer == fireButtonPressed && e.type == TouchEvent.TOUCH_UP && !Settings.laserButtonAutoFire) {
 			fireButtonPressed = -1;
-		}
-		if (fireButtonPressed == -1 && !Settings.laserButtonAutoFire) {
 			deactivateFire();
 		}
 	}
@@ -512,11 +511,12 @@ public class AliteButtons implements Serializable {
 				if (source == buttons[MISSILE] && buttons[MISSILE].red) {
 					downTime = new Timer();
 				}
-				if (source == buttons[FIRE] && !Settings.laserButtonAutoFire) {
+				if (source == buttons[FIRE] && !Settings.laserButtonAutoFire && !OVERRIDE_LASER) {
 					fireButtonPressed = e.pointer;
 					alite.getLaserManager().setAutoFire(true);
 				}
 			} else if (e.type == TouchEvent.TOUCH_UP) {
+				bd.selected = false;
 				if (source != null) {
 					source.selected = false;
 				}
@@ -577,23 +577,17 @@ public class AliteButtons implements Serializable {
 	}
 
 	private void deactivateFire() {
-		if (OVERRIDE_LASER) {
-			return;
-		}
 		if (alite.getLaserManager() != null) {
 			alite.getLaserManager().setAutoFire(false);
 		}
 	}
 
 	private void toggleAutoFire() {
-		if (OVERRIDE_LASER || !Settings.laserButtonAutoFire) {
-			return;
-		}
-		if (isTimeDriveEngaged() || inGame.isTorusDriveEngaged()) {
+		if (OVERRIDE_LASER || isTimeDriveEngaged() || inGame.isTorusDriveEngaged()) {
 			return;
 		}
 		if (alite.getLaserManager() != null) {
-			alite.getLaserManager().setAutoFire(!alite.getLaserManager().isAutoFire());
+			alite.getLaserManager().setAutoFire(Settings.laserButtonAutoFire && !alite.getLaserManager().isAutoFire());
 		}
 	}
 

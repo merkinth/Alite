@@ -23,7 +23,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.media.MediaPlayer;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
@@ -193,8 +192,7 @@ public class ConstrictorScreen extends AliteScreen {
 		} else if (targetSystem != null) {
 			displayStarMap();
 		} else {
-			Rect visibleArea = game.getGraphics().getVisibleArea();
-			setUpForDisplay(visibleArea);
+			setUpForDisplay();
 		}
 	}
 
@@ -243,9 +241,7 @@ public class ConstrictorScreen extends AliteScreen {
 		}
 		// Make sure the target system is rendered on top...
 		drawSystem(targetSystem, centerX, centerY, 3.0f, true);
-
-		Rect visibleArea = game.getGraphics().getVisibleArea();
-		setUpForDisplay(visibleArea);
+		setUpForDisplay();
 	}
 
 	@Override
