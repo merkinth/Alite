@@ -274,6 +274,7 @@ public class OptionsScreen extends AliteScreen {
 			}
 		}
 
+		game.getPlayer().addVisitedPlanet();
 		Intent intent = new Intent(game, AliteIntro.class);
 		intent.putExtra(Alite.LOG_IS_INITIALIZED, true);
 		game.startActivityForResult(intent, 0);

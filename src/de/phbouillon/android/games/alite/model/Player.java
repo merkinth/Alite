@@ -18,7 +18,9 @@ package de.phbouillon.android.games.alite.model;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import java.io.DataInputStream;
 import java.io.DataOutput;
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,6 +62,7 @@ public class Player {
 	private final List <Mission> completedMissions = new ArrayList<>();
 	private boolean cheater;
 	private final Map<Integer,PlanetInfo> visitedPlanets = new HashMap<>();
+	private int lastVisitedPlanet;
 
 	private class PlanetInfo {
 		int galaxy;
@@ -96,6 +99,7 @@ public class Player {
 	public Player() {
 		market = new AliteMarket();
 		reset();
+		addVisitedPlanet();
 	}
 
 	public void reset() {
@@ -121,6 +125,8 @@ public class Player {
 		jumpCounter = 0;
 		intergalacticJumpCounter = 0;
 		cheater = false;
+		visitedPlanets.clear();
+		lastVisitedPlanet = 0;
 	}
 
 	public PlayerCobra getCobra() {
@@ -338,11 +344,10 @@ public class Player {
 	}
 
 	public int getLegalProblemLikelihoodInPercent() {
-		if (getCurrentSystem() == null) {
+		if (currentSystem == null) {
 			return 0;
 		}
-		Government g = getCurrentSystem().getGovernment();
-		switch (g) {
+		switch (currentSystem.getGovernment()) {
 			case ANARCHY: return 0;
 			case FEUDAL: return 10;
 			case MULTI_GOVERNMENT: return 20;
@@ -412,16 +417,40 @@ public class Player {
 	}
 
 	public void addVisitedPlanet() {
-		int key = (Alite.get().getGenerator().getCurrentGalaxy() << 10) + currentSystem.getIndex();
-		PlanetInfo planet = visitedPlanets.get(key);
+		// Visit counts only after jump
+		if (!isPlanetChanged()) {
+			return;
+		}
+		PlanetInfo planet = visitedPlanets.get(lastVisitedPlanet);
 		if (planet == null) {
-			visitedPlanets.put(key, new PlanetInfo());
+			visitedPlanets.put(lastVisitedPlanet, new PlanetInfo());
 		} else {
 			planet.revisited();
 		}
 	}
 
-	public void addVisitedPlanet(int galaxy, int index, int visitCount, long lastVisitedDate,
+	private boolean isPlanetChanged() {
+		int key = currentSystem == null ? 0 : (Alite.get().getGenerator().getCurrentGalaxy() << 10) + currentSystem.getIndex();
+		if (lastVisitedPlanet == key) {
+			return false;
+		}
+		lastVisitedPlanet = key;
+		return true;
+	}
+
+	public void loadVisitedPlanets(DataInputStream dis) throws IOException {
+		isPlanetChanged(); // sets lastVisitedPlanet
+		visitedPlanets.clear();
+		try {
+			int count = dis.readInt();
+			for (int i = 0; i < count; i++) {
+				addVisitedPlanet(dis.readChar(), dis.readChar(), dis.readInt(), dis.readLong(),
+					dis.readByte(), dis.readChar());
+			}
+		} catch (EOFException ignored) { }
+	}
+
+	private void addVisitedPlanet(int galaxy, int index, int visitCount, long lastVisitedDate,
 			byte government, int inhabitantCode) {
 		AliteLog.d("Planet visitor info", "(" + galaxy + ":" + index + "): " +
 			visitCount + " (" + new DateTime(lastVisitedDate) + ")");

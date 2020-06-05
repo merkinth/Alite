@@ -516,6 +516,7 @@ public class InGameManager implements Serializable {
 		} catch (IOException e) {
 			AliteLog.e("Game Over", "Cannot reset commander to last autosave. Resetting.", e);
 			alite.getPlayer().reset();
+			alite.getPlayer().addVisitedPlanet();
 		}
 		alite.getNavigationBar().setFlightMode(false);
 		newScreen = new ShipIntroScreen();

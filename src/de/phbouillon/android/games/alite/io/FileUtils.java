@@ -328,10 +328,8 @@ public class FileUtils {
 		if (player.getCurrentSystem() == null) {
 			if (player.getHyperspaceSystem() == null) {
 				player.setHyperspaceSystem(generator.getSystem(0));
-				player.setCurrentSystem(generator.getSystem(0));
-			} else {
-				player.setCurrentSystem(player.getHyperspaceSystem());
 			}
+			player.setCurrentSystem(player.getHyperspaceSystem());
 		}
 		cobra.setFuel(readByte(dis));
 		player.setCash(dis.readLong());
@@ -423,14 +421,7 @@ public class FileUtils {
 				cobra.addUnpunishedTradeGood(good, Weight.grams(unpunishedWeightInGrams));
 			}
 		}
-		try {
-			val = dis.readInt();
-			for (int i = 0; i < val; i++) {
-				player.addVisitedPlanet(dis.readChar(), dis.readChar(), dis.readInt(), dis.readLong(),
-					dis.readByte(), dis.readChar());
-			}
-		} catch (EOFException ignored) {
-		}
+		player.loadVisitedPlanets(dis);
 	}
 
 	public void loadCommanderUnderV3(DataInputStream dis) throws IOException {
@@ -448,10 +439,8 @@ public class FileUtils {
 		if (player.getCurrentSystem() == null) {
 			if (player.getHyperspaceSystem() == null) {
 				player.setHyperspaceSystem(generator.getSystem(0));
-				player.setCurrentSystem(generator.getSystem(0));
-			} else {
-				player.setCurrentSystem(player.getHyperspaceSystem());
 			}
+			player.setCurrentSystem(player.getHyperspaceSystem());
 		}
 		cobra.setFuel(readByte(dis));
 		player.setCash(dis.readLong());
