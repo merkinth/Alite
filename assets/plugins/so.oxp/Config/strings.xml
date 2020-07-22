@@ -5,7 +5,7 @@
 	<string name="equip_large_cargo_bay">Mariner 35t Freight Chamber</string>
 	<string name="equip_ecm_system">Interspace Heavy Element ECM</string>
 	<string name="equip_pulse_laser">Ingram Model 1919A4 Pulse Laser</string>
-	<string name="equip_beam_laser">Ingram Model 1928A2 Beam Laser</string>
+	<string name="equip_beam_laser">Ingram Model M1928A2 Beam Laser</string>
 	<string name="equip_fuel_scoop">Deep Space ReAqx Fuel Scoop</string>
 	<string name="equip_escape_capsule">Xeesian FastJet LSC Escape Capsule</string>
 	<string name="equip_energy_bomb">Medusa Pandora Energy Bomb</string>
@@ -13,7 +13,7 @@
 	<string name="equip_docking_computer">SinCorn RemLock Docking Computer</string>
 	<string name="equip_galactic_hyperdrive">Xexor/Hikan Galactic Hyperdrive</string>
 	<string name="equip_mining_laser">Kruger ARM64 Sp. Mining Laser</string>
-	<string name="equip_military_laser">M1928A2 Military Laser</string>
+	<string name="equip_military_laser">LF90 Military Laser</string>
 	<string name="equip_retro_rockets">Xasar Ion Retro-Rockets</string>
 	<string name="equip_naval_energy_unit">Naval Energy Unit</string>
 	<string name="equip_cloaking_device">Cloaking Device</string>
