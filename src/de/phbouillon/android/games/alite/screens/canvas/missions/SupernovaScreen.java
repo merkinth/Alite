@@ -24,10 +24,8 @@ import java.io.IOException;
 import android.media.MediaPlayer;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.missions.SupernovaMission;
@@ -46,8 +44,6 @@ public class SupernovaScreen extends AliteScreen {
 	private TextData[] announcementText;
 	private Button acceptButton;
 	private Button declineButton;
-	private Pixmap acceptIcon;
-	private Pixmap declineIcon;
 	private final Mission mission;
 	private final int givenState;
 
@@ -63,18 +59,13 @@ public class SupernovaScreen extends AliteScreen {
 				acceptMission = new MissionLine(path + "06.mp3", L.string(R.string.mission_supernova_accept));
 			} else if (state == 1) {
 				missionLine = new MissionLine(path + "05.mp3", L.string(R.string.mission_supernova_mission_decline));
-				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 2);
+				mission.setTargetPlanet(game.getPlayer().getCurrentSystem(), 2);
 			} else if (state == 2) {
 				missionLine = new MissionLine(path + "03.mp3", L.string(R.string.mission_supernova_drop_us_off));
-				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 1);
+				mission.setTargetPlanet(game.getPlayer().getCurrentSystem(), 1);
 			} else if (state == 3) {
 				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_supernova_success));
-				mission.onMissionComplete();
-				Player player = game.getPlayer();
-				player.removeActiveMission(mission);
-				player.addCompletedMission(mission);
-				player.resetIntergalacticJumpCounter();
-				player.resetJumpCounter();
+				mission.missionCompleted();
 			} else {
 				AliteLog.e("Unknown State", "Invalid state variable has been passed to SupernovaScreen: " + state);
 			}
@@ -112,23 +103,19 @@ public class SupernovaScreen extends AliteScreen {
 		if (acceptButton == null && declineButton == null) {
 			return;
 		}
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (acceptButton.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				mission.setState(1);
-				mission.setPlayerAccepts(true);
-				newScreen = new SupernovaScreen(2);
-			}
-			if (declineButton.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				// The player cannot opt to evade the super nova by not accepting
-				// the mission, hence we "accept" it here, so that the mission
-				// is in the list of active missions. We use a different state,
-				// though.
-				mission.setState(2);
-				mission.setPlayerAccepts(true);
-				newScreen = new SupernovaScreen(1);
-			}
+		if (acceptButton.isPressed(touch)) {
+			mission.setState(1);
+			mission.setPlayerAccepts(true);
+			newScreen = new SupernovaScreen(2);
+		}
+		if (declineButton.isPressed(touch)) {
+			// The player cannot opt to evade the super nova by not accepting
+			// the mission, hence we "accept" it here, so that the mission
+			// is in the list of active missions. We use a different state,
+			// though.
+			mission.setState(2);
+			mission.setPlayerAccepts(true);
+			newScreen = new SupernovaScreen(1);
 		}
 	}
 
@@ -145,7 +132,8 @@ public class SupernovaScreen extends AliteScreen {
 			displayText(g, missionText);
 		}
 		if (acceptMission != null) {
-			g.drawText(L.string(R.string.mission_supernova_accept), 50, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+			g.drawText(L.string(R.string.mission_supernova_accept), 50, 800,
+				ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 			if (acceptButton != null) {
 				acceptButton.render(g);
 			}
@@ -158,12 +146,14 @@ public class SupernovaScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		if (announcement != null) {
-			announcementText = computeTextDisplay(game.getGraphics(), announcement.getText(), 50, 200, 800, 40, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT));
+			announcementText = computeTextDisplay(game.getGraphics(), announcement.getText(), 50, 200,
+				800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT));
 		}
-		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, announcement == null ? 200 : 400, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50,
+			announcement == null ? 200 : 400, 800, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		if (acceptMission != null) {
-			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, acceptIcon);
-			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, declineIcon);
+			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, pics.get("yes_icon"));
+			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, pics.get("no_icon"));
 		}
 	}
 
@@ -174,8 +164,7 @@ public class SupernovaScreen extends AliteScreen {
 
 	@Override
 	public void loadAssets() {
-		acceptIcon = game.getGraphics().newPixmap("yes_icon.png");
-		declineIcon = game.getGraphics().newPixmap("no_icon.png");
+		addPictures("yes_icon", "no_icon");
 	}
 
 	@Override
@@ -183,14 +172,6 @@ public class SupernovaScreen extends AliteScreen {
 		super.dispose();
 		if (mediaPlayer != null) {
 			mediaPlayer.reset();
-		}
-		if (acceptIcon != null) {
-			acceptIcon.dispose();
-			acceptIcon = null;
-		}
-		if (declineIcon != null) {
-			declineIcon.dispose();
-			declineIcon = null;
 		}
 	}
 

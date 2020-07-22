@@ -118,7 +118,8 @@ public class GalaxyGenerator {
 
 	public static final int GALAXY_COUNT = 8;
 	public static final int EXTENDED_GALAXY_COUNT = BASE_SEEDS.length;
-	static final int PLANET_COUNT = 256;
+	public static final int PLANET_COUNT = 256;
+	public static final int ORPHAN_PLANET_COUNT = ORPHAN_PLANETS.size();
 
 	// All systems in this galaxy
 	private final SystemData[] system = new SystemData[PLANET_COUNT];
@@ -150,11 +151,15 @@ public class GalaxyGenerator {
 
 	// Generate all the planets in this galaxy
 	private void generatePlanetsOfGalaxy(int galaxyNumber) {
-		SeedType seed = getSeedOf(galaxyNumber);
+		if (galaxyNumber > Settings.maxGalaxies || galaxyNumber > EXTENDED_GALAXY_COUNT || galaxyNumber < 1) {
+			galaxyNumber = 1;
+		}
+		SeedType seed = new SeedType(BASE_SEEDS[galaxyNumber - 1][0], BASE_SEEDS[galaxyNumber - 1][1], BASE_SEEDS[galaxyNumber - 1][2]);
+
 		// Create the planet only if this is the target system
 		if (galaxyNumber == currentGalaxy) {
 			for (int systemCount = 0; systemCount < PLANET_COUNT; systemCount++) {
-				system[systemCount] = SystemData.createSystem(systemCount, seed);
+				system[systemCount] = SystemData.createSystem(galaxyNumber, systemCount, seed);
 			}
 		}
 		if (highestHashedGalaxyNumber <= galaxyNumber) {
@@ -200,13 +205,6 @@ public class GalaxyGenerator {
 		buildGalaxy(currentGalaxy);
 	}
 
-	SeedType getSeedOf(int galaxy) {
-		if (galaxy > Settings.maxGalaxies || galaxy > EXTENDED_GALAXY_COUNT || galaxy < 1) {
-			galaxy = 1;
-		}
-		return new SeedType(BASE_SEEDS[galaxy - 1][0], BASE_SEEDS[galaxy - 1][1], BASE_SEEDS[galaxy - 1][2]);
-	}
-
 	public int getCurrentGalaxy() {
 		return currentGalaxy;
 	}
@@ -231,8 +229,8 @@ public class GalaxyGenerator {
 			SystemData.RAXXLA_SYSTEM : system[index % PLANET_COUNT];
 	}
 
-	public boolean isOrphan(int galaxy, int index) {
-		return ORPHAN_PLANETS.contains((galaxy << 10) + index);
+	public boolean isOrphan(int id) {
+		return ORPHAN_PLANETS.contains(id);
 	}
 
 	public int getAveragePrice(TradeGood tradeGood) {

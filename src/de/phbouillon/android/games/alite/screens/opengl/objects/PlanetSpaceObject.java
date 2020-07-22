@@ -26,7 +26,7 @@ import de.phbouillon.android.framework.impl.gl.Sphere;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
-import de.phbouillon.android.games.alite.screens.opengl.sprites.SpriteData;
+import de.phbouillon.android.framework.SpriteData;
 
 public class PlanetSpaceObject extends AliteObject implements Serializable {
 	private static final long serialVersionUID = -8124332316784922499L;

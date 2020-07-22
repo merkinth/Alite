@@ -41,7 +41,7 @@ public class TutNavigation extends TutorialScreen {
 	private int screenToInitialize = 0;
 
 	TutNavigation() {
-		super(false);
+		super(4, false);
 
 		initLine_00();
 		initLine_01();
@@ -64,46 +64,44 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_00() {
-		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_00));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_navigation_00));
 
 		status = new StatusScreen();
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen screen = updateNavBar();
 			if (screen instanceof GalaxyScreen && !(screen instanceof LocalScreen)) {
-				line.setFinished();
+				setFinished(line);
 				changeToGalaxyScreen();
 			}
 		});
 	}
 
 	private void initLine_01() {
-		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_01)).setY(150);
+		final TutorialLine line = addLine(L.string(R.string.tutorial_navigation_01)).setY(150);
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			galaxy.processAllTouches();
 			if (galaxy.namesVisible()) {
-				line.setFinished();
+				setFinished(line);
 			}
 		});
 	}
 
 	private void initLine_02() {
-		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_02));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_navigation_02));
 
 		line.setUnskippable().setHeight(100).setUpdateMethod(deltaTime -> {
 			for (TouchEvent event: game.getInput().getTouchEvents()) {
 				galaxy.processTouch(event);
-				if (event.type == TouchEvent.TOUCH_UP) {
-					if (galaxy.getHomeButton().isTouched(event.x, event.y)) {
-						line.setFinished();
-					}
+				if (galaxy.wasHomeButtonPressed()) {
+					setFinished(line);
 				}
 			}
 		}).addHighlight(makeHighlight(1020, 980, 320, 100)).setY(150);
 	}
 
 	private void initLine_03() {
-		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_03)).setY(150).setHeight(300);
+		final TutorialLine line = addLine(L.string(R.string.tutorial_navigation_03)).setY(150).setHeight(300);
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (galaxy != null) {
@@ -114,10 +112,10 @@ public class TutNavigation extends TutorialScreen {
 				galaxy.dispose();
 				galaxy = null;
 				changeToPlanetScreen();
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex++;
 			} else if (screen != null) {
-				line.setFinished();
+				setFinished(line);
 			}
 		});
 	}
@@ -130,7 +128,7 @@ public class TutNavigation extends TutorialScreen {
 	}
 
 	private void initLine_04() {
-		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_04));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_navigation_04));
 
 		line.setHeight(100).setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
@@ -138,20 +136,21 @@ public class TutNavigation extends TutorialScreen {
 				galaxy.dispose();
 				galaxy = null;
 				changeToPlanetScreen();
-				line.setFinished();
+				setFinished(line);
 			} else if (newScreen != null) {
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex--;
 			}
 		});
 	}
 
 	private void initLine_05() {
-		addLine(4, L.string(R.string.tutorial_navigation_05)).setY(700).setHeight(350);
+		addLine(L.string(R.string.tutorial_navigation_05)).setY(700).
+			setHeight(350).setWidth(1580);
 	}
 
 	private void initLine_06() {
-		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_06)).setY(150);
+		final TutorialLine line = addLine(L.string(R.string.tutorial_navigation_06)).setY(150);
 
 		line.setHeight(150).setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen screen = updateNavBar();
@@ -159,16 +158,16 @@ public class TutNavigation extends TutorialScreen {
 				planet.dispose();
 				planet = null;
 				changeToLocalScreen();
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex++;
 			} else if (screen != null) {
-				line.setFinished();
+				setFinished(line);
 			}
 		});
 	}
 
 	private void initLine_07() {
-		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_07)).setY(150);
+		final TutorialLine line = addLine(L.string(R.string.tutorial_navigation_07)).setY(150);
 
 		line.setHeight(150).setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
@@ -176,31 +175,31 @@ public class TutNavigation extends TutorialScreen {
 				planet.dispose();
 				planet = null;
 				changeToLocalScreen();
-				line.setFinished();
+				setFinished(line);
 			} else if (newScreen != null) {
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex--;
 			}
 		});
 	}
 
 	private void initLine_08() {
-		final TutorialLine line = addLine(4, L.string(R.string.tutorial_navigation_08)).setY(150);
+		final TutorialLine line = addLine(L.string(R.string.tutorial_navigation_08)).setY(150);
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			local.processAllTouches();
 			if (local.getZoomFactor() < 2.0f) {
-				line.setFinished();
+				setFinished(line);
 			}
 		});
 	}
 
 	private void initLine_09() {
-		addLine(4, L.string(R.string.tutorial_navigation_09)).setY(150);
+		addLine(L.string(R.string.tutorial_navigation_09)).setY(150);
 	}
 
 	private void initLine_10() {
-		addLine(4, L.string(R.string.tutorial_navigation_10)).setY(150).setHeight(350).setPause(5000);
+		addLine(L.string(R.string.tutorial_navigation_10)).setY(150).setHeight(350).setPause(5000);
 	}
 
 	@Override

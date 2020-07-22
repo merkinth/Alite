@@ -37,6 +37,8 @@ import de.phbouillon.android.games.alite.screens.canvas.TradeScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public abstract class Mission implements Serializable {
 	private static final long serialVersionUID = 9188011962471959641L;
@@ -46,11 +48,20 @@ public abstract class Mission implements Serializable {
 	protected transient Alite alite;
 	private int galaxy;
 	private int targetIndex;
-	int state;
+	protected int state;
 	private final int id;
 	private String targetName = null;
+	private MissionComplete complete = MissionComplete.UNFINISHED;
 
-	protected abstract boolean checkStart(Player player);
+	enum MissionComplete {
+		UNFINISHED, DONE, SKIPPED
+	}
+
+	protected boolean checkStart(Player player) {
+		return MissionManager.getInstance().get(id - 1).isCompleted() &&
+			player.getIntergalacticJumpCounterSinceLastMission() + player.getJumpCounterSinceLastMission() >= 64;
+	}
+
 	protected abstract void acceptMission(boolean accept);
 
 	public void onMissionAccept() {
@@ -59,7 +70,35 @@ public abstract class Mission implements Serializable {
 	public void onMissionDecline() {
 	}
 
-	public abstract void onMissionComplete();
+	public final void missionCompleted() {
+		onMissionComplete();
+		finalizeMission();
+		complete = MissionComplete.DONE;
+	}
+
+	public final void finalizeMission() {
+		active = false;
+		complete = MissionComplete.SKIPPED;
+		Player player = Alite.get().getPlayer();
+		player.resetIntergalacticJumpCounter();
+		player.resetJumpCounter();
+	}
+
+	protected void onMissionComplete() {
+	}
+
+	public boolean isCompleted() {
+		return complete != MissionComplete.UNFINISHED;
+	}
+
+	public void done() {
+		active = false;
+		complete = MissionComplete.DONE;
+	}
+
+	public boolean isDone() {
+		return complete == MissionComplete.DONE;
+	}
 
 	public void onMissionUpdate() {
 	}
@@ -81,11 +120,8 @@ public abstract class Mission implements Serializable {
 
 	public boolean missionStarts() {
 		Player player = alite.getPlayer();
-		if (!started &&
-				!player.getActiveMissions().contains(this) &&
-				!player.getCompletedMissions().contains(this) &&
-				player.getCondition() == Condition.DOCKED &&
-				checkStart(player)) {
+		if (!started && !active && !isCompleted() &&
+				player.getCondition() == Condition.DOCKED && checkStart(player)) {
 			active = true;
 			started = true;
 			return true;
@@ -93,13 +129,17 @@ public abstract class Mission implements Serializable {
 		return false;
 	}
 
-	public abstract AliteScreen checkForUpdate();
+	protected boolean missionDidNotStart() {
+		return alite.getPlayer().getCondition() != Condition.DOCKED || state < 1 || !started || !active;
+	}
 
-	public void setPlayerAccepts(boolean playerAccepts) {
+	public AliteScreen checkForUpdate() {
+		return null;
+	}
+
+	public final void setPlayerAccepts(boolean playerAccepts) {
 		acceptMission(playerAccepts);
-		if (!playerAccepts) {
-			active = false;
-		}
+		active = playerAccepts;
 	}
 
 	public boolean isActive() {
@@ -124,15 +164,24 @@ public abstract class Mission implements Serializable {
 		started = true;
 	}
 
-	public byte [] save() throws IOException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(16);
-		DataOutputStream dos = new DataOutputStream(bos);
-		dos.writeByte(galaxy);
-		dos.writeInt(targetIndex);
-		dos.writeInt(state);
-		dos.close();
-		bos.close();
-		return bos.toByteArray();
+	public JSONObject toJson(JSONObject mission) throws JSONException {
+		return mission
+			.put("galaxy", galaxy)
+			.put("targetIndex", targetIndex)
+			.put("state", state)
+			.put("active", active)
+			.put("started", started)
+			.put("complete", complete.ordinal());
+	}
+
+	public void fromJson(JSONObject m) throws JSONException {
+		galaxy = m.getInt("galaxy");
+		targetIndex = m.getInt("targetIndex");
+		state = m.getInt("state");
+		targetName = null;
+		active = m.getBoolean("active");
+		started = m.getBoolean("started");
+		complete = MissionComplete.values()[m.getInt("complete")];
 	}
 
 	public final SystemData findMostDistantSystem() {
@@ -220,11 +269,20 @@ public abstract class Mission implements Serializable {
 
 	public void resetStarted() {
 		started = false;
+		active = false;
+		complete = MissionComplete.UNFINISHED;
 	}
 
-	public void setTarget(int galaxy, int targetIndex, int state) {
+	public void setTargetPlanet(SystemData target, int state) {
+		galaxy = alite.getGenerator().getCurrentGalaxy();
+		targetIndex = target.getIndex();
+		this.state = state;
+		targetName = null;
+	}
+
+	public void setTargetGalaxy(int galaxy, int state) {
 		this.galaxy = galaxy;
-		this.targetIndex = targetIndex;
+		targetIndex = -1;
 		this.state = state;
 		targetName = null;
 	}

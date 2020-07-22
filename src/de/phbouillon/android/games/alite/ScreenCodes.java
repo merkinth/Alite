@@ -19,7 +19,7 @@ package de.phbouillon.android.games.alite;
  */
 
 public class ScreenCodes {
-	public static final byte INTRO_SCREEN                     =  1;
+	public static final byte ACHIEVEMENTS_SCREEN              =  1;
 	public static final byte SHIP_INTRO_SCREEN                =  2;
 	public static final byte STATUS_SCREEN                    =  3;
 	public static final byte BUY_SCREEN                       =  4;

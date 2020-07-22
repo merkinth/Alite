@@ -25,15 +25,14 @@ import java.nio.FloatBuffer;
 import android.graphics.*;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory.Options;
+import android.graphics.Rect;
 import android.opengl.GLES11;
-import de.phbouillon.android.framework.FileIO;
-import de.phbouillon.android.framework.Graphics;
-import de.phbouillon.android.framework.MemUtil;
-import de.phbouillon.android.framework.Pixmap;
+import de.phbouillon.android.framework.*;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.screens.opengl.TextureManager;
+import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 public class AndroidGraphics implements Graphics {
 	private final float scaleFactor;
@@ -42,7 +41,7 @@ public class AndroidGraphics implements Graphics {
 	private final FloatBuffer rectBuffer;
 	private final FloatBuffer circleBuffer;
 	private final FloatBuffer colorBuffer;
-	private final TextureManager textureManager;
+	private final Texture textureManager;
 	private final Canvas converterCanvas = new Canvas();
 	private final Paint paint = new Paint();
 	private final Canvas canvas = new Canvas();
@@ -51,7 +50,7 @@ public class AndroidGraphics implements Graphics {
 	private final Options options = new Options();
 	private final FileIO fileIO;
 
-	AndroidGraphics(FileIO fileIO, float scaleFactor, Rect visibleArea, TextureManager textureManager) {
+	AndroidGraphics(FileIO fileIO, float scaleFactor, Rect visibleArea, Texture textureManager) {
 		this.fileIO = fileIO;
 		this.scaleFactor = scaleFactor;
 		this.visibleArea = visibleArea;
@@ -86,8 +85,7 @@ public class AndroidGraphics implements Graphics {
 	@Override
 	public Pixmap newPixmap(String fileName) {
 		Bitmap bitmap = loadBitmap(fileName);
-		return drawBitmapAndScale(fileName, bitmap, bitmap.getWidth() * Settings.textureLevel * scaleFactor,
-			bitmap.getHeight() * Settings.textureLevel * scaleFactor, scaleMatrix, canvas, filterPaint);
+		return drawBitmapAndScale(fileName, bitmap, bitmap.getWidth(), bitmap.getHeight(), scaleMatrix, canvas, filterPaint);
 	}
 
 	private Bitmap loadBitmap(String fileName) {
@@ -112,19 +110,22 @@ public class AndroidGraphics implements Graphics {
 
 	@Override
 	public Pixmap newPixmap(String fileName, int width, int height) {
-		return drawBitmapAndScale(fileName, loadBitmap(fileName), width * scaleFactor,
-			height * scaleFactor, scaleMatrix, canvas, filterPaint);
+		return drawBitmapAndScale(fileName, loadBitmap(fileName), width, height, scaleMatrix, canvas, filterPaint);
 	}
 
 	@Override
 	public Pixmap newPixmap(String fileName, InputStream is, int width, int height) {
-		return drawBitmapAndScale(fileName, loadBitmap(fileName, is), width * scaleFactor,
-			height * scaleFactor, scaleMatrix, canvas, filterPaint);
+		return drawBitmapAndScale(fileName, loadBitmap(fileName, is), width, height, scaleMatrix, canvas, filterPaint);
 	}
 
 	@Override
 	public Pixmap newPixmap(Bitmap bitmap, String fileName) {
-		return drawBitmapAndScale(fileName, bitmap, bitmap.getWidth(), bitmap.getHeight(), new Matrix(), new Canvas(), new Paint(Paint.FILTER_BITMAP_FLAG));
+		return newPixmap(bitmap, fileName, bitmap.getWidth(), bitmap.getHeight());
+	}
+
+	@Override
+	public Pixmap newPixmap(Bitmap bitmap, String fileName, int width, int height) {
+		return drawBitmapAndScale(fileName, bitmap, width, height, new Matrix(), new Canvas(), new Paint(Paint.FILTER_BITMAP_FLAG));
 	}
 
 	private Pixmap drawBitmapAndScale(String fileName, Bitmap bitmap, float newWidth, float newHeight, Matrix scaleMatrix, Canvas canvas, Paint filterPaint) {
@@ -134,6 +135,8 @@ public class AndroidGraphics implements Graphics {
 		if (newHeight == -1) {
 			newHeight = bitmap.getHeight();
 		}
+		newWidth *= Settings.textureLevel * scaleFactor;
+		newHeight *= Settings.textureLevel * scaleFactor;
 		int textureWidth = determineTextureSize((int) newWidth);
 		int textureHeight = determineTextureSize((int) newHeight);
 		float tx2 = newWidth / textureWidth;
@@ -301,8 +304,8 @@ public class AndroidGraphics implements Graphics {
 	}
 
 	@Override
-	public void fillCircle(int cx, int cy, int r, int color, int segments) {
-		drawCircleWithMode(cx, cy, r, color, segments, GLES11.GL_TRIANGLE_FAN, 360);
+	public void fillCircle(int cx, int cy, int r, int color) {
+		drawCircleWithMode(cx, cy, r, color, 32, GLES11.GL_TRIANGLE_FAN, 360);
 	}
 
 	private void drawCircleWithMode(int cx, int cy, int r, int color, int segments, int mode, float angle) {
@@ -333,13 +336,13 @@ public class AndroidGraphics implements Graphics {
 	}
 
 	@Override
-	public void drawCircle(int cx, int cy, int r, int color, int segments) {
-		drawCircleWithMode(cx, cy, r, color, segments, GLES11.GL_LINE_LOOP, 360);
+	public void drawCircle(int cx, int cy, int r, int color) {
+		drawCircleWithMode(cx, cy, r, color, 64, GLES11.GL_LINE_LOOP, 360);
 	}
 
 	@Override
-	public void drawDashedCircle(int cx, int cy, int r, int color, int segments) {
-		drawCircleWithMode(cx, cy, r, color, segments, GLES11.GL_LINES, 360);
+	public void drawDashedCircle(int cx, int cy, int r, int color) {
+		drawCircleWithMode(cx, cy, r, color, 64, GLES11.GL_LINES, 360);
 	}
 
 	@Override
@@ -356,6 +359,31 @@ public class AndroidGraphics implements Graphics {
 		pixmap.setCoordinates(x, y, x + srcWidth - 1, y + srcHeight - 1);
 		pixmap.render(1);
 		pixmap.resetTextureCoordinates();
+	}
+
+	@Override
+	public Pixmap getNotificationNumber(GLText font, int number) {
+		Paint paint = new Paint();
+		paint.setTypeface(font.getTypeface());
+		paint.setTextSize(font.getSize());
+
+		String text = StringUtil.format("%d", number);
+
+		int width = getTextWidth(text, font);
+		int r = (Math.max(width, getTextHeight(text, font)) >> 1) + 5;
+
+		Bitmap bitmap = Bitmap.createBitmap(r << 1, r << 1,
+			Settings.colorDepth  == 1 ? Bitmap.Config.ARGB_8888 : Bitmap.Config.ARGB_4444);
+		bitmap.eraseColor(Color.TRANSPARENT);
+
+		Canvas canvas = new Canvas(bitmap);
+		paint.setColor(ColorScheme.get(ColorScheme.COLOR_WARNING_MESSAGE));
+		paint.setStyle(Paint.Style.FILL);
+		canvas.drawCircle(r, r, r, paint);
+
+		paint.setColor(ColorScheme.get(ColorScheme.COLOR_MESSAGE));
+		canvas.drawText(text, r - (width >> 1), r  + ((int)font.getSize() >> 1) - 5, paint);
+		return newPixmap(bitmap, "notificationCircle" + number);
 	}
 
 	@Override
@@ -379,13 +407,26 @@ public class AndroidGraphics implements Graphics {
 
 	@Override
 	public void drawText(String text, int x, int y, int color, GLText font) {
+		drawText(text, x, y, color, font, false);
+	}
+
+	private void drawText(String text, int x, int y, int color, GLText font, boolean underlined) {
 		if (font == null) {
 			return;
 		}
 		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE);
 		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
 		drawTextCommon(text, x, y, color, font, 1);
+		if (underlined) {
+			int linePos = (int) (y + font.getDescent());
+			drawLine(x, linePos, x + getTextWidth(text, font), linePos, color);
+		}
 		GLES11.glDisable(GLES11.GL_TEXTURE_2D);
+	}
+
+	@Override
+	public void drawUnderlinedText(String text, int x, int y, int color, GLText font) {
+		drawText(text, x, y, color, font, true);
 	}
 
 	private void drawTextCommon(String text, int x, int y, int color, GLText font, float scale) {

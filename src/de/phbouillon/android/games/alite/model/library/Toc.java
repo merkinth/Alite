@@ -36,6 +36,7 @@ import de.phbouillon.android.games.alite.AliteLog;
 
 public class Toc {
 	public static final String DIRECTORY_LIBRARY = "library" + File.separator;
+	public static final String TOC_FILENAME = DIRECTORY_LIBRARY + "toc.xml";
 
 	private final List<TocEntry> entries = new ArrayList<>();
 
@@ -82,7 +83,7 @@ public class Toc {
 		}
 		String name = getString(tocEntryNode);
 		name = name == null ? "" : name.replaceAll("\\s+", " ").trim();
-		return new TocEntry(name, linkedPage, level);
+		return new TocEntry(fileName, name, linkedPage, level);
 	}
 
 	private static String getString(Element element) {

@@ -54,12 +54,13 @@ public interface Graphics {
 	void verticalGradientRect(int x, int y, int width, int height, int color1, int color2);
 	void diagonalGradientRect(int x, int y, int width, int height, int color1, int color2);
 	void drawArc(int cx, int cy, int r, int color, int degree);
-	void drawCircle(int cx, int cy, int r, int color, int segments);
-	void fillCircle(int cx, int cy, int r, int color, int segments);
-	void drawDashedCircle(int cx, int cy, int r, int color, int segments);
+	void drawCircle(int cx, int cy, int r, int color);
+	void fillCircle(int cx, int cy, int r, int color);
+	void drawDashedCircle(int cx, int cy, int r, int color);
 	void drawArrow(int x1, int y1, int x2, int y2, int color, ArrowDirection arrowHead);
 
 	void drawText(String text, int x, int y, int color, GLText font);
+	void drawUnderlinedText(String text, int x, int y, int color, GLText font);
 	void drawText(String text, int x, int y, int color, GLText font, float scale);
 	void drawCenteredText(String text, int x, int y, int color, GLText font, float scale);
 
@@ -70,10 +71,12 @@ public interface Graphics {
 	Pixmap newPixmap(String fileName, int width, int height);
 	Pixmap newPixmap(String fileName, InputStream is, int width, int height);
 	Pixmap newPixmap(Bitmap bitmap, String fileName);
+	Pixmap newPixmap(Bitmap bitmap, String fileName, int width, int height);
 
 	void drawPixmap(Pixmap pixmap, int x, int y);
 	void drawPixmap(Pixmap pixmap, int x, int y, float pixmapAlpha);
 	void applyFilterToPixmap(Pixmap pixmap, ColorFilter filter);
 	void drawPixmapUnscaled(Pixmap pixmap, int x, int y, int srcX, int srcY, int srcWidth, int srcHeight);
 
+	Pixmap getNotificationNumber(GLText font, int number);
 }

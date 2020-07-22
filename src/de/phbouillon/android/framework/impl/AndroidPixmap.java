@@ -25,15 +25,15 @@ import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics.PixmapFormat;
 import de.phbouillon.android.framework.MemUtil;
 import de.phbouillon.android.framework.Pixmap;
+import de.phbouillon.android.framework.Texture;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.screens.opengl.TextureManager;
 
 public class AndroidPixmap implements Pixmap {
 	private Bitmap bitmap;
 	private final PixmapFormat format;
 	private final String fileName;
-	private final TextureManager textureManager;
+	private final Texture textureManager;
 	private final int width;
 	private final int height;
 	private final FloatBuffer vertexBuffer;
@@ -43,7 +43,7 @@ public class AndroidPixmap implements Pixmap {
 	private final float tx2;
 	private final float ty2;
 
-	AndroidPixmap(Bitmap bitmap, PixmapFormat format, String fileName, TextureManager textureManager, int width, int height, float tx2, float ty2) {
+	AndroidPixmap(Bitmap bitmap, PixmapFormat format, String fileName, Texture textureManager, int width, int height, float tx2, float ty2) {
 		this.format = format;
 		this.fileName = fileName;
 		this.textureManager = textureManager;

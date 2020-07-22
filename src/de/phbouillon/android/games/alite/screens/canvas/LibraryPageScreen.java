@@ -27,12 +27,14 @@ import java.util.List;
 import java.util.Set;
 
 import android.graphics.Color;
+import android.graphics.Point;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.Medal;
 import de.phbouillon.android.games.alite.model.library.ItemDescriptor;
 import de.phbouillon.android.games.alite.model.library.LibraryPage;
 import de.phbouillon.android.games.alite.model.library.Toc;
@@ -44,12 +46,9 @@ public class LibraryPageScreen extends AliteScreen {
 
 	private final List<TocEntry> entries;
 	private int entryIndex;
-	private int yPosition = 0;
-	private int startY;
-	private int startX;
-	private int lastY;
-	private int maxY;
-	private int deltaY = 0;
+	private int pageHeight;
+	private final ScrollPane scrollPane = new ScrollPane(0, PAGE_BEGIN, AliteConfig.DESKTOP_WIDTH, 960,
+		() -> new Point(AliteConfig.SCREEN_WIDTH, pageHeight));
 	private final List <PageText> pageText = new ArrayList<>();
 	private Button next;
 	private Button prev;
@@ -58,7 +57,7 @@ public class LibraryPageScreen extends AliteScreen {
 	private final List <Button> images = new ArrayList<>();
 	private String imageText = null;
 	private Button largeImage = null;
-	private String currentFilter;
+	private final String currentFilter;
 	private GLText currentFont = Assets.regularFont;
 	private GLText newFont = null;
 	private int currentColor = ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT);
@@ -66,7 +65,7 @@ public class LibraryPageScreen extends AliteScreen {
 	private boolean needsCr = false;
 	private final List <Pixmap> inlineImages = new ArrayList<>();
 
-	class PageText {
+	private static class PageText {
 		private StyledText[] words;
 		private int[] positions;
 		private Pixmap pixmap = null;
@@ -81,7 +80,7 @@ public class LibraryPageScreen extends AliteScreen {
 		}
 	}
 
-	class Sentence {
+	private static class Sentence {
 		private final List <StyledText> words;
 		int width;
 		boolean cr;
@@ -133,7 +132,7 @@ public class LibraryPageScreen extends AliteScreen {
 		}
 	}
 
-	class StyledText {
+	private static class StyledText {
 		private String text;
 		private GLText font;
 		private int color;
@@ -164,35 +163,31 @@ public class LibraryPageScreen extends AliteScreen {
 		entryIndex = dis.readInt();
 		AliteLog.d("Entry Number", "Read Entry Number: " + entryIndex);
 		currentFilter = ScreenBuilder.readString(dis);
-		entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
+		entries = Toc.read(L.raw(Toc.TOC_FILENAME)).getEntries(currentFilter);
 		if (entryIndex >= entries.size()) {
 			entryIndex = 0;
 		}
-		yPosition = dis.readInt();
+		scrollPane.position.y = dis.readInt();
 	}
 
 	@Override
 	public void activate() {
-		Graphics g = game.getGraphics();
-		toc = Button.createGradientRegularButton(624, 960, 500, 120, null)
-			.setTextData(computeCenteredTextDisplay(g, L.string(R.string.library_btn_toc), 0, 50,
-				500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
+		toc = Button.createGradientRegularButton(624, 960, 500, 120, L.string(R.string.library_btn_toc))
+			.setTextColor(ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
 		LibraryPage page = entries.get(entryIndex).getLinkedPage();
 		if (page == null) {
 			return;
 		}
 		computePageText(game.getGraphics(), page.getParagraphs());
 		if (entryIndex < entries.size() - 1) {
-			next = Button.createGradientRegularButton(1200, 960, 500, 120, null)
-				.setTextData(computeCenteredTextDisplay(g, L.string(R.string.library_btn_next) +
-					entries.get(entryIndex + 1).getName(),
-				0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
+			next = Button.createGradientPictureButton(1200, 960, 500, 120, pics.get("next_icon"))
+				.setPixmapOffset(415, 15)
+				.setTextData(getButtonText(0, entryIndex + 1));
 		}
 		if (entryIndex > 0) {
-			prev = Button.createGradientRegularButton(45, 960, 500, 120, null)
-				.setTextData(computeCenteredTextDisplay(g, L.string(R.string.library_btn_prev) +
-					entries.get(entryIndex - 1).getName(),
-				0, 50, 500 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
+			prev = Button.createGradientPictureButton(45, 960, 500, 120, pics.get("prev_icon"))
+				.setPixmapOffset(5, 15)
+				.setTextData(getButtonText(70, entryIndex - 1));
 		}
 		ItemDescriptor bgImageDesc = page.getBackgroundImage();
 		if (bgImageDesc != null) {
@@ -218,6 +213,15 @@ public class LibraryPageScreen extends AliteScreen {
 		}
 	}
 
+	private TextData[] getButtonText(int x, int index) {
+		TextData[] textData = computeCenteredTextDisplay(game.getGraphics(), entries.get(index).getName(),
+			x, 50, 425 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
+		if (textData.length == 1) {
+			textData[0].y = 65;
+		}
+		return textData;
+	}
+
 	private Pixmap getImage(ItemDescriptor id, int width, int height) {
 		String imageName = Toc.DIRECTORY_LIBRARY + id.getFileName() + ".png";
 		Pixmap pixmap = null;
@@ -234,7 +238,7 @@ public class LibraryPageScreen extends AliteScreen {
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.writeInt(entryIndex);
 		ScreenBuilder.writeString(dos, currentFilter);
-		dos.writeInt(yPosition);
+		dos.writeInt(scrollPane.position.y);
 
 	}
 
@@ -429,9 +433,9 @@ public class LibraryPageScreen extends AliteScreen {
 			}
 			int spaces = words.length - 1;
 			if (spaces == 0) {
-				pageText.add(new PageText(words, new int[] {x}));
+				pageText.add(new PageText(words, new int[]{x}));
 				if (s.cr) {
-					pageText.add(new PageText(new StyledText[] {new StyledText("")}, new int[] {0}));
+					pageText.add(new PageText(new StyledText[]{new StyledText("")}, new int[]{0}));
 				}
 				continue;
 			}
@@ -454,7 +458,7 @@ public class LibraryPageScreen extends AliteScreen {
 			}
 			pageText.add(new PageText(words, pos));
 			if (s.cr) {
-				pageText.add(new PageText(new StyledText[] {new StyledText("")}, new int[] {0}));
+				pageText.add(new PageText(new StyledText[]{new StyledText("")}, new int[]{0}));
 			}
 		}
 		sentences.clear();
@@ -544,7 +548,7 @@ public class LibraryPageScreen extends AliteScreen {
 			sentences.add(sentence);
 		}
 		inlineImageHeight = formatSentences(sentences, x, fieldWidth, inlineImageHeight, g);
-		maxY = Math.max(0, PAGE_BEGIN + 45 * pageText.size() - 890 + inlineImageHeight);
+		pageHeight = PAGE_BEGIN + 45 * pageText.size() + inlineImageHeight;
 	}
 
 	@Override
@@ -560,64 +564,64 @@ public class LibraryPageScreen extends AliteScreen {
 			}
 			return;
 		}
-		if (touch.type == TouchEvent.TOUCH_DOWN && touch.pointer == 0) {
-			startX = touch.x;
-			startY = lastY = touch.y;
+		scrollPane.handleEvent(touch);
+
+		if (next != null && next.isPressed(touch)) {
+			newScreen = new LibraryPageScreen(entries, entryIndex + 1, currentFilter);
+			return;
 		}
-		if (touch.type == TouchEvent.TOUCH_DRAGGED && touch.pointer == 0) {
-			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
+		if (prev != null && prev.isPressed(touch)) {
+			newScreen = new LibraryPageScreen(entries, entryIndex - 1, currentFilter);
+			return;
+		}
+		if (toc.isPressed(touch)) {
+			newScreen = new LibraryScreen(currentFilter).ensureVisible(entryIndex);
+			return;
+		}
+
+		if (scrollPane.isSweepingGesture(touch)) {
+			return;
+		}
+
+		if (backgroundImage != null && backgroundImage.isPressed(touch)) {
+			fullScreenImage(backgroundImage.getPixmap(), "");
+			entries.get(entryIndex).getLinkedPage().getBackgroundImage().watched();
+			setTocEntryWatched();
+			return;
+		}
+
+		for (int i = 0; i < images.size(); i++) {
+			Button b = images.get(i);
+			if (b.isPressed(touch)) {
+				ItemDescriptor id = entries.get(entryIndex).getLinkedPage().getImages().get(i);
+				fullScreenImage(getImage(id, -1, -1), id.getText());
+				id.watched();
+				setTocEntryWatched();
 				return;
 			}
-			yPosition += lastY - touch.y;
-			if (yPosition < 0) {
-				yPosition = 0;
-			}
-			if (yPosition > maxY) {
-				yPosition = maxY;
-			}
-			lastY = touch.y;
-			deltaY = 0;
 		}
-		if (touch.type == TouchEvent.TOUCH_UP && touch.pointer == 0) {
-			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
-				return;
-			}
-			if (Math.abs(startX - touch.x) < 20 && Math.abs(startY - touch.y) < 20) {
-				if (backgroundImage != null && backgroundImage.isTouched(touch.x, touch.y)) {
-					fullScreenImage(backgroundImage.getPixmap(), "");
-				}
-				for (int i = 0; i < images.size(); i++) {
-					Button b = images.get(i);
-					if (b.isTouched(touch.x, touch.y)) {
-						ItemDescriptor id = entries.get(entryIndex).getLinkedPage().getImages().get(i);
-						fullScreenImage(getImage(id, -1, -1), id.getText());
-					}
-				}
-				if (next != null && next.isTouched(touch.x, touch.y)) {
-					newScreen = new LibraryPageScreen(entries, entryIndex + 1, currentFilter);
-					SoundManager.play(Assets.click);
-				}
-				if (prev != null && prev.isTouched(touch.x, touch.y)) {
-					newScreen = new LibraryPageScreen(entries, entryIndex - 1, currentFilter);
-					SoundManager.play(Assets.click);
-				}
-				if (toc.isTouched(touch.x, touch.y)) {
-					newScreen = new LibraryScreen(currentFilter);
-					SoundManager.play(Assets.click);
-				}
-			}
-		}
-		if (touch.type == TouchEvent.TOUCH_SWEEP && touch.x < AliteConfig.DESKTOP_WIDTH) {
-			deltaY = touch.y2;
+	}
+
+	private void setTocEntryWatched() {
+		if (entries.get(entryIndex).getLinkedPage().isWatched()) {
+			Settings.watchedTocEntries.add(entries.get(entryIndex).getFileName());
+			Medal.changeGameLevelValue(Medal.MEDAL_ID_LIBRARY, Settings.watchedTocEntries.size());
+			Settings.save(game.getFileIO());
 		}
 	}
 
 	private void fullScreenImage(Pixmap pixmap, String imageText) {
 		this.imageText = imageText;
+		TextData[] textData = computeTextDisplay(game.getGraphics(), imageText, 0, 920 - 180,
+			1650 - 2 * Button.BORDER_SIZE, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+		if (textData.length > 0 && textData[textData.length - 1].y > 900) {
+			for(TextData t : textData) {
+				t.y -= textData[textData.length - 1].y - 900;
+			}
+		}
 		largeImage = Button.createGradientPictureButton(50, 100, 1650, 920, pixmap)
 			.setPixmapOffset(1650 - pixmap.getWidth() >> 1, 0)
-			.setTextData(computeTextDisplay(game.getGraphics(), imageText, 0, 920 - 180,
-				1650 - 2 * Button.BORDER_SIZE, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT)));
+			.setTextData(textData);
 		SoundManager.play(Assets.alert);
 	}
 
@@ -626,16 +630,11 @@ public class LibraryPageScreen extends AliteScreen {
 		Graphics g = game.getGraphics();
 		g.clear(Color.BLACK);
 		displayTitle(entries.get(entryIndex).getName());
+		scrollPane.scrollingFree();
 
-		if (deltaY != 0) {
-			deltaY += deltaY > 0 ? -1 : 1;
-			yPosition -= deltaY;
-			if (yPosition < 0) {
-				yPosition = 0;
-			}
-			if (yPosition > maxY) {
-				yPosition = maxY;
-			}
+		if (scrollPane.isAtBottom()) {
+			entries.get(entryIndex).getLinkedPage().watched();
+			setTocEntryWatched();
 		}
 
 		if (next != null) {
@@ -664,7 +663,7 @@ public class LibraryPageScreen extends AliteScreen {
 		for (int row = 0, rows = pageText.size(); row < rows; row++) {
 			PageText pt = pageText.get(row);
 			if (pt.pixmap != null) {
-				int picYPos = PAGE_BEGIN - yPosition + row * 45 + 10 + yOffset;
+				int picYPos = PAGE_BEGIN - scrollPane.position.y + row * 45 + 10 + yOffset;
 				if (picYPos < PAGE_BEGIN) {
 					picYPos = PAGE_BEGIN;
 					hardClip = (int) (PAGE_BEGIN - Assets.regularFont.getSize() + 40 + pt.pixmap.getHeight());
@@ -680,7 +679,7 @@ public class LibraryPageScreen extends AliteScreen {
 						color = ColorScheme.get(ColorScheme.COLOR_SELECTED_TEXT);
 					}
 				}
-				int textY = PAGE_BEGIN - yPosition + row * 45 + 10 + yOffset;
+				int textY = PAGE_BEGIN - scrollPane.position.y + row * 45 + 10 + yOffset;
 				if (textY > hardClip) {
 					g.drawText(pt.words[x].text, pt.positions[x], textY, color, pt.words[x].font);
 				}
@@ -691,6 +690,11 @@ public class LibraryPageScreen extends AliteScreen {
 		if (largeImage != null) {
 			largeImage.render(g);
 		}
+	}
+
+	@Override
+	public void loadAssets() {
+		addPictures("prev_icon", "next_icon");
 	}
 
 	@Override

@@ -28,10 +28,10 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.model.missions.Mission;
+import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.trading.Market;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
-import de.phbouillon.android.games.alite.model.Unit;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class BuyScreen extends TradeScreen {
@@ -136,7 +136,7 @@ public class BuyScreen extends TradeScreen {
 		TradeGood tradeGood = TradeGoodStore.get().goods().get(index);
 		Player player = game.getPlayer();
 		Market market = player.getMarket();
-		for (Mission mission: player.getActiveMissions()) {
+		for (Mission mission: MissionManager.getInstance().getActiveMissions()) {
 			if (mission.performTrade(this, tradeGood)) {
 				return;
 			}
@@ -168,9 +168,7 @@ public class BuyScreen extends TradeScreen {
 			showMessageDialog(L.string(R.string.trade_not_enough_money));
 			return;
 		}
-		Weight buyWeight = tradeGood.getUnit() == Unit.GRAM ? Weight.grams(buyAmount) :
-						   tradeGood.getUnit() == Unit.KILOGRAM ? Weight.kilograms(buyAmount) :
-						   Weight.tonnes(buyAmount);
+		Weight buyWeight = Weight.unit(tradeGood.getUnit(), buyAmount);
 		if (buyWeight.compareTo(player.getCobra().getFreeCargo()) > 0) {
 			SoundManager.play(Assets.error);
 			showMessageDialog(L.string(R.string.trade_not_enough_space));

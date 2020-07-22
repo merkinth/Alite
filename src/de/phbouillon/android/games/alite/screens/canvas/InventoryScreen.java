@@ -24,12 +24,9 @@ import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.InventoryItem;
-import de.phbouillon.android.games.alite.model.Player;
-import de.phbouillon.android.games.alite.model.Weight;
+import de.phbouillon.android.games.alite.model.*;
 import de.phbouillon.android.games.alite.model.missions.Mission;
-import de.phbouillon.android.games.alite.model.trading.TradeGood;
+import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
@@ -40,6 +37,7 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjec
 public class InventoryScreen extends TradeScreen {
 	private static final float CARGO_CANISTER_EJECTION_DISTANCE = 800.0f;
 	private final Vector3f cargoVector = new Vector3f(0, 0, 0);
+	private SpaceObject lastEjectedCargo;
 
 	// default public constructor is required for navigation bar
 	public InventoryScreen() {
@@ -67,22 +65,22 @@ public class InventoryScreen extends TradeScreen {
 	}
 
 	private long cap(long value) {
-        String binary = Long.toBinaryString(value);
-        if (binary.length() > 32) {
-            binary = binary.substring(binary.length() - 32);
-            return Long.parseLong(binary, 2);
-        }
-        return value;
-    }
+		String binary = Long.toBinaryString(value);
+		if (binary.length() > 32) {
+			binary = binary.substring(binary.length() - 32);
+			return Long.parseLong(binary, 2);
+		}
+		return value;
+	}
 
-    private long computePrice(InventoryItem item) {
+	private long computePrice(InventoryItem item) {
 		long weightInGrams = item.getWeight().getWeightInGrams();
 		int factor = item.getGood().getUnit().getValue();
-        long tradeGoodPrice = game.getPlayer().getMarket().getPrice(item.getGood()) * 19 * 4 / 20;
-        long price = (weightInGrams / factor + (weightInGrams % factor != 0 ? 1 : 0)) * tradeGoodPrice;
-        price = cap(price) / 4;
-        return price;
-    }
+		long tradeGoodPrice = game.getPlayer().getMarket().getPrice(item.getGood()) * 19 * 4 / 20;
+		long price = (weightInGrams / factor + (weightInGrams % factor != 0 ? 1 : 0)) * tradeGoodPrice;
+		price = cap(price) / 4;
+		return price;
+	}
 
 	private String computeGainLossString(long gain) {
 		return L.string(gain < 0 ? R.string.inventory_loss : R.string.inventory_gain,
@@ -124,11 +122,12 @@ public class InventoryScreen extends TradeScreen {
 		game.getGraphics().drawText(gainText, X_OFFSET + width, 1050, ColorScheme.get(gain < 0 ?
 			ColorScheme.COLOR_CONDITION_RED : ColorScheme.COLOR_CONDITION_GREEN), Assets.regularFont);
 		game.getGraphics().drawText(L.string(game.getCurrentScreen() instanceof FlightScreen &&
-			game.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP)) ? R.string.inventory_eject : R.string.inventory_sell),
+			game.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP)) ?
+				R.string.inventory_eject : R.string.inventory_sell),
 			X_OFFSET + widthComplete, 1050, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 	}
 
-	protected void performTradeWhileInFlight(int index) {
+	public void performTradeWhileInFlight(int index) {
 		if (!game.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP))) {
 			super.performTradeWhileInFlight(index);
 			return;
@@ -138,32 +137,40 @@ public class InventoryScreen extends TradeScreen {
 			return;
 		}
 		SoundManager.play(Assets.retroRocketsOrEscapeCapsuleFired);
-		Player player = game.getPlayer();
-		Weight ejectedWeight;
+		PlayerCobra cobra = game.getCobra();
 		long ejectedPrice = item.getPrice();
-		if (item.getWeight().compareTo(Weight.tonnes(4)) <= 0) {
-			ejectedWeight = item.getWeight();
-			player.getCobra().removeTradeGood(item.getGood());
-		} else {
-			ejectedWeight = Weight.tonnes(4);
-			player.getCobra().setTradeGood(item.getGood(), item.getWeight().sub(ejectedWeight), ejectedPrice);
-			player.getCobra().subUnpunishedTradeGood(item.getGood(), ejectedWeight);
-		}
-		ejectPlayerCargoCanister(item.getGood(), ejectedWeight, ejectedPrice);
+		final Weight fourTonnes = Weight.tonnes(4);
+		Weight ejectedWeight = item.getWeight().compareTo(fourTonnes) <= 0 ? item.getWeight() : fourTonnes;
+		Weight unpunishedWeight = item.getUnpunished().compareTo(fourTonnes) <= 0 ? item.getUnpunished() : fourTonnes;
+		int specWeight = Math.min(item.getNonCargo(), 4);
 
+		if (ejectedWeight == fourTonnes) {
+			item.set(item.getWeight().sub(ejectedWeight), ejectedPrice);
+			item.subUnpunished(unpunishedWeight);
+		} else {
+			cobra.removeItem(item);
+		}
+		ejectPlayerCargoCanister(item, ejectedWeight, unpunishedWeight, specWeight, ejectedPrice);
+		cobra.changeScoopEjectCount(item.getGood().getId(), ejectedWeight.getWeightInGrams(),
+			-unpunishedWeight.getWeightInGrams(), -specWeight);
 		createButtons();
 	}
 
-	private void ejectPlayerCargoCanister(TradeGood tradeGood, Weight weight, long price) {
-		final SpaceObject cargo = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.CargoPod);
-		cargo.setCargoContent(tradeGood, weight);
-		cargo.setCargoPrice(price);
+	private void ejectPlayerCargoCanister(InventoryItem item, Weight weight, Weight unpunishedWeight, int specWeight, long price) {
+		lastEjectedCargo = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.CargoPod);
+		lastEjectedCargo.setCargoContent(item.getGood(), weight, unpunishedWeight);
+		lastEjectedCargo.setCargoPrice(price);
+		lastEjectedCargo.setCargoCanisterCount(specWeight);
 		InGameManager inGame = ((FlightScreen) game.getCurrentScreen()).getInGameManager();
 		final SpaceObject ship = inGame.getShip();
 		ship.getForwardVector().copy(cargoVector);
 		cargoVector.scale(CARGO_CANISTER_EJECTION_DISTANCE);
 		cargoVector.add(ship.getPosition());
-		inGame.getSpawnManager().spawnTumbleObject(cargo, cargoVector);
+		inGame.getSpawnManager().spawnTumbleObject(lastEjectedCargo, cargoVector);
+	}
+
+	public SpaceObject getLastEjectedCargo() {
+		return lastEjectedCargo;
 	}
 
 	@Override
@@ -173,15 +180,14 @@ public class InventoryScreen extends TradeScreen {
 			return;
 		}
 		Player player = game.getPlayer();
-		for (Mission m: player.getActiveMissions()) {
+		for (Mission m: MissionManager.getInstance().getActiveMissions()) {
 			if (m.performTrade(this, item.getGood())) {
 				return;
 			}
 		}
 		long price = computePrice(item);
 		game.getPlayer().setLegalValueByContraband(item.getGood().getLegalityType(), item.getUnpunished().getQuantityInAppropriateUnit());
-		player.getCobra().removeTradeGood(item.getGood());
-		player.setCash(player.getCash() + price);
+		player.trade(item, price);
 		SoundManager.play(Assets.kaChing);
 		cashLeft = L.getOneDecimalFormatString(R.string.cash_amount, player.getCash());
 		selectionIndex = -1;
@@ -199,7 +205,7 @@ public class InventoryScreen extends TradeScreen {
 
 	@Override
 	public void loadAssets() {
-		loadTradeGoodAssetsByInventory(game.getPlayer().getCobra().getInventory());
+		loadTradeGoodAssetsByInventory(game.getCobra().getInventory());
 		super.loadAssets();
 	}
 
@@ -207,6 +213,7 @@ public class InventoryScreen extends TradeScreen {
 	public void dispose() {
 		super.dispose();
 		disposeTradeGoodAssets();
+		game.updateMedals();
 	}
 
 	@Override

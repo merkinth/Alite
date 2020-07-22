@@ -44,7 +44,7 @@ public final class InfoGaugeRenderer implements Serializable {
 	private final Sprite[] uiTexts = new Sprite[13];
 	private float pitchPos = 175.0f;
 	private float rollPos = 175.0f;
-	private IntFunction<Float> getSpeed;
+	private final IntFunction<Float> getSpeed;
 
 	InfoGaugeRenderer(final AliteHud hud) {
 		gaugeOverlay   = hud.genSprite("gauge_overlay", 150, 700);
@@ -89,9 +89,9 @@ public final class InfoGaugeRenderer implements Serializable {
 	}
 
 	private float extractFuel() {
-		float fuel = Alite.get().getCobra().getFuel();
-		Alite.get().getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_FUEL, fuel / PlayerCobra.MAX_FUEL), Settings.alpha);
-	    return fuel / PlayerCobra.MAX_FUEL * GAUGE_LENGTH;
+		float fuel = (float) Alite.get().getCobra().getFuel() / Alite.get().getCobra().getMaxFuel();
+		Alite.get().getGraphics().setColor(ColorScheme.get(ColorScheme.COLOR_FUEL, fuel), Settings.alpha);
+	    return fuel * GAUGE_LENGTH;
 	}
 
 	private float extractCabinTemperature() {

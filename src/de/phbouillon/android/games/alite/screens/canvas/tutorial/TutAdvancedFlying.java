@@ -58,14 +58,14 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	private TutAdvancedFlying() {
-		super(true);
+		super(7, true);
 
 		game.getCobra().clearEquipment();
 		game.getGenerator().buildGalaxy(1);
 		game.getGenerator().setCurrentGalaxy(1);
 		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
 		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
-		game.getCobra().setFuel(70);
+		game.getCobra().setFuel(game.getCobra().getMaxFuel());
 		game.getPlayer().setLegalValue(0);
 		game.getPlayer().setCondition(Condition.GREEN);
 		Settings.resetButtonPosition();
@@ -108,7 +108,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 		AliteLog.d("TutAdvancedFlying", "Starting Advanced Flying: " + lineIndex);
 		currentLineIndex = lineIndex - 1;
 		timer.setTimer(dis.readLong());
-		adder = (SpaceObject) flight.findObjectById("Adder");
+		adder = (SpaceObject) flight.findObjectById("adder");
 		if (adder != null) {
 			adder.setSaving(false);
 		}
@@ -116,7 +116,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 	}
 
 	private TutorialLine addTopLine(String text) {
-		return addLine(7, text).setX(250).setWidth(1420).setY(20).setHeight(140);
+		return addLine(text).setX(250).setWidth(1420).setY(20).setHeight(140);
 	}
 
 	private void initLine_00() {
@@ -169,7 +169,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 					GLES11.glLoadIdentity();
 					game.getTextureManager().clear();
 					switchScreen = new TutAdvancedFlying(3);
-					line.setFinished();
+					setFinished(line);
 				});
 			}
 		});
@@ -188,7 +188,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 			setPlayerControlOn();
 			if (flight.getInGameManager().isTargetInCenter()) {
 				SoundManager.play(Assets.identify);
-				line.setFinished();
+				setFinished(line);
 			}
 		}).setFinishHook(deltaTime -> setPlayerControlOff());
 	}
@@ -223,7 +223,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 			overrideControlButtons(true);
 			setPlayerControlOn();
 			if (flight.getInGameManager().getShip().getSpeed() <= -PlayerCobra.MAX_SPEED) {
-				line.setFinished();
+				setFinished(line);
 			}
 		}).setFinishHook(deltaTime -> {
 			flight.getInGameManager().setPlayerControl(false);
@@ -255,7 +255,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 				setPlayerControlOff();
 				if (timer.hasPassedSeconds(5)) {
 					flight.getInGameManager().getSpawnManager().leaveTorus();
-					line.setFinished();
+					setFinished(line);
 				}
 			}
 		}).setFinishHook(deltaTime -> {
@@ -303,22 +303,20 @@ public class TutAdvancedFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_TORUS = true;
 			setPlayerControlOn();
 			if (adder == null) {
-				adder = (SpaceObject) flight.findObjectById("Adder");
+				adder = (SpaceObject) flight.findObjectById("adder");
 				if (adder == null) {
-					SoundManager.play(Assets.com_conditionRed);
-					flight.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
-					Vector3f spawnPosition = flight.getInGameManager().getSpawnManager().getSpawnPosition();
+					flight.getInGameManager().getSpawnManager().conditionRed();
 					adder = SpaceObjectFactory.getInstance().getObjectById("adder");
 					adder.getRepoHandler().setProperty(SpaceObject.Property.aggression_level, 4L);
 					adder.getRepoHandler().setProperty(SpaceObject.Property.missiles, 0L);
 					adder.setCargoCanisterCount(2);
-					flight.getInGameManager().getSpawnManager().spawnEnemyAndAttackPlayer(adder, 0, spawnPosition);
-					adder.addDestructionCallback(3, deltaTime1 -> line.setFinished());
+					flight.getInGameManager().getSpawnManager().spawnEnemyAndAttackPlayer(adder);
+					adder.addDestructionCallback(deltaTime1 -> setFinished(line));
 				}
 			}
-			if (adder.getDestructionCallbacks().isEmpty()) {
+			if (!adder.hasDestructionCallback()) {
 				AliteLog.d("Adder DC is empty", "Adder DC is empty");
-				adder.addDestructionCallback(4, deltaTime1 -> line.setFinished());
+				adder.addDestructionCallback(deltaTime1 -> setFinished(line));
 			}
 			setScoopNotifier(line);
 		}).setFinishHook(deltaTime -> {
@@ -372,12 +370,12 @@ public class TutAdvancedFlying extends TutorialScreen {
 			@Override
 			public void scooped(SpaceObject scoopedObject) {
 				scooped = true;
-				line.setFinished();
+				setFinished(line);
 			}
 
 			@Override
 			public void rammed(SpaceObject rammedObject) {
-				line.setFinished();
+				setFinished(line);
 			}
 		});
 	}
@@ -387,8 +385,8 @@ public class TutAdvancedFlying extends TutorialScreen {
 			addTopLine(L.string(R.string.tutorial_advanced_flying_22)).setUnskippable();
 		line.setUpdateMethod(deltaTime -> {
 			if (line.getCurrentSpeechIndex() > 0) {
-				line.setFinished();
-				if (flight.findObjectById("Cargo Canister") != null) currentLineIndex = 19;
+				setFinished(line);
+				if (flight.findObjectById("cargo_canister") != null) currentLineIndex = 19;
 				else currentLineIndex++;
 			}
 		});
@@ -435,7 +433,7 @@ public class TutAdvancedFlying extends TutorialScreen {
 		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
 		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
 		game.getPlayer().setCondition(Condition.GREEN);
-		game.getCobra().setFuel(70);
+		game.getCobra().setFuel(game.getCobra().getMaxFuel());
 		game.getCobra().setMissiles(4);
 		game.getCobra().clearInventory();
 

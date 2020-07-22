@@ -117,7 +117,8 @@ public class ScreenBuilder {
 				case ScreenCodes.TUT_BASIC_FLYING_SCREEN: return new TutBasicFlying(dis);
 				case ScreenCodes.TUT_ADVANCED_FLYING_SCREEN: return new TutAdvancedFlying(dis);
 				case ScreenCodes.HYPERSPACE_SCREEN: return new HyperspaceScreen(dis);
-				case ScreenCodes.FLIGHT_SCREEN: return FlightScreen.createScreen(dis);
+				case ScreenCodes.FLIGHT_SCREEN: PlanetScreen.disposeInhabitantLayers(); return FlightScreen.createScreen(dis);
+				case ScreenCodes.ACHIEVEMENTS_SCREEN: return new AchievementsScreen(dis.readInt());
 				default: throw new IOException();
 			}
 		} catch (IOException | ClassNotFoundException e) {
@@ -133,7 +134,7 @@ public class ScreenBuilder {
 		}
 		NavigationBar navigationBar = Alite.get().getNavigationBar();
 		switch (screen.getScreenCode()) {
-			case ScreenCodes.STATUS_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_STATUS); break;
+			case ScreenCodes.STATUS_SCREEN: Alite.get().setStatusOrAchievements(); break;
 
 			case ScreenCodes.BUY_SCREEN:
 			case ScreenCodes.QUANTITY_PAD_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_BUY); break;
@@ -149,10 +150,14 @@ public class ScreenBuilder {
 			case ScreenCodes.LOAD_SCREEN:
 			case ScreenCodes.SAVE_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_DISK); break;
 
+			case ScreenCodes.ACHIEVEMENTS_SCREEN: navigationBar.setActiveIndex(Alite.NAVIGATION_BAR_ACHIEVEMENTS); break;
+
+			case ScreenCodes.ABOUT_SCREEN:
 			case ScreenCodes.DISPLAY_OPTIONS_SCREEN:
 			case ScreenCodes.GAMEPLAY_OPTIONS_SCREEN:
 			case ScreenCodes.AUDIO_OPTIONS_SCREEN:
 			case ScreenCodes.CONTROL_OPTIONS_SCREEN:
+			case ScreenCodes.INFLIGHT_BUTTONS_OPTIONS_SCREEN:
 			case ScreenCodes.DEBUG_SCREEN:
 			case ScreenCodes.MORE_DEBUG_OPTIONS_SCREEN:
 			case ScreenCodes.PLUGINS_SCREEN:

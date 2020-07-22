@@ -37,7 +37,7 @@ public class TutEquipment extends TutorialScreen {
 	private int screenToInitialize = 0;
 
 	TutEquipment() {
-		super(false);
+		super(3, false);
 		initLine_00();
 		initLine_01();
 		initLine_02();
@@ -52,23 +52,23 @@ public class TutEquipment extends TutorialScreen {
 	}
 
 	private void initLine_00() {
-		addLine(3, L.string(R.string.tutorial_equipment_00)).setY(700);
+		addLine(L.string(R.string.tutorial_equipment_00)).setY(700);
 
 		status = new StatusScreen();
 	}
 
 	private void initLine_01() {
 		final TutorialLine line =
-				addLine(3,  L.string(R.string.tutorial_equipment_01)).setY(700);
+				addLine(L.string(R.string.tutorial_equipment_01)).setY(700);
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
 			if (newScreen instanceof EquipmentScreen) {
 				changeToEquipmentScreen();
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex++;
 			} else if (newScreen != null) {
-				line.setFinished();
+				setFinished(line);
 			}
 		});
 	}
@@ -83,52 +83,52 @@ public class TutEquipment extends TutorialScreen {
 	}
 
 	private void initLine_02() {
-		final TutorialLine line = addLine(3, L.string(R.string.tutorial_equipment_02)).setY(700);
+		final TutorialLine line = addLine(L.string(R.string.tutorial_equipment_02)).setY(700);
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen newScreen = updateNavBar();
 			if (newScreen instanceof EquipmentScreen) {
 				changeToEquipmentScreen();
-				line.setFinished();
+				setFinished(line);
 			} else if (newScreen != null) {
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex--;
 			}
 		});
 	}
 
 	private void initLine_03() {
-		final TutorialLine line = addLine(3, L.string(R.string.tutorial_equipment_03)).setY(700).addHighlight(makeHighlight(150, 100, 225, 225));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_equipment_03)).setY(700).addHighlight(makeHighlight(150, 100, 225, 225));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			equip.processAllTouches();
 			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL)) {
-				line.setFinished();
+				setFinished(line);
 			} else if (equip.getEquippedEquipment() == EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL)) {
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex++;
 			}
 		}).setFinishHook(deltaTime -> equip.clearSelection());
 	}
 
 	private void initLine_04() {
-		final TutorialLine line = addLine(3, L.string(R.string.tutorial_equipment_04)).setY(700).
+		final TutorialLine line = addLine(L.string(R.string.tutorial_equipment_04)).setY(700).
 			addHighlight(makeHighlight(150, 100, 225, 225));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			equip.processAllTouches();
 			if (equip.getSelectedEquipment() != null && equip.getSelectedEquipment() != EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL)) {
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex--;
 				equip.clearSelection();
 			} else if (equip.getEquippedEquipment() == EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL)) {
-				line.setFinished();
+				setFinished(line);
 			}
 		});
 	}
 
 	private void initLine_05() {
-		addLine(3, L.string(R.string.tutorial_equipment_05)).setY(700).setPause(5000);
+		addLine(L.string(R.string.tutorial_equipment_05)).setY(700).setPause(5000);
 	}
 
 	@Override

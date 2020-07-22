@@ -42,7 +42,7 @@ public class TutTrading extends TutorialScreen {
 	private int screenToInitialize = 0;
 
 	TutTrading() {
-		super(false);
+		super(2, false);
 		initLine_00();
 		initLine_01();
 		initLine_02();
@@ -65,41 +65,41 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_00() {
-		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_00));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_trading_00));
 
 		status = new StatusScreen();
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (updateNavBar() instanceof BuyScreen) {
 				changeToBuyScreen();
-				line.setFinished();
+				setFinished(line);
 			}
 		});
 	}
 
 	private void initLine_01() {
-		addLine(2, L.string(R.string.tutorial_trading_01));
+		addLine(L.string(R.string.tutorial_trading_01));
 	}
 
 	private void initLine_02() {
-		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_02));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_trading_02));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (buy.getSelectedGood() == null) {
 				buy.processAllTouches();
 			}
 			if (buy.getSelectedGood() != null) {
-				line.setFinished();
+				setFinished(line);
 			}
 		});
 	}
 
 	private void initLine_03() {
-		addLine(2, L.string(R.string.tutorial_trading_03))
+		addLine(L.string(R.string.tutorial_trading_03))
 		.setFinishHook(deltaTime -> buy.resetSelection()).setHeight(150);
 	}
 
 	private void initLine_04() {
-		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_04));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_trading_04));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (buy.getSelectedGood() == null) {
@@ -107,7 +107,7 @@ public class TutTrading extends TutorialScreen {
 			}
 			TradeGood selectedGood = buy.getSelectedGood();
 			if (selectedGood != null) {
-				line.setFinished();
+				setFinished(line);
 				if (selectedGood == TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD)) {
 					currentLineIndex++;
 				} else {
@@ -118,7 +118,7 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_05() {
-		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_05));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_trading_05));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (buy.getSelectedGood() == null) {
@@ -126,7 +126,7 @@ public class TutTrading extends TutorialScreen {
 			}
 			TradeGood selectedGood = buy.getSelectedGood();
 			if (selectedGood != null) {
-				line.setFinished();
+				setFinished(line);
 				if (selectedGood != TradeGoodStore.get().getGoodById(TradeGoodStore.FOOD)) {
 					currentLineIndex--;
 					buy.resetSelection();
@@ -136,7 +136,7 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_06() {
-		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_06));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_trading_06));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			buy.processAllTouches();
@@ -144,13 +144,13 @@ public class TutTrading extends TutorialScreen {
 				quantity = (QuantityPadScreen) buy.getNewScreen();
 				quantity.loadAssets();
 				quantity.activate();
-				line.setFinished();
+				setFinished(line);
 			}
 		}).setHeight(150);
 	}
 
 	private void initLine_07() {
-		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_07));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_trading_07));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			quantity.processAllTouches();
@@ -159,7 +159,7 @@ public class TutTrading extends TutorialScreen {
 				if (success) {
 					currentLineIndex++;
 				}
-				line.setFinished();
+				setFinished(line);
 			}
 		}).setWidth(800).setHeight(350).setY(400).setFinishHook(deltaTime -> {
 			if (quantity != null) {
@@ -174,13 +174,13 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_08() {
-		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_08));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_trading_08));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			quantity.processAllTouches();
 			if (quantity.getNewScreen() == buy) {
 				success = buy.getBoughtAmount() == 1;
-				line.setFinished();
+				setFinished(line);
 				if (!success) {
 					currentLineIndex--;
 				}
@@ -197,33 +197,33 @@ public class TutTrading extends TutorialScreen {
 	}
 
 	private void initLine_09() {
-		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_09));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_trading_09));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (updateNavBar() instanceof InventoryScreen) {
 				buy.dispose();
 				buy = null;
 				changeToInventoryScreen();
-				line.setFinished();
+				setFinished(line);
 			}
 		}).setHeight(150);
 	}
 
 	private void initLine_10() {
-		final TutorialLine line = addLine(2, L.string(R.string.tutorial_trading_10));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_trading_10));
 
 		line.setUnskippable().setY(500).
 			addHighlight(makeHighlight(450, 970, 850, 40)).
 			setUpdateMethod(deltaTime -> {
 				inventory.processAllTouches();
 				if (inventory.getCashLeft() != null) {
-					line.setFinished();
+					setFinished(line);
 				}
 			});
 	}
 
 	private void initLine_11() {
-		addLine(2, L.string(R.string.tutorial_trading_11)).setY(500).setHeight(400).
+		addLine(L.string(R.string.tutorial_trading_11)).setY(500).setHeight(400).
 				setPause(5000);
 	}
 

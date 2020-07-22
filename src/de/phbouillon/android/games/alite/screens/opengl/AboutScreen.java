@@ -31,6 +31,7 @@ import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.Medal;
 import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
 import de.phbouillon.android.games.alite.screens.canvas.TextData;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
@@ -214,6 +215,7 @@ public class AboutScreen extends GlScreen {
 				performFadeOut();
 			} else if (mode == WAIT_CYCLE_IN_50_MICROS + 3) {
 				doNotScrollLastParagraph();
+				Medal.changeGameLevelValue(Medal.MEDAL_ID_ABOUT, 1);
 			}
 		}
 		if (returnToOptions) {
@@ -231,6 +233,7 @@ public class AboutScreen extends GlScreen {
 			GLES11.glClear(GLES11.GL_DEPTH_BUFFER_BIT | GLES11.GL_COLOR_BUFFER_BIT);
 			GLES11.glDisable(GLES11.GL_DEPTH_TEST);
 			game.setScreen(new OptionsScreen());
+			Settings.save(game.getFileIO());
 		}
 	}
 

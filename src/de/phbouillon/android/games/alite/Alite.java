@@ -35,15 +35,19 @@ import de.phbouillon.android.games.alite.model.missions.*;
 import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
 import de.phbouillon.android.games.alite.screens.canvas.tutorial.TutorialScreen;
-import de.phbouillon.android.games.alite.screens.opengl.TextureManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.LaserManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.SpaceObjectTraverser;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.*;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Alite extends AndroidGame {
 	public static final String LOG_IS_INITIALIZED = "logIsInitialized";
@@ -57,16 +61,22 @@ public class Alite extends AndroidGame {
 	public static int NAVIGATION_BAR_LOCAL;
 	public static int NAVIGATION_BAR_PLANET;
 	public static int NAVIGATION_BAR_DISK;
+	public static int NAVIGATION_BAR_ACHIEVEMENTS;
 	public static int NAVIGATION_BAR_OPTIONS;
 	public static int NAVIGATION_BAR_LIBRARY;
 	public static int NAVIGATION_BAR_ACADEMY;
 	public static int NAVIGATION_BAR_HACKER;
 	public static int NAVIGATION_BAR_QUIT;
 
+	private static final int DAY_IN_MS = 24 * 60 * 60 * 1000;
+
 	private Player player;
 	private GalaxyGenerator generator;
-	private Timer clock;
+	private final Timer clock = new Timer();
 	private long elapsedTime;
+	private long lastPlayedTime;
+	private int playedContiguousDays;
+	private int maxPlayedContiguousDays;
 	private NavigationBar navigationBar;
 	private final FileUtils fileUtils;
 	private LaserManager laserManager;
@@ -74,6 +84,7 @@ public class Alite extends AndroidGame {
 	private boolean saving = false;
 	private boolean isHackerActive;
 	private InGameManager inGame;
+	private Medal medal;
 
 	public Alite() {
 		super(AliteConfig.SCREEN_WIDTH, AliteConfig.SCREEN_HEIGHT);
@@ -110,9 +121,8 @@ public class Alite extends AndroidGame {
 			}
 		});
 		AliteLog.d("Alite.onCreate", "initializing");
-		initialize();
-		clock = new Timer();
 		registerMissions();
+		initialize();
 		Settings.setOrientation(this);
 		AliteLog.d("Alite.onCreate", "onCreate end");
 	}
@@ -123,7 +133,24 @@ public class Alite extends AndroidGame {
 			generator.buildGalaxy(1);
 		}
 		if (player == null) {
-			player = new Player();
+			resetPlayer();
+			player.addVisitedPlanet();
+		}
+	}
+
+	public void resetPlayer() {
+		player = new Player();
+		medal = new Medal(this);
+		medal.initMedals();
+	}
+
+	public List<Medal.Item> getMedals() {
+		return medal.getMedals();
+	}
+
+	public void updateMedals() {
+		if (player.getCondition() == Condition.DOCKED) {
+			navigationBar.setNotificationNumber(NAVIGATION_BAR_ACHIEVEMENTS, medal.updateMedals());
 		}
 	}
 
@@ -150,11 +177,40 @@ public class Alite extends AndroidGame {
 
 	public void setGameTime(long elapsedTime) {
 		this.elapsedTime = elapsedTime;
+		if (elapsedTime == 0) {
+			lastPlayedTime = 0;
+		}
 		clock.reset();
+		calculatePlayedContiguousDays();
+	}
+
+	private void calculatePlayedContiguousDays() {
+		final long now = System.currentTimeMillis();
+		if (elapsedDays(lastPlayedTime) > 1) {
+			playedContiguousDays = 0;
+		} else if ((int) (now / DAY_IN_MS) > (int) (lastPlayedTime / DAY_IN_MS)) {
+			playedContiguousDays++;
+			if (playedContiguousDays > maxPlayedContiguousDays) {
+				maxPlayedContiguousDays = playedContiguousDays;
+			}
+		}
+		lastPlayedTime = now;
+	}
+
+	public static int elapsedDays(long past) {
+		return (int) TimeUnit.DAYS.convert(System.currentTimeMillis() - past, TimeUnit.MILLISECONDS);
 	}
 
 	public long getGameTime() {
 		return elapsedTime + clock.getPassedNanos();
+	}
+
+	public int getPlayedDays() {
+		return (int) TimeUnit.DAYS.convert(Alite.get().getGameTime(), TimeUnit.NANOSECONDS);
+	}
+
+	public int getPlayedContiguousDays() {
+		return maxPlayedContiguousDays;
 	}
 
 	public Player getPlayer() {
@@ -181,22 +237,30 @@ public class Alite extends AndroidGame {
 		return navigationBar;
 	}
 
+	public void setStatusOrAchievements() {
+		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
+		if (navigationBar.getNotificationNumber(NAVIGATION_BAR_ACHIEVEMENTS) > 0) {
+			navigationBar.ensureVisible(NAVIGATION_BAR_ACHIEVEMENTS);
+		}
+	}
+
 	public boolean isHyperspaceTargetValid() {
 		return player.getHyperspaceSystem() != null && player.getHyperspaceSystem() != player.getCurrentSystem() &&
-			(Settings.unlimitedFuel || player.getCobra().getFuel() > 0 && player.getCobra().getFuel() >= player.computeDistance());
+			(Settings.unlimitedFuel || getCobra().getFuel() > 0 && getCobra().getFuel() >= player.computeDistance());
 	}
 
 	public void performHyperspaceJump() {
 		InGameManager.safeZoneViolated = false;
-		if (player.getActiveMissions().isEmpty()) {
+		if (MissionManager.getInstance().getActiveMissions().isEmpty()) {
 			player.increaseJumpCounter();
 		}
 		boolean willEnterWitchSpace = player.getRating().ordinal() > Rating.POOR.ordinal() && Math.random() <= 0.02;
-		for (Mission mission: player.getActiveMissions()) {
-			willEnterWitchSpace |= mission.willEnterWitchSpace();
-		}
-		if (player.getCobra().getPitch() <= -2.0f && player.getCobra().getRoll() <= -2.0f) {
+		if (getCobra().getPitch() <= -2.0f && getCobra().getRoll() <= -2.0f) {
 			willEnterWitchSpace = true;
+		} else {
+			for (Mission mission: MissionManager.getInstance().getActiveMissions()) {
+				willEnterWitchSpace |= mission.willEnterWitchSpace();
+			}
 		}
 		int distance = player.computeDistance();
 		if (willEnterWitchSpace) {
@@ -212,7 +276,7 @@ public class Alite extends AndroidGame {
 		} else {
 			player.setCurrentSystem(player.getHyperspaceSystem());
 		}
-		player.getCobra().setFuel(player.getCobra().getFuel() - (distance == 0 ? 1 : distance));
+		getCobra().consumeFuel(distance);
 		FlightScreen fs = new FlightScreen(false);
 		if (willEnterWitchSpace) {
 			fs.enterWitchSpace();
@@ -230,7 +294,7 @@ public class Alite extends AndroidGame {
 
 	public void performIntergalacticJump(int galacticNumber) {
 		InGameManager.safeZoneViolated = false;
-		if (player.getActiveMissions().isEmpty()) {
+		if (MissionManager.getInstance().getActiveMissions().isEmpty()) {
 			player.increaseIntergalacticJumpCounter();
 			if (player.getIntergalacticJumpCounter() == 1) {
 				// Mimic Amiga behavior: Mission starts after 1 intergal hyperjump
@@ -244,7 +308,7 @@ public class Alite extends AndroidGame {
 		generator.buildGalaxy(galacticNumber);
 		player.setCurrentSystem(generator.getSystem(player.getCurrentSystem().getIndex()));
 		player.setHyperspaceSystem(player.getCurrentSystem());
-		player.getCobra().removeEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE));
+		getCobra().removeEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE));
 		setScreen(new FlightScreen(false));
 		GLES11.glMatrixMode(GLES11.GL_TEXTURE);
 		GLES11.glLoadIdentity();
@@ -287,8 +351,8 @@ public class Alite extends AndroidGame {
 		if (getInput() != null) {
 			getInput().dispose();
 		}
-		if (textureManager != null) {
-			textureManager.freeAllTextures();
+		if (getTextureManager() != null) {
+			getTextureManager().freeAllTextures();
 		}
 		AliteLog.d("Alite.onPause", "onPause end");
 	}
@@ -322,8 +386,8 @@ public class Alite extends AndroidGame {
 	@Override
 	public void onResume() {
 		AliteLog.d("Alite.onResume", "onResume begin");
-		if (textureManager != null) {
-			textureManager.clear();
+		if (getTextureManager() != null) {
+			getTextureManager().clear();
 		}
 		createInputIfNecessary();
 		super.onResume();
@@ -333,27 +397,26 @@ public class Alite extends AndroidGame {
 	private void createNavigationBar() {
 		// if navigation target is defined package root of screens is screens.canvas
 		navigationBar = new NavigationBar();
-		NAVIGATION_BAR_LAUNCH = navigationBar.add(L.string(R.string.navbar_launch), Assets.launchIcon, "opengl.ingame.FlightScreen");
-		NAVIGATION_BAR_STATUS = navigationBar.add(L.string(R.string.navbar_status), Assets.statusIcon, "canvas.StatusScreen");
-		NAVIGATION_BAR_BUY = navigationBar.add(L.string(R.string.navbar_buy), Assets.buyIcon, "canvas.BuyScreen");
-		NAVIGATION_BAR_INVENTORY = navigationBar.add(L.string(R.string.navbar_inventory), Assets.inventoryIcon, "canvas.InventoryScreen");
-		NAVIGATION_BAR_EQUIP = navigationBar.add(L.string(R.string.navbar_equip), Assets.equipIcon, "canvas.EquipmentScreen");
-		NAVIGATION_BAR_GALAXY = navigationBar.add(L.string(R.string.navbar_galaxy), Assets.galaxyIcon, "canvas.GalaxyScreen");
-		NAVIGATION_BAR_LOCAL = navigationBar.add(L.string(R.string.navbar_local), Assets.localIcon, "canvas.LocalScreen");
-		NAVIGATION_BAR_PLANET = navigationBar.add(L.string(R.string.navbar_planet), Assets.planetIcon, "canvas.PlanetScreen");
-		NAVIGATION_BAR_DISK = navigationBar.add(L.string(R.string.navbar_disk), Assets.diskIcon, "canvas.DiskScreen");
-		NAVIGATION_BAR_OPTIONS = navigationBar.add(L.string(R.string.navbar_options), Assets.optionsIcon, "canvas.options.OptionsScreen");
-		NAVIGATION_BAR_LIBRARY = navigationBar.add(L.string(R.string.navbar_library), Assets.libraryIcon, "canvas.LibraryScreen");
-		NAVIGATION_BAR_ACADEMY = navigationBar.add(L.string(R.string.navbar_academy), Assets.academyIcon, "canvas.tutorial.TutorialSelectionScreen");
-		NAVIGATION_BAR_HACKER = navigationBar.add(L.string(R.string.navbar_hacker), Assets.hackerIcon, "canvas.HackerScreen");
+		NAVIGATION_BAR_LAUNCH = navigationBar.add(R.string.navbar_launch, Assets.launchIcon, "opengl.ingame.FlightScreen");
+		NAVIGATION_BAR_STATUS = navigationBar.add(R.string.navbar_status, Assets.statusIcon, "canvas.StatusScreen");
+		NAVIGATION_BAR_BUY = navigationBar.add(R.string.navbar_buy, Assets.buyIcon, "canvas.BuyScreen");
+		NAVIGATION_BAR_INVENTORY = navigationBar.add(R.string.navbar_inventory, Assets.inventoryIcon, "canvas.InventoryScreen");
+		NAVIGATION_BAR_EQUIP = navigationBar.add(R.string.navbar_equip, Assets.equipIcon, "canvas.EquipmentScreen");
+		NAVIGATION_BAR_GALAXY = navigationBar.add(R.string.navbar_galaxy, Assets.galaxyIcon, "canvas.GalaxyScreen");
+		NAVIGATION_BAR_LOCAL = navigationBar.add(R.string.navbar_local, Assets.localIcon, "canvas.LocalScreen");
+		NAVIGATION_BAR_PLANET = navigationBar.add(R.string.navbar_planet, Assets.planetIcon, "canvas.PlanetScreen");
+		NAVIGATION_BAR_DISK = navigationBar.add(R.string.navbar_disk, Assets.diskIcon, "canvas.DiskScreen");
+		NAVIGATION_BAR_ACHIEVEMENTS = navigationBar.add(R.string.navbar_achievements, Assets.achievementsIcon, "canvas.AchievementsScreen");
+		NAVIGATION_BAR_OPTIONS = navigationBar.add(R.string.navbar_options, Assets.optionsIcon, "canvas.options.OptionsScreen");
+		NAVIGATION_BAR_LIBRARY = navigationBar.add(R.string.navbar_library, Assets.libraryIcon, "canvas.LibraryScreen");
+		NAVIGATION_BAR_ACADEMY = navigationBar.add(R.string.navbar_academy, Assets.academyIcon, "canvas.tutorial.TutorialSelectionScreen");
+		NAVIGATION_BAR_HACKER = navigationBar.add(R.string.navbar_hacker, Assets.hackerIcon, "canvas.HackerScreen");
 		navigationBar.setVisible(NAVIGATION_BAR_HACKER, false);
-		NAVIGATION_BAR_QUIT = navigationBar.add(L.string(R.string.navbar_quit), Assets.quitIcon, "canvas.QuitScreen");
-		navigationBar.setActiveIndex(NAVIGATION_BAR_OPTIONS);
+		NAVIGATION_BAR_QUIT = navigationBar.add(R.string.navbar_quit, Assets.quitIcon, "canvas.QuitScreen");
 	}
 
 	public void afterSurfaceCreated() {
 		createNavigationBar();
-		navigationBar.setActiveIndex(NAVIGATION_BAR_STATUS);
 		Assets.yesIcon = getGraphics().newPixmap("yes_icon_small.png");
 		Assets.noIcon = getGraphics().newPixmap("no_icon_small.png");
 		loadFonts();
@@ -375,13 +438,12 @@ public class Alite extends AndroidGame {
 
 	private GLText getFont(int fontId, int size) {
 		return GLText.load(this, Settings.colorDepth, fontId,
-			(int) (size * scaleFactor), size, 2, 2);
+			(int) (size * scaleFactor), size, 5, 2);
 	}
 
 	public void changeLocale() {
 		new LoadingScreen().changeLocale();
 		loadFonts();
-		createNavigationBar();
 		generator.rebuildGalaxy();
 		player.setCurrentSystem(generator.getSystem(player.getCurrentSystem().getIndex()));
 		player.setHyperspaceSystem(generator.getSystem(player.getHyperspaceSystem().getIndex()));
@@ -417,10 +479,6 @@ public class Alite extends AndroidGame {
 		}
 		invalidateOptionsMenu();
 		return true;
-	}
-
-	public TextureManager getTextureManager() {
-		return textureManager;
 	}
 
 	public void setLaserManager(LaserManager man) {
@@ -484,4 +542,48 @@ public class Alite extends AndroidGame {
 		return fileUtils.existsSavedCommander();
 	}
 
+	public String toJson() throws IOException {
+		try {
+			calculatePlayedContiguousDays();
+			return new JSONObject()
+				.put("currentGalaxy", generator.getCurrentGalaxy())
+				.put("gameTime", getGameTime())
+				.put("lastPlayedTime", lastPlayedTime)
+				.put("playedContiguousDays", playedContiguousDays)
+				.put("maxPlayedContiguousDays", maxPlayedContiguousDays)
+				.put("player", player.toJson())
+				.put("unseenMedals", medal.toJson()).toString();
+		} catch (JSONException e) {
+			throw new IOException(e);
+		}
+	}
+
+	public void fromJson(byte[] json) throws IOException {
+		try {
+			JSONObject o = new JSONObject(new String(json));
+			generator.buildGalaxy(o.getInt("currentGalaxy"));
+			setGameTime(o.getLong("gameTime"));
+			lastPlayedTime = o.optLong("lastPlayedTime");
+			playedContiguousDays = o.optInt("playedContiguousDays");
+			maxPlayedContiguousDays = o.optInt("maxPlayedContiguousDays");
+			calculatePlayedContiguousDays();
+			player.fromJson(o.getJSONObject("player"));
+			if (player.getCurrentSystem() == null) {
+				if (player.getHyperspaceSystem() == null) {
+					player.setHyperspaceSystem(generator.getSystem(0));
+				}
+				player.setCurrentSystem(player.getHyperspaceSystem());
+			}
+			if (player.getCondition() != Condition.DOCKED) {
+				return;
+			}
+			JSONArray unseenMedals = o.optJSONArray("unseenMedals");
+			medal.initMedals(unseenMedals);
+			if (unseenMedals.length() > 0) {
+				navigationBar.setNotificationNumber(NAVIGATION_BAR_ACHIEVEMENTS, unseenMedals.length());
+			}
+		} catch (JSONException e) {
+			throw new IOException(e);
+		}
+	}
 }

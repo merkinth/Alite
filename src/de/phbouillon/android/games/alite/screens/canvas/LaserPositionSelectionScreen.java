@@ -21,6 +21,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
+import de.phbouillon.android.framework.Rect;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 
@@ -33,8 +34,6 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 	private final int rear;
 	private final int left;
 	private final EquipmentScreen equipmentScreen;
-	private Pixmap cobra;
-	private Pixmap iconChange;
 
 	LaserPositionSelectionScreen(EquipmentScreen equipmentScreen, int front, int right, int rear, int left, int index) {
 		this.index = index;
@@ -51,7 +50,7 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 	}
 
 	private Pixmap getIcon(int currentEquip) {
-		return currentEquip == 0 ? Assets.yesIcon : currentEquip < 0 ? Assets.noIcon : iconChange;
+		return currentEquip == 0 ? Assets.yesIcon : currentEquip < 0 ? Assets.noIcon : pics.get("change_icon");
 	}
 
 	private void initializeButtons() {
@@ -85,7 +84,7 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 			ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT), ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
 		int halfWidth = g.getTextWidth(L.string(R.string.laser_pos_select), Assets.regularFont) >> 1;
 		g.drawText(L.string(R.string.laser_pos_select), 860 - halfWidth, 195, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
-		g.drawPixmap(cobra, 380, 310);
+		g.drawPixmap(pics.get("cobra_small"), 380, 310);
 
 		for (Button b: pads) {
 			b.render(g);
@@ -94,21 +93,19 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		if (touch.type != TouchEvent.TOUCH_UP) {
-			return;
-		}
-		if (touch.x < 160 || touch.y < 160 || touch.x > 1560 || touch.y > 960) {
-			equipmentScreen.setLaserPosition(-2);
-			newScreen = equipmentScreen;
-			return;
-		}
 		for (int i = 0; i < pads.length; i++) {
-			if (pads[i].isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
+			if (pads[i].isPressed(touch)) {
 				equipmentScreen.setLaserPosition(i);
 				newScreen = equipmentScreen;
 				return;
 			}
+		}
+		if (touch.type != TouchEvent.TOUCH_UP) {
+			return;
+		}
+		if (!Rect.inside(touch.x, touch.y, 160, 160, 1560, 960)) {
+			equipmentScreen.setLaserPosition(-2);
+			newScreen = equipmentScreen;
 		}
 	}
 
@@ -121,22 +118,8 @@ public class LaserPositionSelectionScreen extends AliteScreen {
 	}
 
 	@Override
-	public void dispose() {
-		super.dispose();
-		if (cobra != null) {
-			cobra.dispose();
-			cobra = null;
-		}
-		if (iconChange != null) {
-			iconChange.dispose();
-			iconChange = null;
-		}
-	}
-
-	@Override
 	public void loadAssets() {
-		cobra = game.getGraphics().newPixmap("cobra_small.png");
-		iconChange = game.getGraphics().newPixmap("change_icon.png");
+		addPictures("cobra_small", "change_icon");
 		super.loadAssets();
 	}
 

@@ -38,6 +38,22 @@ public interface Input {
 		public int y2;
 		public int pointer;
 		public float zoomFactor;
+
+		public static int fingerDown(int fingerDown, int pointer) {
+			return fingerDown | (1 << pointer);
+		}
+
+		public static int fingerUp(int fingerDown, int pointer) {
+			return fingerDown & (~(1 << pointer));
+		}
+
+		public static boolean isDown(int fingerDown, int pointer) {
+			return (fingerDown & (1 << pointer)) != 0;
+		}
+
+		public static boolean isDown(int fingerDown) {
+			return fingerDown > 0;
+		}
 	}
 
 	boolean isTouchDown(int pointer);

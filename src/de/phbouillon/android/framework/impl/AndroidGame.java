@@ -67,18 +67,25 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 	private int timeFactor = 1;
 	public static float fps;
 	public static float scaleFactor;
-	protected final TextureManager textureManager;
+	private Texture textureManager;
 	private FatalExceptionScreen fatalException = null;
 	private TimeFactorChangeListener timeFactorChangeListener = null;
 
 	public AndroidGame(int targetWidth, int targetHeight) {
 		this.targetHeight = targetHeight;
 		this.targetWidth = targetWidth;
-		textureManager = new TextureManager(this);
+		textureManager = getTextureManager();
 	}
 
 	public void setTimeFactorChangeListener(TimeFactorChangeListener tfl) {
 		timeFactorChangeListener = tfl;
+	}
+
+	public Texture getTextureManager() {
+		if (textureManager == null) {
+			textureManager = new TextureManager(this);
+		}
+		return textureManager;
 	}
 
 	@Override
@@ -91,14 +98,11 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		glView = new GLSurfaceView(this);
 		glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
 		glView.setRenderer(this);
-		if (fileIO == null) {
-			fileIO = new AndroidFileIO(this);
-		}
 		AliteLog.d("AndroidGame", "Width/Height of Device: " + deviceWidth + ", " + deviceHeight);
-		audio = new AndroidAudio(this, fileIO);
+		audio = new AndroidAudio(this, getFileIO());
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		setContentView(glView);
-		if (input != null) {
+		if (getInput() != null) {
 			input.dispose();
 		}
 		createInputIfNecessary();
@@ -117,7 +121,7 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 	}
 
 	protected void createInputIfNecessary() {
-		if (input == null || input.isDisposed()) {
+		if (getInput() == null || input.isDisposed()) {
 			boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
 			int frameBufferWidth = isLandscape ? targetWidth : targetHeight;
 			int frameBufferHeight = isLandscape ? targetHeight : targetWidth;
@@ -183,11 +187,20 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 
 	@Override
 	public FileIO getFileIO() {
+		if (fileIO == null) {
+			fileIO = new AndroidFileIO(this);
+		}
 		return fileIO;
 	}
 
 	@Override
 	public Graphics getGraphics() {
+		if (graphics == null) {
+			Rect aspect = calculateTargetRect(new Rect(0, 0, deviceWidth, deviceHeight));
+			AliteLog.d("Recalculating Sizes", "Sizes in OSC: Width: " + deviceWidth + ", Height: " +
+				deviceHeight + ", Aspect: " + aspect.left + ", " + aspect.top + ", " + aspect.right + ", " + aspect.bottom);
+			graphics = new AndroidGraphics(fileIO, scaleFactor, aspect, textureManager);
+		}
 		return graphics;
 	}
 
@@ -201,7 +214,9 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		if (screen == null) {
 			throw new IllegalArgumentException("Screen must not be null");
 		}
-		this.screen.pause();
+		if (this.screen != null) {
+			this.screen.pause();
+		}
 		textureManager.clear();
 
 		this.screen = null;
@@ -261,11 +276,8 @@ public abstract class AndroidGame extends Activity implements Game, Renderer {
 		AliteLog.d("AndroidGame", "onSurfaceCreated is called on " + screen);
 		getDisplaySize();
 
-		Rect aspect = calculateTargetRect(new Rect(0, 0, deviceWidth, deviceHeight));
-		AliteLog.d("Recalculating Sizes", "Sizes in OSC: Width: " + deviceWidth + ", Height: " + deviceHeight + ", Aspect: " + aspect.left + ", " + aspect.top + ", " + aspect.right + ", " + aspect.bottom);
-
 		GLES11.glEnable(GLES11.GL_TEXTURE_2D);
-		graphics = new AndroidGraphics(fileIO, scaleFactor, aspect, textureManager);
+		getGraphics();
 		GlUtils.setViewport(this);
 		GlUtils.gluPerspective(this, 45.0f, 1.0f, 900000.0f);
 

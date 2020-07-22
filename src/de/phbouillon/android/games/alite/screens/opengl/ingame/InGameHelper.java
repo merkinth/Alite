@@ -25,11 +25,7 @@ import java.util.List;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
-import de.phbouillon.android.games.alite.model.Condition;
-import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.LegalStatus;
-import de.phbouillon.android.games.alite.model.PlayerCobra;
-import de.phbouillon.android.games.alite.model.Weight;
+import de.phbouillon.android.games.alite.model.*;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.canvas.StatusScreen;
@@ -52,7 +48,8 @@ class InGameHelper implements Serializable {
 
 	private final InGameManager inGame;
 	private final Vector3f tempVector;
-	private float fuelScoopFuel = 0.0f;
+	private float fuelScoopFuel;
+	private float fuelBeforeScoop;
 	private final Timer lastMissileWarning = new Timer().setAutoResetWithImmediateAtFirstCall();
 	private final AttackTraverser attackTraverser;
 	private transient ScoopCallback scoopCallback = null;
@@ -75,6 +72,9 @@ class InGameHelper implements Serializable {
 	private void ramCargo(SpaceObject rammedObject) {
 		rammedObject.applyDamage(4000);
 		inGame.getLaserManager().collisionWithPlayerShip(rammedObject, DAMAGE_CARGO_COLLISION, true);
+		if (scoopCallback != null) {
+			scoopCallback.rammed(rammedObject);
+		}
 	}
 
 	void checkShipStationProximity() {
@@ -146,34 +146,29 @@ class InGameHelper implements Serializable {
 		}
 	}
 
-	private void scoop(SpaceObject cargo) {
+	void scoop(SpaceObject cargo) {
 		// Fuel scoop must be installed and cargo must be in the lower half of the screen...
-		Alite alite = Alite.get();
-		if (!alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(
-				EquipmentStore.FUEL_SCOOP)) || cargo.getDisplayMatrix()[13] >= 0) {
+		PlayerCobra cobra = Alite.get().getCobra();
+		if (!cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(
+				EquipmentStore.FUEL_SCOOP)) || cargo.getDisplayMatrix()[13] >= 0) { // world.y
 			ramCargo(cargo);
-			if (scoopCallback != null) {
-				scoopCallback.rammed(cargo);
-			}
 			return;
 		}
 
 		if (cargo.getType() == ObjectType.CargoPod && cargo.getSpecialCargoContent() != null) {
 			cargo.applyDamage(4000);
 			SoundManager.play(Assets.scooped);
-			alite.getCobra().addEquipment(cargo.getSpecialCargoContent());
+			cobra.addEquipment(cargo.getSpecialCargoContent());
 			inGame.getMessage().setText(cargo.getSpecialCargoContent().getName());
 			if (scoopCallback != null) {
 				scoopCallback.scooped(cargo);
 			}
 			return;
 		}
-		Weight quantity = cargo.getType() == ObjectType.CargoPod ? cargo.getCargoQuantity() : Weight.tonnes((int) (Math.random() * 3 + 1));
-		if (alite.getCobra().getFreeCargo().compareTo(quantity) < 0) {
+		Weight quantity = cargo.getType() == ObjectType.CargoPod ? cargo.getCargoQuantity() :
+			Weight.tonnes((int) (Math.random() * 3 + 1));
+		if (cobra.getFreeCargo().compareTo(quantity) < 0) {
 			ramCargo(cargo);
-			if (scoopCallback != null) {
-				scoopCallback.rammed(cargo);
-			}
 			inGame.getMessage().setText(L.string(R.string.msg_full_cargo));
 			return;
 		}
@@ -186,23 +181,28 @@ class InGameHelper implements Serializable {
 			cargo.getType() == ObjectType.EscapeCapsule ? TradeGoodStore.get().getGoodById(TradeGoodStore.SLAVES) :
 			cargo.getType() == ObjectType.Thargon ? TradeGoodStore.get().getGoodById(TradeGoodStore.ALIEN_ITEMS) :
 				TradeGoodStore.get().getGoodById(TradeGoodStore.ALLOYS);
-		long price = cargo.getType() == ObjectType.CargoPod ? cargo.getCargoPrice() : 0;
 		if (scoopedTradeGood == null) {
 			AliteLog.e("Scooped null cargo!", "Scooped null cargo!");
 			scoopedTradeGood = TradeGoodStore.get().getRandomTradeGoodForContainer();
 		}
+		// This makes sure that if a player scoops his dropped cargo back up, the
+		// gain/loss calculation stays accurate
+		long price = cobra.getInventoryItemByGood(scoopedTradeGood) == null &&
+			cargo.getType() == ObjectType.CargoPod ? cargo.getCargoPrice() : 0;
 		AliteLog.d("Scooped Cargo", "Scooped Cargo " + scoopedTradeGood.getName());
-		if (alite.getCobra().getInventoryItemByGood(scoopedTradeGood) == null && cargo.getType() == ObjectType.CargoPod) {
-			// This makes sure that if a player scoops his dropped cargo back up, the
-			// gain/loss calculation stays accurate
-			alite.getCobra().addTradeGood(scoopedTradeGood, quantity, price);
-			if (price == 0) {
-				alite.getCobra().addUnpunishedTradeGood(scoopedTradeGood, quantity);
-			}
+		InventoryItem item = cobra.addTradeGood(scoopedTradeGood, quantity, price);
+		Weight scoopedWeight;
+		int specWeight;
+		if (cargo.getType() == ObjectType.CargoPod) {
+			scoopedWeight = cargo.getUnpunishedWeight();
+			specWeight = cargo.getCargoCanisterOverrideCount();
 		} else {
-			alite.getCobra().addTradeGood(scoopedTradeGood, quantity, 0);
-			alite.getCobra().addUnpunishedTradeGood(scoopedTradeGood, quantity);
+			scoopedWeight = quantity;
+			specWeight = quantity.getQuantityInAppropriateUnit();
 		}
+		item.addUnpunished(scoopedWeight, specWeight);
+		cobra.changeScoopEjectCount(scoopedTradeGood.getId(), -quantity.getWeightInGrams(),
+			scoopedWeight.getWeightInGrams(), specWeight);
 		inGame.getMessage().setText(scoopedTradeGood.getName());
 	}
 
@@ -216,7 +216,11 @@ class InGameHelper implements Serializable {
 		inGame.getMessage().clearRepetition();
 		alite.getNavigationBar().setFlightMode(false);
 		if (inGame.getPostDockingScreen() instanceof StatusScreen) {
-			alite.getPlayer().addVisitedPlanet();
+			if (inGame.getDockingComputerAI().wasActiveSinceLastDock()) {
+				alite.getPlayer().addVisitedPlanet();
+			} else {
+				alite.getPlayer().addVisitedPlanetWithManualDocking();
+			}
 			try {
 				AliteLog.d("[ALITE]", "Performing autosave. [Docked]");
 				alite.autoSave();
@@ -257,18 +261,16 @@ class InGameHelper implements Serializable {
 					inGame.clearMissileLock();
 					automaticDockingSequence();
 				} else {
-					inGame.getLaserManager().collisionWithPlayerShip(so, DAMAGE_STATION_COLLISION, so.getDisplayMatrix()[14] < 0);
+					inGame.getLaserManager().collisionWithPlayerShip(so, DAMAGE_STATION_COLLISION,
+						so.getDisplayMatrix()[14] < 0); // world.z
 					inGame.getShip().setSpeed(0.0f);
 				}
-			} else if (objectType == ObjectType.CargoPod ||
-					so != null && so.isDrone() && !so.hasLivingMother() ||
+			} else if (objectType == ObjectType.CargoPod || so != null && so.isDrone() && !so.hasLivingMother() ||
 					objectType == ObjectType.EscapeCapsule || objectType == ObjectType.Alloy) {
 				scoop(so);
 			} else if (objectType != ObjectType.Missile) {
-				if (inGame.getWitchSpace() != null && (object.getId().equals("Planet") ||
-						object.getId().equals("Sun") ||
-					ObjectType.isSpaceStation(objectType) ||
-						object.getId().equals("Glow"))) {
+				if (inGame.getWitchSpace() != null && (object.getId().equals("Planet") || object.getId().equals("Sun") ||
+						ObjectType.isSpaceStation(objectType) || object.getId().equals("Glow"))) {
 					continue;
 				}
 				if (so != null && so.getHullStrength() > 0) {
@@ -276,10 +278,9 @@ class InGameHelper implements Serializable {
 					inGame.getLaserManager().collisionWithPlayerShip(so, DAMAGE_OBJECT_COLLISION, so.getDisplayMatrix()[14] < 0);
 					so.setHullStrength(0);
 					object.setRemove(true);
-					inGame.computeBounty(so);
+					inGame.computeBounty(so, "");
 					inGame.getLaserManager().explodeWithCargo(so);
-				}
-				 else {
+				} else {
 					SoundManager.play(Assets.hullDamage);
 				}
 			}
@@ -392,13 +393,14 @@ class InGameHelper implements Serializable {
 		}
 
 		if (target == inGame.getShip()) {
-			inGame.getLaserManager().damageShip(DAMAGE_MISSILE, missile.getDisplayMatrix()[14] < 0);
+			inGame.getLaserManager().damageShip(DAMAGE_MISSILE, missile.getDisplayMatrix()[14] < 0); // world.z
+			Alite.get().getCobra().increaseHitByMissile();
 			return;
 		}
 
 		target.setHullStrength(0);
 		target.setRemove(true);
-		inGame.computeBounty(target);
+		inGame.computeBounty(target, EquipmentStore.MISSILES);
 		inGame.getLaserManager().explodeWithCargo(target);
 	}
 
@@ -437,6 +439,7 @@ class InGameHelper implements Serializable {
 					cabinTemperatureAlarm = true;
 				}
 				fuelScoopFuel = alite.getCobra().getFuel();
+				fuelBeforeScoop = fuelScoopFuel;
 				inGame.getMessage().repeatText(L.string(R.string.com_cabin_temperature_critical), 1);
 			}
 		} else if (hasCabinTemperatureSound()) {
@@ -448,17 +451,15 @@ class InGameHelper implements Serializable {
 			}
 		}
 		if (cabinTemperature > 26 && alite.getCobra().isEquipmentInstalled(EquipmentStore.get().getEquipmentById(
-				EquipmentStore.FUEL_SCOOP)) && alite.getCobra().getFuel() < PlayerCobra.MAX_FUEL) {
+				EquipmentStore.FUEL_SCOOP)) && alite.getCobra().getFuel() < alite.getCobra().getMaxFuel()) {
 			inGame.getMessage().repeatText(L.string(R.string.msg_fuel_scoop_activated), 1);
 			fuelScoopFuel += 20 * -inGame.getShip().getSpeed() / inGame.getShip().getMaxSpeed() * deltaTime;
-			int newFuel = (int) fuelScoopFuel;
-			if (newFuel > PlayerCobra.MAX_FUEL) {
-				newFuel = (int) PlayerCobra.MAX_FUEL;
-			}
-			alite.getCobra().setFuel(newFuel);
-			if (newFuel >= PlayerCobra.MAX_FUEL) {
+			if (fuelScoopFuel >= alite.getCobra().getMaxFuel()) {
+				fuelScoopFuel = alite.getCobra().getMaxFuel();
 				inGame.getMessage().repeatText(L.string(R.string.com_cabin_temperature_critical), 1);
+				alite.getCobra().addScoopedFuel((int) (fuelScoopFuel - fuelBeforeScoop));
 			}
+			alite.getCobra().setFuel((int) fuelScoopFuel);
 		}
 		if (cabinTemperature > 28) {
 			inGame.gameOver();
@@ -486,11 +487,11 @@ class InGameHelper implements Serializable {
 				alite.getPlayer().setCondition(Condition.GREEN);
 			} else {
 				Condition conditionOld = alite.getPlayer().getCondition();
-				alite.getPlayer().setCondition(inGame.getNumberOfObjects(ObjectType.Police) > 0 ? Condition.RED : Condition.YELLOW);
+				alite.getPlayer().setCondition(inGame.getNumberOfObjects(so -> so.getType() == ObjectType.Police ||
+					so.getType() == ObjectType.Defender) > 0 ? Condition.RED : Condition.YELLOW);
 				Condition conditionNew = alite.getPlayer().getCondition();
 				if (conditionOld != conditionNew && conditionNew == Condition.RED) {
-					SoundManager.play(Assets.com_conditionRed);
-					inGame.repeatMessage(L.string(R.string.com_condition_red), 3);
+					inGame.getSpawnManager().conditionRed();
 				}
 			}
 		} else {

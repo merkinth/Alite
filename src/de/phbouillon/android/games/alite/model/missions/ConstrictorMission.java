@@ -19,9 +19,7 @@ package de.phbouillon.android.games.alite.model.missions;
  */
 
 import de.phbouillon.android.framework.IMethodHook;
-import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
-import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ConstrictorScreen;
@@ -36,8 +34,6 @@ public class ConstrictorMission extends Mission {
 
 	public static final int ID = 1;
 
-	private boolean constrictorCreated = false;
-
 	public ConstrictorMission() {
 		super(ID);
 	}
@@ -45,25 +41,21 @@ public class ConstrictorMission extends Mission {
 	@Override
 	protected boolean checkStart(Player player) {
 		return player.getIntergalacticJumpCounter() > 0 &&
-			player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64;
+			player.getIntergalacticJumpCounterSinceLastMission() + player.getJumpCounterSinceLastMission() >= 64;
 	}
 
 	@Override
 	protected void acceptMission(boolean accept) {
 		if (accept) {
-			alite.getPlayer().addActiveMission(this);
 			state = 1;
 			resetTargetName();
 		} else {
-			alite.getPlayer().resetIntergalacticJumpCounter();
-			alite.getPlayer().resetJumpCounter();
-			alite.getPlayer().addCompletedMission(this);
+			finalizeMission();
 		}
 	}
 
 	@Override
 	public void onMissionComplete() {
-		active = false;
 		alite.getPlayer().setCash(alite.getPlayer().getCash() + 100000);
 	}
 
@@ -74,22 +66,22 @@ public class ConstrictorMission extends Mission {
 
 	@Override
 	public AliteScreen checkForUpdate() {
-		if (alite.getPlayer().getCondition() != Condition.DOCKED || state < 1 || !started || !active) {
+		if (missionDidNotStart() || !positionMatchesTarget()) {
 			return null;
 		}
-		if (state == 1 && positionMatchesTarget()) {
+		if (state == 1) {
 			return new ConstrictorScreen(2);
 		}
-		if (state >= 2 && state <= 5 && positionMatchesTarget()) {
+		if (state >= 2 && state <= 5) {
 			return new ConstrictorScreen(3);
 		}
-		if (state == 6 && positionMatchesTarget()) {
+		if (state == 6) {
 			// Player arrived at target, but _did not destroy_ the Constrictor...
 			// Try again...
 			state--;
 			return new ConstrictorScreen(3);
 		}
-		if (state == 7 && positionMatchesTarget()) {
+		if (state == 7) {
 			return new ConstrictorScreen(4);
 		}
 		return null;
@@ -98,7 +90,7 @@ public class ConstrictorMission extends Mission {
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		boolean result = positionMatchesTarget();
-		if (state != 6 || !result || constrictorCreated) {
+		if (state != 6 || !result) {
 			return null;
 		}
 		TimedEvent event = new TimedEvent(0);
@@ -107,15 +99,12 @@ public class ConstrictorMission extends Mission {
 
 			@Override
 			public void execute(float deltaTime) {
-				constrictorCreated = true;
 				event.remove();
-				SoundManager.play(Assets.com_conditionRed);
-				manager.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
-				Vector3f spawnPosition = manager.getSpawnPosition();
+				manager.conditionRed();
 				SpaceObject constrictor = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Constrictor);
-				manager.spawnEnemyAndAttackPlayer(constrictor, 0, spawnPosition);
+				manager.spawnEnemyAndAttackPlayer(constrictor);
 				manager.lockConditionRedEvent();
-				constrictor.addDestructionCallback(13, new IMethodHook() {
+				constrictor.addDestructionCallback(new IMethodHook() {
 					private static final long serialVersionUID = -7774734879444916116L;
 
 					@Override

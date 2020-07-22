@@ -158,12 +158,10 @@ public class QuantityPadScreen extends AliteScreen {
 
 	@Override
 	public void processTouch(TouchEvent touch) {
-		if (touch.type != TouchEvent.TOUCH_UP) {
-			return;
-		}
 		int width = (BUTTON_SIZE + GAP) * 3 + 2 * OFFSET_X;
 		int height =  (BUTTON_SIZE + GAP) * 4 + 2 * OFFSET_Y;
-		if (touch.x < xPos || touch.y < yPos || touch.x > xPos + width || touch.y > yPos + height) {
+		if (touch.type == TouchEvent.TOUCH_UP &&
+				(touch.x < xPos || touch.y < yPos || touch.x > xPos + width || touch.y > yPos + height)) {
 			if (notModalViewWithNavigationBar) {
 				currentAmount = 0;
 				newScreen = parentScreen;
@@ -171,12 +169,14 @@ public class QuantityPadScreen extends AliteScreen {
 			return;
 		}
 		for (Button b: pads) {
-			if (b.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
+			if (b.isPressed(touch)) {
 				String t = b.getText();
 				if ("<-".equals(t)) {
 					currentAmount /= 10;
 				} else if (L.string(R.string.pad_btn_hex_ok).equals(t)) {
+					if (parentScreen instanceof BuyScreen) { // for tutorial
+						((BuyScreen) parentScreen).setBoughtAmount(currentAmount);
+					}
 					newScreen = parentScreen;
 				} else {
 					int testAmount = 10 * currentAmount + Integer.parseInt(t);

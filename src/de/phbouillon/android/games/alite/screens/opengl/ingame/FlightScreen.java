@@ -36,6 +36,7 @@ import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.ScreenCodes;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.model.Condition;
+import de.phbouillon.android.games.alite.model.Medal;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
@@ -72,23 +73,24 @@ public class FlightScreen extends GlScreen implements Serializable {
 	private final float[] sunLightEmission = {4.0f, 2.8f, 0.0f, 0.0f};
 	private final float[] noEmission       = {0.0f, 0.0f, 0.0f, 0.0f};
 
-	private final ArrayList <AliteObject> allObjects = new ArrayList<>();
+	private final ArrayList<AliteObject> allObjects = new ArrayList<>();
 	private SpaceObject spaceStation;
 	private boolean resetSpaceStation = true;
-	private boolean fromStation;
-	private boolean witchSpace = false;
-	private boolean paused = false;
+	private final boolean fromStation;
+	private boolean witchSpace;
+	private boolean paused;
+	private byte pausedMode;
 	private final Timer timer = new Timer().setAutoResetWithImmediateAtFirstCall();
 	private boolean handleUi = true;
 	private boolean needsActivation = true;
-	private transient boolean isSaving = false;
+	private transient boolean isSaving;
 	private transient Timer timeToExitTimer;
 	private transient Alite game;
 	private transient IMethodHook postDockingHook;
 
-	private Vector3f v0 = new Vector3f(0, 0, 0);
-	private Vector3f v1 = new Vector3f(0, 0, 0);
-	private Vector3f v2 = new Vector3f(0, 0, 0);
+	private final Vector3f v0 = new Vector3f(0, 0, 0);
+	private final Vector3f v1 = new Vector3f(0, 0, 0);
+	private final Vector3f v2 = new Vector3f(0, 0, 0);
 
 	// default public constructor is required for navigation bar
 	@SuppressWarnings("unused")
@@ -142,6 +144,9 @@ public class FlightScreen extends GlScreen implements Serializable {
 			AliteLog.d("readObject", "FlightScreen.readObject I");
 			game = Alite.get();
 			game.setInGame(inGame);
+			if (pausedMode == 0) {
+				pausedMode = 2;
+			}
 			setPause(true);
 			AliteLog.d("readObject", "FlightScreen.readObject II");
 			isSaving = false;
@@ -161,6 +166,11 @@ public class FlightScreen extends GlScreen implements Serializable {
 				inGame.setPaused(paused);
 			}
 		}
+	}
+
+	public void setPauseByTapOnLogo() {
+		pausedMode = 1;
+		setPause(true);
 	}
 
 	public void setPause(boolean b) {
@@ -375,44 +385,44 @@ public class FlightScreen extends GlScreen implements Serializable {
 		spaceStation.orientTowards(PLANET_POSITION.x, PLANET_POSITION.y, PLANET_POSITION.z, 0, 1, 0);
 		spaceStation.applyDeltaRotation(0, 180.0f, 0);
 
-	    if (fromStation) {
-		    inGame.getShip().orientTowards(PLANET_POSITION.x, PLANET_POSITION.y, PLANET_POSITION.z, 0, 1, 0);
-	    	float fx = spaceStation.getForwardVector().x * 1800.0f;
-	    	float fy = spaceStation.getForwardVector().y * 1800.0f;
-	    	float fz = spaceStation.getForwardVector().z * 1800.0f;
-	    	inGame.getShip().setPosition(spaceStation.getPosition().x + fx, spaceStation.getPosition().y + fy, spaceStation.getPosition().z + fz);
-	    } else {
-	    	inGame.getShip().applyDeltaRotation(180.0f, 0, 0);
-	    	inGame.getShip().setPosition(SHIP_ENTRY_POSITION);
-	    	int count = 0;
-	    	inGame.getShip().getPosition().copy(v0);
-	    	inGame.getShip().getRightVector().copy(v1);
-	    	v1.scale(5000);
-	    	for (AliteObject ao: allObjects) {
-	    		if (ao instanceof SpaceObject && ((SpaceObject)ao).getType() == ObjectType.TieFighter) {
-	    			SpaceObject tie = (SpaceObject) ao;
-	    			if (count % 2 == 0) {
-	    				v0.add(v1, v2);
-	    				tie.setPosition(v2);
+		if (fromStation) {
+			inGame.getShip().orientTowards(PLANET_POSITION.x, PLANET_POSITION.y, PLANET_POSITION.z, 0, 1, 0);
+			float fx = spaceStation.getForwardVector().x * 1800.0f;
+			float fy = spaceStation.getForwardVector().y * 1800.0f;
+			float fz = spaceStation.getForwardVector().z * 1800.0f;
+			inGame.getShip().setPosition(spaceStation.getPosition().x + fx, spaceStation.getPosition().y + fy, spaceStation.getPosition().z + fz);
+		} else {
+			inGame.getShip().applyDeltaRotation(180.0f, 0, 0);
+			inGame.getShip().setPosition(SHIP_ENTRY_POSITION);
+			int count = 0;
+			inGame.getShip().getPosition().copy(v0);
+			inGame.getShip().getRightVector().copy(v1);
+			v1.scale(5000);
+			for (AliteObject ao: allObjects) {
+				if (ao instanceof SpaceObject && ((SpaceObject)ao).getType() == ObjectType.TieFighter) {
+					SpaceObject tie = (SpaceObject) ao;
+					if (count % 2 == 0) {
+						v0.add(v1, v2);
+						tie.setPosition(v2);
 						tie.orientTowards(inGame.getShip(), 0);
-						tie.setAIState(SpaceObjectAI.AI_STATE_GLOBAL, (Object[]) null);
-	    				count++;
-	    			} else {
-	    				v0.sub(v1, v2);
-	    				tie.setPosition(v2);
-	    				tie.orientTowards(inGame.getShip(), 0);
-	    				tie.setAIState(SpaceObjectAI.AI_STATE_GLOBAL, (Object[]) null);
-	    				inGame.getStation().getPosition().sub(inGame.getShip().getPosition(), v2);
-	    				v2.scale(0.1f);
-	    				v0.add(v2);
-	    				count++;
-	    			}
-	    		}
-	    	}
-	    	inGame.getShip().applyDeltaRotation((float) Math.random() * 360.0f, (float) Math.random() * 360.0f, (float) Math.random() * 360.0f);
-	    	inGame.getShip().assertOrthoNormal();
-	    }
-	    inGame.initStarDust();
+						tie.setAIState(SpaceObjectAI.AI_STATE_GLOBAL);
+						count++;
+					} else {
+						v0.sub(v1, v2);
+						tie.setPosition(v2);
+						tie.orientTowards(inGame.getShip(), 0);
+						tie.setAIState(SpaceObjectAI.AI_STATE_GLOBAL);
+						inGame.getStation().getPosition().sub(inGame.getShip().getPosition(), v2);
+						v2.scale(0.1f);
+						v0.add(v2);
+						count++;
+					}
+				}
+			}
+			inGame.getShip().applyDeltaRotation((float) Math.random() * 360.0f, (float) Math.random() * 360.0f, (float) Math.random() * 360.0f);
+			inGame.getShip().assertOrthoNormal();
+		}
+		inGame.initStarDust();
 		resetSpaceStation = false;
 	}
 
@@ -430,6 +440,10 @@ public class FlightScreen extends GlScreen implements Serializable {
 				for (TouchEvent event: game.getInput().getTouchEvents()) {
 					if (event.type == TouchEvent.TOUCH_UP) {
 						togglePause();
+						if (!paused) {
+							Medal.setGameLevelBitValue(Medal.MEDAL_ID_INTERRUPTER, pausedMode);
+							pausedMode = 0;
+						}
 					}
 				}
 				return;
@@ -498,7 +512,6 @@ public class FlightScreen extends GlScreen implements Serializable {
 		oldScreen.dispose();
 		game.setScreen(newScreen);
 		postScreenChange();
-		oldScreen = null;
 	}
 
 	@Override
@@ -509,6 +522,8 @@ public class FlightScreen extends GlScreen implements Serializable {
 			}
 			if (isSaving) {
 				if (inGame != null) {
+					GLES11.glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+					GLES11.glClear(GLES11.GL_COLOR_BUFFER_BIT);
 					inGame.renderScroller(deltaTime);
 				}
 				return;

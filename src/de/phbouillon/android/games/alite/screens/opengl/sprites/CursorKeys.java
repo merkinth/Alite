@@ -18,8 +18,6 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.Serializable;
-
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Rect;
 import de.phbouillon.android.framework.impl.gl.Sprite;
@@ -27,15 +25,12 @@ import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 
-public class CursorKeys implements Serializable {
+public class CursorKeys extends ShipController {
 	private static final long serialVersionUID = 2357990555586247354L;
 
-	private final Sprite [] cursorKeys = new Sprite[8];
-	private final Rect [] buttonCoordinates = new Rect[4];
-	private final int [] downPointer = new int[4];
-
-	private float accelY = 0.0f;
-	private float accelZ = 0.0f;
+	private final Sprite[] cursorKeys = new Sprite[8];
+	private final Rect[] buttonCoordinates = new Rect[4];
+	private final int[] downPointer = new int[4];
 
 	CursorKeys(boolean split) {
 		int WIDTH = 192;
@@ -74,22 +69,8 @@ public class CursorKeys implements Serializable {
 		cursorKeys[7] = genSprite("clh", buttonCoordinates[3]);
 	}
 
-	private Sprite genSprite(String name, Rect r) {
-		// Careful: Rect is used as (x, y) - (width, height) here... So right and bottom are really width and height!
-		SpriteData spriteData = Alite.get().getTextureManager().getSprite(AliteHud.TEXTURE_FILE, name);
-		return new Sprite(r.left, r.top, r.left + r.right - 1, r.top + r.bottom - 1,
-			spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, AliteHud.TEXTURE_FILE);
-	}
-
-	public float getZ() {
-		return accelZ;
-	}
-
-	public float getY() {
-		return accelY;
-	}
-
-	void setHighlight(boolean left, boolean right, boolean up, boolean down) {
+	@Override
+	void setDirections(boolean left, boolean right, boolean up, boolean down) {
 		// 728 is an arbitrary value: Just use any value that is highly unlikely to be
 		// used as a real touch pointer... Unless someone has 728 fingers (simultaneously)
 		// on the device and said device supports 728 simultaneous touch inputs, we should
@@ -100,91 +81,63 @@ public class CursorKeys implements Serializable {
 		downPointer[3] = left ? 728 : 0;
 	}
 
-	public void update(float deltaTime) {
-		if (downPointer[0] != 0) { // up
-			accelZ -= deltaTime * (accelZ > 0 ? 5 : 1.66f);
-			if (accelZ < -2) {
-				accelZ = -2;
-			}
-		} else if (downPointer[2] != 0) { // down
-			accelZ += deltaTime * (accelZ < 0 ? 5 : 1.66f);
-			if (accelZ > 2) {
-				accelZ = 2;
-			}
-		} else {
-			if (accelZ > 0) {
-				accelZ -= deltaTime * 3.33f;
-				if (accelZ < 0) {
-					accelZ = 0.0f;
-				}
-			} else if (accelZ < 0) {
-				accelZ += deltaTime * 3.33f;
-				if (accelZ > 0) {
-					accelZ = 0.0f;
-				}
-			}
-		}
-		if (downPointer[1] != 0) { // right
-			accelY -= deltaTime * (accelY > 0 ? 5 : 1.66f);
-			if (accelY < -2) {
-				accelY = -2;
-			}
-		} else if (downPointer[3] != 0) { // left
-			accelY += deltaTime * (accelY < 0 ? 5 : 1.66f);
-			if (accelY > 2) {
-				accelY = 2;
-			}
-		} else {
-			if (accelY > 0) {
-				accelY -= deltaTime * 3.33f;
-				if (accelY < 0) {
-					accelY = 0.0f;
-				}
-			} else if (accelY < 0) {
-				accelY += deltaTime * 3.33f;
-				if (accelY > 0) {
-					accelY = 0.0f;
-				}
-			}
-		}
+	@Override
+	protected boolean isDown() {
+		return TouchEvent.isDown(downPointer[2]);
 	}
 
+	@Override
+	protected boolean isUp() {
+		return TouchEvent.isDown(downPointer[0]);
+	}
+
+	@Override
+	protected boolean isRight() {
+		return TouchEvent.isDown(downPointer[1]);
+	}
+
+	@Override
+	protected boolean isLeft() {
+		return TouchEvent.isDown(downPointer[3]);
+	}
+
+	@Override
 	boolean handleUI(TouchEvent event) {
 		boolean result = false;
 
 		if (event.type == TouchEvent.TOUCH_DOWN) {
 			for (int i = 0; i < 4; i++) {
-				if (event.x >= buttonCoordinates[i].left &&
-				    event.x <= buttonCoordinates[i].left + buttonCoordinates[i].right &&
-				    event.y >= buttonCoordinates[i].top &&
-				    event.y <= buttonCoordinates[i].top + buttonCoordinates[i].bottom) {
+				if (Rect.inside(event.x, event.y, buttonCoordinates[i].left, buttonCoordinates[i].top,
+						buttonCoordinates[i].left + buttonCoordinates[i].right,
+						buttonCoordinates[i].top + buttonCoordinates[i].bottom)) {
 					result = true;
-					int val = 1 << event.pointer;
-					if ((downPointer[i] & val) == 0) {
-						downPointer[i] += val;
-					}
+					downPointer[i] = TouchEvent.fingerDown(downPointer[i], event.pointer);
 				}
 			}
-		} else if (event.type == TouchEvent.TOUCH_UP) {
+			return result;
+		}
+		if (event.type == TouchEvent.TOUCH_UP) {
 			for (int i = 0; i < 4; i++) {
-				int val = 1 << event.pointer;
-				if ((downPointer[i] & val) != 0) {
-					downPointer[i] -= val;
+				int f = TouchEvent.fingerUp(downPointer[i], event.pointer);
+				if (f != downPointer[i]) {
+					downPointer[i] = f;
 					result = true;
 				}
 			}
-		} else if (event.type == TouchEvent.TOUCH_DRAGGED) {
+			return result;
+		}
+		if (event.type == TouchEvent.TOUCH_DRAGGED) {
 			for (int i = 0; i < 4; i++) {
-				int val = 1 << event.pointer;
-				if ((downPointer[i] & val) != 0) {
-					result = true;
+				if (TouchEvent.isDown(downPointer[i], event.pointer)) {
+					return true;
 				}
 			}
 		}
 
-		return result;
+		return false;
 	}
 
+	@Override
 	void render() {
 		float a = Settings.alpha * Settings.controlAlpha;
 		Alite.get().getGraphics().setColor(AliteColor.argb(a, a, a, a));

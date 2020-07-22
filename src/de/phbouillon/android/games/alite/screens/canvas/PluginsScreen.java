@@ -19,6 +19,7 @@ package de.phbouillon.android.games.alite.screens.canvas;
  */
 
 import android.graphics.Color;
+import android.graphics.Point;
 import android.opengl.GLES11;
 import android.os.Messenger;
 import android.text.format.DateUtils;
@@ -34,7 +35,6 @@ import de.phbouillon.android.games.alite.model.generator.StringUtil;
 import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,27 +49,14 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 	private PluginModel pluginModel;
 	private List<Plugin> plugins;
 	private Plugin currentPlugin;
-	private int yPosition;
-	private int startY;
-	private int startX;
-	private int lastY;
-	private int maxY;
-	private float deltaY = 0.0f;
-
-	private Pixmap iconDownload;
-	private Pixmap iconNew;
-	private Pixmap iconDownloadable;
-	private Pixmap iconInstalled;
-	private Pixmap iconUpgraded;
-	private Pixmap iconOutdated;
-	private Pixmap iconRemoved;
-	private Pixmap iconNewOfRemoved;
 
 	private int downloadState;
 	private DownloadProgressInfo progress;
+	private final ScrollPane scrollPane = new ScrollPane(0, 100, AliteConfig.DESKTOP_WIDTH, 950,
+		() -> new Point(AliteConfig.SCREEN_WIDTH, getHeight()));
 
 	public PluginsScreen(int yPosition) {
-		this.yPosition = yPosition;
+		scrollPane.position.y = yPosition;
 	}
 
 	@Override
@@ -78,7 +65,6 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		plugins = pluginModel.getOrderedListOfPlugins();
 		buildPluginButtons();
 		btnBack = Button.createGradientRegularButton(1400, 950, 250, 100, L.string(R.string.options_back));
-		setMaxY();
 	}
 
 	private void buildPluginButtons() {
@@ -89,12 +75,12 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		for (Plugin plugin : plugins) {
 			TextData[] description = computeTextDisplayWidths(g, plugin.description != null && !plugin.description.trim().isEmpty() ?
 				plugin.description : L.string(R.string.plugins_no_description), 110, 2 * (int) Assets.titleFont.getSize(),
-				new int[] {width, width, 1300 }, 50, ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT));
+				new int[] {width, width, 1300 }, ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT));
 			TextData[] removalReason = null;
 			if (Plugin.META_STATUS_REMOVED.equals(plugin.status) && plugin.removalReason != null && !plugin.removalReason.trim().isEmpty()) {
 				removalReason = computeTextDisplayWidths(g, L.string(R.string.plugins_removal_reason, plugin.removalReason),
 				110, description[description.length-1].y + 50,  new int[] { description.length == 1 ? width : 1300, 1300 },
-					50, ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT));
+					ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT));
 			}
 			TextData[] text = new TextData[description.length + (removalReason != null ? removalReason.length : 0) + 1];
 			System.arraycopy(description, 0, text, 1, description.length);
@@ -109,7 +95,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 			buttons.add(item);
 			ButtonRegistry.get().removeButton(this, item);
 			int yc = y + (item.getHeight() - 110 >> 1);
-			buttons.add(Button.createPictureButton(1430, yc, 110, 110, iconDownload, 0.85f)
+			buttons.add(Button.createPictureButton(1430, yc, 110, 110, pics.get("download_icon_small"), 0.85f)
 				.setPixmapOffset(5, 5)
 				.setCommand(RESULT_YES));
 			buttons.add(Button.createPictureButton(1560, yc, 110, 110, Assets.noIcon, 0.85f)
@@ -124,21 +110,17 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		return plugin.filename.substring(0, plugin.filename.lastIndexOf('.'));
 	}
 
-	private void setMaxY() {
+	private int getHeight() {
 		if (buttons.isEmpty()) {
-			maxY = 0;
-			return;
+			return 0;
 		}
 		Button last = buttons.get(buttons.size() - 1);
-		maxY = last.getY() + last.getHeight() - 870;
-		if (maxY < 0) {
-			maxY = 0;
-		}
+		return last.getY() + last.getHeight();
 	}
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
-		dos.writeInt(yPosition);
+		dos.writeInt(scrollPane.position.y);
 	}
 
 	@Override
@@ -176,62 +158,31 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 			return;
 		}
 
-		if (touch.type == TouchEvent.TOUCH_DOWN && touch.pointer == 0) {
-			startX = touch.x;
-			startY = lastY = touch.y;
-			deltaY = 0;
+		scrollPane.handleEvent(touch);
+		if (btnBack.isPressed(touch)) {
+			newScreen = new OptionsScreen();
 			return;
 		}
 
-		if (touch.type == TouchEvent.TOUCH_DRAGGED && touch.pointer == 0) {
-			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
-				return;
-			}
-			yPosition += lastY - touch.y;
-			if (yPosition < 0) {
-				yPosition = 0;
-			}
-			if (yPosition > maxY) {
-				yPosition = maxY;
-			}
-			lastY = touch.y;
+		if (scrollPane.isSweepingGesture(touch)) {
 			return;
 		}
 
-		if (touch.type == TouchEvent.TOUCH_UP && touch.pointer == 0) {
-			if (touch.x > AliteConfig.DESKTOP_WIDTH || Math.abs(startX - touch.x) >= 20 ||
-					Math.abs(startY - touch.y) >= 20 || touch.y <= 79) {
-				return;
-			}
-
-			if (btnBack.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				newScreen = new OptionsScreen();
-				return;
-			}
-
-			for (int i = 0; i < buttons.size(); i++) {
-				Button button = buttons.get(i);
-				if (button.isTouched(touch.x, touch.y) && button.getCommand() != 0) {
-					SoundManager.play(Assets.click);
-					currentPlugin = plugins.get(i/3);
-					if (button.getCommand() == RESULT_NO) {
-						popupTextInput(L.string(R.string.plugins_get_removal_reason), "", -1);
-						return;
-					}
-					downloadState = IDownloaderClient.STATE_DOWNLOADING;
-					progress = new DownloadProgressInfo(1, 0, -1, 0);
-					new PluginManagerImpl(game.getApplicationContext(), game.getFileIO(),
-						AliteConfig.ROOT_DRIVE_FOLDER, AliteConfig.GAME_NAME, this).
-						downloadFile(currentPlugin.fileId, currentPlugin.size, currentPlugin.folder, currentPlugin.filename);
+		for (int i = 0; i < buttons.size(); i++) {
+			Button button = buttons.get(i);
+			if (button.isPressed(touch) && button.getCommand() != 0) {
+				currentPlugin = plugins.get(i/3);
+				if (button.getCommand() == RESULT_NO) {
+					popupTextInput(L.string(R.string.plugins_get_removal_reason), "", -1);
 					return;
 				}
+				downloadState = IDownloaderClient.STATE_DOWNLOADING;
+				progress = new DownloadProgressInfo(1, 0, -1, 0);
+				new PluginManagerImpl(game.getApplicationContext(), game.getFileIO(),
+					AliteConfig.ROOT_DRIVE_FOLDER, AliteConfig.GAME_NAME, this).
+					downloadFile(currentPlugin.fileId, currentPlugin.size, currentPlugin.folder, currentPlugin.filename);
+				return;
 			}
-			return;
-		}
-
-		if (touch.type == TouchEvent.TOUCH_SWEEP && touch.x < AliteConfig.DESKTOP_WIDTH) {
-			deltaY = touch.y2;
 		}
 	}
 
@@ -242,30 +193,17 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		displayTitle(L.string(R.string.title_plugins));
 		btnBack.render(g);
 
-		if (deltaY != 0) {
-			boolean neg = deltaY < 0;
-			deltaY += deltaY > 0 ? -8.0f * deltaTime : deltaY < 0 ? 8.0f * deltaTime : 0;
-			if (neg && deltaY > 0 || !neg && deltaY < 0) {
-				deltaY = 0;
-			}
-			yPosition -= deltaY;
-			if (yPosition < 0) {
-				yPosition = 0;
-			}
-			if (yPosition > maxY) {
-				yPosition = maxY;
-			}
-		}
+		scrollPane.scrollingFree();
 
 		g.setClip(-1, 130, -1, 1000);
 		for (int i = 0; i < buttons.size(); i++) {
-			Button button = buttons.get(i).setYOffset(-yPosition);
+			Button button = buttons.get(i).setYOffset(-scrollPane.position.y);
 			String status = plugins.get(i/3).status;
 
 			switch (i % 3) {
 				case 0:
 					button.render(g);
-					g.drawPixmap(getIcon(status), 45, button.getY() - yPosition + 20);
+					g.drawPixmap(pics.get(getIconName(status)), 45, button.getY() - scrollPane.position.y + 20);
 					if (downloadState != 0 && plugins.get(i/3) == currentPlugin) {
 						renderProgressCircle();
 						break;
@@ -274,7 +212,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 						Locale.setDefault(L.getInstance().getCurrentLocale());
 						String infoText = DateUtils.getRelativeTimeSpanString(plugins.get(i/3).downloadTime).toString();
 						g.drawText(infoText, 1415 - g.getTextWidth(infoText, Assets.regularFont),
-							button.getY() - yPosition + (int) Assets.titleFont.getSize(),
+							button.getY() - scrollPane.position.y + (int) Assets.titleFont.getSize(),
 							ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
 					}
 
@@ -283,7 +221,7 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 						String infoText = size > AliteLog.MB ? L.string(R.string.plugins_size_mb, size / AliteLog.MB) :
 							L.string(R.string.plugins_size_kb, size / AliteLog.KB);
 						g.drawText(infoText, 1415 - g.getTextWidth(infoText, Assets.regularFont),
-							button.getY() - yPosition + 2 * (int) Assets.titleFont.getSize(),
+							button.getY() - scrollPane.position.y + 2 * (int) Assets.titleFont.getSize(),
 							ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
 					}
 					break;
@@ -300,16 +238,16 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		g.setClip(-1, -1, -1, -1);
 	}
 
-	private Pixmap getIcon(String status) {
+	private String getIconName(String status) {
 		switch (status) {
-			case Plugin.META_STATUS_NEW: return iconNew;
-			case Plugin.META_STATUS_DOWNLOADABLE: return iconDownloadable;
-			case Plugin.META_STATUS_INSTALLED: return iconInstalled;
-			case Plugin.META_STATUS_UPGRADED: return iconUpgraded;
-			case Plugin.META_STATUS_OUTDATED: return iconOutdated;
-			case Plugin.META_STATUS_NEW_OF_REMOVED: return iconNewOfRemoved;
+			case Plugin.META_STATUS_NEW: return "ext_new";
+			case Plugin.META_STATUS_DOWNLOADABLE: return "ext_downloadable";
+			case Plugin.META_STATUS_INSTALLED: return "ext_installed";
+			case Plugin.META_STATUS_UPGRADED: return "ext_upgraded";
+			case Plugin.META_STATUS_OUTDATED: return "ext_outdated";
+			case Plugin.META_STATUS_NEW_OF_REMOVED: return "ext_new_of_removed";
 		}
-		return iconRemoved;
+		return "ext_removed";
 	}
 
 	private boolean isDownloadable(String status) {
@@ -336,14 +274,8 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 
 	@Override
 	public void loadAssets() {
-		iconDownload = game.getGraphics().newPixmap("download_icon_small.png");
-		iconNew = game.getGraphics().newPixmap("ext_new.png");
-		iconDownloadable = game.getGraphics().newPixmap("ext_downloadable.png");
-		iconInstalled = game.getGraphics().newPixmap("ext_installed.png");
-		iconUpgraded = game.getGraphics().newPixmap("ext_upgraded.png");
-		iconOutdated = game.getGraphics().newPixmap("ext_outdated.png");
-		iconRemoved = game.getGraphics().newPixmap("ext_removed.png");
-		iconNewOfRemoved = game.getGraphics().newPixmap("ext_new_of_removed.png");
+		addPictures("download_icon_small", "ext_new", "ext_downloadable", "ext_installed",
+			"ext_upgraded", "ext_outdated", "ext_removed", "ext_new_of_removed");
 		super.loadAssets();
 	}
 
@@ -351,38 +283,6 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 	public void dispose() {
 		pluginModel.pluginsVisited();
 		super.dispose();
-		if (iconDownload != null) {
-			iconDownload.dispose();
-			iconDownload = null;
-		}
-		if (iconNew != null) {
-			iconNew.dispose();
-			iconNew = null;
-		}
-		if (iconDownloadable != null) {
-			iconDownloadable.dispose();
-			iconDownloadable = null;
-		}
-		if (iconInstalled != null) {
-			iconInstalled.dispose();
-			iconInstalled = null;
-		}
-		if (iconUpgraded != null) {
-			iconUpgraded.dispose();
-			iconUpgraded = null;
-		}
-		if (iconOutdated != null) {
-			iconOutdated.dispose();
-			iconOutdated = null;
-		}
-		if (iconRemoved != null) {
-			iconRemoved.dispose();
-			iconRemoved = null;
-		}
-		if (iconNewOfRemoved != null) {
-			iconNewOfRemoved.dispose();
-			iconNewOfRemoved = null;
-		}
 	}
 
 	@Override
@@ -411,8 +311,8 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 		Graphics g = game.getGraphics();
 		int r = 60;
 		int x = r + (AliteConfig.SCREEN_WIDTH >> 1);
-		int y = r + button.getY() - yPosition + 20;
-		g.drawCircle(x, y, r, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), 64);
+		int y = r + button.getY() - scrollPane.position.y + 20;
+		g.drawCircle(x, y, r, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
 		GLES11.glLineWidth(3);
 		g.drawArc(x, y, r, ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT), (int)(3.6 * progressInPercent));
 		GLES11.glLineWidth(1);
@@ -423,11 +323,11 @@ public class PluginsScreen extends AliteScreen implements IDownloaderClient {
 
 		g.drawText(L.string(R.string.plugins_download_progress,
 			progress.mOverallProgress / AliteLog.MB, progress.mOverallTotal / AliteLog.MB),
-			x + r + 40, button.getY() - yPosition + (int) Assets.titleFont.getSize(),
+			x + r + 40, button.getY() - scrollPane.position.y + (int) Assets.titleFont.getSize(),
 			ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
 		g.drawText(L.string(R.string.plugins_download_time,
 			progress.mCurrentSpeed / AliteLog.KB, (int) (progress.mTimeRemaining / 1000.0f)),
-			x + r + 40, button.getY() - yPosition + 2 * (int) Assets.titleFont.getSize(),
+			x + r + 40, button.getY() - scrollPane.position.y + 2 * (int) Assets.titleFont.getSize(),
 			ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION), Assets.regularFont);
 	}
 

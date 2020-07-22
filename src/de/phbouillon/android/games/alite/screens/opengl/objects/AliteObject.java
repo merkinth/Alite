@@ -19,10 +19,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects;
  */
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
@@ -41,7 +38,7 @@ public class AliteObject extends GraphicObject implements Serializable {
 	private boolean remove = false;
 	private ZPositioning positionMode = ZPositioning.Normal;
 	protected float boundingSphereRadius;
-	private final Map <Integer, IMethodHook> destructionCallbacks = new LinkedHashMap<>();
+	private final Set<IMethodHook> destructionCallbacks = new LinkedHashSet<>();
 	protected int hudColor; // scan_class, scanner_display_color1,2, scanner_hostile_display_color1,2
 	private boolean visibleOnHud = false;
 	private transient boolean saving = false;
@@ -69,22 +66,15 @@ public class AliteObject extends GraphicObject implements Serializable {
 		}
 	}
 
-	public void addDestructionCallback(int id, final IMethodHook callback) {
+	public void addDestructionCallback(final IMethodHook callback) {
 		if (saving) {
 			return;
 		}
-		destructionCallbacks.put(id, callback);
+		destructionCallbacks.add(callback);
 	}
 
-	public boolean hasDestructionCallback(int id) {
-		return destructionCallbacks.containsKey(id);
-	}
-
-	public Collection <IMethodHook> getDestructionCallbacks() {
-		if (saving) {
-			return Collections.emptyList();
-		}
-		return destructionCallbacks.values();
+	public boolean hasDestructionCallback() {
+		return !saving && !destructionCallbacks.isEmpty();
 	}
 
 	public void setDepthTest(boolean depthTest) {
@@ -124,7 +114,7 @@ public class AliteObject extends GraphicObject implements Serializable {
 	}
 
 	public void executeDestructionCallbacks() {
-		for (IMethodHook dc: destructionCallbacks.values()) {
+		for (IMethodHook dc : destructionCallbacks) {
 			dc.execute(0);
 		}
 	}

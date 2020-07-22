@@ -161,7 +161,6 @@ public class LaserCylinder extends AliteObject implements Serializable {
 			Alite.get().getGraphics().setColor(AliteColor.lighten(color, 0.2));
 		}
 		setMatrix(saveMatrix);
-		extractVectors();
 		GLES11.glEnable(GLES11.GL_CULL_FACE);
 		GLES11.glEnable(GLES11.GL_LIGHTING);
 		GLES11.glEnableClientState(GLES11.GL_TEXTURE_COORD_ARRAY);

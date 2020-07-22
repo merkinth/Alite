@@ -1,8 +1,8 @@
-package de.phbouillon.android.games.alite.screens.opengl;
+package de.phbouillon.android.framework;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,9 +18,18 @@ package de.phbouillon.android.games.alite.screens.opengl;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.Serializable;
+import android.graphics.Bitmap;
 
-public interface IAdditionalGLParameterSetter extends Serializable {
-	public void setUp();
-	public void tearDown();
+public interface Texture {
+	int addTexture(String fileName);
+	int addTextureFromStream(String fileName, ResourceStream textureInputStream);
+	boolean checkTexture(String fileName);
+	int addTexture(String name, Bitmap bitmap);
+	void freeTexture(String fileName);
+	void setTexture(String fileName);
+	void setTexture(String fileName, ResourceStream textureInputStream);
+	SpriteData getSprite(String fileName, String spriteName);
+	void freeAllTextures();
+	void reloadAllTextures();
+	void clear();
 }

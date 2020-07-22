@@ -19,12 +19,13 @@ package de.phbouillon.android.games.alite.model.library;
  */
 
 public class TocEntry {
-	private int level;
+	private final int level;
+	private final String fileName;
+	private final String name;
+	private final LibraryPage linkedPage;
 
-	private String name;
-	private LibraryPage linkedPage;
-
-	public TocEntry(final String name, final LibraryPage linkedPage, final int level) {
+	public TocEntry(String fileName, String name, LibraryPage linkedPage, int level) {
+		this.fileName = fileName;
 		this.name = name;
 		this.linkedPage = linkedPage;
 		this.level = level;
@@ -40,5 +41,9 @@ public class TocEntry {
 
 	public int getLevel() {
 		return level;
+	}
+
+	public String getFileName() {
+		return fileName;
 	}
 }

@@ -37,6 +37,7 @@ import android.widget.VideoView;
 import de.phbouillon.android.framework.FileIO;
 import de.phbouillon.android.framework.impl.AndroidFileIO;
 import de.phbouillon.android.games.alite.io.ObbExpansionsManager;
+import de.phbouillon.android.games.alite.model.Medal;
 
 public class AliteIntro extends Activity implements OnClickListener {
 	private static final String DIRECTORY_INTRO = "intro" + File.separatorChar;
@@ -54,6 +55,7 @@ public class AliteIntro extends Activity implements OnClickListener {
 	// Subtitle must re-add after resume thus indices have to be determined again
 	private int subtitleIndex;
 	private boolean subtitleOn;
+	private boolean subtitleStateChangedAfter3s;
 
 	private String getAbsolutePath(String file) {
 		try {
@@ -164,14 +166,19 @@ public class AliteIntro extends Activity implements OnClickListener {
 		layout.addView(videoView);
 		videoView.getRootView().setBackgroundColor(getResources().getColor(android.R.color.black));
 		videoView.setVisibility(View.VISIBLE);
-        videoView.setOnTouchListener((v, event) -> {
+		videoView.setOnTouchListener((v, event) -> {
 			if (v instanceof VideoView) {
 				startAlite((VideoView) v);
 				return true;
 			}
 			return v.performClick();
 		});
-		videoView.setOnCompletionListener(mp -> startAlite(videoView));
+		videoView.setOnCompletionListener(mp -> {
+			if (!subtitleStateChangedAfter3s) {
+				Medal.setGameLevelBitValue(Medal.MEDAL_ID_INTRO, subtitleOn ? 2 : 1);
+			}
+			startAlite(videoView);
+		});
 
 		AliteLog.d("AliteIntro.Creating Error Listener", "EL created");
 		videoView.setOnErrorListener((mp, what, extra) -> {
@@ -271,6 +278,9 @@ public class AliteIntro extends Activity implements OnClickListener {
 		if (v.getId() == R.id.subtitle) {
 			if (mediaPlayer != null && subtitleIndex >= 0) {
 				selectOrDeselectTrack(false);
+				if (videoView.getCurrentPosition() > 3000) {
+					subtitleStateChangedAfter3s = true;
+				}
 				subtitleOn = !subtitleOn;
 				selectOrDeselectTrack(true);
 				findViewById(R.id.subtitle).setBackgroundResource(subtitleOn ? R.drawable.subtitle_nat : R.drawable.subtitle);
@@ -299,6 +309,7 @@ public class AliteIntro extends Activity implements OnClickListener {
 			mediaPlayer.release();
 			mediaPlayer = null;
 		}
+		Settings.save(fileIO);
 		AliteLog.d("AliteIntro.startAlite", "Calling Alite start intent");
 		Intent intent = new Intent(this, Alite.class);
 		intent.putExtra(Alite.LOG_IS_INITIALIZED, true);

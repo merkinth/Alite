@@ -42,4 +42,8 @@ public enum ObjectType {
 	public static boolean isSpaceStation(ObjectType type) {
 		return type == Coriolis || type == Dodecahedron || type == Icosahedron;
 	}
+
+	public static boolean isEnemyShip(ObjectType type) {
+		return type == Pirate || type == Constrictor || type == Cougar || type == TieFighter;
+	}
 }

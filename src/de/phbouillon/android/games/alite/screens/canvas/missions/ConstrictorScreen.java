@@ -22,16 +22,13 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import android.graphics.Point;
 import android.media.MediaPlayer;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.ConstrictorMission;
 import de.phbouillon.android.games.alite.model.missions.Mission;
@@ -47,10 +44,7 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjec
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class ConstrictorScreen extends AliteScreen {
-	static final int STRETCH_X = 7;
-	static final int STRETCH_Y = 7;
-
-	private transient MediaPlayer mediaPlayer;
+	private final transient MediaPlayer mediaPlayer;
 
 	private MissionLine attCommander;
 	private MissionLine missionLine;
@@ -59,13 +53,11 @@ public class ConstrictorScreen extends AliteScreen {
 	private SpaceObject constrictor;
 	private TextData[] missionText;
 	private final Timer timer = new Timer().setAutoReset();
-	private Vector3f currentDelta = new Vector3f(0,0,0);
-	private Vector3f targetDelta = new Vector3f(0,0,0);
+	private final Vector3f currentDelta = new Vector3f(0,0,0);
+	private final Vector3f targetDelta = new Vector3f(0,0,0);
 
 	private Button acceptButton;
 	private Button declineButton;
-	private Pixmap acceptIcon;
-	private Pixmap declineIcon;
 	private SystemData targetSystem = null;
 	private final Mission mission;
 	private final int givenState;
@@ -85,22 +77,17 @@ public class ConstrictorScreen extends AliteScreen {
 			} else if (state == 1) {
 				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_constrictor_report_to_base));
 				targetSystem = mission.findMostDistantSystem();
-				mission.setTarget(game.getGenerator().getCurrentGalaxy(), targetSystem.getIndex(), state);
+				mission.setTargetPlanet(targetSystem, state);
 			} else if (state == 2) {
 				missionLine = new MissionLine(path + "06.mp3", L.string(R.string.mission_constrictor_intergalactic_jump));
-				mission.setTarget(game.getGenerator().getNextGalaxy(), -1, state);
+				mission.setTargetGalaxy(game.getGenerator().getNextGalaxy(), state);
 			} else if (state == 3) {
 				missionLine = new MissionLine(path + "05.mp3", L.string(R.string.mission_constrictor_hyperspace_jump));
 				targetSystem = mission.findRandomSystemInRange(75, 120);
-				mission.setTarget(game.getGenerator().getCurrentGalaxy(), targetSystem.getIndex(), mission.getState() + 1);
+				mission.setTargetPlanet(targetSystem, mission.getState() + 1);
 			} else if (state == 4) {
 				missionLine = new MissionLine(path + "07.mp3", L.string(R.string.mission_constrictor_success));
-				mission.onMissionComplete();
-				Player player = game.getPlayer();
-				player.removeActiveMission(mission);
-				player.addCompletedMission(mission);
-				player.resetIntergalacticJumpCounter();
-				player.resetJumpCounter();
+				mission.missionCompleted();
 			} else {
 				AliteLog.e("Unknown State", "Invalid state variable has been passed to ConstrictorScreen: " + state);
 			}
@@ -114,7 +101,7 @@ public class ConstrictorScreen extends AliteScreen {
 		if (givenState == 3) {
 			targetSystem = Alite.get().getGenerator().getSystems()[dis.readInt()];
 			// Mission (model) state has been increased in constructor; now reduce it again...
-			mission.setTarget(Alite.get().getGenerator().getCurrentGalaxy(), targetSystem.getIndex(), mission.getState() - 1);
+			mission.setTargetPlanet(targetSystem, mission.getState() - 1);
 		}
 	}
 
@@ -153,17 +140,13 @@ public class ConstrictorScreen extends AliteScreen {
 		if (acceptButton == null && declineButton == null) {
 			return;
 		}
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (acceptButton.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				mission.setPlayerAccepts(true);
-				newScreen = new ConstrictorScreen(1);
-			}
-			if (declineButton.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				mission.setPlayerAccepts(false);
-				newScreen = new StatusScreen();
-			}
+		if (acceptButton.isPressed(touch)) {
+			mission.setPlayerAccepts(true);
+			newScreen = new ConstrictorScreen(1);
+		}
+		if (declineButton.isPressed(touch)) {
+			mission.setPlayerAccepts(false);
+			newScreen = new StatusScreen();
 		}
 	}
 
@@ -173,12 +156,14 @@ public class ConstrictorScreen extends AliteScreen {
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle(L.string(R.string.title_mission_constrictor));
 
-		g.drawText(L.string(R.string.mission_attention_commander), 50, 200, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.mission_attention_commander), 50, 200,
+			ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		if (missionText != null) {
 			displayText(g, missionText);
 		}
 		if (acceptMission != null) {
-			g.drawText(L.string(R.string.mission_accept), 50, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+			g.drawText(L.string(R.string.mission_accept), 50, 800,
+				ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 			if (acceptButton != null) {
 				acceptButton.render(g);
 			}
@@ -190,68 +175,20 @@ public class ConstrictorScreen extends AliteScreen {
 		if (constrictor != null) {
 			displayObject(constrictor, 1.0f, 100000.0f);
 		} else if (targetSystem != null) {
-			displayStarMap();
-		} else {
-			setUpForDisplay();
+			GalaxyScreen.displayStarMap(targetSystem);
 		}
-	}
-
-	private Point toScreen(SystemData systemData, int centerX, int centerY, float zoomFactor) {
-		int offsetX = (int) (centerX * zoomFactor * STRETCH_X) - 400;
-		int offsetY = (int) (centerY * zoomFactor * STRETCH_Y) - 550;
-		return new Point((int) (systemData.getX() * zoomFactor) * STRETCH_X + 900 - offsetX,
-				         (int) (systemData.getY() * zoomFactor) * STRETCH_Y + 100 - offsetY);
-	}
-
-	private void drawSystem(SystemData system, int centerX, int centerY, float zoomFactor, boolean clearBackground) {
-		Graphics g = game.getGraphics();
-		Point p = toScreen(system, centerX, centerY, zoomFactor);
-		if (p.x < 900 || p.x > 1700 || p.y < 100 || p.y > 1000) {
-			return;
-		}
-		g.fillCircle(p.x, p.y, (int) (3 * zoomFactor), system.getEconomy().getColor(), 32);
-		int nameWidth = g.getTextWidth(system.getName(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
-		int nameHeight = g.getTextHeight(system.getName(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
-		int positionX = (int) (3 * zoomFactor) + 2;
-		int positionY = 40;
-		if (p.x + nameWidth > GalaxyScreen.HALF_WIDTH << 1) {
-			positionX = -positionX - nameWidth;
-		}
-		if (p.y + 40 > GalaxyScreen.HALF_HEIGHT << 1) {
-			positionY = -40;
-		}
-		if (clearBackground) {
-			g.fillRect(p.x + positionX, p.y + positionY - nameHeight, nameWidth, nameHeight, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		}
-		g.drawText(system.getName(), p.x + positionX, p.y + positionY, system.getEconomy().getColor(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
-		if (system == targetSystem) {
-			g.drawLine(p.x, p.y - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.x, p.y - GalaxyScreen.CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
-			g.drawLine(p.x, p.y + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.x, p.y + GalaxyScreen.CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
-			g.drawLine(p.x - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.y, p.x - GalaxyScreen.CROSS_DISTANCE, p.y, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
-			g.drawLine(p.x + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.y, p.x + GalaxyScreen.CROSS_DISTANCE, p.y, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
-		}
-	}
-
-	private void displayStarMap() {
-		int centerX = targetSystem.getX();
-		int centerY = targetSystem.getY();
-
-		for (SystemData system: game.getGenerator().getSystems()) {
-			drawSystem(system, centerX, centerY, 3.0f, false);
-		}
-		// Make sure the target system is rendered on top...
-		drawSystem(targetSystem, centerX, centerY, 3.0f, true);
 		setUpForDisplay();
 	}
 
 	@Override
 	public void activate() {
 		initGl();
-		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300,
+			800, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		MathHelper.getRandomRotationAngles(targetDelta);
 		if (acceptMission != null) {
-			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, acceptIcon);
-			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, declineIcon);
+			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, pics.get("yes_icon"));
+			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, pics.get("no_icon"));
 		}
 	}
 
@@ -265,8 +202,7 @@ public class ConstrictorScreen extends AliteScreen {
 
 	@Override
 	public void loadAssets() {
-		acceptIcon = game.getGraphics().newPixmap("yes_icon.png");
-		declineIcon = game.getGraphics().newPixmap("no_icon.png");
+		addPictures("yes_icon", "no_icon");
 	}
 
 	@Override
@@ -286,14 +222,6 @@ public class ConstrictorScreen extends AliteScreen {
 		if (constrictor != null) {
 			constrictor.dispose();
 			constrictor = null;
-		}
-		if (acceptIcon != null) {
-			acceptIcon.dispose();
-			acceptIcon = null;
-		}
-		if (declineIcon != null) {
-			declineIcon.dispose();
-			declineIcon = null;
 		}
 	}
 

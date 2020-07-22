@@ -42,7 +42,6 @@ import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteBut
 //hence they never need to be serialized, either.
 public class TutBasicFlying extends TutorialScreen {
 
-	private static final int TUTORIAL_INDEX = 6;
 	private static final String YELLOW_TARGET_ID = "yellow_target";
 	private static final String BLUE_TARGET_ID = "blue_target";
 	private static final String BUOY_ID = "buoy";
@@ -55,7 +54,7 @@ public class TutBasicFlying extends TutorialScreen {
 	private SpaceObject dockingBuoy;
 
 	protected TutBasicFlying(FlightScreen flight) {
-		super(true);
+		super(6, true);
 		this.flight = flight;
 
 		ObjectSpawnManager.SHUTTLES_ENABLED = false;
@@ -73,7 +72,7 @@ public class TutBasicFlying extends TutorialScreen {
 		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
 		game.getPlayer().setLegalValue(0);
 		game.getPlayer().setCondition(Condition.GREEN);
-		game.getCobra().setFuel(70);
+		game.getCobra().setFuel(game.getCobra().getMaxFuel());
 		Settings.resetButtonPosition();
 
 		initLine_00();
@@ -117,7 +116,6 @@ public class TutBasicFlying extends TutorialScreen {
 		this(FlightScreen.createScreen(dis));
 		currentLineIndex = dis.readInt();
 		resetShipPosition = dis.readBoolean();
-
 		yellowTarget = (SpaceObject) flight.findObjectById(YELLOW_TARGET_ID);
 		if (yellowTarget != null) {
 			yellowTarget.setSaving(false);
@@ -134,7 +132,7 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private TutorialLine addTopLine(String text) {
-		return addLine(TUTORIAL_INDEX, text).setX(250).setWidth(1420).setY(20).setHeight(140);
+		return addLine(text).setX(250).setWidth(1420).setY(20).setHeight(140);
 	}
 
 	private void initLine_00() {
@@ -221,7 +219,7 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_10() {
-		addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_10,
+		addLine(L.string(R.string.tutorial_basic_flying_10,
 			L.string(Settings.controlMode == ShipControl.ACCELEROMETER ||
 			   Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER ?
 				R.string.tutorial_basic_flying_10a :
@@ -234,7 +232,7 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_11() {
-		addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_11,
+		addLine(L.string(R.string.tutorial_basic_flying_11,
 			L.string(Settings.controlMode == ShipControl.ACCELEROMETER ||
 			   Settings.controlMode == ShipControl.ALTERNATIVE_ACCELEROMETER ?
 				R.string.tutorial_basic_flying_11a :
@@ -267,7 +265,7 @@ public class TutBasicFlying extends TutorialScreen {
 		}
 		if (flight.getInGameManager().getLaserManager().isUnderCross(target)) {
 			SoundManager.play(Assets.identify);
-			line.setFinished();
+			setFinished(line);
 		}
 	}
 
@@ -318,7 +316,7 @@ public class TutBasicFlying extends TutorialScreen {
 		startFlightWithButtons();
 		if (target.getPosition().distanceSq(flight.getInGameManager().getShip().getPosition()) < 360000000L) {
 			SoundManager.play(Assets.identify);
-			line.setFinished();
+			setFinished(line);
 		}
 	}
 
@@ -352,7 +350,7 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_21() {
-		final TutorialLine line = addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_21))
+		final TutorialLine line = addLine(L.string(R.string.tutorial_basic_flying_21))
 			.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
@@ -361,9 +359,9 @@ public class TutBasicFlying extends TutorialScreen {
 			AliteButtons.OVERRIDE_MISSILE = true;
 			AliteButtons.OVERRIDE_LASER = false;
 			startFlight();
-			if (yellowTarget.getDestructionCallbacks().isEmpty()) {
-				yellowTarget.addDestructionCallback(5, (IMethodHook) deltaTime1 -> {
-					line.setFinished();
+			if (!yellowTarget.hasDestructionCallback()) {
+				yellowTarget.addDestructionCallback((IMethodHook) deltaTime1 -> {
+					setFinished(line);
 					if (flight.findObjectById(BLUE_TARGET_ID) == null) {
 						currentLineIndex+= 5;
 					}
@@ -389,7 +387,7 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_24() {
-		final TutorialLine line = addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_24))
+		final TutorialLine line = addLine(L.string(R.string.tutorial_basic_flying_24))
 				.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
@@ -400,13 +398,13 @@ public class TutBasicFlying extends TutorialScreen {
 			startFlight();
 			// collided with the target
 			if (flight.findObjectById(BLUE_TARGET_ID) == null) {
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex+= 2;
 			}
 			if (game.getCobra().isMissileTargetting()) {
-				line.setFinished();
+				setFinished(line);
 			} else if (isBlueTargetLocked()) {
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex++;
 			}
 		}).setFinishHook(deltaTime -> finishFlight());
@@ -429,16 +427,16 @@ public class TutBasicFlying extends TutorialScreen {
 			startFlight();
 			// collided with the target
 			if (flight.findObjectById(BLUE_TARGET_ID) == null) {
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex++;
 			}
 			if (game.getCobra().getMissiles() == 0) {
-				line.setFinished();
+				setFinished(line);
 				currentLineIndex+= 2;
 			}
 			if (isBlueTargetLocked()) {
 				SoundManager.play(Assets.identify);
-				line.setFinished();
+				setFinished(line);
 			}
 		}).setFinishHook(deltaTime -> {
 			flight.getInGameManager().setPlayerControl(false);
@@ -448,7 +446,7 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_26() {
-		final TutorialLine line = addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_26))
+		final TutorialLine line = addLine(L.string(R.string.tutorial_basic_flying_26))
 			.setHeight(180).setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(new IMethodHook() {
@@ -471,7 +469,7 @@ public class TutBasicFlying extends TutorialScreen {
 				AliteButtons.OVERRIDE_MISSILE = false;
 				AliteButtons.OVERRIDE_LASER = true;
 				startFlight();
-				if (!blueTarget.getDestructionCallbacks().isEmpty()) {
+				if (blueTarget.hasDestructionCallback()) {
 					return;
 				}
 				// blueTarget is being serialized!!
@@ -479,7 +477,7 @@ public class TutBasicFlying extends TutorialScreen {
 				// The destruction callback must have the reference to the tutorial line,
 				// which is not serializable. This causes problems, of course.
 				// Solution: Delete the destruction callbacks before calling write object....
-				blueTarget.addDestructionCallback(6, new IMethodHook() {
+				blueTarget.addDestructionCallback(new IMethodHook() {
 					private static final long serialVersionUID = 170549515892319600L;
 					transient TutorialLine tLine = line;
 
@@ -505,7 +503,7 @@ public class TutBasicFlying extends TutorialScreen {
 
 					@Override
 					public void execute(float deltaTime) {
-						tLine.setFinished();
+						setFinished(tLine);
 					}
 
 				});
@@ -557,7 +555,7 @@ public class TutBasicFlying extends TutorialScreen {
 			if (dockingBuoy.getPosition().distanceSq(flight.getInGameManager().getShip().getPosition()) < 40000) {
 				SoundManager.play(Assets.identify);
 				dockingBuoy.setRemove(true);
-				line.setFinished();
+				setFinished(line);
 			}
 		}).setFinishHook(deltaTime -> finishFlight());
 
@@ -570,7 +568,7 @@ public class TutBasicFlying extends TutorialScreen {
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			startFlightWithButtons();
 			if (flight.getInGameManager().getLaserManager().isUnderCross(flight.getInGameManager().getStation())) {
-				line.setFinished();
+				setFinished(line);
 			}
 		}).setFinishHook(deltaTime -> {
 			setButtons(false);
@@ -585,7 +583,7 @@ public class TutBasicFlying extends TutorialScreen {
 	}
 
 	private void initLine_34() {
-		final TutorialLine line = addLine(TUTORIAL_INDEX, L.string(R.string.tutorial_basic_flying_34))
+		final TutorialLine line = addLine(L.string(R.string.tutorial_basic_flying_34))
 			.setMustRetainEvents();
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
@@ -609,7 +607,7 @@ public class TutBasicFlying extends TutorialScreen {
 		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
 		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
 		game.getPlayer().setCondition(Condition.GREEN);
-		game.getCobra().setFuel(70);
+		game.getCobra().setFuel(game.getCobra().getMaxFuel());
 		game.getCobra().setMissiles(4);
 
 		flight.activate();
@@ -667,22 +665,16 @@ public class TutBasicFlying extends TutorialScreen {
 		renderText();
 	}
 
-	private void rotate(GraphicObject go, float x, float y, float z) {
-		go.applyDeltaRotation((float) Math.toDegrees(x),
-							  (float) Math.toDegrees(y),
-							  (float) Math.toDegrees(z));
+	private void rotate(SpaceObject go, float x, float y, float z) {
+		if (go != null && go.getHullStrength() > 0 && !go.mustBeRemoved()) {
+			go.applyDeltaRotation((float) Math.toDegrees(x), (float) Math.toDegrees(y), (float) Math.toDegrees(z));
+		}
 	}
 
 	private void rotateBuoys(float deltaTime) {
-		if (yellowTarget != null && yellowTarget.getHullStrength() > 0 && !yellowTarget.mustBeRemoved()) {
-			rotate(yellowTarget, 3 * deltaTime, 5 * deltaTime, 2 * deltaTime);
-		}
-		if (blueTarget != null && blueTarget.getHullStrength() > 0 && !blueTarget.mustBeRemoved()) {
-			rotate(blueTarget, 2 * deltaTime, 3 * deltaTime, 5 * deltaTime);
-		}
-		if (dockingBuoy != null && dockingBuoy.getHullStrength() > 0 && !dockingBuoy.mustBeRemoved()) {
-			rotate(dockingBuoy, 5 * deltaTime, 2 * deltaTime, 3 * deltaTime);
-		}
+		rotate(yellowTarget, 3 * deltaTime, 5 * deltaTime, 2 * deltaTime);
+		rotate(blueTarget, 2 * deltaTime, 3 * deltaTime, 5 * deltaTime);
+		rotate(dockingBuoy, 5 * deltaTime, 2 * deltaTime, 3 * deltaTime);
 	}
 
 	public void doUpdate(float deltaTime) {

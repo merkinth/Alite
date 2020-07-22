@@ -23,6 +23,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Locale;
+import java.util.Objects;
 
 import android.opengl.Matrix;
 import de.phbouillon.android.framework.IMethodHook;
@@ -37,16 +38,16 @@ public class GraphicObject implements Serializable {
 	protected Vector3f rightVector;
 	protected Vector3f upVector;
 	protected Vector3f forwardVector;
-	private Vector3f initialDirection = new Vector3f(1.0f, 1.0f, 1.0f);
-	private Vector3f temp = new Vector3f(1.0f, 1.0f, 1.0f);
+	private final Vector3f initialDirection = new Vector3f(1.0f, 1.0f, 1.0f);
+	private final Vector3f temp = new Vector3f(1.0f, 1.0f, 1.0f);
 	private float speed;
 	private float targetSpeed;
 
 	private String id;
 
-	private float[] currentMatrix = new float[16];
-	private float[] tempMatrix = new float[16];
-	private float[] tempMatrix2 = new float[16];
+	private final float[] currentMatrix = new float[16];
+	private final float[] tempMatrix = new float[16];
+	private final float[] tempMatrix2 = new float[16];
 	private boolean cached = false;
 	private IMethodHook updater = null;
 
@@ -434,4 +435,15 @@ public class GraphicObject implements Serializable {
 		Matrix.multiplyMV(resultVector4, resultVectorOffset, matrix4x4, 0, resultVector4, resultVectorOffset);
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		return id.equals(((GraphicObject) o).id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
 }

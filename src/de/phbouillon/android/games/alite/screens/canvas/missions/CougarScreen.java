@@ -62,7 +62,7 @@ public class CougarScreen extends AliteScreen {
 				cougar = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Cougar);
 				cougar.setPosition(200, 0, -700.0f);
 				mission.setPlayerAccepts(true);
-				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 1);
+				mission.setTargetPlanet(game.getPlayer().getCurrentSystem(), 1);
 			} else {
 				AliteLog.e("Unknown State", "Invalid state variable has been passed to CougarScreen: " + state);
 			}
@@ -111,7 +111,7 @@ public class CougarScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		initGl();
-		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 200, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 200, 800, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		MathHelper.getRandomRotationAngles(targetDelta);
 	}
 

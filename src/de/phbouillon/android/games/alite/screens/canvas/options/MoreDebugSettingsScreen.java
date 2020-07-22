@@ -33,23 +33,40 @@ import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class MoreDebugSettingsScreen extends AliteScreen {
-	private Button startConstrictorMission;
-	private Button startThargoidDocumentsMission;
-	private Button startSupernovaMission;
-	private Button startCougarMission;
-	private Button startThargoidBaseMission;
-	private Button clearMission;
-    private Button back;
+	private final Button[] buttons = new Button[7];
 
 	@Override
 	public void activate() {
-		startConstrictorMission = Button.createGradientTitleButton(50, 130, 1620, 100, L.string(R.string.options_more_debug_start_constrictor_mission));
-		startThargoidDocumentsMission = Button.createGradientTitleButton(50, 250, 1620, 100, L.string(R.string.options_more_debug_start_thargoid_documents_mission));
-		startSupernovaMission = Button.createGradientTitleButton(50, 370, 1620, 100, L.string(R.string.options_more_debug_start_supernova_mission));
-		startCougarMission = Button.createGradientTitleButton(50, 490, 1620, 100, L.string(R.string.options_more_debug_start_cougar_mission));
-		startThargoidBaseMission = Button.createGradientTitleButton(50, 610, 1620, 100, L.string(R.string.options_more_debug_start_thargoid_base_mission));
-		clearMission = Button.createGradientTitleButton(50, 730, 1620, 100, L.string(R.string.options_more_debug_clear_mission));
-		back = Button.createGradientTitleButton(50, 970, 1620, 100, L.string(R.string.options_back));
+		buttons[0] = Button.createGradientTitleButton(50, 130, 1620, 100,
+				L.string(R.string.options_more_debug_start_constrictor_mission))
+			.setEvent(b -> startMission(ConstrictorMission.ID));
+		buttons[1] = Button.createGradientTitleButton(50, 250, 1620, 100,
+				L.string(R.string.options_more_debug_start_thargoid_documents_mission))
+			.setEvent(b -> startMission(ThargoidDocumentsMission.ID));
+		buttons[2] = Button.createGradientTitleButton(50, 370, 1620, 100,
+				L.string(R.string.options_more_debug_start_supernova_mission))
+			.setEvent(b -> startMission(SupernovaMission.ID));
+		buttons[3] = Button.createGradientTitleButton(50, 490, 1620, 100,
+				L.string(R.string.options_more_debug_start_cougar_mission))
+			.setEvent(b -> startMission(CougarMission.ID));
+		buttons[4] = Button.createGradientTitleButton(50, 610, 1620, 100,
+				L.string(R.string.options_more_debug_start_thargoid_base_mission))
+			.setEvent(b -> startMission(ThargoidStationMission.ID));
+		buttons[5] = Button.createGradientTitleButton(50, 730, 1620, 100,
+				L.string(R.string.options_more_debug_clear_mission))
+			.setEvent(b -> {
+				MissionManager.getInstance().clearActiveMissions();
+				String completedMissions = "";
+				for (Mission m: MissionManager.getInstance().getMissions()) {
+					if (m.isCompleted()) {
+						completedMissions += m.getClass().getSimpleName() + "; ";
+					}
+				}
+				showLargeMessageDialog(L.string(R.string.options_more_debug_completed_missions, completedMissions));
+
+			});
+		buttons[6] = Button.createGradientTitleButton(50, 970, 1620, 100, L.string(R.string.options_back))
+			.setEvent(b -> newScreen = new DebugSettingsScreen());
 	}
 
 	@Override
@@ -57,89 +74,33 @@ public class MoreDebugSettingsScreen extends AliteScreen {
 		Graphics g = game.getGraphics();
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle(L.string(R.string.title_more_debug_options));
-
-		startConstrictorMission.render(g);
-		startThargoidDocumentsMission.render(g);
-		startSupernovaMission.render(g);
-		startCougarMission.render(g);
-		startThargoidBaseMission.render(g);
-		clearMission.render(g);
-		back.render(g);
+		for (Button b : buttons) {
+			b.render(g);
+		}
 	}
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		if (touch.type != TouchEvent.TOUCH_UP) {
-			return;
+		for (Button b : buttons) {
+			if (b.isPressed(touch)) {
+				b.onEvent();
+				return;
+			}
 		}
-		if (startConstrictorMission.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			game.getCobra().clearSpecialCargo();
-			game.getPlayer().clearMissions();
+	}
+
+	private void startMission(int id) {
+		game.getCobra().clearSpecialCargo();
+		for (int i = 1; i < id; i++) {
+			MissionManager.getInstance().get(i).done();
+		}
+		MissionManager.getInstance().get(id).resetStarted();
+		if (id == ConstrictorMission.ID) {
 			game.getPlayer().setIntergalacticJumpCounter(1);
 			game.getPlayer().setJumpCounter(62);
-			MissionManager.getInstance().get(ConstrictorMission.ID).resetStarted();
-			return;
-		}
-		if (startThargoidDocumentsMission.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			game.getCobra().clearSpecialCargo();
-			game.getPlayer().clearMissions();
-			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
-			MissionManager.getInstance().get(ThargoidDocumentsMission.ID).resetStarted();
+		} else {
 			game.getPlayer().resetIntergalacticJumpCounter();
 			game.getPlayer().setJumpCounter(63);
-			return;
-		}
-		if (startSupernovaMission.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			game.getCobra().clearSpecialCargo();
-			game.getPlayer().clearMissions();
-			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
-			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
-			MissionManager.getInstance().get(SupernovaMission.ID).resetStarted();
-			game.getPlayer().resetIntergalacticJumpCounter();
-			game.getPlayer().setJumpCounter(63);
-			return;
-		}
-		if (startCougarMission.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			game.getCobra().clearSpecialCargo();
-			game.getPlayer().clearMissions();
-			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
-			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
-			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(SupernovaMission.ID));
-			MissionManager.getInstance().get(CougarMission.ID).resetStarted();
-			game.getPlayer().resetIntergalacticJumpCounter();
-			game.getPlayer().setJumpCounter(63);
-			return;
-		}
-		if (startThargoidBaseMission.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			game.getCobra().clearSpecialCargo();
-			game.getPlayer().clearMissions();
-			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ConstrictorMission.ID));
-			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(ThargoidDocumentsMission.ID));
-			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(SupernovaMission.ID));
-			game.getPlayer().addCompletedMission(MissionManager.getInstance().get(CougarMission.ID));
-			MissionManager.getInstance().get(ThargoidStationMission.ID).resetStarted();
-			game.getPlayer().resetIntergalacticJumpCounter();
-			game.getPlayer().setJumpCounter(63);
-			return;
-		}
-		if (clearMission.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			game.getPlayer().getActiveMissions().clear();
-			String completedMissions = "";
-			for (Mission m: game.getPlayer().getCompletedMissions()) {
-				completedMissions += m.getClass().getSimpleName() + "; ";
-			}
-			showLargeMessageDialog(L.string(R.string.options_more_debug_completed_missions, completedMissions));
-			return;
-		}
-		if (back.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			newScreen = new DebugSettingsScreen();
 		}
 	}
 

@@ -24,9 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.graphics.Color;
+import android.graphics.Point;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.Pixmap;
+import de.phbouillon.android.framework.Screen;
+import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.Button.TextPosition;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
@@ -39,17 +41,11 @@ import de.phbouillon.android.games.alite.screens.canvas.options.OptionsScreen;
 public class LibraryScreen extends AliteScreen {
 	private final List<Button> button = new ArrayList<>();
 	private List<TocEntry> entries;
-	private Pixmap buttonBackground;
-	private Pixmap buttonBackgroundPushed;
-	private Pixmap searchIcon;
 	private Button searchButton;
-	private int yPosition = 0;
-	private int startY;
-	private int startX;
-	private int lastY;
-	private int maxY;
-	private float deltaY = 0.0f;
+	private final ScrollPane scrollPane = new ScrollPane(0, 80, AliteConfig.DESKTOP_WIDTH, 980,
+		() -> new Point(AliteConfig.SCREEN_WIDTH, getHeight()));
 	private String currentFilter;
+	private int entryIndexToCenter = -1;
 
 	// default public constructor is required for navigation bar
 	@SuppressWarnings("unused")
@@ -62,50 +58,58 @@ public class LibraryScreen extends AliteScreen {
 
 	public LibraryScreen(String currentFilter, int yPosition) {
 		this.currentFilter = currentFilter;
-		this.yPosition = yPosition;
+		scrollPane.position.y = yPosition;
 	}
 
 	@Override
 	public void activate() {
 		searchButton = Button.createGradientRegularButton(1375, 980, 320, 100, L.string(R.string.library_btn_search))
-			.setPixmap(searchIcon)
+			.setPixmap(pics.get("search_icon"))
 			.setTextPosition(TextPosition.RIGHT);
 
 		try {
-			entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
+			entries = Toc.read(L.raw(Toc.TOC_FILENAME)).getEntries(currentFilter);
 			filter();
 			buildTocButtons(entries);
-			setMaxY();
+			if (entryIndexToCenter >= 0) {
+				scrollPane.position.y = entryIndexToCenter < 4 ? 0 : Math.min((entryIndexToCenter - 3) * 140, getHeight() - 900);
+				entryIndexToCenter = -1;
+			}
 		} catch (IOException e) {
 			AliteLog.e("[ALITE] Library", "Error reading Library TOC file.", e);
 		}
+	}
+
+	public Screen ensureVisible(int index) {
+		entryIndexToCenter = index;
+		return this;
 	}
 
 	private boolean filter() throws IOException {
 		if (currentFilter == null) {
 			return false;
 		}
-		entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
+		entries = Toc.read(L.raw(Toc.TOC_FILENAME)).getEntries(currentFilter);
 		if (entries.isEmpty()) {
 			currentFilter = null;
-			entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
+			entries = Toc.read(L.raw(Toc.TOC_FILENAME)).getEntries(currentFilter);
 			return true;
 		}
 		return false;
 	}
 
-	private void setMaxY() {
-		Button last = button.get(button.size() - 1);
-		maxY = last.getY() + last.getHeight() - 870;
-		if (maxY < 0) {
-			maxY = 0;
+	private int getHeight() {
+		if (button.isEmpty()) {
+			return 0;
 		}
+		Button last = button.get(button.size() - 1);
+		return last.getY() + last.getHeight();
 	}
 
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		ScreenBuilder.writeString(dos, currentFilter);
-		dos.writeInt(yPosition);
+		dos.writeInt(scrollPane.position.y);
 	}
 
 	@Override
@@ -119,54 +123,25 @@ public class LibraryScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		if (touch.type == TouchEvent.TOUCH_DOWN && touch.pointer == 0) {
-			startX = touch.x;
-			startY = lastY = touch.y;
-			deltaY = 0;
-		}
-		if (touch.type == TouchEvent.TOUCH_DRAGGED && touch.pointer == 0) {
-			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
-				return;
-			}
-			yPosition += lastY - touch.y;
-			if (yPosition < 0) {
-				yPosition = 0;
-			}
-			if (yPosition > maxY) {
-				yPosition = maxY;
-			}
-			lastY = touch.y;
-		}
-		if (touch.type == TouchEvent.TOUCH_UP && touch.pointer == 0) {
-			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
-				return;
-			}
-			if (Math.abs(startX - touch.x) < 20 &&
-				Math.abs(startY - touch.y) < 20) {
-				if (searchButton.isTouched(touch.x, touch.y)) {
-					SoundManager.play(Assets.click);
-					popupTextInput(L.string(R.string.library_search_text), currentFilter, -1);
-				} else if (touch.y > 79) {
-					int index = 0;
-					for (Button b: button) {
-						if (b.isTouched(touch.x, touch.y)) {
-							newScreen = new LibraryPageScreen(entries, index, currentFilter);
-							SoundManager.play(Assets.click);
-						}
-						index++;
-					}
+		scrollPane.handleEvent(touch);
+
+		if (searchButton.isPressed(touch)) {
+			popupTextInput(L.string(R.string.library_search_text), currentFilter, -1);
+		} else if (!scrollPane.isSweepingGesture(touch)) {
+			int index = 0;
+			for (Button b: button) {
+				if (b.isPressed(touch)) {
+					newScreen = new LibraryPageScreen(entries, index, currentFilter);
+					return;
 				}
+				index++;
 			}
-		}
-		if (touch.type == TouchEvent.TOUCH_SWEEP && touch.x < AliteConfig.DESKTOP_WIDTH) {
-			deltaY = touch.y2;
 		}
 	}
 
 	private void find(String text) {
 		boolean messageSet = checkCheat(text);
-		yPosition = 0;
-		deltaY = 0;
+		scrollPane.moveToTop();
 		try {
 			if (!text.trim().isEmpty()) {
 				currentFilter = text;
@@ -176,13 +151,12 @@ public class LibraryScreen extends AliteScreen {
 				}
 			} else {
 				currentFilter = null;
-				entries = Toc.read(L.raw(Toc.DIRECTORY_LIBRARY + "toc.xml")).getEntries(currentFilter);
+				entries = Toc.read(L.raw(Toc.TOC_FILENAME)).getEntries(currentFilter);
 			}
 		} catch (IOException e) {
 			AliteLog.e("[ALITE] Library", "Error reading Library TOC file.", e);
 		}
 		buildTocButtons(entries);
-		setMaxY();
 	}
 
 	private boolean checkCheat(String text) {
@@ -244,12 +218,13 @@ public class LibraryScreen extends AliteScreen {
 			return;
 		}
 		for (TocEntry entry: entries) {
+			GLText font = Settings.watchedTocEntries.contains(entry.getFileName()) ? Assets.regularFont : Assets.boldItalicFont;
 			Button b = Button.createPictureButton(20 + entry.getLevel() * 100, 80 + button.size() * 140,
-				1680 - entry.getLevel() * 100, 120, buttonBackground)
-				.setPushedBackground(buttonBackgroundPushed)
+				1680 - entry.getLevel() * 100, 120, pics.get("catalog_button"))
+				.setPushedBackground(pics.get("catalog_button_pushed"))
 				.setTextData(computeTextDisplay(game.getGraphics(), entry.getName(), 30,
-				30 + (120 - (int) Assets.regularFont.getSize() >> 1),
-				1680, 0, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
+				30 + (120 - (int) font.getSize() >> 1), 1680, font,
+					ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION)));
 			if (entry.getLevel() != 0) {
 				b.setButtonEnd(50);
 			}
@@ -264,50 +239,18 @@ public class LibraryScreen extends AliteScreen {
 		displayTitle(L.string(R.string.title_library));
 
 		searchButton.render(g);
-		if (deltaY != 0) {
-			boolean neg = deltaY < 0;
-			deltaY += deltaY > 0 ? -8.0f * deltaTime : deltaY < 0 ? 8.0f * deltaTime : 0;
-			if (neg && deltaY > 0 || !neg && deltaY < 0) {
-				deltaY = 0;
-			}
-			yPosition -= deltaY;
-			if (yPosition < 0) {
-				yPosition = 0;
-			}
-			if (yPosition > maxY) {
-				yPosition = maxY;
-			}
-		}
+		scrollPane.scrollingFree();
 
 		g.setClip(0, 100, -1, 1000);
 		for (Button value : button) {
-			value.setYOffset(-yPosition).render(g);
+			value.setYOffset(-scrollPane.position.y).render(g);
 		}
 		g.setClip(-1, -1, -1, -1);
 	}
 
 	@Override
-	public void dispose() {
-		super.dispose();
-		if (buttonBackground != null) {
-			buttonBackground.dispose();
-			buttonBackground = null;
-		}
-		if (searchIcon != null) {
-			searchIcon.dispose();
-			searchIcon = null;
-		}
-		if (buttonBackgroundPushed != null) {
-			buttonBackgroundPushed.dispose();
-			buttonBackgroundPushed = null;
-		}
-	}
-
-	@Override
 	public void loadAssets() {
-		buttonBackground = game.getGraphics().newPixmap("catalog_button.png");
-		searchIcon = game.getGraphics().newPixmap("search_icon.png");
-		buttonBackgroundPushed = game.getGraphics().newPixmap("catalog_button_pushed.png");
+		addPictures("catalog_button", "search_icon", "catalog_button_pushed");
 		super.loadAssets();
 	}
 

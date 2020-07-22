@@ -50,6 +50,7 @@ public class EndMissionScreen extends AliteScreen {
 				welcomeLine = new MissionLine(MissionManager.DIRECTORY_SOUND_MISSION + "01.mp3", L.string(R.string.mission_elite_welcome_commander));
 				missionLine = new MissionLine(null, L.string(R.string.mission_elite_mission_description));
 				congratulationsLine = new MissionLine(null, L.string(R.string.mission_elite_congratulations));
+				mission.missionCompleted();
 			} else {
 				AliteLog.e("Unknown State", "Invalid state variable has been passed to EndMissionScreen: " + state);
 			}
@@ -88,9 +89,9 @@ public class EndMissionScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		if (welcomeLine != null) {
-			welcomeText = computeTextDisplay(game.getGraphics(), welcomeLine.getText(), 50, 200, 800, 40, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT));
-			missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
-			congratulationsText = computeTextDisplay(game.getGraphics(), congratulationsLine.getText(), 50, 800, 800, 40, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT));
+			welcomeText = computeTextDisplay(game.getGraphics(), welcomeLine.getText(), 50, 200, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT));
+			missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+			congratulationsText = computeTextDisplay(game.getGraphics(), congratulationsLine.getText(), 50, 800, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT));
 		}
 	}
 

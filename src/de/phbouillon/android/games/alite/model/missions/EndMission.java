@@ -27,6 +27,8 @@ import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.EndMissionScreen;
 
 public class EndMission extends Mission {
+	private static final long serialVersionUID = -8487990448967204124L;
+
 	public static final int ID = 6;
 
 	public EndMission() {
@@ -41,13 +43,6 @@ public class EndMission extends Mission {
 
 	@Override
 	protected void acceptMission(boolean accept) {
-		alite.getPlayer().addCompletedMission(this);
-		active = false;
-	}
-
-	@Override
-	public void onMissionComplete() {
-		active = false;
 	}
 
 	@Override
@@ -55,18 +50,8 @@ public class EndMission extends Mission {
 	}
 
 	@Override
-	public byte [] save() {
-		return new byte[0];
-	}
-
-	@Override
 	public AliteScreen getMissionScreen() {
 		return new EndMissionScreen(0);
-	}
-
-	@Override
-	public AliteScreen checkForUpdate() {
-		return null;
 	}
 
 	@Override

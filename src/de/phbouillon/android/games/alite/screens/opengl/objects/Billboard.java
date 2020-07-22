@@ -27,7 +27,7 @@ import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.screens.opengl.sprites.SpriteData;
+import de.phbouillon.android.framework.SpriteData;
 
 public class Billboard extends AliteObject {
 	private static final long serialVersionUID = 6210999939098179291L;

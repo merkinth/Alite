@@ -1,12 +1,5 @@
 package de.phbouillon.android.games.alite.model.generator;
 
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.L;
-
-import java.nio.charset.Charset;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
  *
@@ -24,6 +17,13 @@ import java.security.NoSuchAlgorithmException;
  * along with this program.  If not, see
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
+
+import de.phbouillon.android.games.alite.AliteLog;
+import de.phbouillon.android.games.alite.L;
+
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class StringUtil {
 	public static final Charset CHARSET = Charset.forName("UTF-8");

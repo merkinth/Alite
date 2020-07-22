@@ -94,6 +94,7 @@
 	"thargoid_a" = {
 		like_ship = "thargoid";
 		model = "thargoid_a.dat";
+		roles = "Thargoid(0.1)";
 	};
 
 	"thargon" = {
@@ -117,6 +118,7 @@
 	"thargon_a" = {
 		like_ship = "thargon";
 		model = "thargon_a.dat";
+		roles = "Thargon(0.1)";
 	};
 
 	"boa_class_cruiser" = {
@@ -299,6 +301,16 @@
 		roles = "Trader Defender";
 	};
 
+	"fer_de_lance_enemy" = {
+		name = "Fer-De-Lance Lightspeeder";
+		like_ship = "fer_de_lance";
+		max_energy = 180.0;
+		has_ecm = 1.0;
+		aggression_level = 10;
+		bounty = 100;
+		roles = "Pirate(0.1)";
+	};
+
 	"cobra_mk_i" = {
 		name = "Cobra Mk I";
 		max_flight_speed = 317.3;
@@ -352,6 +364,15 @@
 		);
 		model = "python.dat";
 		roles = "Trader Defender";
+	};
+
+	"python_enemy" = {
+		like_ship = "python";
+		max_energy = 500.0;
+		has_ecm = 1.0;
+		aggression_level = 10;
+		bounty = 200;
+		roles = "Pirate(0.1)";
 	};
 
 	"anaconda" = {
@@ -709,6 +730,7 @@
 		max_flight_roll = 2.25;
 		max_energy = 1024.0;
 		has_ecm = 1.0;
+		has_cloaking_device = 1.0;
 		aggression_level = 25;
 		bounty = 5000;
 		max_cargo = 1;

@@ -73,6 +73,7 @@ public class GLText {
 	// --Members--//
 	private SpriteBatch batch; // Batch Renderer
 
+	private Typeface typeface;
 	private int fontPadX;
 	private int fontPadY; // Font Padding (Pixels; On Each Side, ie. Doubled on Both X+Y Axis)
 
@@ -141,6 +142,7 @@ public class GLText {
 	}
 
 	private GLText load(Typeface tf, int size, int givenSize, int padX, int padY) {
+		typeface = tf;
 		// setup requested values
 		fontPadX = padX; // Set Requested X Axis Padding
 		fontPadY = padY; // Set Requested Y Axis Padding
@@ -367,5 +369,9 @@ public class GLText {
 
 	public float getSize() {
 		return givenFontSize;
+	}
+
+	public Typeface getTypeface() {
+		return typeface;
 	}
 }

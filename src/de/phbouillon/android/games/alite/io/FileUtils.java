@@ -32,10 +32,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 import android.annotation.SuppressLint;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.L;
-import de.phbouillon.android.games.alite.R;
+import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.CommanderData;
 import de.phbouillon.android.games.alite.model.Equipment;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
@@ -159,12 +156,13 @@ public class FileUtils {
     };
 
 	private static final String ENCRYPTION = "Blowfish";
-	private static final int COMMANDER_FILE_FORMAT_VERSION = 3;
+	private static final int COMMANDER_FILE_FORMAT_VERSION = 4;
 
 	private Cipher cipher;
-	private Alite game;
+	private final Alite game;
 
 	// allowed max. value is 31, after that new field has to be used for version number
+	// from version 4 format changed to json, so it will never be binary incompatibility problems again
 	private byte fileFormatVersion;
 
 	private static final String AB = "0123456789abcdefghijklmnopqrstuvwxyz_";
@@ -252,8 +250,9 @@ public class FileUtils {
 	}
 
 	private void writeString(DataOutputStream dos, String string) throws IOException {
-		dos.writeByte(string.getBytes().length);
-		dos.write(string.getBytes());
+		byte[] bytes = string.getBytes();
+		dos.writeByte(bytes.length);
+		dos.write(bytes);
 	}
 
 	private String readStringWithLength(DataInputStream dis) throws IOException {
@@ -309,8 +308,13 @@ public class FileUtils {
 		game.getPlayer().setName(loadVersionAndPlayerName(dis));
 		if (fileFormatVersion <= 2) {
 			loadCommanderUnderV3(dis);
-		} else {
+		} else if (fileFormatVersion == 3) {
 			loadCommanderV3(dis);
+		} else {
+			int len = dis.readInt();
+			byte[] buf = new byte[len];
+			dis.read(buf, 0, len);
+			game.fromJson(buf);
 		}
 		AliteLog.d("[ALITE] loadCommander", String.format("Loaded Commander (v%d) '%s', galaxyNumber: %d",
 			fileFormatVersion, game.getPlayer().getName(), game.getGenerator().getCurrentGalaxy()));
@@ -350,7 +354,7 @@ public class FileUtils {
 		setSystemsToRaxxla(dis.readInt(), dis.readInt());
 
 		AliteLog.d("LOADING COMMANDER", "Getting IJC, JC, and SCs");
-		player.setIntergalacticJumpCounter(dis.readInt());
+		player.setIntergalacticJumpCounterSinceLastMission(dis.readInt());
 		player.setJumpCounter(dis.readInt());
 		int x = dis.readInt();
 		int y = dis.readInt();
@@ -370,10 +374,10 @@ public class FileUtils {
 		cobra.setLaser(PlayerCobra.DIR_REAR, EquipmentStore.get().getEquipmentByHash(dis.readInt()));
 		cobra.setLaser(PlayerCobra.DIR_LEFT, EquipmentStore.get().getEquipmentByHash(dis.readInt()));
 
-		player.setCheater(readByte(dis) != 0);
+		player.setCheater(dis.readBoolean());
 		player.setKillCount(dis.readInt());
 
-		player.clearMissions();
+		MissionManager.getInstance().clearActiveMissions();
 		AliteLog.d("LOADING COMMANDER", "Loading Missions");
 		int activeMissionCount = dis.readInt();
 		AliteLog.d("Loading Commander", "Active missions: " + activeMissionCount);
@@ -389,7 +393,6 @@ public class FileUtils {
 			m.load(dis);
 			if (!missionIds.contains(missionId)) {
 				missionIds.add(missionId);
-				player.addActiveMission(m);
 				AliteLog.d("Loading Commander", "Active mission: " + m.getClass().getName());
 			} else {
 				AliteLog.d("Warning: Duplicate mission", "  Duplicate mission: " + m.getClass().getName() + " -- ignoring.");
@@ -403,10 +406,7 @@ public class FileUtils {
 					" - skipping. The commander file seems to be broken.");
 				continue;
 			}
-			if (missionIds.contains(missionId)) {
-				player.removeActiveMission(m);
-			}
-			player.addCompletedMission(m);
+			m.done();
 		}
 
 		val = dis.readInt();
@@ -417,8 +417,8 @@ public class FileUtils {
 			long price = dis.readLong();
 			long unpunishedWeightInGrams = dis.readLong();
 			if (good != null) {
-				cobra.setTradeGood(good, Weight.grams(weightInGrams), price);
-				cobra.addUnpunishedTradeGood(good, Weight.grams(unpunishedWeightInGrams));
+				cobra.setTradeGood(good, Weight.grams(weightInGrams), price)
+					.addUnpunished(Weight.grams(unpunishedWeightInGrams), 0);
 			}
 		}
 		player.loadVisitedPlanets(dis);
@@ -468,7 +468,7 @@ public class FileUtils {
 		cobra.setRetroRocketsUseCount(dis.readInt());
 		setSystemsToRaxxla(dis.readInt(), dis.readInt());
 		AliteLog.d("LOADING COMMANDER", "Getting IJC, JC, and SCs");
-		player.setIntergalacticJumpCounter(dis.readInt());
+		player.setIntergalacticJumpCounterSinceLastMission(dis.readInt());
 		player.setJumpCounter(dis.readInt());
 		int grams = dis.readInt();
 		if (grams != 0) {
@@ -512,7 +512,7 @@ public class FileUtils {
 		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.NAVAL_ENERGY_UNIT), (equipment & 1) > 0);
 		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.CLOAKING_DEVICE), (equipment & 2) > 0);
 		setEquipped(cobra, EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_JAMMER), (equipment & 4) > 0);
-		player.setCheater(readByte(dis) != 0);
+		player.setCheater(dis.readBoolean());
 		readByte(dis); // Placeholder for "special equipment"
 		readByte(dis); // Placeholder for "special equipment"
 		dis.readInt(); // Placeholder for "special equipment"
@@ -524,7 +524,7 @@ public class FileUtils {
 		byte[] buffer = new byte[23];
 		dis.read(buffer, 0, 23);
 
-		player.clearMissions();
+		MissionManager.getInstance().clearActiveMissions();
 		AliteLog.d("LOADING COMMANDER", "Loading Missions");
 		try {
 			int activeMissionCount = dis.readInt();
@@ -541,7 +541,6 @@ public class FileUtils {
 				m.load(dis);
 				if (!missionIds.contains(missionId)) {
 					missionIds.add(missionId);
-					player.addActiveMission(m);
 					AliteLog.d("Loading Commander", "  Active mission: " + m.getClass().getName());
 				} else {
 					AliteLog.d("Warning: Duplicate mission", "  Duplicate mission: " + m.getClass().getName() + " -- ignoring.");
@@ -555,10 +554,7 @@ public class FileUtils {
 						" - skipping. The commander file seems to be broken.");
 					continue;
 				}
-				if (missionIds.contains(missionId)) {
-					player.removeActiveMission(m);
-				}
-				player.addCompletedMission(m);
+				m.done();
 			}
 
 			for (TradeGood good : TradeGoodStore.get().goods()) {
@@ -566,7 +562,7 @@ public class FileUtils {
 					long price = dis.readLong();
 					InventoryItem item = cobra.getInventoryItemByGood(good);
 					if (item != null) {
-						cobra.setTradeGood(good, item.getWeight(), price);
+						item.set(item.getWeight(), price);
 					}
 				}
 			}
@@ -575,7 +571,8 @@ public class FileUtils {
 					long weightInGrams = dis.readLong();
 					InventoryItem item = cobra.getInventoryItemByGood(good);
 					if (item != null) {
-						cobra.setUnpunishedTradeGood(good, Weight.grams(weightInGrams));
+						item.resetUnpunished();
+						item.addUnpunished(Weight.grams(weightInGrams), 0);
 					}
 				}
 			}
@@ -679,178 +676,11 @@ public class FileUtils {
 	}
 
 	public final void saveCommander(DataOutputStream dos) throws IOException {
-		if (COMMANDER_FILE_FORMAT_VERSION <= 2) {
-			saveCommanderUnderV3(dos);
-		} else {
-			saveCommanderV3(dos);
-		}
-	}
-
-	private void saveCommanderV3(DataOutputStream dos) throws IOException {
-		Player player = game.getPlayer();
-		GalaxyGenerator generator = game.getGenerator();
-		PlayerCobra cobra = player.getCobra();
-		int marketFluct = player.getMarket().getFluct();
 		dos.writeByte(COMMANDER_FILE_FORMAT_VERSION);
-		writeString(dos, player.getName());
-		dos.writeByte(generator.getCurrentGalaxy());
-		int currentSystem = player.getCurrentSystem() == null ? 0 : player.getCurrentSystem().getIndex();
-		int hyperspaceSystem = player.getHyperspaceSystem() == null ? 0 : player.getHyperspaceSystem().getIndex();
-		dos.writeByte(currentSystem % 256);
-		dos.writeByte(hyperspaceSystem % 256);
-		dos.writeByte(cobra.getFuel());
-		dos.writeLong(player.getCash());
-		dos.writeByte(player.getRating().ordinal());
-		dos.writeByte(player.getLegalStatus().ordinal());
-		dos.writeLong(game.getGameTime());
-		dos.writeInt(player.getScore());
-		dos.write(marketFluct);
-		dos.writeInt(TradeGoodStore.get().goods().size());
-		for (TradeGood good: TradeGoodStore.get().goods()) {
-			dos.writeInt(good.getId());
-			dos.write(player.getMarket().getQuantity(good));
-		}
-		dos.writeInt(player.getLegalValue());
-		dos.writeInt(cobra.getRetroRocketsUseCount());
-		dos.writeInt(currentSystem / 256);
-		dos.writeInt(hyperspaceSystem / 256);
-		dos.writeInt(player.getIntergalacticJumpCounter());
-		dos.writeInt(player.getJumpCounter());
-		if (player.getCurrentSystem() == null && player.getPosition() != null) {
-			dos.writeInt(player.getPosition().x);
-			dos.writeInt(player.getPosition().y);
-		} else {
-			dos.writeLong(0);
-		}
-		dos.writeByte(cobra.getMissiles());
-		dos.writeInt(cobra.getInstalledEquipment().size());
-		for (Equipment e : cobra.getInstalledEquipment()) {
-			dos.writeInt(e.getId());
-		}
-		dos.writeInt(cobra.getLaser(PlayerCobra.DIR_FRONT) != null ? cobra.getLaser(PlayerCobra.DIR_FRONT).getId() : -1);
-		dos.writeInt(cobra.getLaser(PlayerCobra.DIR_RIGHT) != null ? cobra.getLaser(PlayerCobra.DIR_RIGHT).getId() : -1);
-		dos.writeInt(cobra.getLaser(PlayerCobra.DIR_REAR) != null ? cobra.getLaser(PlayerCobra.DIR_REAR).getId() : -1);
-		dos.writeInt(cobra.getLaser(PlayerCobra.DIR_LEFT) != null ? cobra.getLaser(PlayerCobra.DIR_LEFT).getId() : -1);
-
-		dos.writeByte(player.isCheater() ? 1 : 0);
-		dos.writeInt(player.getKillCount());
-		dos.writeInt(player.getActiveMissions().size());
-		dos.writeInt(player.getCompletedMissions().size());
-		for (Mission m: player.getActiveMissions()) {
-			dos.writeInt(m.getId());
-			dos.write(m.save());
-		}
-		for (Mission m: player.getCompletedMissions()) {
-			dos.writeInt(m.getId());
-		}
-		dos.writeInt(cobra.getInventory().size());
-		for (InventoryItem item: cobra.getInventory()) {
-			dos.writeInt(item.getGood().getId());
-			dos.writeLong((int) item.getWeight().getWeightInGrams());
-			dos.writeLong(item.getPrice());
-			dos.writeLong(item.getUnpunished().getWeightInGrams());
-		}
-		player.saveVisitedPlanets(dos);
-	}
-
-	private void saveCommanderUnderV3(DataOutputStream dos) throws IOException {
-		Player player = game.getPlayer();
-		GalaxyGenerator generator = game.getGenerator();
-		PlayerCobra cobra = player.getCobra();
-		int marketFluct = player.getMarket().getFluct();
-		dos.writeByte(COMMANDER_FILE_FORMAT_VERSION);
-		writeString(dos, player.getName());
-		dos.writeByte(generator.getCurrentGalaxy());
-		dos.writeChar(0); // seed 0
-		dos.writeChar(0); // seed 1
-		dos.writeChar(0); // seed 2
-		int currentSystem = player.getCurrentSystem() == null ? 0 : player.getCurrentSystem().getIndex();
-		int hyperspaceSystem = player.getHyperspaceSystem() == null ? 0 : player.getHyperspaceSystem().getIndex();
-		dos.writeByte(currentSystem % 256);
-		dos.writeByte(hyperspaceSystem % 256);
-		dos.writeByte(cobra.getFuel());
-		dos.writeLong(player.getCash());
-		dos.writeByte(player.getRating().ordinal());
-		dos.writeByte(player.getLegalStatus().ordinal());
-		dos.writeLong(game.getGameTime());
-		dos.writeInt(player.getScore());
-		dos.write(marketFluct);
-		for (TradeGood good : TradeGoodStore.get().goods()) {
-			if (!good.isSpecialGood()) {
-				dos.write(player.getMarket().getQuantity(good));
-			}
-		}
-		for (TradeGood good : TradeGoodStore.get().goods()) {
-			if (!good.isSpecialGood()) {
-				InventoryItem item = cobra.getInventoryItemByGood(good);
-				dos.writeInt(item == null ? 0 : (int) item.getWeight().getWeightInGrams());
-			}
-		}
-		dos.writeInt(player.getLegalValue());
-		dos.writeInt(cobra.getRetroRocketsUseCount());
-		dos.writeInt(currentSystem / 256);
-		dos.writeInt(hyperspaceSystem / 256);
-		dos.writeInt(player.getIntergalacticJumpCounter());
-		dos.writeInt(player.getJumpCounter());
-		InventoryItem item = cobra.getInventoryItemByGood(TradeGoodStore.get().getGoodById(TradeGoodStore.THARGOID_DOCUMENTS));
-		dos.writeInt(item == null ? 0 : (int) item.getWeight().getWeightInGrams());
-		item = cobra.getInventoryItemByGood(TradeGoodStore.get().getGoodById(TradeGoodStore.UNHAPPY_REFUGEES));
-		dos.writeInt(item == null ? 0 : (int) item.getWeight().getWeightInGrams());
-		if (player.getCurrentSystem() == null && player.getPosition() != null) {
-			dos.writeInt(player.getPosition().x);
-			dos.writeInt(player.getPosition().y);
-		} else {
-			dos.writeLong(0);
-		}
-		dos.writeLong(0); // Placeholder for "special cargo"
-		dos.writeLong(0); // Placeholder for "special cargo"
-		dos.writeLong(0); // Placeholder for "special cargo"
-		dos.writeByte(cobra.getMissiles() + (cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.EXTRA_ENERGY_UNIT)) ? 8 : 0));
-		int equipment = (cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.LARGE_CARGO_BAY))      ?   1 : 0) +
-			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_SYSTEM))          ?   2 : 0) +
-			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.FUEL_SCOOP))          ?   4 : 0) +
-			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.ESCAPE_CAPSULE))      ?   8 : 0) +
-			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.ENERGY_BOMB))         ?  16 : 0) +
-			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.DOCKING_COMPUTER))    ?  32 : 0) +
-			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE)) ?  64 : 0) +
-			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.RETRO_ROCKETS))       ? 128 : 0);
-		dos.writeByte(equipment);
-		dos.writeByte(cobra.getLaserValue(EquipmentStore.PULSE_LASER) + (cobra.getLaserValue(EquipmentStore.BEAM_LASER) << 4));
-		dos.writeByte(cobra.getLaserValue(EquipmentStore.MINING_LASER) + (cobra.getLaserValue(EquipmentStore.MILITARY_LASER) << 4));
-		equipment = (cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.NAVAL_ENERGY_UNIT)) ? 1 : 0) +
-			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.CLOAKING_DEVICE)) ? 2 : 0) +
-			(cobra.isEquipmentInstalled(EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_JAMMER)) ? 4 : 0);
-		dos.writeByte(equipment);
-		dos.writeByte(player.isCheater() ? 1 : 0);
-		dos.writeByte(0); // Placeholder for "special equipment"
-		dos.writeByte(0); // Placeholder for "special equipment"
-		dos.writeInt(0); // Placeholder for "special equipment"
-		dos.writeByte(0); // Placeholder for number of kills to next "Right On, Commander"-Msg.
-		dos.writeShort(0); // Placeholder for number of kills to next "Good Shooting, Commander"-Msg.
-		dos.writeInt(player.getKillCount());
-		// Dummy String: Deprecated statistics filename
-		writeString(dos, "1234567890123456789012");
-		dos.writeInt(player.getActiveMissions().size());
-		dos.writeInt(player.getCompletedMissions().size());
-		for (Mission m: player.getActiveMissions()) {
-			dos.writeInt(m.getId());
-			dos.write(m.save());
-		}
-		for (Mission m: player.getCompletedMissions()) {
-			dos.writeInt(m.getId());
-		}
-		for (TradeGood good : TradeGoodStore.get().goods()) {
-			if (!good.isSpecialGood()) {
-				item = cobra.getInventoryItemByGood(good);
-				dos.writeLong(item == null ? 0 : item.getPrice());
-			}
-		}
-		for (TradeGood good : TradeGoodStore.get().goods()) {
-			if (!good.isSpecialGood()) {
-				item = cobra.getInventoryItemByGood(good);
-				dos.writeLong(item == null ? 0 : item.getUnpunished().getWeightInGrams());
-			}
-		}
+		writeString(dos, game.getPlayer().getName());
+		byte[] bytes = game.toJson().getBytes();
+		dos.writeInt(bytes.length);
+		dos.write(bytes);
 	}
 
 	private String determineOldestAutosaveSlot() {

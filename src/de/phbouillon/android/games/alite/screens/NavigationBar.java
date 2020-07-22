@@ -22,8 +22,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.graphics.Point;
 import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
+import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.AndroidGame;
@@ -32,19 +34,22 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 public class NavigationBar {
-	private int position;
 	private int activeIndex;
 	private int pendingIndex = -1;
 	private boolean active = true;
 
-	static class NavigationEntry {
-		String title;
+	private final ScrollPane scrollPane = new ScrollPane(AliteConfig.DESKTOP_WIDTH, 0, AliteConfig.SCREEN_WIDTH,
+		AliteConfig.SCREEN_HEIGHT, () -> new Point(AliteConfig.SCREEN_WIDTH, getHeight()));
+
+	private static class NavigationEntry {
+		int titleId;
 		Pixmap image;
 		String navigationTarget;
 		boolean visible;
+		int notificationNumber;
 
-		NavigationEntry(String title, Pixmap image, String navigationTarget) {
-			this.title = title;
+		NavigationEntry(int titleId, Pixmap image, String navigationTarget) {
+			this.titleId = titleId;
 			this.image = image;
 			this.navigationTarget = navigationTarget;
 			visible = true;
@@ -54,7 +59,6 @@ public class NavigationBar {
 	private final List <NavigationEntry> targets = new ArrayList<>();
 
 	public NavigationBar() {
-		position = 0;
 		Alite game = Alite.get();
 		Assets.launchIcon    = game.getGraphics().newPixmap("navigation_icons/launch_icon.png");
 		Assets.statusIcon    = game.getGraphics().newPixmap("navigation_icons/status_icon.png");
@@ -65,6 +69,7 @@ public class NavigationBar {
 		Assets.galaxyIcon    = game.getGraphics().newPixmap("navigation_icons/galaxy_icon.png");
 		Assets.planetIcon    = game.getGraphics().newPixmap("navigation_icons/planet_icon.png");
 		Assets.diskIcon      = game.getGraphics().newPixmap("navigation_icons/disk_icon.png");
+		Assets.achievementsIcon = game.getGraphics().newPixmap("navigation_icons/achievements_icon.png");
 		Assets.optionsIcon   = game.getGraphics().newPixmap("navigation_icons/options_icon.png");
 		Assets.libraryIcon   = game.getGraphics().newPixmap("navigation_icons/library_icon.png");
 		Assets.academyIcon   = game.getGraphics().newPixmap("navigation_icons/academy_icon.png");
@@ -72,47 +77,43 @@ public class NavigationBar {
 		Assets.quitIcon      = game.getGraphics().newPixmap("navigation_icons/quit_icon.png");
 	}
 
-	private void ensureVisible() {
-		position = 0;
-		int realSize = targets.size();
+	public void ensureVisible(int index) {
+		scrollPane.position.y = 0;
+		int height = getHeight();
+		boolean found = (scrollPane.position.y + AliteConfig.SCREEN_HEIGHT) / AliteConfig.NAVIGATION_BAR_SIZE > index + 1;
+		while (!found) {
+			scrollPane.position.y += AliteConfig.NAVIGATION_BAR_SIZE;
+			if (scrollPane.position.y > height - AliteConfig.SCREEN_HEIGHT) {
+				found = true;
+				scrollPane.position.y = height - AliteConfig.SCREEN_HEIGHT;
+			} else {
+				found = (scrollPane.position.y + AliteConfig.SCREEN_HEIGHT) / AliteConfig.NAVIGATION_BAR_SIZE > index + 1;
+			}
+		}
+
+	}
+
+	private int getHeight() {
+		int height = targets.size();
 		for (NavigationEntry target : targets) {
 			if (!target.visible) {
-				realSize--;
+				height--;
 			}
 		}
-		boolean found = (position + AliteConfig.SCREEN_HEIGHT) / AliteConfig.NAVIGATION_BAR_SIZE > activeIndex + 1;
-		while (!found) {
-			position += AliteConfig.NAVIGATION_BAR_SIZE;
-			if (position > AliteConfig.NAVIGATION_BAR_SIZE * realSize - AliteConfig.SCREEN_HEIGHT) {
-				found = true;
-				position = AliteConfig.NAVIGATION_BAR_SIZE * realSize - AliteConfig.SCREEN_HEIGHT;
-			} else {
-				found = (position + AliteConfig.SCREEN_HEIGHT) / AliteConfig.NAVIGATION_BAR_SIZE > activeIndex + 1;
-			}
-		}
-
-	}
-
-	public int getPosition() {
-		return position;
-	}
-
-	public void setPosition(int position) {
-		this.position = position;
+		return AliteConfig.NAVIGATION_BAR_SIZE * height;
 	}
 
 	public void setActive(boolean active) {
 		this.active = active;
 	}
 
-	public synchronized int add(String title, Pixmap image, String navigationTarget) {
-		NavigationEntry entry = new NavigationEntry(title, image, navigationTarget);
-		targets.add(entry);
+	public synchronized int add(int titleId, Pixmap image, String navigationTarget) {
+		targets.add(new NavigationEntry(titleId, image, navigationTarget));
 		return targets.size()-1;
 	}
 
 	public void setFlightMode(boolean b) {
-		targets.get(Alite.NAVIGATION_BAR_LAUNCH).title = L.string(b ? R.string.navbar_front : R.string.navbar_launch);
+		targets.get(Alite.NAVIGATION_BAR_LAUNCH).titleId = b ? R.string.navbar_front : R.string.navbar_launch;
 		targets.get(Alite.NAVIGATION_BAR_DISK).visible = !b;
 		targets.get(Alite.NAVIGATION_BAR_ACADEMY).visible = !b;
 		targets.get(Alite.NAVIGATION_BAR_HACKER).visible = !b && Alite.get().isHackerActive();
@@ -125,6 +126,15 @@ public class NavigationBar {
 	public boolean isVisible(int index) {
 		return targets.get(index).visible;
 	}
+
+	public void setNotificationNumber(int index, int number) {
+		targets.get(index).notificationNumber = number;
+	}
+
+	public int getNotificationNumber(int index) {
+		return targets.get(index).notificationNumber;
+	}
+
 
 	public void render(Graphics g) {
 		if (AndroidGame.resetting) {
@@ -140,15 +150,16 @@ public class NavigationBar {
 				counter++;
 				continue;
 			}
-			if ((counter + 1) * AliteConfig.NAVIGATION_BAR_SIZE < position) {
+			if ((counter + 1) * AliteConfig.NAVIGATION_BAR_SIZE < scrollPane.position.y) {
 				counter++;
 				positionCounter++;
 				continue;
 			}
-			int halfWidth  = g.getTextWidth(entry.title, Assets.regularFont) >> 1;
-			int halfHeight = g.getTextHeight(entry.title, Assets.regularFont) >> 1;
+			String title = L.string(entry.titleId);
+			int halfWidth  = g.getTextWidth(title, Assets.regularFont) >> 1;
+			int halfHeight = g.getTextHeight(title, Assets.regularFont) >> 1;
 
-			int y = positionCounter * AliteConfig.NAVIGATION_BAR_SIZE - position + 1;
+			int y = positionCounter * AliteConfig.NAVIGATION_BAR_SIZE - scrollPane.position.y + 1;
 			int x = AliteConfig.DESKTOP_WIDTH;
 
 			g.diagonalGradientRect(x + 5, y + 5,
@@ -165,12 +176,15 @@ public class NavigationBar {
 				ColorScheme.get(counter == activeIndex ? ColorScheme.COLOR_SELECTED_COLORED_FRAME_LIGHT : ColorScheme.COLOR_FRAME_LIGHT),
 				ColorScheme.get(counter == activeIndex ? ColorScheme.COLOR_SELECTED_COLORED_FRAME_DARK :ColorScheme.COLOR_FRAME_DARK));
 
-			y = positionCounter * AliteConfig.NAVIGATION_BAR_SIZE;
+			y = positionCounter * AliteConfig.NAVIGATION_BAR_SIZE - scrollPane.position.y;
 			int yPos = entry.image == null ? (int) (y + (AliteConfig.NAVIGATION_BAR_SIZE >> 1) -
-				halfHeight + Assets.regularFont.getSize() / 2) - position : y + AliteConfig.NAVIGATION_BAR_SIZE - position - 10;
-
-			g.drawText(entry.title, AliteConfig.DESKTOP_WIDTH + (AliteConfig.NAVIGATION_BAR_SIZE >> 1) - halfWidth, yPos,
+				halfHeight + Assets.regularFont.getSize() / 2) : y + AliteConfig.NAVIGATION_BAR_SIZE - 16;
+			g.drawText(title, AliteConfig.DESKTOP_WIDTH + (AliteConfig.NAVIGATION_BAR_SIZE >> 1) - halfWidth, yPos,
 				ColorScheme.get(counter == activeIndex ? ColorScheme.COLOR_SELECTED_TEXT : ColorScheme.COLOR_MESSAGE), Assets.regularFont);
+			if (entry.notificationNumber > 0) {
+				Pixmap number = g.getNotificationNumber(Assets.regularFont, entry.notificationNumber);
+				g.drawPixmap(number, x + AliteConfig.NAVIGATION_BAR_SIZE - 8 - number.getWidth(), y + 10);
+			}
 			counter++;
 			positionCounter++;
 		}
@@ -183,51 +197,25 @@ public class NavigationBar {
 
 	public void setActiveIndex(int newIndex) {
 		activeIndex = newIndex;
-		ensureVisible();
+		ensureVisible(activeIndex);
 	}
 
-	public void increasePosition(int delta) {
-		position += delta;
-		int realSize = targets.size();
-		for (NavigationEntry target : targets) {
-			if (!target.visible) {
-				realSize--;
-			}
-		}
-
-		if (position > AliteConfig.NAVIGATION_BAR_SIZE * realSize - AliteConfig.SCREEN_HEIGHT) {
-			position = AliteConfig.NAVIGATION_BAR_SIZE * realSize - AliteConfig.SCREEN_HEIGHT;
-		}
+	public Screen checkNavigationBar(TouchEvent event) {
+		scrollPane.handleEvent(event);
+		return event.type == TouchEvent.TOUCH_UP && active &&
+			!scrollPane.isSweepingGesture(event) ? touched(event.x, event.y) : null;
 	}
 
 	public void moveToTop() {
-		position = 0;
+		scrollPane.moveToTop();
 	}
 
 	public boolean isAtBottom() {
-		int realSize = targets.size();
-		for (NavigationEntry target : targets) {
-			if (!target.visible) {
-				realSize--;
-			}
-		}
-		return position == AliteConfig.NAVIGATION_BAR_SIZE * realSize - AliteConfig.SCREEN_HEIGHT;
+		return scrollPane.isAtBottom();
 	}
 
-	public void decreasePosition(int delta) {
-		position -= delta;
-		if (position < 0) {
-			position = 0;
-		}
-	}
-
-	public Screen touched(int x, int y) {
-		if (x < AliteConfig.DESKTOP_WIDTH || !active) {
-			return null;
-		}
-
-		int targetY = y + position;
-		int index = targetY / AliteConfig.NAVIGATION_BAR_SIZE;
+	private Screen touched(int x, int y) {
+		int index = (y + scrollPane.position.y) / AliteConfig.NAVIGATION_BAR_SIZE;
 		int realIndex = index;
 		for (int i = 0; i <= realIndex; i++) {
 			if (i >= targets.size()) {
@@ -251,7 +239,7 @@ public class NavigationBar {
 
 		NavigationEntry entry = targets.get(index);
 
-		if (L.string(R.string.navbar_front).equals(entry.title)) {
+		if (R.string.navbar_front == entry.titleId) {
 			SoundManager.play(Assets.click);
 			FlightScreen flightScreen = (FlightScreen) Alite.get().getCurrentScreen();
 			flightScreen.setForwardView();

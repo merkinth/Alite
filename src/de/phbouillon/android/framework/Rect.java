@@ -2,7 +2,7 @@ package de.phbouillon.android.framework;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -28,52 +28,56 @@ public class Rect implements Serializable {
 	private static final long serialVersionUID = -1844899453180875199L;
 
 	public float left;
-    public float top;
-    public float right;
-    public float bottom;
+	public float top;
+	public float right;
+	public float bottom;
 
-    private transient RectF rect;
-    
-    public Rect() {
-    }
-    
-    public Rect(float left, float top, float right, float bottom) {
-        this.left = left;
-        this.top = top;
-        this.right = right;
-        this.bottom = bottom;
-    }
+	private transient RectF rect;
 
-    public Rect(Rect r) {
-        if (r == null) {
-            left = top = right = bottom = 0.0f;
-        } else {
-            left = r.left;
-            top = r.top;
-            right = r.right;
-            bottom = r.bottom;
-        }
-    }
-    
-    public Rect(RectF r) {
-        if (r == null) {
-            left = top = right = bottom = 0.0f;
-        } else {
-            left = r.left;
-            top = r.top;
-            right = r.right;
-            bottom = r.bottom;
-        }
-    }  
-    
-    public RectF r() {
-    	if (rect == null) {
-    		rect = new RectF();
-    	}
-        rect.left = left;
-        rect.top = top;
-        rect.right = right;
-        rect.bottom = bottom;
-    	return rect;
-    }
+	public Rect() {
+	}
+
+	public Rect(float left, float top, float right, float bottom) {
+		this.left = left;
+		this.top = top;
+		this.right = right;
+		this.bottom = bottom;
+	}
+
+	public Rect(Rect r) {
+		if (r == null) {
+			left = top = right = bottom = 0.0f;
+		} else {
+			left = r.left;
+			top = r.top;
+			right = r.right;
+			bottom = r.bottom;
+		}
+	}
+
+	public Rect(RectF r) {
+		if (r == null) {
+			left = top = right = bottom = 0.0f;
+		} else {
+			left = r.left;
+			top = r.top;
+			right = r.right;
+			bottom = r.bottom;
+		}
+	}
+
+	public RectF r() {
+		if (rect == null) {
+			rect = new RectF();
+		}
+		rect.left = left;
+		rect.top = top;
+		rect.right = right;
+		rect.bottom = bottom;
+		return rect;
+	}
+
+	public static boolean inside(int x, float y, float left, float top, float right, float bottom) {
+		return left < right && top < bottom && x >= left && y >= top && x <= right && y <= bottom;
+	}
 }

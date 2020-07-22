@@ -29,6 +29,7 @@ import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.Equipment;
+import de.phbouillon.android.games.alite.model.Medal;
 import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
@@ -51,7 +52,8 @@ public class StatusScreen extends AliteScreen {
 	@Override
 	public void activate() {
 		setUpForDisplay();
-		game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
+		game.updateMedals();
+		game.setStatusOrAchievements();
 		game.getNavigationBar().resetPending();
 		for (Mission m: MissionManager.getInstance().getMissions()) {
 			if (m.missionStarts()) {
@@ -81,34 +83,38 @@ public class StatusScreen extends AliteScreen {
 		Player player = game.getPlayer();
 
 		g.drawText(L.string(R.string.status_present_system), 40, 150, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.status_hyperspace),     40, 190, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.status_condition),      40, 230, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.status_legal_status),   40, 270, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.status_rating),         40, 310, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.status_fuel),           40, 350, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.status_cash),           40, 390, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-		if (!player.getActiveMissions().isEmpty()) {
-			g.drawText(L.string(R.string.status_mission_objective), 750, 150, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
-			g.drawText(player.getActiveMissions().get(0).getObjective(), 750, 190,
-				ColorScheme.get(ColorScheme.COLOR_MISSION_OBJECTIVE), Assets.regularFont);
+		g.drawText(L.string(R.string.status_hyperspace),     40, 195, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_condition),      40, 240, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_legal_status),   40, 285, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_rating),         40, 330, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_fuel),           40, 375, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.status_cash),           40, 420, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		List<Mission> activeMissions = MissionManager.getInstance().getActiveMissions();
+		if (!activeMissions.isEmpty()) {
+			g.drawText(L.string(R.string.status_mission_objective), 795, 150,
+				ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+			displayText(g, computeTextDisplay(g, activeMissions.get(0).getObjective(), 795, 195,
+				AliteConfig.DESKTOP_WIDTH - 795, ColorScheme.get(ColorScheme.COLOR_MISSION_OBJECTIVE)));
 		}
 
 		if (player.getCurrentSystem() != null) {
-			g.drawText(player.getCurrentSystem().getName(), 400, 150, ColorScheme.get(ColorScheme.COLOR_CURRENT_SYSTEM_NAME), Assets.regularFont);
+			g.drawText(player.getCurrentSystem().getName(), 400, 150,
+				ColorScheme.get(ColorScheme.COLOR_CURRENT_SYSTEM_NAME), Assets.regularFont);
 		}
 		if (player.getHyperspaceSystem() != null) {
-			g.drawText(player.getHyperspaceSystem().getName(), 400, 190, ColorScheme.get(ColorScheme.COLOR_HYPERSPACE_SYSTEM_NAME), Assets.regularFont);
+			g.drawText(player.getHyperspaceSystem().getName(), 400, 195,
+				ColorScheme.get(ColorScheme.COLOR_HYPERSPACE_SYSTEM_NAME), Assets.regularFont);
 		}
-		g.drawText(player.getCondition().getName(), 400, 230, player.getCondition().getColor(),  Assets.regularFont);
-		g.drawText(player.getLegalStatus().getName(), 400, 270, ColorScheme.get(ColorScheme.COLOR_LEGAL_STATUS),  Assets.regularFont);
+		g.drawText(player.getCondition().getName(), 400, 240, player.getCondition().getColor(),  Assets.regularFont);
+		g.drawText(player.getLegalStatus().getName(), 400, 285, ColorScheme.get(ColorScheme.COLOR_LEGAL_STATUS),  Assets.regularFont);
 		g.drawText(player.getRating().getName() + L.string(R.string.status_score, player.getScore()),
-			400, 310, ColorScheme.get(ColorScheme.COLOR_RATING), Assets.regularFont);
-		g.drawText(L.getOneDecimalFormatString(R.string.status_fuel_value, player.getCobra().getFuel()), 400, 350,
+			400, 330, ColorScheme.get(ColorScheme.COLOR_RATING), Assets.regularFont);
+		g.drawText(L.getOneDecimalFormatString(R.string.status_fuel_value, player.getCobra().getFuel()), 400, 375,
 			ColorScheme.get(ColorScheme.COLOR_REMAINING_FUEL), Assets.regularFont);
-		g.drawText(L.getOneDecimalFormatString(R.string.cash_amount_value_currency, player.getCash()), 400, 390,
+		g.drawText(L.getOneDecimalFormatString(R.string.cash_amount_value_currency, player.getCash()), 400, 420,
 				ColorScheme.get(ColorScheme.COLOR_BALANCE), Assets.regularFont);
 		if (!(game.getCurrentScreen() instanceof FlightScreen)) {
-			g.drawText(L.string(R.string.status_visit_web_page, AliteConfig.ALITE_WEBSITE), 50, 1050,
+			g.drawUnderlinedText(L.string(R.string.status_visit_web_page, AliteConfig.ALITE_WEBSITE), 50, 1050,
 				ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
 		}
 	}
@@ -192,7 +198,8 @@ public class StatusScreen extends AliteScreen {
 	private void drawGameTime(final Graphics g) {
 		g.drawRect(SHIP_X + 800, SHIP_Y + 570, 300, 100, ColorScheme.get(ColorScheme.COLOR_MESSAGE));
 		int halfWidth = g.getTextWidth(L.string(R.string.status_game_time), Assets.regularFont) >> 1;
-		g.drawText(L.string(R.string.status_game_time), SHIP_X + 800 + 150 - halfWidth, SHIP_Y + 610, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
+		g.drawText(L.string(R.string.status_game_time), SHIP_X + 800 + 150 - halfWidth, SHIP_Y + 610,
+			ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
 		String text = getGameTime(game.getGameTime());
 		halfWidth = g.getTextWidth(text, Assets.regularFont) >> 1;
 		g.drawText(text, SHIP_X + 800 + 150 - halfWidth, SHIP_Y + 650, ColorScheme.get(ColorScheme.COLOR_MESSAGE), Assets.regularFont);
@@ -214,8 +221,12 @@ public class StatusScreen extends AliteScreen {
 		if (touch.type == TouchEvent.TOUCH_UP) {
 			if (!(game.getCurrentScreen() instanceof FlightScreen)) {
 				if (touch.x > 30 && touch.x < 960 && touch.y > 1020) {
-					Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(AliteConfig.ALITE_WEBSITE));
-					game.startActivityForResult(browserIntent, 0);
+					if (Medal.changeGameLevelValue(Medal.MEDAL_ID_WEB_SITE_VISITED, 1)) {
+						Settings.save(game.getFileIO());
+						game.updateMedals();
+					}
+					game.startActivityForResult(new Intent(Intent.ACTION_VIEW,
+						Uri.parse(AliteConfig.ALITE_WEBSITE)), 0);
 				}
 			}
 		}

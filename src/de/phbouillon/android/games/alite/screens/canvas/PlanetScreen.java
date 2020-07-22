@@ -38,17 +38,11 @@ import java.util.Locale;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class PlanetScreen extends AliteScreen {
 	private static final Vector3f PLANET_POSITION = new Vector3f(15000, -1000, -50000);
+	private static final String BACKGROUND = "metal2_2i";
 
-	private static Pixmap cobraRight;
-	private static Pixmap background;
+	private static Pixmap inhabitantLayer;
+
 	private PlanetSpaceObject planet;
-
-
-	private static Pixmap inhabitantBottomLayer;
-	private static Pixmap inhabitantTopLayer;
-	private Pixmap aig_temp1;
-	private Pixmap aig_temp2;
-
 	private TextData[] descriptionTextData;
 	private TextData[] inhabitantTextData;
 	private SystemData system;
@@ -63,9 +57,9 @@ public class PlanetScreen extends AliteScreen {
 	private int hig_noseType;
 	private int hig_earType;
 	private int hig_mouthType;
-	private Bitmap hig_humanImage;
-	private Canvas hig_composer;
-	private Paint hig_paint;
+	private Bitmap composedImage;
+	private Canvas composer;
+	private Paint paint;
 	private ColorFilter hig_skinModifier;
 	private ColorFilter hig_hairModifier;
 	private ColorFilter hig_lipModifier;
@@ -78,7 +72,7 @@ public class PlanetScreen extends AliteScreen {
 		if (system != null) {
 			inhabitantTextData = computeCenteredTextDisplay(game.getGraphics(), system.getInhabitants(), 20, 800, 400,
 				ColorScheme.get(ColorScheme.COLOR_INHABITANT_INFORMATION));
-			descriptionTextData = computeTextDisplay(game.getGraphics(), system.getDescription(), 450, 900, 1100, 40,
+			descriptionTextData = computeTextDisplay(game.getGraphics(), system.getDescription(), 450, 900, 1100,
 				ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		} else {
 			SoundManager.play(Assets.error);
@@ -90,11 +84,11 @@ public class PlanetScreen extends AliteScreen {
 
 	private ColorFilter adjustColor(char colorCode) {
 		switch (colorCode) {
-			case '0': return ColorFilterGenerator.adjustColor(100, 82);
-			case '1': return ColorFilterGenerator.adjustColor(100, -18);
-			case '2': return ColorFilterGenerator.adjustColor(100, 45);
-			case '3': return ColorFilterGenerator.adjustColor(100, -148);
-			case '4': return ColorFilterGenerator.adjustColor(100, 0, -100, 0);
+			case '0': return ColorFilterGenerator.adjustColor(100, 82); // green
+			case '1': return ColorFilterGenerator.adjustColor(100, -18); // red
+			case '2': return ColorFilterGenerator.adjustColor(100, 45); // yellow
+			case '3': return ColorFilterGenerator.adjustColor(100, -148); // blue
+			case '4': return ColorFilterGenerator.adjustColor(100, 0, -100, 0); // white
 		}
 		return null;
 	}
@@ -127,25 +121,27 @@ public class PlanetScreen extends AliteScreen {
 		return "";
 	}
 
-	private void computeAlienImage() {
+	private void computeAlienImage(String inhabitantCode) {
 		Graphics g = game.getGraphics();
-		String inhabitantCode = system.getInhabitantCode();
-		String basePath = "alien_icons/" + getRace(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_TYPE)) +
-			getType(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_APPEARANCE));
-		if (inhabitantCode.charAt(SystemData.INHABITANT_INDEX_RACE) == SystemData.INHABITANT_RACE_TREEARD ||
-				g.existsAssetsFile(basePath + "base.png")) {
-			if (inhabitantGenerationStep == 0 && inhabitantBottomLayer == null) {
-				aig_temp1 = g.newPixmap(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_RACE) ==
-					SystemData.INHABITANT_RACE_TREEARD ? "alien_icons/treeard.png" : basePath + "base.png");
-				g.applyFilterToPixmap(aig_temp1, adjustColor(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_COLOR)));
-			} else if (inhabitantGenerationStep == 1 && inhabitantTopLayer == null) {
-				aig_temp2 = g.newPixmap(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_RACE) ==
-					SystemData.INHABITANT_RACE_TREEARD ? "alien_icons/treeard.png" : basePath + "details.png");
+
+		if (inhabitantCode.charAt(SystemData.INHABITANT_INDEX_RACE) == SystemData.INHABITANT_RACE_TREEARD) {
+			if (inhabitantGenerationStep == 0 && inhabitantLayer == null) {
+				initImage();
+				composePart(g.newPixmap("alien_icons/treeard.png"), null);
+			}
+		} else {
+			String basePath = "alien_icons/" + getRace(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_TYPE)) +
+				getType(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_APPEARANCE));
+			if (inhabitantGenerationStep == 0 && inhabitantLayer == null) {
+				initImage();
+				composePart(g.newPixmap(basePath + "base.png"),
+					adjustColor(inhabitantCode.charAt(SystemData.INHABITANT_INDEX_COLOR)));
+			} else if (inhabitantGenerationStep == 1) {
+				composePart(g.newPixmap(basePath + "details.png"), null);
 			}
 		}
 		if (inhabitantGenerationStep == 2) {
-			inhabitantBottomLayer = aig_temp1;
-			inhabitantTopLayer = aig_temp2;
+			inhabitantLayer = game.getGraphics().newPixmap(composedImage, "inhabitantImage");
 			inhabitantGenerationStep = -1;
 		}
 		if (inhabitantGenerationStep >= 0) {
@@ -153,7 +149,28 @@ public class PlanetScreen extends AliteScreen {
 		}
 	}
 
-	private Pixmap load(String section, String gender, int type, int layer) {
+	public static Bitmap computeImage(String inhabitantCode) {
+		PlanetScreen screen = new PlanetScreen();
+		screen.addPictures(BACKGROUND);
+		if (inhabitantCode.charAt(SystemData.INHABITANT_INDEX_RACE) != SystemData.INHABITANT_RACE_HUMAN) {
+			screen.inhabitantGenerationStep = 0;
+			for (int i = 0; i <= 2; i++) {
+				screen.computeAlienImage(inhabitantCode);
+			}
+		} else {
+			screen.inhabitantGenerationStep = 1;
+			for (int i = 1; i <= 14; i++) {
+				screen.computeHumanImage(inhabitantCode);
+			}
+		}
+		Pixmap background = screen.pics.get(BACKGROUND);
+		Bitmap bitmap = Bitmap.createBitmap(inhabitantLayer.getBitmap(), 0, 0,
+			background.getWidth(), background.getHeight());
+		screen.dispose();
+		return bitmap;
+	}
+
+		private Pixmap load(String section, String gender, int type, int layer) {
 		Graphics g = game.getGraphics();
 		String fileName = "alien_icons/human/" + section + (gender == null ? "" : "/" + gender) + "/" + type + "_" + layer + ".png";
 		if (g.existsAssetsFile(fileName)) {
@@ -290,13 +307,11 @@ public class PlanetScreen extends AliteScreen {
 		if (filter != null) {
 			game.getGraphics().applyFilterToPixmap(pixmap, filter);
 		}
-		hig_composer.drawBitmap(pixmap.getBitmap(), 0, 0, hig_paint);
+		composer.drawBitmap(pixmap.getBitmap(), 0, 0, paint);
 		pixmap.dispose();
 	}
 
-	private void initComputeHumanImage() {
-		String inhabitantCode = system.getInhabitantCode();
-
+	private void initComputeHumanImage(String inhabitantCode) {
 		hig_subDir        = Integer.parseInt(inhabitantCode.substring(31, 32), 2) == 1 ? "m" : "f";
 		hig_bodyType      = Integer.parseInt(inhabitantCode.substring(28, 31), 2);
 		hig_faceType      = Integer.parseInt(inhabitantCode.substring(26, 28), 2);
@@ -311,13 +326,7 @@ public class PlanetScreen extends AliteScreen {
 		int hig_lipColorType = Integer.parseInt(inhabitantCode.substring(6, 11), 2);
 		int hig_hairColorType = Integer.parseInt(inhabitantCode.substring(8, 13), 2);
 
-		if (background == null) {
-			return;
-		}
-		Bitmap hig_bg = background.getBitmap();
-		hig_humanImage = hig_bg.copy(hig_bg.getConfig(), true);
-		hig_composer = new Canvas(hig_humanImage);
-		hig_paint = new Paint();
+		initImage();
 
 		hig_skinModifier = adjustSkinColor(hig_skinColorType);
 		hig_hairModifier = adjustHairColor(hig_hairColorType);
@@ -325,9 +334,16 @@ public class PlanetScreen extends AliteScreen {
 		hig_eyeModifier  = adjustEyeColor(hig_eyeColorType);
 	}
 
-	private void computeHumanImage() {
+	private void initImage() {
+		Bitmap hig_bg = pics.get(BACKGROUND).getBitmap();
+		composedImage = hig_bg.copy(hig_bg.getConfig(), true);
+		composer = new Canvas(composedImage);
+		paint = new Paint();
+	}
+
+	private void computeHumanImage(String inhabitantCode) {
 		switch (inhabitantGenerationStep) {
-		    case 1: initComputeHumanImage(); break;
+		    case 1: initComputeHumanImage(inhabitantCode); break;
 			case 2: composePart(load("hair",     hig_subDir, hig_hairType    + 1, 1), hig_hairModifier); break;
 			case 3: composePart(load("bodies",   hig_subDir, hig_bodyType    + 1, 1), hig_skinModifier); break;
 			case 4: composePart(load("bodies",   hig_subDir, hig_bodyType    + 1, 2), null); break;
@@ -343,24 +359,19 @@ public class PlanetScreen extends AliteScreen {
 		}
 		inhabitantGenerationStep++;
 		if (inhabitantGenerationStep == 14) {
-			inhabitantBottomLayer = game.getGraphics().newPixmap(hig_humanImage, "humanImage");
+			inhabitantLayer = game.getGraphics().newPixmap(composedImage, "inhabitantImage");
 			inhabitantGenerationStep = -1;
 		}
 	}
 
 	private void displayInhabitants() {
 		Graphics g = game.getGraphics();
-		g.drawPixmap(background, 20, 100);
-		if (inhabitantBottomLayer == null && inhabitantTopLayer == null) {
+		if (inhabitantLayer == null) {
+			g.drawPixmap(pics.get(BACKGROUND), 20, 100);
 			centerText(L.string(R.string.planet_inhabitant_db_load1), 20, 400, 350, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 			centerText(L.string(R.string.planet_inhabitant_db_load2), 20, 400, 390, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		} else {
-			if (inhabitantBottomLayer != null) {
-				g.drawPixmap(inhabitantBottomLayer, 20, 100);
-			}
-			if (inhabitantTopLayer != null) {
-				g.drawPixmap(inhabitantTopLayer, 20, 100);
-			}
+			g.drawPixmap(inhabitantLayer, 20, 100);
 		}
 		g.rec3d(20, 100, 400, 650, 5, ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT),
 			ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK));
@@ -394,7 +405,7 @@ public class PlanetScreen extends AliteScreen {
 		g.drawText(system == null ? L.string(R.string.planet_population_unknown) : system.getPopulation(), 840, 270,
 			ColorScheme.get(ColorScheme.COLOR_POPULATION), Assets.regularFont);
 
-		g.drawPixmap(cobraRight, 450, 320);
+		g.drawPixmap(pics.get("cobra_right"), 450, 320);
 		g.drawArrow(720, 560, 1000, 560, ColorScheme.get(ColorScheme.COLOR_ARROW), Graphics.ArrowDirection.RIGHT);
 
 		int halfWidth = g.getTextWidth(L.string(R.string.planet_distance), Assets.regularFont) >> 1;
@@ -409,7 +420,7 @@ public class PlanetScreen extends AliteScreen {
 		halfWidth = g.getTextWidth(diameter, Assets.regularFont) >> 1;
 		g.drawText(diameter, 1370 - halfWidth, 280, ColorScheme.get(ColorScheme.COLOR_DIAMETER), Assets.regularFont);
 
-		int visits = game.getPlayer().getNumberOfVisits(system.getIndex());
+		int visits = game.getPlayer().getNumberOfVisits(system.getId());
 		if (visits > 0) {
 			g.drawText(L.string(R.string.planet_visit_info_number), 450, 310,
 				ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
@@ -418,7 +429,7 @@ public class PlanetScreen extends AliteScreen {
 			g.drawText(L.string(R.string.planet_visit_info_date), 450, 350,
 				ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 			Locale.setDefault(L.getInstance().getCurrentLocale());
-			g.drawText(DateUtils.getRelativeTimeSpanString(game.getPlayer().getLastVisitTime(system.getIndex())).toString(),
+			g.drawText(DateUtils.getRelativeTimeSpanString(game.getPlayer().getLastVisitTime(system.getId())).toString(),
 				840, 350, ColorScheme.get(ColorScheme.COLOR_POPULATION), Assets.regularFont);
 		}
 		g.drawText(L.string(R.string.planet_gnp), 450, 840,
@@ -440,13 +451,9 @@ public class PlanetScreen extends AliteScreen {
 		}
 		if (inhabitantGenerationStep >= 0 && system != null) {
 			if (system.getInhabitantCode().charAt(SystemData.INHABITANT_INDEX_RACE) != SystemData.INHABITANT_RACE_HUMAN) {
-				if (inhabitantGenerationStep == 0) {
-					aig_temp1 = null;
-					aig_temp2 = null;
-				}
-				computeAlienImage();
+				computeAlienImage(system.getInhabitantCode());
 			} else {
-				computeHumanImage();
+				computeHumanImage(system.getInhabitantCode());
 			}
 		}
 	}
@@ -466,14 +473,6 @@ public class PlanetScreen extends AliteScreen {
 	@Override
 	public void dispose() {
 		super.dispose();
-		if (cobraRight != null) {
-			cobraRight.dispose();
-			cobraRight = null;
-		}
-		if (background != null) {
-			background.dispose();
-			background = null;
-		}
 		disposeInhabitantLayers();
 		if (planet != null) {
 			planet.dispose();
@@ -484,15 +483,7 @@ public class PlanetScreen extends AliteScreen {
 	@Override
 	public void loadAssets() {
 		Graphics g = game.getGraphics();
-
-		if (cobraRight != null) {
-			cobraRight.dispose();
-		}
-		cobraRight = g.newPixmap("cobra_right.png");
-		if (background != null) {
-			background.dispose();
-		}
-		background = g.newPixmap("metal2_2i.png");
+		addPictures("cobra_right", BACKGROUND);
 		super.loadAssets();
 	}
 
@@ -508,13 +499,9 @@ public class PlanetScreen extends AliteScreen {
 	}
 
 	public static void disposeInhabitantLayers() {
-		if (inhabitantBottomLayer != null) {
-			inhabitantBottomLayer.dispose();
-			inhabitantBottomLayer = null;
-		}
-		if (inhabitantTopLayer != null) {
-			inhabitantTopLayer.dispose();
-			inhabitantTopLayer = null;
+		if (inhabitantLayer != null) {
+			inhabitantLayer.dispose();
+			inhabitantLayer = null;
 		}
 	}
 }

@@ -27,13 +27,7 @@ import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class TutorialSelectionScreen extends AliteScreen {
-	private Button introduction;
-	private Button trading;
-	private Button equipment;
-	private Button navigation;
-	private Button hud;
-	private Button basicFlying;
-	private Button advancedFlying;
+	private final Button[] buttons = new Button[7];
 
 	private Button createButton(int row, String text) {
 		return Button.createGradientTitleButton(50, 130 * (row + 1), 1620, 100, text);
@@ -41,13 +35,21 @@ public class TutorialSelectionScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		introduction   = createButton(0, L.string(R.string.tutorial_selection_introduction));
-		trading        = createButton(1, L.string(R.string.tutorial_selection_trading));
-		equipment      = createButton(2, L.string(R.string.tutorial_selection_equipment));
-		navigation     = createButton(3, L.string(R.string.tutorial_selection_navigation));
-		hud            = createButton(4, L.string(R.string.tutorial_selection_hud));
-		basicFlying    = createButton(5, L.string(R.string.tutorial_selection_basic_flying));
-		advancedFlying = createButton(6, L.string(R.string.tutorial_selection_advanced_flying));
+		game.updateMedals();
+		buttons[0] = createButton(0, L.string(R.string.tutorial_selection_introduction))
+			.setEvent(b -> newScreen = new TutIntroduction());
+		buttons[1] = createButton(1, L.string(R.string.tutorial_selection_trading))
+			.setEvent(b -> newScreen = new TutTrading());
+		buttons[2] = createButton(2, L.string(R.string.tutorial_selection_equipment))
+			.setEvent(b -> newScreen = new TutEquipment());
+		buttons[3] = createButton(3, L.string(R.string.tutorial_selection_navigation))
+			.setEvent(b -> newScreen = new TutNavigation());
+		buttons[4] = createButton(4, L.string(R.string.tutorial_selection_hud))
+			.setEvent(b -> newScreen = new TutHud((FlightScreen) null));
+		buttons[5] = createButton(5, L.string(R.string.tutorial_selection_basic_flying))
+			.setEvent(b -> newScreen = new TutBasicFlying((FlightScreen) null));
+		buttons[6] = createButton(6, L.string(R.string.tutorial_selection_advanced_flying))
+			.setEvent(b -> newScreen = new TutAdvancedFlying(0));
 	}
 
 	@Override
@@ -56,53 +58,18 @@ public class TutorialSelectionScreen extends AliteScreen {
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 
 		displayTitle(L.string(R.string.title_training_academy));
-		introduction.render(g);
-		trading.render(g);
-		equipment.render(g);
-		navigation.render(g);
-		hud.render(g);
-		basicFlying.render(g);
-		advancedFlying.render(g);
+		for (Button b : buttons) {
+			b.render(g);
+		}
 	}
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		if (touch.type != TouchEvent.TOUCH_UP) {
-			return;
-		}
-		if (introduction.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			newScreen = new TutIntroduction();
-			return;
-		}
-		if (trading.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			newScreen = new TutTrading();
-			return;
-		}
-		if (equipment.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			newScreen = new TutEquipment();
-			return;
-		}
-		if (navigation.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			newScreen = new TutNavigation();
-			return;
-		}
-		if (hud.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			newScreen = new TutHud((FlightScreen) null);
-			return;
-		}
-		if (basicFlying.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			newScreen = new TutBasicFlying((FlightScreen) null);
-			return;
-		}
-		if (advancedFlying.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			newScreen = new TutAdvancedFlying(0);
+		for (Button b : buttons) {
+			if (b.isPressed(touch)) {
+				b.onEvent();
+				return;
+			}
 		}
 	}
 

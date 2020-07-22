@@ -21,11 +21,8 @@ package de.phbouillon.android.games.alite.model.missions;
 import java.io.*;
 
 import de.phbouillon.android.framework.IMethodHook;
-import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
-import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ThargoidStationScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
@@ -76,21 +73,13 @@ public class ThargoidStationMission extends Mission implements Serializable {
 	}
 
 	@Override
-	protected boolean checkStart(Player player) {
-		return player.getCompletedMissions().contains(MissionManager.getInstance().get(CougarMission.ID)) &&
-			player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64;
-	}
-
-	@Override
 	protected void acceptMission(boolean accept) {
 		// The player can't decline this mission...
-		alite.getPlayer().addActiveMission(this);
 		state = 1;
 	}
 
 	@Override
 	public void onMissionComplete() {
-		active = false;
 		alite.getCobra().addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.ECM_JAMMER));
 	}
 
@@ -101,26 +90,23 @@ public class ThargoidStationMission extends Mission implements Serializable {
 
 	@Override
 	public AliteScreen checkForUpdate() {
-		if (alite.getPlayer().getCondition() != Condition.DOCKED || state < 1 || !started || !active) {
-			return null;
-		}
-		if (state == 3) {
-			return new ThargoidStationScreen(1);
-		}
-		return null;
+		return missionDidNotStart() || state != 3 ? null : new ThargoidStationScreen(1);
 	}
 
 
 	@Override
 	public TimedEvent getSpawnEvent(final ObjectSpawnManager manager) {
 		boolean result = positionMatchesTarget();
-		if ((state != 1 || result) && (state != 2 || !result)) {
-			return null;
-		}
 		// !result => Any system but the one where the player received the mission
 		// result => The precise system where the Alien Space Station
 		// was when the player first saw it. He escaped and now tries again...
-		state = 2;
+		if (state == 1 && !result) {
+			state = 2;
+			return null;
+		}
+		if (state != 2 || !result) {
+			return null;
+		}
 		TimedEvent event = new TimedEvent(10000000000L);
 		return event.addAlarmEvent(new IMethodHook() {
 			private static final long serialVersionUID = 5516217861394636289L;
@@ -132,11 +118,12 @@ public class ThargoidStationMission extends Mission implements Serializable {
 				station.setName(R.string.thargoid_station_name);
 				station.setHullStrength(1024);
 				station.denyAccess();
-				station.addDestructionCallback(2, new IMethodHook() {
+				station.addDestructionCallback(new IMethodHook() {
 					private static final long serialVersionUID = 6715650816893032921L;
 
 					@Override
 					public void execute(float deltaTime) {
+						manager.getInGameManager().setStation(null);
 						state = 3;
 					}
 
@@ -150,16 +137,9 @@ public class ThargoidStationMission extends Mission implements Serializable {
 		if (manager.isInTorus()) {
 			manager.leaveTorus();
 		}
-		SoundManager.play(Assets.com_conditionRed);
-		manager.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
+		manager.conditionRed();
 		conditionRedEvent.pause();
-		Vector3f spawnPosition = manager.getSpawnPosition();
-		int thargoidNum = alite.getPlayer().getRating().ordinal() < 3 ? 1 : Math.random() < 0.5 ? 2 : 3;
-		for (int i = 0; i < thargoidNum; i++) {
-			SpaceObject thargoid = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Thargoid);
-			thargoid.setSpawnDroneDistanceSq(manager.computeSpawnThargonDistanceSq());
-			manager.spawnEnemyAndAttackPlayer(thargoid, i, spawnPosition);
-		}
+		manager.spawnThargoids(alite.getPlayer().getRating().ordinal() < 3 ? 1 : Math.random() < 0.5 ? 2 : 3);
 	}
 
 	@Override
@@ -180,30 +160,26 @@ public class ThargoidStationMission extends Mission implements Serializable {
 
 	@Override
 	public TimedEvent getViperSpawnReplacementEvent(final ObjectSpawnManager objectSpawnManager) {
-		if (state == 2 && InGameManager.playerInSafeZone) {
-			return new LaunchThargoidFromStationEvent(objectSpawnManager, objectSpawnManager.getDelayToViperEncounter(), 0);
-		}
-		return null;
+		return state == 2 && InGameManager.playerInSafeZone && positionMatchesTarget() ?
+			new LaunchThargoidFromStationEvent(objectSpawnManager,
+				objectSpawnManager.getDelayToViperEncounter(), 0) : null;
 	}
 
 	@Override
 	public TimedEvent getShuttleSpawnReplacementEvent(final ObjectSpawnManager objectSpawnManager) {
-		if (state == 2) {
-			return new LaunchThargoidFromStationEvent(objectSpawnManager, objectSpawnManager.getDelayToShuttleEncounter(), 0);
-		}
-		return null;
+		return state == 2 && InGameManager.playerInSafeZone && positionMatchesTarget() ?
+			new LaunchThargoidFromStationEvent(objectSpawnManager,
+				objectSpawnManager.getDelayToShuttleEncounter(), 0) : null;
 	}
 
 	@Override
 	public TimedEvent getTraderSpawnReplacementEvent(final ObjectSpawnManager objectSpawnManager) {
-		if (state == 2) {
-			return new LaunchThargoidFromStationEvent(objectSpawnManager, objectSpawnManager.getDelayToViperEncounter(), 1);
-		}
-		return null;
+		return state == 2 && positionMatchesTarget() ? new LaunchThargoidFromStationEvent(objectSpawnManager,
+			objectSpawnManager.getDelayToViperEncounter(), 1) : null;
 	}
 
 	@Override
 	public String getObjective() {
-		return L.string(R.string.mission_thargoid_station_obj);
+		return L.string(R.string.mission_thargoid_station_obj, getTargetName());
 	}
 }

@@ -30,6 +30,8 @@ import de.phbouillon.android.games.alite.model.generator.StringUtil;
 public class Weight implements Comparable <Weight>, Serializable {
 	private static final long serialVersionUID = -7041624303034666651L;
 
+	public static final Weight ZERO_GRAMS = new Weight(0);
+
 	private final long grams;
 
 	private void writeObject(ObjectOutputStream out)
@@ -43,35 +45,31 @@ public class Weight implements Comparable <Weight>, Serializable {
     }
 
 	public static Weight unit(Unit u, long amount) {
-		switch (u) {
-			case TONNE: return tonnes(amount);
-			case KILOGRAM: return kilograms(amount);
-			case GRAM: return grams(amount);
-		}
-		return null;
+		return getWeight((u == null ? Unit.TONNE : u).getValue() * amount);
 	}
 
 	public static Weight tonnes(long t) {
-		return new Weight(t * Unit.TONNE.getValue());
+		return getWeight(t * Unit.TONNE.getValue());
 	}
 
 	public static Weight kilograms(long kg) {
-		return new Weight(kg * Unit.KILOGRAM.getValue());
+		return getWeight(kg * Unit.KILOGRAM.getValue());
 	}
 
 	public static Weight grams(long g) {
-		if (g < 0) {
-			g = 0;
-		}
-		return new Weight(g);
+		return getWeight(Math.max(g, 0));
+	}
+
+	private static Weight getWeight(long grams) {
+		return grams == 0 ? ZERO_GRAMS : new Weight(grams);
 	}
 
 	private Weight(long grams) {
 		this.grams = grams;
 	}
 
-	public Weight set(Weight weight) {
-		return grams(weight.getWeightInGrams());
+	private Weight getWeightInstance(long grams) {
+		return this.grams == grams ? this : grams(grams);
 	}
 
 	@Override
@@ -80,11 +78,11 @@ public class Weight implements Comparable <Weight>, Serializable {
 	}
 
 	public Weight add(Weight another) {
-		return grams(grams + another.grams);
+		return getWeightInstance(grams + another.grams);
 	}
 
 	public Weight sub(Weight another) {
-		return grams(grams - another.grams);
+		return getWeightInstance(grams - another.grams);
 	}
 
 	public Unit getAppropriateUnit() {
@@ -100,11 +98,9 @@ public class Weight implements Comparable <Weight>, Serializable {
 	}
 
 	public String getStringWithoutUnit() {
-		if (grams < Unit.KILOGRAM.getValue()) {
-			return StringUtil.format("%d", grams);
-		}
-		return L.getOneDecimalFormatString(R.string.cash_amount_only, 10 * grams /
-			(grams < Unit.TONNE.getValue() ? Unit.KILOGRAM : Unit.TONNE).getValue());
+		Unit unit = getAppropriateUnit();
+		return unit == Unit.GRAM ? StringUtil.format("%d", grams) :
+			L.getOneDecimalFormatString(R.string.cash_amount_only, 10 * grams / unit.getValue());
 	}
 
 	public String getFormattedString() {

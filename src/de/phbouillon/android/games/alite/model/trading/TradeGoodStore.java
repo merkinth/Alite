@@ -65,7 +65,9 @@ public abstract class TradeGoodStore {
 	}
 
 	public void addTradeGood(TradeGood tradeGood) {
-		goods.add(tradeGood);
+		if (!goods.contains(tradeGood)) {
+			goods.add(tradeGood);
+		}
 	}
 
 	public TradeGood getGoodById(int id) {
@@ -83,5 +85,44 @@ public abstract class TradeGoodStore {
 			good = goods.get((int) (Math.random() * goods.size()));
 		} while (good.getId() == ALIEN_ITEMS || good.isSpecialGood());
 		return good;
+	}
+
+	public int getGoodsCount() {
+		int count = 0;
+		for(TradeGood good : goods) {
+			if (!good.isSpecialGood()) {
+				count++;
+			}
+		}
+		return count;
+		//from API 24
+		//return (int) goods.stream().filter(p -> !p.isSpecialGood()).count();
+	}
+
+	public int getTradedGoodsCount() {
+		int count = 0;
+		for(TradeGood good : goods) {
+			if (!good.isSpecialGood() && good.isTraded()) {
+				count++;
+			}
+		}
+		return count;
+		//from API 24
+		//return (int) goods.stream().filter(p -> !p.isSpecialGood() && p.isTraded()).count();
+	}
+
+	public void clearTraded() {
+		for(TradeGood good : goods) {
+			good.traded = false;
+		}
+	}
+
+	public int hasTradedWithAllIllegalGoods() {
+		for(TradeGood good : goods) {
+			if (good.getLegalityType() > 0 && !good.isTraded()) {
+				return 0;
+			}
+		}
+		return 1;
 	}
 }

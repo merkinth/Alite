@@ -40,16 +40,17 @@ import android.opengl.GLUtils;
 import de.phbouillon.android.framework.Game;
 import de.phbouillon.android.framework.MemUtil;
 import de.phbouillon.android.framework.ResourceStream;
+import de.phbouillon.android.framework.Texture;
 import de.phbouillon.android.framework.impl.Pool;
 import de.phbouillon.android.framework.impl.Pool.PoolObjectFactory;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.screens.opengl.sprites.SpriteData;
+import de.phbouillon.android.framework.SpriteData;
 
-public class TextureManager {
+public class TextureManager implements Texture {
 	private static final int MAX_TEXTURES = 500;
 
-	private class Texture implements Serializable {
+	private static class Texture implements Serializable {
 		private static final long serialVersionUID = 3417797379929074799L;
 
 		final int[] index = new int[1];
@@ -64,13 +65,13 @@ public class TextureManager {
 	private final Game game;
 	private final Map <String, SpriteData> sprites = Collections.synchronizedMap(new HashMap<>());
 	private static int count = 1;
-	private final PoolObjectFactory <Texture> factory = new PoolObjectFactory<Texture>() {
+	private final PoolObjectFactory <Texture> factory = new PoolObjectFactory<TextureManager.Texture>() {
 		private static final long serialVersionUID = -7926981761767264375L;
 
 		@Override
-		public Texture createObject() {
+		public TextureManager.Texture createObject() {
 			AliteLog.d("New Texture", "New Texture created. Count == " + count++);
-			return new Texture();
+			return new TextureManager.Texture();
 		}
 	};
 	private final Pool <Texture> texturePool = new Pool<>(factory, MAX_TEXTURES);
@@ -80,10 +81,12 @@ public class TextureManager {
 
 	}
 
+	@Override
 	public int addTexture(String fileName) {
 		return addTextureFromStream(fileName, null);
 	}
 
+	@Override
 	public int addTextureFromStream(String fileName, ResourceStream textureInputStream) {
 		if (bitmaps.contains(fileName)) {
 			return 0;
@@ -95,11 +98,13 @@ public class TextureManager {
 		return texture.index[0];
 	}
 
+	@Override
 	public boolean checkTexture(String fileName) {
 		Texture texture = textures.get(fileName);
 		return texture != null && texture.isValid();
 	}
 
+	@Override
 	public int addTexture(String name, Bitmap bitmap) {
 		Texture texture = textures.get(name);
 		if (texture != null) {
@@ -125,6 +130,7 @@ public class TextureManager {
 		return texture;
 	}
 
+	@Override
 	public void freeTexture(String fileName) {
 		Texture texture = textures.get(fileName);
 		if (texture != null && texture.isValid()) {
@@ -137,10 +143,12 @@ public class TextureManager {
 		}
 	}
 
+	@Override
 	public void setTexture(String fileName) {
 		setTexture(fileName, null);
 	}
 
+	@Override
 	public void setTexture(String fileName, ResourceStream textureInputStream) {
 		if (fileName == null) {
 			GLES11.glBindTexture(GLES11.GL_TEXTURE_2D, 0);
@@ -162,10 +170,12 @@ public class TextureManager {
 		}
 	}
 
+	@Override
 	public SpriteData getSprite(String fileName, String spriteName) {
 		return sprites.get(fileName + ":" + spriteName);
 	}
 
+	@Override
 	public synchronized void freeAllTextures() {
 		Iterator <String> iterator = Collections.synchronizedSet(textures.keySet()).iterator();
 		ArrayList <String> toBeRemoved = new ArrayList<>();
@@ -181,9 +191,11 @@ public class TextureManager {
 		for (String s: toBeRemoved) {
 			textures.put(s, null);
 		}
+		bitmaps.clear();
 		sprites.clear();
 	}
 
+	@Override
 	public void reloadAllTextures() {
 		for (String fileName : textures.keySet()) {
 			Texture texture = textures.get(fileName);
@@ -198,6 +210,7 @@ public class TextureManager {
 		}
 	}
 
+	@Override
 	public synchronized void clear() {
 		AliteLog.d("Clearing all Textures Mem Dump (PRE)", AliteLog.getInstance().getMemoryData());
 		freeAllTextures();

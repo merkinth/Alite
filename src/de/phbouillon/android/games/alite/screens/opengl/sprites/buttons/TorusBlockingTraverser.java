@@ -38,10 +38,10 @@ public class TorusBlockingTraverser implements SpaceObjectTraverser, Serializabl
 	@Override
 	public boolean handle(SpaceObject so) {
 		ObjectType type = so.getType();
-		return (type == ObjectType.Pirate || type == ObjectType.Missile || ObjectType.isSpaceStation(type) ||
+		return (ObjectType.isEnemyShip(type) || type == ObjectType.Missile || ObjectType.isSpaceStation(type) ||
 			type == ObjectType.Shuttle && !Settings.freePath ||
 			type == ObjectType.Thargoid || type == ObjectType.Thargon ||
-			type == ObjectType.Trader && !Settings.freePath || type == ObjectType.Police) &&
+			type == ObjectType.Trader && !Settings.freePath || type == ObjectType.Police || type == ObjectType.Defender) &&
 			so.getPosition().distanceSq(inGame.getShip().getPosition()) <= AliteHud.MAX_DISTANCE_SQ;
 	}
 }

@@ -19,7 +19,9 @@ package de.phbouillon.android.games.alite;
  */
 
 import java.io.*;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
@@ -29,6 +31,7 @@ import de.phbouillon.android.framework.PluginManager;
 import de.phbouillon.android.framework.PluginModel;
 import de.phbouillon.android.framework.Sound;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
+import de.phbouillon.android.games.alite.model.Medal;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 
 public class Settings {
@@ -62,7 +65,8 @@ public class Settings {
 	public static float alpha = 0.75f;
 	public static float controlAlpha = 0.5f;
 	public static float[] volumes = {1.0f, 0.5f, 0.5f, 0.5f};
-	public static float vibrateLevel = 0.5f;
+	public static float vibrateLevelOnDamage = 0.5f;
+	public static float vibrateLevelOnHit;
 	public static ShipControl controlMode = ShipControl.ACCELEROMETER;
 	public static int controlPosition = 1;
 	public static int introVideoQuality = 255;
@@ -94,6 +98,8 @@ public class Settings {
 	public static Locale locale = Locale.US;
 	public static int extensionUpdateMode = PluginManager.UPDATE_MODE_AUTO_UPDATE_OVER_WIFI_ONLY;
 	public static int maxGalaxies = GalaxyGenerator.GALAXY_COUNT;
+	public static boolean continuousTutorialMode = true;
+	public static Set<String> watchedTocEntries = new HashSet<>();
 
 	private Settings() {
 	}
@@ -150,17 +156,32 @@ public class Settings {
 			reversePitch = Boolean.parseBoolean(in.readLine());
 			flatButtonDisplay = Boolean.parseBoolean(in.readLine());
 			volumes[Sound.SoundType.COMBAT_FX.getValue()] = Float.parseFloat(in.readLine());
-			vibrateLevel = Float.parseFloat(in.readLine());
+			vibrateLevelOnDamage = Float.parseFloat(in.readLine());
 			dockingComputerSpeed = Integer.parseInt(in.readLine());
 			difficultyLevel = Integer.parseInt(in.readLine());
 			restoredCommanderCount = Integer.parseInt(in.readLine());
 			navButtonsVisible = Boolean.parseBoolean(in.readLine());
 			extensionUpdateMode = Integer.parseInt(in.readLine());
-			maxGalaxies = Integer.parseInt(in.readLine());
+			continuousTutorialMode = Boolean.parseBoolean(in.readLine());
+			Medal.setGameLevelMedals(in.readLine());
+			setFromString(watchedTocEntries, in.readLine());
+			String line = in.readLine();
+			if (line != null) {
+				vibrateLevelOnHit = Float.parseFloat(line);
+			}
 		} catch (IOException | NumberFormatException ignored) {
 			dockingComputerSpeed = fastDC ? 2 : 0;
+			continuousTutorialMode = true;
 		}
 		ColorScheme.setColorScheme(files, null, colorScheme);
+	}
+
+	private static void setFromString(Set<String> dest, String s) {
+		dest.clear();
+		String list = s.substring(1, s.length() - 1); // chop off brackets
+		for (String token : list.split(",")) {
+			dest.add(token.trim());
+		}
 	}
 
 	public static void setOrientation(Activity activity) {
@@ -231,13 +252,16 @@ public class Settings {
 			out.write(reversePitch + "\n");
 			out.write(flatButtonDisplay + "\n");
 			out.write(volumes[Sound.SoundType.COMBAT_FX.getValue()] + "\n");
-			out.write(vibrateLevel + "\n");
+			out.write(vibrateLevelOnDamage + "\n");
 			out.write(dockingComputerSpeed + "\n");
 			out.write(difficultyLevel + "\n");
 			out.write(restoredCommanderCount + "\n");
 			out.write(navButtonsVisible + "\n");
 			out.write(extensionUpdateMode + "\n");
-			out.write(maxGalaxies + "\n");
+			out.write(continuousTutorialMode + "\n");
+			out.write(Medal.getGameLevelMedals() + "\n");
+			out.write(watchedTocEntries + "\n");
+			out.write(vibrateLevelOnHit + "\n");
 		} catch (IOException ignored) { }
 	}
 }

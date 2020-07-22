@@ -27,7 +27,7 @@ import java.nio.FloatBuffer;
 import android.opengl.GLES11;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.screens.opengl.sprites.SpriteData;
+import de.phbouillon.android.framework.SpriteData;
 
 public class Sphere implements Serializable {
 	private static final long serialVersionUID = 604349083831769333L;

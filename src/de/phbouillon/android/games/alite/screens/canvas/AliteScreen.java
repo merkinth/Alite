@@ -19,7 +19,9 @@ package de.phbouillon.android.games.alite.screens.canvas;
  */
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import android.app.Activity;
 import android.content.Context;
@@ -36,13 +38,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
+import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.screens.NavigationBar;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.FlightScreen;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
 
@@ -57,11 +59,6 @@ public abstract class AliteScreen extends Screen {
 	private final float[] sunLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
 	private final float[] sunLightPosition = {0.0f, 0.0f, 0.0f, 1.0f};
 
-	protected int startX = -1;
-	protected int startY = -1;
-	protected int lastX = -1;
-	protected int lastY = -1;
-
 	private boolean popupWindow;
 	private String message;
 	private int maxLength;
@@ -74,6 +71,7 @@ public abstract class AliteScreen extends Screen {
 	protected String inputText;
 	protected transient Alite game;
 	private transient EditText editText;
+	protected final Map<String, Pixmap> pics = new HashMap<>();
 
 	private static final int DIALOG_BUTTON_MASK = 7;
 	private static final int DIALOG_OK = 0;
@@ -337,7 +335,7 @@ public abstract class AliteScreen extends Screen {
 		newScreen = null;
 		for (TouchEvent event: game.getInput().getTouchEvents()) {
 			if (withNavigation) {
-				Screen screen = checkNavigationBar(event);
+				Screen screen = game.getNavigationBar().checkNavigationBar(event);
 				if (screen != null) {
 					newScreen = screen;
 				}
@@ -351,31 +349,6 @@ public abstract class AliteScreen extends Screen {
 			performScreenChange();
 			postScreenChange();
 		}
-	}
-
-	protected Screen checkNavigationBar(TouchEvent event) {
-		if (event.x < AliteConfig.DESKTOP_WIDTH || event.x > AliteConfig.SCREEN_WIDTH) {
-			return null;
-		}
-		NavigationBar navBar = game.getNavigationBar();
-		if (event.type == TouchEvent.TOUCH_DOWN && event.x >= AliteConfig.DESKTOP_WIDTH) {
-			startX = event.x;
-			startY = lastY = event.y;
-		}
-		if (event.type == TouchEvent.TOUCH_DRAGGED && event.x >= AliteConfig.DESKTOP_WIDTH) {
-			if (event.y < lastY) {
-				navBar.increasePosition(lastY - event.y);
-			} else {
-				navBar.decreasePosition(event.y - lastY);
-			}
-			lastY = event.y;
-		}
-		if (event.type == TouchEvent.TOUCH_UP) {
-			if (Math.abs(startX - event.x) < 20 && Math.abs(startY - event.y) < 20) {
-				return navBar.touched(event.x, event.y);
-			}
-		}
-		return null;
 	}
 
 	protected synchronized void updateWithoutNavigation(float deltaTime) {
@@ -482,15 +455,19 @@ public abstract class AliteScreen extends Screen {
 	}
 
 	final TextData[] computeCenteredTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int color) {
-		return computeTextDisplay(g, text, x, y, new int[] { fieldWidth }, 40, color, Assets.regularFont, true);
+		return computeTextDisplay(g, text, x, y, new int[] { fieldWidth }, 45, color, Assets.regularFont, true);
 	}
 
-	protected final TextData[] computeTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int deltaY, int color) {
-		return computeTextDisplay(g, text, x, y, new int[] { fieldWidth }, deltaY, color, Assets.regularFont, false);
+	protected final TextData[] computeTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, int color) {
+		return computeTextDisplay(g, text, x, y, new int[] { fieldWidth }, 45, color, Assets.regularFont, false);
 	}
 
-	protected final TextData[] computeTextDisplayWidths(Graphics g, String text, int x, int y, int[] fieldWidths, int deltaY, int color) {
-		return computeTextDisplay(g, text, x, y, fieldWidths, deltaY, color, Assets.regularFont, false);
+	protected final TextData[] computeTextDisplay(Graphics g, String text, int x, int y, int fieldWidth, GLText font, int color) {
+		return computeTextDisplay(g, text, x, y, new int[] { fieldWidth }, 45, color, font, false);
+	}
+
+	protected final TextData[] computeTextDisplayWidths(Graphics g, String text, int x, int y, int[] fieldWidths, int color) {
+		return computeTextDisplay(g, text, x, y, fieldWidths, 45, color, Assets.regularFont, false);
 	}
 
 	private TextData[] computeTextDisplay(Graphics g, String text, int x, int y, int[] fieldWidths, int deltaY, int color, GLText font, boolean centered) {
@@ -542,6 +519,9 @@ public abstract class AliteScreen extends Screen {
 	public void dispose() {
 		super.dispose();
 		ButtonRegistry.get().removeButtons(this);
+		for (Pixmap p : pics.values()) {
+			p.dispose();
+		}
 	}
 
 	@Override
@@ -614,5 +594,11 @@ public abstract class AliteScreen extends Screen {
 
 	@Override
 	public void postScreenChange() {
+	}
+
+	public void addPictures(String... nameList) {
+		for (String name : nameList) {
+			pics.put(name, game.getGraphics().newPixmap(name + ".png"));
+		}
 	}
 }

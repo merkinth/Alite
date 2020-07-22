@@ -18,6 +18,7 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites.buttons;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.SpaceObjectTraverser;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
@@ -36,7 +37,7 @@ public class EnergyBombTraverser implements SpaceObjectTraverser{
 			so.setHullStrength(0);
 			so.executeHit(inGame.getShip());
 			inGame.getLaserManager().explode(so);
-			inGame.computeScore(so);
+			inGame.computeScore(so, EquipmentStore.ENERGY_BOMB);
 		}
 		return false;
 	}

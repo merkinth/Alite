@@ -30,10 +30,7 @@ import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.SkySphereSpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.MathHelper;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectAI;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.*;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class ShipIntroScreen extends AliteScreen {
@@ -47,8 +44,8 @@ public class ShipIntroScreen extends AliteScreen {
 
 	private final Timer timer = new Timer().setAutoReset();
 	private final Timer danceTimer = new Timer().setAutoReset();
-	private Vector3f currentDelta = new Vector3f(0,0,0);
-	private Vector3f targetDelta = new Vector3f(0,0,0);
+	private final Vector3f currentDelta = new Vector3f(0,0,0);
+	private final Vector3f targetDelta = new Vector3f(0,0,0);
 
 	private Button yesButton;
 	private Button noButton;
@@ -64,7 +61,7 @@ public class ShipIntroScreen extends AliteScreen {
 
 	private DisplayMode displayMode = DisplayMode.ZOOM_IN;
 	private Music theChase;
-	private boolean showLoadNewCommander;
+	private final boolean showLoadNewCommander;
 
 	public ShipIntroScreen() {
 		showLoadNewCommander = game.existsSavedCommander();
@@ -108,16 +105,13 @@ public class ShipIntroScreen extends AliteScreen {
 			}
 		}
 		if (yesButton.isPressed(touch)) {
-			SoundManager.play(Assets.click);
 			newScreen = new LoadScreen(L.string(R.string.title_cmdr_load));
 			game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_DISK);
 		}
 		if (noButton.isPressed(touch)) {
-			SoundManager.play(Assets.click);
 			newScreen = new StatusScreen();
 		}
 		if (tapToStartButton.isPressed(touch)) {
-			SoundManager.play(Assets.click);
 			newScreen = new StatusScreen();
 		}
 		if (newScreen != null) {

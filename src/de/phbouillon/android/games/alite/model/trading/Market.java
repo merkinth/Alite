@@ -22,6 +22,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.phbouillon.android.games.alite.model.generator.SystemData;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public abstract class Market {
 	protected SystemData system;
@@ -64,6 +67,32 @@ public abstract class Market {
 	public void setQuantity(TradeGood good, int newQuantity) {
 		if (good != null) {
 			quantity.put(good, newQuantity);
+		}
+	}
+
+	public JSONObject toJson() throws JSONException {
+		JSONArray goods = new JSONArray();
+		for (TradeGood good : store.goods()) {
+			goods.put(new JSONObject()
+				.put("id", good.getId())
+				.put("quantity", getQuantity(good))
+				.put("traded", good.isTraded()));
+		}
+		return new JSONObject()
+			.put("fluct", fluct)
+			.put("goods", goods);
+	}
+
+	public void fromJson(JSONObject market) throws JSONException {
+		fluct = market.getInt("fluct");
+		JSONArray goods = market.getJSONArray("goods");
+		for (int i = 0; i < goods.length(); i++) {
+			JSONObject g = goods.getJSONObject(i);
+			TradeGood good = TradeGoodStore.get().getGoodById(g.getInt("id"));
+			setQuantity(good, g.getInt("quantity"));
+			if (g.getBoolean("traded")) {
+				good.traded();
+			}
 		}
 	}
 }

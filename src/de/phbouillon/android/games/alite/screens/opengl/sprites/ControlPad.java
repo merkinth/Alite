@@ -18,17 +18,16 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import java.io.Serializable;
-
 import de.phbouillon.android.framework.Input.TouchEvent;
+import de.phbouillon.android.framework.Rect;
 import de.phbouillon.android.framework.impl.gl.Sprite;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Settings;
-import de.phbouillon.android.games.alite.ShipControl;
 import de.phbouillon.android.games.alite.colors.AliteColor;
 
-public class ControlPad implements Serializable {
+public class ControlPad extends ShipController {
 	private static final long serialVersionUID = -3050741925963060286L;
+
 	private final int CPX = Settings.controlPosition == 0 ? Settings.flatButtonDisplay ? 50 : 150 : Settings.flatButtonDisplay ? 1524 : 1424;
 	private final int CPY = Settings.flatButtonDisplay ? 300 : 680;
 	private final int WIDTH = 350;
@@ -36,121 +35,53 @@ public class ControlPad implements Serializable {
 
 	private final Sprite [] controlPad = new Sprite[9];
 
-	private int fingerDown = 0;
-	private int activeIndex = 0;
-	private float accelY = 0.0f;
-	private float accelZ = 0.0f;
+	private int fingerDown;
+	private int activeIndex;
 
 	ControlPad() {
-		controlPad[0] = genSprite("cpn", CPX, CPY, WIDTH, HEIGHT);
-		controlPad[1] = genSprite("cpu", CPX, CPY, WIDTH, HEIGHT);
-		controlPad[2] = genSprite("cpru", CPX, CPY, WIDTH, HEIGHT);
-		controlPad[3] = genSprite("cpr", CPX, CPY, WIDTH, HEIGHT);
-		controlPad[4] = genSprite("cprd", CPX, CPY, WIDTH, HEIGHT);
-		controlPad[5] = genSprite("cpd", CPX, CPY, WIDTH, HEIGHT);
-		controlPad[6] = genSprite("cpld", CPX, CPY, WIDTH, HEIGHT);
-		controlPad[7] = genSprite("cpl", CPX, CPY, WIDTH, HEIGHT);
-		controlPad[8] = genSprite("cplu", CPX, CPY, WIDTH, HEIGHT);
-	}
-
-	private Sprite genSprite(String name, int x, int y, int width, int height) {
-		SpriteData spriteData = Alite.get().getTextureManager().getSprite(AliteHud.TEXTURE_FILE, name);
-		return new Sprite(x, y, x + width - 1, y + height - 1,
-			spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, AliteHud.TEXTURE_FILE);
-	}
-
-	private void fingerDown(int pointer) {
-		int val = 1 << pointer;
-		if ((fingerDown & val) == 0) {
-			fingerDown += val;
-		}
-	}
-
-	private boolean fingerUp(int pointer) {
-		int val = 1 << pointer;
-		if ((fingerDown & val) != 0) {
-			fingerDown -= val;
-			return true;
-		}
-		return false;
-	}
-
-	public float getZ() {
-		return accelZ;
-	}
-
-	public float getY() {
-		return accelY;
+		Rect r = new Rect(CPX, CPY, WIDTH, HEIGHT);
+		controlPad[0] = genSprite("cpn", r);
+		controlPad[1] = genSprite("cpu", r);
+		controlPad[2] = genSprite("cpru", r);
+		controlPad[3] = genSprite("cpr", r);
+		controlPad[4] = genSprite("cprd", r);
+		controlPad[5] = genSprite("cpd", r);
+		controlPad[6] = genSprite("cpld", r);
+		controlPad[7] = genSprite("cpl", r);
+		controlPad[8] = genSprite("cplu", r);
 	}
 
 	private void calculateActiveIndex(int x, int y) {
-		boolean left = x < 125;
-		boolean right = x > 225;
-		boolean up = y < 125;
-		boolean down = y > 225;
-
-		setActiveIndex(left, right, up, down);
+		setDirections(x < 125, x > 225, y < 125, y > 225);
 	}
 
-	private void computeSpeeds(float deltaTime) {
-		if (activeIndex > 5) { // left
-			accelY += deltaTime * (accelY < 0 ? 5 : 1.66f);
-			if (accelY > 2) {
-				accelY = 2;
-			}
-		} else if (activeIndex > 1 && activeIndex < 5) { // right
-			accelY -= deltaTime * (accelY > 0 ? 5 : 1.66f);
-			if (accelY < -2) {
-				accelY = -2;
-			}
-		} else {
-			if (accelY > 0) {
-				accelY -= deltaTime * 3.33f;
-				if (accelY < 0) {
-					accelY = 0.0f;
-				}
-			} else if (accelY < 0) {
-				accelY += deltaTime * 3.33f;
-				if (accelY > 0) {
-					accelY = 0.0f;
-				}
-			}
-		}
-		if (activeIndex == 1 || activeIndex == 2 || activeIndex == 8) { // up
-			accelZ -= deltaTime * (accelZ > 0 ? 5 : 1.66f);
-			if (accelZ < -2) {
-				accelZ = -2;
-			}
-		} else if (activeIndex == 4 || activeIndex == 5 || activeIndex == 6) { // down
-			accelZ += deltaTime * (accelZ < 0 ? 5 : 1.66f);
-			if (accelZ > 2) {
-				accelZ = 2;
-			}
-		} else {
-			if (accelZ > 0) {
-				accelZ -= deltaTime * 3.33f;
-				if (accelZ < 0) {
-					accelZ = 0.0f;
-				}
-			} else if (accelZ < 0) {
-				accelZ += deltaTime * 3.33f;
-				if (accelZ > 0) {
-					accelZ = 0.0f;
-				}
-			}
-		}
+	@Override
+	protected boolean isDown() {
+		return activeIndex == 4 || activeIndex == 5 || activeIndex == 6;
 	}
 
-	public void update(float deltaTime) {
-		computeSpeeds(deltaTime);
+	@Override
+	protected boolean isUp() {
+		return activeIndex == 1 || activeIndex == 2 || activeIndex == 8;
 	}
 
-	private boolean handleControlPad(TouchEvent event) {
+	@Override
+	protected boolean isRight() {
+		return activeIndex > 1 && activeIndex < 5;
+	}
+
+	@Override
+	protected boolean isLeft() {
+		return activeIndex > 5;
+	}
+
+	@Override
+	boolean handleUI(TouchEvent event) {
 		boolean result = false;
 
-		if (event.x >= CPX && event.y >= CPY && event.x <= CPX + WIDTH && event.y <= CPY + HEIGHT) {
+		if (Rect.inside(event.x, event.y, CPX, CPY, CPX + WIDTH, CPY + HEIGHT)) {
 			if (event.type == TouchEvent.TOUCH_DOWN) {
-				fingerDown(event.pointer);
+				fingerDown = TouchEvent.fingerDown(fingerDown, event.pointer);
 				calculateActiveIndex(event.x - CPX, event.y - CPY);
 			}
 			if (event.type == TouchEvent.TOUCH_DRAGGED) {
@@ -159,26 +90,21 @@ public class ControlPad implements Serializable {
 			result = true;
 		}
 		if (event.type == TouchEvent.TOUCH_UP) {
-			if (fingerUp(event.pointer)) {
+			int f = TouchEvent.fingerUp(fingerDown, event.pointer);
+			if (f != fingerDown) {
+				fingerDown = f;
 				result = true;
 			}
 		}
-		if (fingerDown == 0) {
+		if (!TouchEvent.isDown(fingerDown)) {
 			activeIndex = 0;
 		}
 
 		return result;
 	}
 
-	boolean handleUI(TouchEvent event) {
-		boolean result = false;
-		if (Settings.controlMode == ShipControl.CONTROL_PAD) {
-			return handleControlPad(event);
-		}
-		return result;
-	}
-
-	public void setActiveIndex(boolean left, boolean right, boolean up, boolean down) {
+	@Override
+	void setDirections(boolean left, boolean right, boolean up, boolean down) {
 		if (left) {
 			if (up) {
 				activeIndex = 8;
@@ -206,6 +132,7 @@ public class ControlPad implements Serializable {
 		}
 	}
 
+	@Override
 	void render() {
 		float a = Settings.alpha * Settings.controlAlpha;
 		Alite.get().getGraphics().setColor(AliteColor.argb(a, a, a, a));

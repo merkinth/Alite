@@ -24,6 +24,10 @@ import java.util.List;
 
 import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
+import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class PlayerCobra {
 	public static final int   DIR_FRONT = 0;
@@ -31,7 +35,6 @@ public class PlayerCobra {
 	public static final int   DIR_REAR  = 2;
 	public static final int   DIR_LEFT  = 3;
 
-	public static final int   MAXIMUM_FUEL          = 70;
 	public static final int   MAXIMUM_MISSILES      = 4;
 	public static final int   DEFAULT_MISSILES      = 3;
 	public static final int   SPEED_UP_FACTOR       = 10;       // speed-up factor to use when torus can't be engaged
@@ -39,20 +42,21 @@ public class PlayerCobra {
 	public static final float TORUS_SPEED           = 33400.0f; // torus drive speed
 	public static final float TORUS_TEST_SPEED      = 10000.0f; // value to use to test if torus is engaged
 	public static final int   MAX_SHIELD            = 24;
-	public static final float MAX_FUEL              = 70;
+	public static final int   MAX_FUEL              = 70;
 	public static final float MAX_CABIN_TEMPERATURE = 30;
 	public static final float MAX_LASER_TEMPERATURE = 210;
 	public static final float MAX_ALTITUDE          = 30;
 	public static final int   MAX_ENERGY_BANK       = 24;
 	public static final int   MAX_ENERGY            = 96;
 
-	private int fuel = MAXIMUM_FUEL;
+	private int fuel = MAX_FUEL;
 	private int missiles = DEFAULT_MISSILES;
 	private final Equipment[] lasers = new Equipment[] {EquipmentStore.get().getEquipmentById(EquipmentStore.PULSE_LASER), null, null, null};
 	private final List<Equipment> equipmentInstalled = new ArrayList<>();
 	private Weight maxCargoHold = Weight.tonnes(20);
 	private final List<InventoryItem> inventory = new ArrayList<>();
-	private int retroRocketsUseCount = 0;
+	private int retroRocketsUseCount;
+	private int retroRocketsTotalCount;
 
 	private float frontShield = MAX_SHIELD;
 	private float rearShield = MAX_SHIELD;
@@ -65,60 +69,77 @@ public class PlayerCobra {
 	private boolean missileLocked = false;
 	private boolean missileTargeting = false;
 	private boolean laserOverheated;
+	private int travelledDistance;
+	private int collisionAmount;
+	private int hitByMissileCount;
+	private int hitBySpaceStationCount;
+	private int hitByLaserAmount;
+	private long scoopAmount;
+	private int scoopedTonnePlatlet;
+	private int scoopedTonneAlien;
+	private int scoopedTonneEscapeCapsule;
+	private long ejectedAmount;
+	private boolean wasLowEnergy;
+	private int lowEnergyCount;
+	private int maxEquipments;
+	private int scoopedFuel;
 
 	public void setLaser(int where, Equipment laser) {
 		lasers[where] = laser;
+		setMaxEquipments();
 	}
 
 	public Equipment getLaser(int where) {
 		return lasers[where];
 	}
 
-	public void addTradeGood(TradeGood good, Weight weight, long price) {
-		getItem(good).add(weight, price);
+	public InventoryItem addTradeGood(TradeGood good, Weight weight, long price) {
+		InventoryItem item = getItem(good);
+		item.add(weight, price);
+		return item;
 	}
 
 	private InventoryItem getItem(TradeGood good) {
 		InventoryItem item = getInventoryItemByGood(good);
-		if (item != null) {
-			return item;
+		if (item == null) {
+			item = new InventoryItem(good);
+			inventory.add(item);
 		}
-		item = new InventoryItem(good);
-		inventory.add(item);
 		return item;
 	}
 
-	public void addUnpunishedTradeGood(TradeGood good, Weight weight) {
-		getItem(good).addUnpunished(weight);
+	public InventoryItem setTradeGood(TradeGood good, Weight weight, long price) {
+		InventoryItem item = getItem(good);
+		item.set(weight, price);
+		return item;
 	}
 
-	public void subUnpunishedTradeGood(TradeGood good, Weight weight) {
-		getItem(good).subUnpunished(weight);
-	}
-
-	public void setTradeGood(TradeGood good, Weight weight, long price) {
-		getItem(good).set(weight, price);
-	}
-
-	public void setUnpunishedTradeGood(TradeGood good, Weight unpunished) {
-		getItem(good).resetUnpunished();
-		getItem(good).addUnpunished(unpunished);
-	}
-
-	public void removeTradeGood(TradeGood good) {
-		InventoryItem item = getInventoryItemByGood(good);
-		if (item != null) {
-			inventory.remove(item);
-		}
+	public void removeItem(InventoryItem item) {
+		inventory.remove(item);
 	}
 
 	public void addEquipment(Equipment equip) {
-		if (equip != null && !equipmentInstalled.contains(equip)) {
-			equipmentInstalled.add(equip);
-			if (equip == EquipmentStore.get().getEquipmentById(EquipmentStore.LARGE_CARGO_BAY)) {
-				maxCargoHold = Weight.tonnes(35);
-			}
+		if (equip == null || equipmentInstalled.contains(equip)) {
+			return;
 		}
+		equipmentInstalled.add(equip);
+		if (equip == EquipmentStore.get().getEquipmentById(EquipmentStore.LARGE_CARGO_BAY)) {
+			maxCargoHold = Weight.tonnes(35);
+		}
+		setMaxEquipments();
+	}
+
+	private void setMaxEquipments() {
+		int count = getLaserCount(PlayerCobra.DIR_FRONT) + getLaserCount(PlayerCobra.DIR_RIGHT) +
+			getLaserCount(PlayerCobra.DIR_REAR) + getLaserCount(PlayerCobra.DIR_LEFT) +
+			equipmentInstalled.size();
+		if (count > maxEquipments) {
+			maxEquipments = count;
+		}
+	}
+
+	private int getLaserCount(int where) {
+		return lasers[where] == null ? 0 : 1;
 	}
 
 	public void removeEquipment(Equipment equip) {
@@ -197,11 +218,119 @@ public class PlayerCobra {
 		return fuel;
 	}
 
+	public int getMaxFuel() {
+		return MAX_FUEL;
+	}
+
 	public void setFuel(int newFuel) {
 		if (newFuel < 0) {
 			newFuel = 0;
 		}
 		fuel = newFuel;
+	}
+
+	public void consumeFuel(int distance) {
+		travelledDistance += distance;
+		setFuel(fuel - (distance == 0 ? 1 : distance));
+	}
+
+	public int getTravelledDistance() {
+		return travelledDistance / 10;
+	}
+
+	public void addCollision(int amount) {
+		collisionAmount += amount;
+	}
+
+	public int getCollisionAmount() {
+		return collisionAmount;
+	}
+
+	public void increaseHitByMissile() {
+		hitByMissileCount++;
+	}
+
+	public int getHitByMissileCount() {
+		return hitByMissileCount;
+	}
+
+	public void addHitByLaser(int amount) {
+		hitByLaserAmount += amount;
+	}
+
+	public int getHitByLaserAmount() {
+		return hitByLaserAmount;
+	}
+
+	public void increaseHitBySpaceStation() {
+		hitBySpaceStationCount++;
+	}
+
+	public int getHitBySpaceStationCount() {
+		return hitBySpaceStationCount;
+	}
+
+	public void changeScoopEjectCount(int goodId, long totalAmount, long realAmount, int specWeight) {
+		scoopAmount += realAmount;
+		switch (goodId) {
+			case TradeGoodStore.ALLOYS:
+				scoopedTonnePlatlet += specWeight;
+				break;
+			case TradeGoodStore.ALIEN_ITEMS:
+				scoopedTonneAlien += specWeight;
+				break;
+			case TradeGoodStore.SLAVES:
+				scoopedTonneEscapeCapsule += specWeight;
+				break;
+		}
+		ejectedAmount += totalAmount + realAmount;
+	}
+
+	public long getScoopAmount() {
+		return scoopAmount / Unit.TONNE.getValue();
+	}
+
+	public int getScoopedTonnePlatlet() {
+		return scoopedTonnePlatlet;
+	}
+
+	public int getScoopedTonneAlien() {
+		return scoopedTonneAlien;
+	}
+
+	public int getScoopedTonneEscapeCapsule() {
+		return scoopedTonneEscapeCapsule;
+	}
+
+	public long getEjectedAmount() {
+		return ejectedAmount / Unit.TONNE.getValue();
+	}
+
+	public void checkLowEnergy() {
+		if (wasLowEnergy) {
+			lowEnergyCount++;
+			wasLowEnergy = false;
+		}
+	}
+
+	public int getRetroRocketsTotalCount() {
+		return retroRocketsTotalCount;
+	}
+
+	public int getLowEnergyCount() {
+		return lowEnergyCount;
+	}
+
+	public int getMaxEquipments() {
+		return maxEquipments;
+	}
+
+	public void addScoopedFuel(int fuel) {
+		scoopedFuel += fuel;
+	}
+
+	public int getScoopedFuel() {
+		return scoopedFuel;
 	}
 
 	public void resetEnergy() {
@@ -222,6 +351,9 @@ public class PlayerCobra {
 	}
 
 	public float getEnergy() {
+		if (energyBank[3] < MAX_ENERGY_BANK / 2f) {
+			wasLowEnergy = true;
+		}
 		return energyBank[0] + energyBank[1] + energyBank[2] + energyBank[3];
 	}
 
@@ -336,8 +468,9 @@ public class PlayerCobra {
 		missileTargeting = b;
 	}
 
-	public int getRetroRocketsUseCount() {
-		return retroRocketsUseCount;
+	public void useRetroRockets() {
+		setRetroRocketsUseCount(retroRocketsUseCount - 1);
+		retroRocketsTotalCount++;
 	}
 
 	public void setRetroRocketsUseCount(int newCount) {
@@ -371,4 +504,86 @@ public class PlayerCobra {
 		if ((where & 4) > 0) setLaser(PlayerCobra.DIR_REAR, laser);
 		if ((where & 8) > 0) setLaser(PlayerCobra.DIR_LEFT, laser);
 	}
+
+	private Integer getLaserId(int where) {
+		return lasers[where] != null ? lasers[where].getId() : null;
+	}
+
+	JSONObject toJson() throws JSONException {
+		JSONArray equipments = new JSONArray();
+		for (Equipment e : equipmentInstalled) {
+			equipments.put(new JSONObject().put("id", e.getId()));
+		}
+
+		JSONArray inventories = new JSONArray();
+		for (InventoryItem i : inventory) {
+			inventories.put(i.toJson(new JSONObject().put("goodId", i.getGood().getId())));
+		}
+
+		return new JSONObject()
+			.put("fuel", fuel)
+			.put("retroRocketsUseCount", retroRocketsUseCount)
+			.put("retroRocketsTotalCount", retroRocketsTotalCount)
+			.put("travelledDistance", travelledDistance)
+			.put("collisionAmount", collisionAmount)
+			.put("hitByMissileCount", hitByMissileCount)
+			.put("hitBySpaceStationCount", hitBySpaceStationCount)
+			.put("hitByLaserAmount", hitByLaserAmount)
+			.put("scoopAmount", scoopAmount)
+			.put("scoopedTonnePlatlet", scoopedTonnePlatlet)
+			.put("scoopedTonneAlien", scoopedTonneAlien)
+			.put("scoopedTonneEscapeCapsule", scoopedTonneEscapeCapsule)
+			.put("ejectedAmount", ejectedAmount)
+			.put("lowEnergyCount", lowEnergyCount)
+			.put("maxEquipments", maxEquipments)
+			.put("scoopedFuel", scoopedFuel)
+			.put("missiles", missiles)
+			.put("equipments", equipments)
+			.putOpt("frontLaser", getLaserId(PlayerCobra.DIR_FRONT))
+			.putOpt("rightLaser", getLaserId(PlayerCobra.DIR_RIGHT))
+			.putOpt("rearLaser", getLaserId(PlayerCobra.DIR_REAR))
+			.putOpt("leftLaser", getLaserId(PlayerCobra.DIR_LEFT))
+			.put("inventories", inventories);
+	}
+
+	public void fromJson(JSONObject cobra) throws JSONException {
+		clearInventory();
+		clearEquipment();
+		fuel = cobra.getInt("fuel");
+		retroRocketsUseCount = cobra.getInt("retroRocketsUseCount");
+		retroRocketsTotalCount = cobra.optInt("retroRocketsTotalCount");
+		travelledDistance = cobra.getInt("travelledDistance");
+		collisionAmount = cobra.optInt("collisionAmount");
+		hitByMissileCount = cobra.optInt("hitByMissileCount");
+		hitBySpaceStationCount = cobra.optInt("hitBySpaceStationCount");
+		hitByLaserAmount = cobra.optInt("hitByLaserAmount");
+		scoopAmount = cobra.optLong("scoopAmount");
+		scoopedTonnePlatlet = cobra.optInt("scoopedTonnePlatlet");
+		scoopedTonneAlien = cobra.optInt("scoopedTonneAlien");
+		scoopedTonneEscapeCapsule = cobra.optInt("scoopedTonneEscapeCapsule");
+		ejectedAmount = cobra.optLong("ejectedAmount");
+		lowEnergyCount = cobra.optInt("lowEnergyCount");
+		maxEquipments = cobra.optInt("maxEquipments");
+		scoopedFuel = cobra.optInt("scoopedFuel");
+		missiles = cobra.getInt("missiles");
+		JSONArray equipments = cobra.getJSONArray("equipments");
+		for (int i = 0; i < equipments.length(); i++) {
+			JSONObject e = equipments.getJSONObject(i);
+			addEquipment(EquipmentStore.get().getEquipmentByHash(e.getInt("id")));
+		}
+		lasers[PlayerCobra.DIR_FRONT] = EquipmentStore.get().getEquipmentByHash(cobra.optInt("frontLaser", -1));
+		lasers[PlayerCobra.DIR_RIGHT] = EquipmentStore.get().getEquipmentByHash(cobra.optInt("rightLaser", -1));
+		lasers[PlayerCobra.DIR_REAR] = EquipmentStore.get().getEquipmentByHash(cobra.optInt("rearLaser", -1));
+		lasers[PlayerCobra.DIR_LEFT] = EquipmentStore.get().getEquipmentByHash(cobra.optInt("leftLaser", -1));
+
+		JSONArray inventories = cobra.getJSONArray("inventories");
+		for (int i = 0; i < inventories.length(); i++) {
+			JSONObject inv = inventories.getJSONObject(i);
+			TradeGood good = TradeGoodStore.get().getGoodById(inv.getInt("goodId"));
+			if (good != null) {
+				getItem(good).fromJson(inv);
+			}
+		}
+	}
+
 }

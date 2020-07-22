@@ -27,7 +27,8 @@ public class AttackTraverser implements SpaceObjectTraverser {
 
 	@Override
 	public boolean handle(SpaceObject so) {
-		if (so.getType() == ObjectType.Pirate || so.getType() == ObjectType.Thargoid || so.isDrone() && so.hasLivingMother()) {
+		if (ObjectType.isEnemyShip(so.getType()) || so.getType() == ObjectType.Thargoid ||
+				so.isDrone() && so.hasLivingMother()) {
 			Alite.get().getPlayer().setCondition(Condition.RED);
 			return true;
 		}

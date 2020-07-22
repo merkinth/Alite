@@ -125,27 +125,32 @@ public class HexNumberPadScreen extends AliteScreen {
 			if (touch.x < x || touch.y < y || touch.x > x + width || touch.y > y + height) {
 				newScreen = hackerScreen;
 			}
-			for (Button b: pads) {
-				if (b.isTouched(touch.x, touch.y)) {
-					SoundManager.play(Assets.click);
-					String t = b.getText();
-					if ("<-".equals(t)) {
-						if (!currentValueString.isEmpty()) {
-							currentValueString = currentValueString.substring(0, currentValueString.length() - 1);
-						}
-					} else if (L.string(R.string.pad_btn_hex_ok).equals(t)) {
-						try {
-							byte newValue = (byte) Integer.parseInt(currentValueString, 16);
-							hackerScreen.changeState(valueIndex, newValue);
-						} catch (NumberFormatException ignored) {
-							// Ignore and don't set new value (can happen if user hits ok before entering a new number)
-						}
-						newScreen = hackerScreen;
-					} else if (currentValueString.length() < 2) {
-						currentValueString += t;
-					}
+		}
+		for (Button b: pads) {
+			if (!b.isPressed(touch)) {
+				continue;
+			}
+			String t = b.getText();
+			if ("<-".equals(t)) {
+				if (!currentValueString.isEmpty()) {
+					currentValueString = currentValueString.substring(0, currentValueString.length() - 1);
 				}
- 			}
+				return;
+			}
+			if (L.string(R.string.pad_btn_hex_ok).equals(t)) {
+				try {
+					byte newValue = (byte) Integer.parseInt(currentValueString, 16);
+					hackerScreen.changeState(valueIndex, newValue);
+				} catch (NumberFormatException ignored) {
+					// Ignore and don't set new value (can happen if user hits ok before entering a new number)
+				}
+				newScreen = hackerScreen;
+				return;
+			}
+			if (currentValueString.length() < 2) {
+				currentValueString += t;
+				return;
+			}
 		}
 	}
 

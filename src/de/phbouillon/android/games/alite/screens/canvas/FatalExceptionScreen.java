@@ -28,7 +28,6 @@ import java.util.Locale;
 
 import android.content.Intent;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.opengl.GLES11;
 import android.widget.Toast;
 import de.phbouillon.android.framework.Graphics;
@@ -39,8 +38,6 @@ import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class FatalExceptionScreen extends AliteScreen {
-	private static final Rect scrollingRegion = new Rect(0,690, AliteConfig.SCREEN_WIDTH, AliteConfig.SCREEN_HEIGHT);
-
 	private Throwable cause;
 	private TextData[] causeText;
 	private Button sendErrorCauseInMail;
@@ -49,8 +46,8 @@ public class FatalExceptionScreen extends AliteScreen {
 	private String plainCauseText;
 	private String savedFilename = null;
 	private final List<String> textToDisplay = new ArrayList<>();
-	private Point touchDownPoint;
-	private int position;
+	private final ScrollPane scrollPane = new ScrollPane(0,690, AliteConfig.SCREEN_WIDTH,
+		AliteConfig.SCREEN_HEIGHT, () -> new Point(AliteConfig.SCREEN_WIDTH, causeText[causeText.length - 1].y + 40));
 
 	public FatalExceptionScreen(Throwable cause) {
 		this.cause = cause;
@@ -70,7 +67,7 @@ public class FatalExceptionScreen extends AliteScreen {
 				} else {
 					String test = result + " " + crWord;
 					int width = game.getGraphics().getTextWidth(test, Assets.regularFont);
-					if (width > 1880) {
+					if (width > AliteConfig.SCREEN_WIDTH - 40) {
 						textToDisplay.add(result);
 						result = crWord;
 					} else {
@@ -91,8 +88,8 @@ public class FatalExceptionScreen extends AliteScreen {
 		int count = 0;
 		ArrayList<TextData> resultList = new ArrayList<>();
 		for (String t : textToDisplay) {
-			int halfWidth = 1880 >> 1;
-			resultList.add(new TextData(t, 20 + (1880 >> 1) - halfWidth, 40 * count++,
+			int halfWidth = AliteConfig.SCREEN_WIDTH - 40 >> 1;
+			resultList.add(new TextData(t, 20 + (AliteConfig.SCREEN_WIDTH - 40 >> 1) - halfWidth, 40 * count++,
 				color, Assets.regularFont));
 		}
 		return resultList.toArray(new TextData[0]);
@@ -101,30 +98,25 @@ public class FatalExceptionScreen extends AliteScreen {
 	@Override
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
+		g.setClip(-1, -1, -1, -1);
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayWideTitle(L.string(R.string.title_fatal_error));
 		g.drawText(L.string(R.string.exc_error_info1,AliteConfig.GAME_NAME),
 			20, 150, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.exc_error_info2, L.string(R.string.exc_btn_send_error_in_mail)),
-			20, 200, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.exc_error_info3),
-			20, 240, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.exc_error_info4),
-			20, 290, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.exc_error_info5),
-			20, 330, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.exc_error_info6),
-			20, 380, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
-		g.drawText(L.string(R.string.exc_error_info7),
-			20, 420, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT), Assets.regularFont);
+		displayText(g, computeTextDisplay(g, L.string(R.string.exc_error_info2, L.string(R.string.exc_btn_send_error_in_mail)),
+			20, 200, AliteConfig.DESKTOP_WIDTH - 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT)));
+		displayText(g, computeTextDisplay(g, L.string(R.string.exc_error_info3),
+			20, 290, AliteConfig.DESKTOP_WIDTH - 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT)));
+		displayText(g, computeTextDisplay(g, L.string(R.string.exc_error_info4),
+			20, 380, AliteConfig.DESKTOP_WIDTH - 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT)));
 		if (causeText != null) {
 			for (TextData td : causeText) {
-				if (td.y + position >= -40) {
-					g.drawText(td.text, td.x, scrollingRegion.top + td.y + position, td.color, td.font);
+				if (td.y + 40 >= scrollPane.position.y) {
+					g.drawText(td.text, td.x, scrollPane.area.top + td.y - scrollPane.position.y, td.color, td.font);
 				}
 			}
-			g.fillRect(scrollingRegion.left,scrollingRegion.top - 70,
-				scrollingRegion.right - scrollingRegion.left,
+			g.fillRect(scrollPane.area.left,scrollPane.area.top - 70,
+				scrollPane.area.right - scrollPane.area.left,
 				40, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		}
 		if (savedFilename != null) {
@@ -153,23 +145,7 @@ public class FatalExceptionScreen extends AliteScreen {
 				game.startActivityForResult(intent, 0);
 				return;
 			}
-			if (event.type == TouchEvent.TOUCH_DOWN) {
-				touchDownPoint = scrollingRegion.contains(event.x, event.y) ? new Point(event.x, event.y) : null;
-			}
-			if (event.type == TouchEvent.TOUCH_DRAGGED && touchDownPoint != null) {
-				int i = AliteConfig.SCREEN_HEIGHT - scrollingRegion.top - causeText[causeText.length - 1].y;
-				// No need to scroll if error fits on screen
-				if (i >= 0) {
-					return;
-				}
-				position += event.y - touchDownPoint.y;
-				touchDownPoint.y = event.y;
-				if (position < i - 40) {
-					position = i - 40;
-				} else if (position > 0) {
-					position = 0;
-				}
-			}
+			scrollPane.handleEvent(event);
 		}
 	}
 

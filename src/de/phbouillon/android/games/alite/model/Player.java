@@ -19,99 +19,122 @@ package de.phbouillon.android.games.alite.model;
  */
 
 import java.io.DataInputStream;
-import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import android.graphics.Point;
 import com.google.api.client.util.DateTime;
-import de.phbouillon.android.games.alite.Alite;
-import de.phbouillon.android.games.alite.AliteLog;
-import de.phbouillon.android.games.alite.L;
-import de.phbouillon.android.games.alite.R;
+import de.phbouillon.android.games.alite.*;
+import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.generator.enums.Government;
-import de.phbouillon.android.games.alite.model.missions.Mission;
+import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.trading.AliteMarket;
 import de.phbouillon.android.games.alite.model.trading.Market;
+import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
+import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Player {
 	private static final int LAVE_INDEX = 7;
 
-	private String name;
+	private String name = L.string(R.string.cmdr_default_commander_name);
 	private SystemData currentSystem;
 	private SystemData hyperspaceSystem;
-	private Condition condition;
-	private LegalStatus legalStatus;
-	private Rating rating;
-	private long cash;
+	private Condition condition = Condition.DOCKED;
+	private LegalStatus legalStatus = LegalStatus.CLEAN;
+	private Rating rating = Rating.HARMLESS;
+	private long cash = 1000;
 	private int score;
+	private int rank;
 	private int killCount;
-	private PlayerCobra cobra;
+	private final PlayerCobra cobra = new PlayerCobra();
 	private final Market market;
 	private int legalValue;
+	private int maxLegalValue;
+	private int recidivismCount; // even: should reach fugitive, odd: should reach clean
 	private final Point position = new Point(-1, -1);
-	private int jumpCounter = 0;
-	private int intergalacticJumpCounter = 0;
-	private final List <Mission> activeMissions = new ArrayList<>();
-	private final List <Mission> completedMissions = new ArrayList<>();
+	private int jumpCounter;
+	private int jumpCounterSinceLastMission;
+	private int intergalacticJumpCounter;
+	private int intergalacticJumpCounterSinceLastMission;
 	private boolean cheater;
 	private final Map<Integer,PlanetInfo> visitedPlanets = new HashMap<>();
 	private int lastVisitedPlanet;
+	private int highestVisitCount;
+	private long minLastVisitedTime = System.currentTimeMillis();
+	private int manuallyDockedCount;
+	private long tradedAmountInGram;
+	private long maxCash;
+	private int maxGain;
+	private int maxLoss;
+	private int killCountInWitchSpace;
+	private int killCountPirate;
+	private int killCountThargoid;
+	private int killCountThargon;
+	private int killCountAsteroid;
+	private int killCountMissileByLaser;
+	private int killCountMissileByEcm;
+	private int killCountByMissile;
+	private int killCountByMissileJammer;
+	private int killCountByLuckyMissile;
+	private int killCountTrader;
+	private int killCountPolice;
+	private int maxScoreOfEnergyBomb;
+	private int hyperdriveRepairCount;
+	private int cloakingUseCount;
+	private int escapeCapsuleUseCount;
+	private int pauseModes;
 
 	private class PlanetInfo {
-		int galaxy;
-		int index;
+		int id;
 		Government government;
 		int inhabitantCode;
+		boolean isNode;
 		int visitCount;
 		long lastVisitedTime;
 
 		PlanetInfo() {
-			galaxy = Alite.get().getGenerator().getCurrentGalaxy();
-			index = currentSystem.getIndex();
+			id = currentSystem.getId();
 			government = currentSystem.getGovernment();
 			inhabitantCode = currentSystem.getInhabitantCode().charAt(SystemData.INHABITANT_INDEX_RACE) ==
 				SystemData.INHABITANT_RACE_HUMAN ? 0 : Integer.parseInt(currentSystem.getInhabitantCode());
+			currentSystem.computeReachableSystems(Alite.get().getGenerator().getSystems());
+			isNode = currentSystem.getReachableSystems().length > 15; // contains itself
 			revisited();
 		}
 
-		public PlanetInfo(int galaxy, int index, int visitCount, long lastVisitedTime, byte government, int inhabitantCode) {
-			this.galaxy = galaxy;
-			this.index = index;
+		PlanetInfo(int id, int visitCount, long lastVisitedTime, int government, int inhabitantCode, boolean isNode) {
+			this.id = id;
 			this.visitCount = visitCount;
 			this.lastVisitedTime = lastVisitedTime;
 			this.government = Government.values()[government];
 			this.inhabitantCode = inhabitantCode;
+			this.isNode = isNode;
+			if (visitCount > highestVisitCount) {
+				highestVisitCount = visitCount;
+			}
 		}
 
 		void revisited() {
+			if (lastVisitedTime != 0 && lastVisitedTime < minLastVisitedTime) {
+				minLastVisitedTime = lastVisitedTime;
+			}
 			visitCount++;
 			lastVisitedTime = System.currentTimeMillis();
+			if (visitCount > highestVisitCount) {
+				highestVisitCount = visitCount;
+			}
 		}
 	}
 
 	public Player() {
 		market = new AliteMarket();
-		reset();
-		addVisitedPlanet();
-	}
-
-	public void reset() {
-		cobra = new PlayerCobra();
-		name = L.string(R.string.cmdr_default_commander_name);
-		condition = Condition.DOCKED;
-		legalStatus = LegalStatus.CLEAN;
-		legalValue = 0;
-		rating = Rating.HARMLESS;
-		cash = 1000;
-		score = 0;
-		killCount = 0;
 		Alite alite = Alite.get();
 		alite.getGenerator().buildGalaxy(1);
 		currentSystem = alite.getGenerator().getSystem(LAVE_INDEX);
@@ -119,14 +142,8 @@ public class Player {
 		market.setFluct(0);
 		market.setSystem(currentSystem);
 		market.generate();
-		position.x = -1;
-		position.y = -1;
-		clearMissions();
-		jumpCounter = 0;
-		intergalacticJumpCounter = 0;
-		cheater = false;
-		visitedPlanets.clear();
-		lastVisitedPlanet = 0;
+		TradeGoodStore.get().clearTraded();
+		Settings.maxGalaxies = GalaxyGenerator.GALAXY_COUNT;
 	}
 
 	public PlayerCobra getCobra() {
@@ -213,10 +230,51 @@ public class Player {
 
 	public void setCash(long newCash) {
 		cash = newCash;
+		if (cash > maxCash) {
+			maxCash = cash;
+		}
+	}
+
+	public int getRank() {
+		int newRank = score == 0 ? 0 : Settings.maxGalaxies == GalaxyGenerator.EXTENDED_GALAXY_COUNT ? 11 :
+			Alite.get().getPlayer().isPlanetVisited(SystemData.RAXXLA_SYSTEM.getId()) ? 10 : rating.ordinal() + 1;
+		if (newRank > rank) {
+			rank = newRank;
+		}
+		return rank;
+	}
+
+	public int getTradedAmountInTonne() {
+		return (int) (tradedAmountInGram / Unit.TONNE.getValue());
+	}
+
+	public long getMaxCash() {
+		return maxCash / 10;
+	}
+
+	public long getMaxGain() {
+		return maxGain / 10;
+	}
+
+	public long getMaxLoss() {
+		return maxLoss / 10;
 	}
 
 	public Market getMarket() {
 		return market;
+	}
+
+	public void trade(InventoryItem item, long price) {
+		item.getGood().traded();
+		cobra.removeItem(item);
+		setCash(cash + price);
+		int gain = (int) (price - item.getPrice());
+		if (gain >= 0) {
+			maxGain = Math.max(maxGain, gain);
+		} else {
+			maxLoss = Math.max(maxLoss, -gain);
+		}
+		tradedAmountInGram += item.getWeight().getWeightInGrams();
 	}
 
 	public int getScore() {
@@ -227,8 +285,62 @@ public class Player {
 		this.score = score;
 	}
 
-	public void increaseKillCount() {
-		killCount++;
+	public void increaseKillCount(SpaceObject destroyedObject, String destroyedByEquipment, boolean cloaked) {
+		if (destroyedObject.getScore() > 0) {
+			killCount++;
+		}
+
+		if (destroyedObject.getType() == ObjectType.Missile) {
+			if (EquipmentStore.PULSE_LASER.equals(destroyedByEquipment)) {
+				killCountMissileByLaser++;
+				return;
+			}
+			if (EquipmentStore.ECM_SYSTEM.equals(destroyedByEquipment)) {
+				killCountMissileByEcm++;
+			}
+			return;
+		}
+
+		if (EquipmentStore.MISSILES.equals(destroyedByEquipment) || EquipmentStore.ECM_JAMMER.equals(destroyedByEquipment)) {
+			killCountByMissile++;
+			if (destroyedObject.hasEcm()) {
+				if (EquipmentStore.ECM_JAMMER.equals(destroyedByEquipment)) {
+					killCountByMissileJammer++;
+				} else {
+					killCountByLuckyMissile++;
+				}
+			}
+		}
+
+		switch (destroyedObject.getType()) {
+			case Pirate:
+				killCountPirate++;
+				if (cloaked && EquipmentStore.PULSE_LASER.equals(destroyedByEquipment)) {
+					cloakingUseCount++;
+				}
+				break;
+			case Thargoid:
+				killCountThargoid++;
+				if (cloaked && EquipmentStore.PULSE_LASER.equals(destroyedByEquipment)) {
+					cloakingUseCount++;
+				}
+				break;
+			case Thargon:
+				killCountThargon++;
+				if (cloaked && EquipmentStore.PULSE_LASER.equals(destroyedByEquipment)) {
+					cloakingUseCount++;
+				}
+				break;
+			case Asteroid:
+				killCountAsteroid++;
+				break;
+			case Trader:
+				killCountTrader++;
+				break;
+			case Police:
+				killCountPolice++;
+				break;
+		}
 	}
 
 	public void setKillCount(int killCount) {
@@ -239,6 +351,101 @@ public class Player {
 		return killCount;
 	}
 
+	public void increaseKillCountInWitchSpace(int amount) {
+		killCountInWitchSpace += amount;
+		hyperdriveRepairCount++;
+	}
+
+	public int getKillCountInWitchSpace() {
+		return killCountInWitchSpace;
+	}
+
+	public int getKillCountPirate() {
+		return killCountPirate;
+	}
+
+	public int getKillCountTrader() {
+		return killCountTrader;
+	}
+
+	public int getKillCountPolice() {
+		return killCountPolice;
+	}
+
+	public int getKillCountThargoid() {
+		return killCountThargoid;
+	}
+
+	public int getKillCountThargon() {
+		return killCountThargon;
+	}
+
+	public int getKillCountAsteroid() {
+		return killCountAsteroid;
+	}
+
+	public int getKillCountMissileByLaser() {
+		return killCountMissileByLaser;
+	}
+
+	public int getKillCountMissileByEcm() {
+		return killCountMissileByEcm;
+	}
+
+	public int getKillCountByMissile() {
+		return killCountByMissile;
+	}
+
+	public int getKillCountByMissileJammer() {
+		return killCountByMissileJammer;
+	}
+
+	public int getKillCountByLuckyMissile() {
+		return killCountByLuckyMissile;
+	}
+
+	public void setScoreOfEnergyBomb(int scoreOfEnergyBomb) {
+		if (scoreOfEnergyBomb > maxScoreOfEnergyBomb) {
+			maxScoreOfEnergyBomb = scoreOfEnergyBomb;
+		}
+	}
+
+	public int getMaxScoreOfEnergyBomb() {
+		return maxScoreOfEnergyBomb;
+	}
+
+	public int getHyperdriveRepairCount() {
+		return hyperdriveRepairCount;
+	}
+
+	public int getManuallyDockedCount() {
+		return manuallyDockedCount;
+	}
+
+	public int getCloakingUseCount() {
+		return cloakingUseCount;
+	}
+
+	public void increaseEscapeCapsuleUse() {
+		escapeCapsuleUseCount++;
+	}
+
+	public int getEscapeCapsuleUseCount() {
+		return escapeCapsuleUseCount;
+	}
+
+	public void setResumedFromPause() {
+		pauseModes |= 1;
+	}
+
+	public void setResumedFromAppSwitch() {
+		pauseModes |= 2;
+	}
+
+	public int getPauseModes() {
+		return pauseModes;
+	}
+
 	public void setLegalValueByContraband(float legalityType, int buyAmount) {
 		if (Math.random() * 100 < getLegalProblemLikelihoodInPercent()) {
 			setLegalValue(legalValue + (int) (legalityType * buyAmount));
@@ -246,18 +453,36 @@ public class Player {
 	}
 
 	public void setLegalValue(int legalValue) {
-		this.legalValue = legalValue < 0 ? 0 : Math.min(legalValue, 255);
-		if (this.legalValue == 0) {
+		legalValue = legalValue < 0 ? 0 : Math.min(legalValue, 255);
+		if (legalValue == 0) {
+			if (this.legalValue > 0 && recidivismCount % 2 == 1) {
+				recidivismCount++;
+			}
 			setLegalStatus(LegalStatus.CLEAN);
-		} else if (this.legalValue < 32) {
+		} else if (legalValue < 32) {
 			setLegalStatus(LegalStatus.OFFENDER);
 		} else {
+			if (this.legalValue < 32 && recidivismCount % 2 == 0) {
+				recidivismCount++;
+			}
 			setLegalStatus(LegalStatus.FUGITIVE);
 		}
+		if (legalValue > maxLegalValue) {
+			maxLegalValue = legalValue;
+		}
+		this.legalValue = legalValue;
 	}
 
 	public int getLegalValue() {
 		return legalValue;
+	}
+
+	public int getMaxLegalValue() {
+		return maxLegalValue;
+	}
+
+	public int getRecidivismCount() {
+		return recidivismCount / 2;
 	}
 
 	public void setPosition(int px, int py) {
@@ -270,20 +495,21 @@ public class Player {
 	}
 
 	public int computeDistance() {
-		if (currentSystem != null) {
-			return hyperspaceSystem.computeDistance(currentSystem);
-		}
-		int dx = position.x - hyperspaceSystem.getX();
-		int dy = position.y - hyperspaceSystem.getY();
-		return (int) Math.sqrt(dx * dx + dy * dy) << 2;
+		return currentSystem != null ? hyperspaceSystem.computeDistance(currentSystem) :
+			SystemData.computeDistance(position.x, position.y, hyperspaceSystem.getX(), hyperspaceSystem.getY());
 	}
 
 	public void increaseJumpCounter() {
 		jumpCounter++;
+		jumpCounterSinceLastMission++;
 	}
 
 	public void resetJumpCounter() {
-		jumpCounter = 0;
+		jumpCounterSinceLastMission = 0;
+	}
+
+	public int getJumpCounterSinceLastMission() {
+		return jumpCounterSinceLastMission;
 	}
 
 	public int getJumpCounter() {
@@ -291,52 +517,33 @@ public class Player {
 	}
 
 	public void setJumpCounter(int counter) {
-		jumpCounter = counter;
+		jumpCounterSinceLastMission = counter;
 	}
 
 	public void increaseIntergalacticJumpCounter() {
 		intergalacticJumpCounter++;
+		intergalacticJumpCounterSinceLastMission++;
 	}
 
 	public void resetIntergalacticJumpCounter() {
-		intergalacticJumpCounter = 0;
+		intergalacticJumpCounterSinceLastMission = 0;
 	}
 
 	public void setIntergalacticJumpCounter(int counter) {
 		intergalacticJumpCounter = counter;
+		intergalacticJumpCounterSinceLastMission = counter;
 	}
 
 	public int getIntergalacticJumpCounter() {
 		return intergalacticJumpCounter;
 	}
 
-	public void clearMissions() {
-		activeMissions.clear();
-		completedMissions.clear();
+	public void setIntergalacticJumpCounterSinceLastMission(int counter) {
+		intergalacticJumpCounterSinceLastMission = counter;
 	}
 
-	public void addActiveMission(Mission mission) {
-		activeMissions.add(mission);
-	}
-
-	public void removeActiveMission(Mission mission) {
-		activeMissions.remove(mission);
-	}
-
-	public void addCompletedMission(Mission mission) {
-		completedMissions.add(mission);
-	}
-
-	public List <Mission> getActiveMissions() {
-		return activeMissions;
-	}
-
-	public List <Mission> getCompletedMissions() {
-		return completedMissions;
-	}
-
-	public boolean isCheater() {
-		return cheater;
+	public int getIntergalacticJumpCounterSinceLastMission() {
+		return intergalacticJumpCounterSinceLastMission;
 	}
 
 	public void setCheater(boolean b) {
@@ -394,26 +601,27 @@ public class Player {
 		setLegalValue(legalValue + Math.min(increment, maxIncrement));
 	}
 
-	public boolean isPlanetVisited(int galaxy, int index) {
-		return getPlanetInfo(galaxy, index) != null;
+	public boolean isPlanetVisited(int id) {
+		return getPlanetInfo(id) != null;
 	}
 
-	private PlanetInfo getPlanetInfo(int galaxy, int index) {
-		return visitedPlanets.get((galaxy << 10) + index);
+	private PlanetInfo getPlanetInfo(int id) {
+		return visitedPlanets.get(id);
 	}
 
-	private PlanetInfo getPlanetInfo(int index) {
-		return getPlanetInfo(Alite.get().getGenerator().getCurrentGalaxy(), index);
-	}
-
-	public int getNumberOfVisits(int index) {
-		PlanetInfo planetInfo = getPlanetInfo(index);
+	public int getNumberOfVisits(int id) {
+		PlanetInfo planetInfo = getPlanetInfo(id);
 		return planetInfo == null ? 0 : planetInfo.visitCount;
 	}
 
-	public long getLastVisitTime(int index) {
-		PlanetInfo planetInfo = getPlanetInfo(index);
+	public long getLastVisitTime(int id) {
+		PlanetInfo planetInfo = getPlanetInfo(id);
 		return planetInfo == null ? 0 : planetInfo.lastVisitedTime;
+	}
+
+	public void addVisitedPlanetWithManualDocking() {
+		addVisitedPlanet();
+		manuallyDockedCount++;
 	}
 
 	public void addVisitedPlanet() {
@@ -427,11 +635,12 @@ public class Player {
 		} else {
 			planet.revisited();
 		}
+		cobra.checkLowEnergy();
 	}
 
 	private boolean isPlanetChanged() {
-		int key = currentSystem == null ? 0 : (Alite.get().getGenerator().getCurrentGalaxy() << 10) + currentSystem.getIndex();
-		if (lastVisitedPlanet == key) {
+		int key = currentSystem == null ? 0 : currentSystem.getId();
+		if (lastVisitedPlanet == key && visitedPlanets.containsKey(key)) {
 			return false;
 		}
 		lastVisitedPlanet = key;
@@ -444,29 +653,244 @@ public class Player {
 		try {
 			int count = dis.readInt();
 			for (int i = 0; i < count; i++) {
-				addVisitedPlanet(dis.readChar(), dis.readChar(), dis.readInt(), dis.readLong(),
-					dis.readByte(), dis.readChar());
+				addVisitedPlanet((dis.readChar() << 10) + dis.readChar(), dis.readInt(), dis.readLong(),
+					dis.readByte(), dis.readChar(), false);
 			}
 		} catch (EOFException ignored) { }
 	}
 
-	private void addVisitedPlanet(int galaxy, int index, int visitCount, long lastVisitedDate,
-			byte government, int inhabitantCode) {
-		AliteLog.d("Planet visitor info", "(" + galaxy + ":" + index + "): " +
-			visitCount + " (" + new DateTime(lastVisitedDate) + ")");
-		visitedPlanets.put((galaxy << 10) + index, new PlanetInfo(galaxy, index, visitCount,
-			lastVisitedDate, government, inhabitantCode));
+	private void addVisitedPlanet(int id, int visitCount, long lastVisitedDate, int government, int inhabitantCode, boolean isNode) {
+		AliteLog.d("Planet visitor info", id + ": " + visitCount + " (" + new DateTime(lastVisitedDate) + ")");
+		visitedPlanets.put(id, new PlanetInfo(id, visitCount, lastVisitedDate, government, inhabitantCode, isNode));
 	}
 
-	public void saveVisitedPlanets(DataOutput dos) throws IOException {
-		dos.writeInt(visitedPlanets.size());
+	public int getTotalNumberOfPlanetVisit() {
+		int sum = 0;
+		for (PlanetInfo p : visitedPlanets.values()) {
+			sum += p.visitCount;
+		}
+		return sum;
+		//from API 24
+		//return visitedPlanets.values().stream().mapToInt(p -> p.visitCount).sum();
+	}
+
+	public int getNumberOfVisitedPlanets() {
+		return visitedPlanets.size();
+	}
+
+	public int getVisitNumberOfMostVisitedPlanet() {
+		int max = 0;
+		for (PlanetInfo p : visitedPlanets.values()) {
+			if (p.visitCount > max) {
+				max = p.visitCount;
+			}
+		}
+		return max;
+		//from API 24
+		//return visitedPlanets.values().stream().mapToInt(p -> p.visitCount).max().orElse(0);
+	}
+
+	public long getMinLastVisitedTime() {
+		return minLastVisitedTime;
+	}
+
+	public int getNumberOfFullyVisitedGalaxies() {
+		int count = 0;
+		Map<Integer, Integer> galaxies = new HashMap<>();
+		for (Integer id : visitedPlanets.keySet()) {
+			int galaxy = SystemData.getGalaxyOf(id);
+			Integer visitedCount = galaxies.get(galaxy);
+			visitedCount = visitedCount == null ? 1 : visitedCount + 1;
+			galaxies.put(galaxy, visitedCount);
+			if (visitedCount == GalaxyGenerator.PLANET_COUNT) {
+				count++;
+			}
+		}
+		return count;
+		//from API 24
+		//return (int) visitedPlanets.keySet().stream().collect(Collectors.groupingBy(SystemData::getGalaxyOf,
+		//	Collectors.counting())).values().stream().filter(p -> p == 256).count();
+	}
+
+	public int getNumberOfVisitedOrphanPlanets() {
+		int count = 0;
+		for (int id : visitedPlanets.keySet()) {
+			if (Alite.get().getGenerator().isOrphan(id)) {
+				count++;
+			}
+		}
+		return count;
+		//from API 24
+		//return (int) visitedPlanets.keySet().stream().filter(p -> Alite.get().getGenerator().isOrphan(p)).count();
+	}
+
+	public int getNumberOfVisitedNodePlanets() {
+		int count = 0;
 		for (PlanetInfo planet : visitedPlanets.values()) {
-			dos.writeChar(planet.galaxy);
-			dos.writeChar(planet.index);
-			dos.writeInt(planet.visitCount);
-			dos.writeLong(planet.lastVisitedTime);
-			dos.writeByte(planet.government.ordinal());
-			dos.writeChar(planet.inhabitantCode);
+			if (planet.isNode) {
+				count++;
+			}
+		}
+		return count;
+		//from API 24
+		//return (int) visitedPlanets.values().stream().filter(p -> p.isNode).count();
+	}
+
+	public int getNumberOfVisitedAnarchyPlanets() {
+		int count = 0;
+		for (PlanetInfo planet : visitedPlanets.values()) {
+			if (planet.government == Government.ANARCHY) {
+				count++;
+			}
+		}
+		return count;
+		//from API 24
+		//return (int) visitedPlanets.values().stream().filter(p -> p.government == Government.ANARCHY).count();
+	}
+
+	public int getNumberOfVisitedGalaxies() {
+		Set<Integer> galaxies = new HashSet<>();
+		for (Integer id : visitedPlanets.keySet()) {
+			galaxies.add(SystemData.getGalaxyOf(id));
+		}
+		return galaxies.size();
+		//from API 24
+		//return visitedPlanets.keySet().stream().collect(Collectors.groupingBy(SystemData::getGalaxyOf)).values().size();
+	}
+
+	public int getNumberOfVisitedSpecies() {
+		Set<Integer> species = new HashSet<>();
+		for (PlanetInfo planet : visitedPlanets.values()) {
+			species.add(planet.inhabitantCode);
+		}
+		return species.size();
+		//from API 24
+		//return visitedPlanets.values().stream().collect(Collectors.groupingBy(p -> p.inhabitantCode)).size();
+	}
+
+	public JSONObject toJson() throws JSONException {
+		JSONArray planets = new JSONArray();
+		for (PlanetInfo p : visitedPlanets.values()) {
+			planets.put(new JSONObject()
+				.put("id", p.id)
+				.put("visitCount", p.visitCount)
+				.put("lastVisitedTime", p.lastVisitedTime)
+				.put("government", p.government.ordinal())
+				.put("inhabitantCode", p.inhabitantCode)
+				.put("isNode", p.isNode));
+		}
+
+		return new JSONObject()
+			.put("name", name)
+			.put("currentSystem", currentSystem == null ? 0 : currentSystem.getIndex())
+			.put("hyperspaceSystem", hyperspaceSystem == null ? 0 : hyperspaceSystem.getIndex())
+			.putOpt("positionX", currentSystem == null ? position.x : null)
+			.putOpt("positionY", currentSystem == null ? position.y : null)
+			.put("cash", cash)
+			.put("rating", rating.ordinal())
+			.put("legalStatus", legalStatus.ordinal())
+			.put("score", score)
+			.put("rank", rank)
+			.put("legalValue", legalValue)
+			.put("maxLegalValue", maxLegalValue)
+			.put("recidivismCount", recidivismCount)
+			.put("intergalacticJumpCounter", intergalacticJumpCounter)
+			.put("intergalacticJumpCounterSinceLastMission", intergalacticJumpCounterSinceLastMission)
+			.put("jumpCounter", jumpCounter)
+			.put("jumpCounterSinceLastMission", jumpCounterSinceLastMission)
+			.put("cheater", cheater)
+			.put("killCount", killCount)
+			.put("killCountInWitchSpace", killCountInWitchSpace)
+			.put("killCountPirate", killCountPirate)
+			.put("killCountThargoid", killCountThargoid)
+			.put("killCountThargon", killCountThargon)
+			.put("killCountAsteroid", killCountAsteroid)
+			.put("killCountMissileByLaser", killCountMissileByLaser)
+			.put("killCountMissileByEcm", killCountMissileByEcm)
+			.put("killCountByMissile", killCountByMissile)
+			.put("killCountByMissileJammer", killCountByMissileJammer)
+			.put("killCountByLuckyMissile", killCountByLuckyMissile)
+			.put("killCountTrader", killCountTrader)
+			.put("killCountPolice", killCountPolice)
+			.put("maxScoreOfEnergyBomb", maxScoreOfEnergyBomb)
+			.put("hyperdriveRepairCount", hyperdriveRepairCount)
+			.put("manuallyDockedCount", manuallyDockedCount)
+			.put("cloakingUseCount", cloakingUseCount)
+			.put("escapeCapsuleUseCount", escapeCapsuleUseCount)
+			.put("tradedAmountInGram", tradedAmountInGram)
+			.put("maxCash", maxCash)
+			.put("maxGain", maxGain)
+			.put("maxLoss", maxLoss)
+			.put("market", market.toJson())
+			.put("cobra", cobra.toJson())
+			.put("missions", MissionManager.getInstance().toJson())
+			.put("visitedPlanets", planets)
+			.put("minLastVisitedTime", minLastVisitedTime)
+			.put("maxGalaxies", Settings.maxGalaxies)
+			.put("pauseModes", pauseModes);
+	}
+
+	public void fromJson(JSONObject player) throws JSONException {
+		name = player.getString("name");
+		setCurrentSystem(Alite.get().getGenerator().getSystem(player.getInt("currentSystem")));
+		hyperspaceSystem = Alite.get().getGenerator().getSystem(player.getInt("hyperspaceSystem"));
+		int x = player.optInt("positionX");
+		int y = player.optInt("positionY");
+		if (x != 0 || y != 0) {
+			setPosition(x, y);
+			setCurrentSystem(null);
+		}
+		cash = player.getLong("cash");
+		rating = Rating.values()[player.getInt("rating")];
+		legalStatus = LegalStatus.values()[player.getInt("legalStatus")];
+		score = player.getInt("score");
+		rank = player.optInt("rank");
+		legalValue = player.getInt("legalValue");
+		maxLegalValue = player.optInt("maxLegalValue");
+		recidivismCount = player.optInt("recidivismCount");
+		intergalacticJumpCounter = player.getInt("intergalacticJumpCounter");
+		intergalacticJumpCounterSinceLastMission = player.getInt("intergalacticJumpCounterSinceLastMission");
+		jumpCounter = player.getInt("jumpCounter");
+		jumpCounterSinceLastMission = player.optInt("jumpCounterSinceLastMission", jumpCounter);
+		cheater = player.getBoolean("cheater");
+		killCount = player.getInt("killCount");
+		killCountInWitchSpace = player.optInt("killCountInWitchSpace");
+		killCountPirate = player.optInt("killCountPirate");
+		killCountThargoid = player.optInt("killCountThargoid");
+		killCountThargon = player.optInt("killCountThargon");
+		killCountAsteroid = player.optInt("killCountAsteroid");
+		killCountMissileByLaser = player.optInt("killCountMissileByLaser");
+		killCountMissileByEcm = player.optInt("killCountMissileByEcm");
+		killCountByMissile = player.optInt("killCountByMissile");
+		killCountByMissileJammer = player.optInt("killCountByMissileJammer");
+		killCountByLuckyMissile = player.optInt("killCountByLuckyMissile");
+		killCountTrader = player.optInt("killCountTrader");
+		killCountPolice = player.optInt("killCountPolice");
+		maxScoreOfEnergyBomb = player.optInt("maxScoreOfEnergyBomb");
+		hyperdriveRepairCount = player.optInt("hyperdriveRepairCount");
+		manuallyDockedCount = player.getInt("manuallyDockedCount");
+		cloakingUseCount = player.optInt("cloakingUseCount");
+		escapeCapsuleUseCount = player.optInt("escapeCapsuleUseCount");
+		tradedAmountInGram = player.getLong("tradedAmountInGram");
+		maxCash = player.getLong("maxCash");
+		maxGain = player.getInt("maxGain");
+		maxLoss = player.getInt("maxLoss");
+		minLastVisitedTime = player.optLong("minLastVisitedTime", System.currentTimeMillis());
+		Settings.maxGalaxies = player.optInt("maxGalaxies", GalaxyGenerator.GALAXY_COUNT);
+		pauseModes = player.optInt("pauseModes");
+		market.fromJson(player.getJSONObject("market"));
+		cobra.fromJson(player.getJSONObject("cobra"));
+
+		MissionManager.getInstance().fromJson(player.getJSONArray("missions"));
+
+		isPlanetChanged(); // sets lastVisitedPlanet
+		visitedPlanets.clear();
+		JSONArray planets = player.getJSONArray("visitedPlanets");
+		for (int i = 0; i < planets.length(); i++) {
+			JSONObject p = planets.getJSONObject(i);
+			addVisitedPlanet(p.getInt("id"), p.getInt("visitCount"), p.getLong("lastVisitedTime"),
+				p.getInt("government"), p.getInt("inhabitantCode"), p.optBoolean("isNode"));
 		}
 	}
+
 }

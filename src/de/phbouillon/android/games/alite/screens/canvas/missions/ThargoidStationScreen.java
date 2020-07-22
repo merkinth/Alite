@@ -25,7 +25,6 @@ import android.media.MediaPlayer;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.missions.ThargoidStationMission;
@@ -52,15 +51,10 @@ public class ThargoidStationScreen extends AliteScreen {
 			if (state == 0) {
 				missionLine = new MissionLine(path + "02.mp3", L.string(R.string.mission_thargoid_station_mission_description));
 				mission.setPlayerAccepts(true);
-				mission.setTarget(game.getGenerator().getCurrentGalaxy(), game.getPlayer().getCurrentSystem().getIndex(), 1);
+				mission.setTargetPlanet(game.getPlayer().getCurrentSystem(), 1);
 			} else if (state == 1) {
 				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_thargoid_station_success));
-			 	mission.onMissionComplete();
-				Player player = game.getPlayer();
-				player.removeActiveMission(mission);
-				player.addCompletedMission(mission);
-				player.resetIntergalacticJumpCounter();
-				player.resetJumpCounter();
+			 	mission.missionCompleted();
 			} else {
 				AliteLog.e("Unknown State", "Invalid state variable has been passed to ThargoidStationScreen: " + state);
 			}
@@ -87,7 +81,8 @@ public class ThargoidStationScreen extends AliteScreen {
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle(L.string(R.string.title_mission_thargoid_station));
 
-		g.drawText(L.string(R.string.mission_attention_commander), 50, 200, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.mission_attention_commander), 50, 200,
+			ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		if (missionText != null) {
 			displayText(g, missionText);
 		}
@@ -95,7 +90,8 @@ public class ThargoidStationScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800,
+			ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 	}
 
 	@Override

@@ -51,10 +51,10 @@ public class AliteHud extends Sprite implements Serializable {
 	public static final int ALITE_TEXT_Y2 = ALITE_TEXT_Y1 + 60;
 
 	private transient Sprite lollipop = new Sprite(0,0,0,0,0,0,1,1,"");
-	private float [][] objects = new float[MAXIMUM_OBJECTS][3];
-	private int[] objectColors = new int[MAXIMUM_OBJECTS];
-	private boolean [] enemy = new boolean[MAXIMUM_OBJECTS];
-	private boolean [] enabled = new boolean[MAXIMUM_OBJECTS];
+	private final float[][] objects = new float[MAXIMUM_OBJECTS][3];
+	private final int[] objectColors = new int[MAXIMUM_OBJECTS];
+	private final boolean[] enemy = new boolean[MAXIMUM_OBJECTS];
+	private final boolean[] enabled = new boolean[MAXIMUM_OBJECTS];
 	private final Sprite laser;
 	private final Sprite aliteText;
 	private final Sprite safeIcon;
@@ -72,16 +72,14 @@ public class AliteHud extends Sprite implements Serializable {
 	private float zoomFactor = 1.0f;
 	private Timer ecmActive;
 	private boolean witchSpace = false;
-	private ControlPad controlPad;
-	private CursorKeys controlKeys;
+	private ShipController shipController;
 	private final Timer timer = new Timer().setAutoResetWithSkipFirstCall();
-	private IntFunction<Float> getSpeed;
+	private final IntFunction<Float> getSpeed;
 
 	public AliteHud(IntFunction<Float> getSpeed) {
 		super(RADAR_X1, RADAR_Y1, RADAR_X2, RADAR_Y2, 0, 0, 1, 1, TEXTURE_FILE);
 		this.getSpeed = getSpeed;
-		SpriteData spriteData = Alite.get().getTextureManager().getSprite(TEXTURE_FILE, "radar");
-		setTextureCoords(spriteData.x, spriteData.y, spriteData.x2, spriteData.y2);
+		setTextureCoords(Alite.get().getTextureManager().getSprite(TEXTURE_FILE, "radar"));
 
 		laser         = genSprite("pulse_laser", 896, 476);
 		aliteText     = genSprite("alite", 864, 1030);
@@ -94,11 +92,11 @@ public class AliteHud extends Sprite implements Serializable {
 		infoGauges    = new InfoGaugeRenderer(this);
 		compass       = new CompassRenderer(this);
 		if (Settings.controlMode == ShipControl.CONTROL_PAD) {
-			controlPad = new ControlPad();
+			shipController = new ControlPad();
 		} else if (Settings.controlMode == ShipControl.CURSOR_BLOCK) {
-			controlKeys = new CursorKeys(false);
+			shipController = new CursorKeys(false);
 		} else if (Settings.controlMode == ShipControl.CURSOR_SPLIT_BLOCK) {
-			controlKeys = new CursorKeys(true);
+			shipController = new CursorKeys(true);
 		}
 	}
 
@@ -113,8 +111,7 @@ public class AliteHud extends Sprite implements Serializable {
 			AliteLog.d("readObject", "AliteHud.readObject I");
 			lollipop = new Sprite(0,0,0,0,0,0,1,1,"");
 			Alite.get().getTextureManager().addTexture(TEXTURE_FILE);
-			SpriteData spriteData = Alite.get().getTextureManager().getSprite(TEXTURE_FILE, "radar");
-			setTextureCoords(spriteData.x, spriteData.y, spriteData.x2, spriteData.y2);
+			setTextureCoords(Alite.get().getTextureManager().getSprite(TEXTURE_FILE, "radar"));
 			currentLaserIndex = null;
 			computeLaser();
 			AliteLog.d("readObject", "AliteHud.readObject II");
@@ -124,9 +121,7 @@ public class AliteHud extends Sprite implements Serializable {
 	}
 
 	Sprite genSprite(String name, int x, int y) {
-		SpriteData spriteData = Alite.get().getTextureManager().getSprite(TEXTURE_FILE, name);
-		return new Sprite(x, y, x + spriteData.origWidth, y + spriteData.origHeight,
-			spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, TEXTURE_FILE);
+		return new Sprite(x, y, Alite.get().getTextureManager().getSprite(TEXTURE_FILE, name), TEXTURE_FILE);
 	}
 
 	private void computeLaser() {
@@ -135,10 +130,9 @@ public class AliteHud extends Sprite implements Serializable {
 		if (laser != null) {
 			String[] crosshairs = laser.getCrosshairs();
 			if (crosshairs != currentLaserIndex) {
-				SpriteData spriteData =  alite.getTextureManager().getSprite(
-					"textures/" + crosshairs[0] + ".png", crosshairs[1]);
 				currentLaserIndex = crosshairs;
-				this.laser.setTextureCoords(spriteData.x, spriteData.y, spriteData.x2, spriteData.y2);
+				this.laser.setTextureCoords(alite.getTextureManager().getSprite(
+					"textures/" + crosshairs[0] + ".png", crosshairs[1]));
 			}
 		} else {
 			currentLaserIndex = null;
@@ -254,11 +248,11 @@ public class AliteHud extends Sprite implements Serializable {
 	}
 
 	public float getY() {
-		return controlPad != null ? controlPad.getY() : controlKeys != null ? controlKeys.getY() : 0.0f;
+		return shipController != null ? shipController.getY() : 0.0f;
 	}
 
 	public float getZ() {
-		return controlPad != null ? controlPad.getZ() : controlKeys != null ? controlKeys.getZ() : 0.0f;
+		return shipController != null ? shipController.getZ() : 0.0f;
 	}
 
 	public void update(float deltaTime) {
@@ -267,33 +261,18 @@ public class AliteHud extends Sprite implements Serializable {
 		} else if (!enemiesVisible && timer.hasPassedMillis(ENEMY_INVISIBLE_PHASE)) {
 			enemiesVisible = true;
 		}
-		if (controlPad != null) {
-			controlPad.update(deltaTime);
-		}
-		if (controlKeys != null) {
-			controlKeys.update(deltaTime);
+		if (shipController != null) {
+			shipController.update(deltaTime);
 		}
 	}
 
 	public boolean handleUI(TouchEvent event) {
-		if (controlPad != null) {
-			return controlPad.handleUI(event);
-		}
-		if (controlKeys != null) {
-			return controlKeys.handleUI(event);
-		}
-		return false;
+		return shipController != null && shipController.handleUI(event);
 	}
 
 	public void mapDirections(boolean left, boolean right, boolean up, boolean down) {
-		boolean u = Settings.reversePitch ? down : up;
-		boolean d = Settings.reversePitch ? up : down;
-
-		if (controlPad != null) {
-			controlPad.setActiveIndex(left, right, u, d);
-		}
-		if (controlKeys != null) {
-			controlKeys.setHighlight(left, right, u, d);
+		if (shipController != null) {
+			shipController.setDirections(left, right, Settings.reversePitch ? down : up, Settings.reversePitch ? up : down);
 		}
 	}
 
@@ -323,10 +302,8 @@ public class AliteHud extends Sprite implements Serializable {
 			ecmActive = null;
 		}
 
-		if (Settings.controlMode == ShipControl.CONTROL_PAD && controlPad != null) {
-			controlPad.render();
-		} else if ((Settings.controlMode == ShipControl.CURSOR_BLOCK || Settings.controlMode == ShipControl.CURSOR_SPLIT_BLOCK) && controlKeys != null) {
-			controlKeys.render();
+		if (shipController != null) {
+			shipController.render();
 		}
 
 		GLES11.glBlendFunc(GLES11.GL_ONE, GLES11.GL_ONE);

@@ -151,7 +151,7 @@ public class LaserManager implements Serializable {
 		}
 	}
 
-	private void spawnCargoCanisters(final SpaceObject so, int forceCount, Equipment laser) {
+	private void spawnCargoCanisters(final SpaceObject so, Equipment laser) {
 		TradeGood tradeGood = so.getCargoType();
 		AliteLog.d("Spawn Cargo Canisters", so.getId() + " has Cargo type: " + tradeGood.getName() +
 			" and spawns cargo canisters: " + so.getMaxCargoCanisters());
@@ -163,6 +163,7 @@ public class LaserManager implements Serializable {
 			spawnPlatlets(so, laser);
 			return;
 		}
+		final int forceCount = so.getCargoCanisterOverrideCount();
 		int numberOfCanistersToSpawn = forceCount > 0 ? forceCount : (int) (Math.random() * (so.getMaxCargoCanisters() + 1));
 		for (int i = 0; i < numberOfCanistersToSpawn; i++) {
 			final SpaceObject cargo = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.CargoPod);
@@ -178,7 +179,7 @@ public class LaserManager implements Serializable {
 
 	void explodeWithCargo(SpaceObject so, Equipment laser) {
 		explode(so);
-		spawnCargoCanisters(so, so.getCargoCanisterOverrideCount(), laser);
+		spawnCargoCanisters(so, laser);
 	}
 
 	void explodeWithCargo(SpaceObject so) {
@@ -256,6 +257,7 @@ public class LaserManager implements Serializable {
 		inGame.getShip().sendAIMessage("COLLISION");
 		collidedWith.sendAIMessage("COLLISION");
 		damageShip(amount, front);
+		alite.getCobra().addCollision(amount);
 	}
 
 	void damageShip(float amount, boolean front) {
@@ -288,7 +290,7 @@ public class LaserManager implements Serializable {
 				alite.getCobra().setRearShield(shield);
 			}
 		}
-		long vbLen = (long) (Settings.vibrateLevel * 30.0f);
+		long vbLen = (long) (Settings.vibrateLevelOnDamage * 30.0f);
 		if (amount > 0) {
 			float newVal = alite.getCobra().getEnergy() - amount;
 			if (newVal <= 0) {
@@ -312,10 +314,14 @@ public class LaserManager implements Serializable {
 			}
 			vbLen <<= 1;
 		}
-		if (vbLen > 0) {
+		vibrate(vbLen);
+	}
+
+	private void vibrate(long milliseconds) {
+		if (milliseconds > 0) {
 			Vibrator vb = (Vibrator) alite.getSystemService(Context.VIBRATOR_SERVICE);
 			if (vb != null) {
-				vb.vibrate(vbLen);
+				vb.vibrate(milliseconds);
 			}
 		}
 	}
@@ -336,7 +342,9 @@ public class LaserManager implements Serializable {
 		}
 		laser.setVisible(false);
 		laser.clearTwins();
-		damageShip(laser.getOrigin().getDamage(), shotDirection.dot(inGame.getShip().getForwardVector()) >= 0);
+		int damageAmount = laser.getOrigin().getDamage();
+		damageShip(damageAmount, shotDirection.dot(inGame.getShip().getForwardVector()) >= 0);
+		alite.getCobra().addHitByLaser(damageAmount);
 	}
 
 	private void checkObjectHit(final LaserCylinder laser, final float distanceToNextShot, List<AliteObject> allObjects) {
@@ -356,16 +364,17 @@ public class LaserManager implements Serializable {
 				if (Settings.laserPowerOverride != 0) {
 					alite.getPlayer().setCheater(true);
 				}
-				float hullStrength = ((SpaceObject) eo).applyDamage(laser.getLaser().getDamage() + Settings.laserPowerOverride);
+				int hullStrength = ((SpaceObject) eo).applyDamage(laser.getLaser().getDamage() + Settings.laserPowerOverride);
 				if (hullStrength <= 0) {
 					if (laser.getOrigin() == null) {
-						// Player has destroyed something
-						inGame.computeBounty((SpaceObject) eo);
+						// Player has destroyed something by laser
+						inGame.computeBounty((SpaceObject) eo, EquipmentStore.PULSE_LASER);
 					}
 					explodeWithCargo((SpaceObject) eo, laser.getLaser());
 					eo.setRemove(true);
 				}
 			}
+			vibrate((long) (Settings.vibrateLevelOnDamage * 30));
 			((SpaceObject) eo).executeHit(inGame.getShip());
 		}
 	}
@@ -383,11 +392,12 @@ public class LaserManager implements Serializable {
 				shotDirection.sub(shotOrigin);
 				float distanceToNextShot = shotDirection.length();
 				shotDirection.normalize(); // Direction of shot
-				if (laser.getOrigin() != null && laser.getRemoveInNFrames() == -1) {
-					checkPlayerHit(laser, distanceToNextShot);
-				}
-				if (laser.getOrigin() == null && laser.getRemoveInNFrames() == -1) {
-					checkObjectHit(laser, distanceToNextShot, allObjects);
+				if (laser.getRemoveInNFrames() == -1) {
+					if (laser.getOrigin() != null) {
+						checkPlayerHit(laser, distanceToNextShot);
+					} else {
+						checkObjectHit(laser, distanceToNextShot, allObjects);
+					}
 				}
 				if (distanceSq > AliteHud.MAX_DISTANCE_SQ) {
 					laser.setVisible(false);

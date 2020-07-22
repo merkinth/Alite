@@ -19,9 +19,10 @@ package de.phbouillon.android.games.alite.model.library;
  */
 
 public class ItemDescriptor {
-	private String fileName;
-	private String text;
-	private boolean localized;
+	private final String fileName;
+	private final String text;
+	private final boolean localized;
+	private boolean watched;
 
 	ItemDescriptor(String fileName, String text, boolean localized) {
 		this.fileName = fileName;
@@ -39,5 +40,13 @@ public class ItemDescriptor {
 
 	public boolean isLocalized() {
 		return localized;
+	}
+
+	public boolean isWatched() {
+		return watched;
+	}
+
+	public void watched() {
+		watched = true;
 	}
 }

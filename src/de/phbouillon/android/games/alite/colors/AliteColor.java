@@ -57,10 +57,15 @@ public class AliteColor {
 	}
 
 	public static int lighten(int color, double percent) {
-		return argb(color >> 24,
+		return argb((color >> 24) / 255.0f,
 			(float) Math.min(1, Color.red(color) / 255.0 + percent),
 			(float) Math.min(1, Color.green(color) / 255.0 + percent),
 			(float) Math.min(1, Color.blue(color) / 255.0 + percent));
+	}
+
+	public static int grayScale(int color) {
+		float gray = (Color.red(color) * 0.3f + Color.green(color) * 0.59f + Color.blue(color) * 0.11f) / 255.0f;
+		return argb((color >> 24) / 255.0f, gray, gray, gray);
 	}
 
 	// Copied from class Color

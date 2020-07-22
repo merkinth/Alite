@@ -31,7 +31,6 @@ public class WitchSpaceRender implements Serializable {
 	private int witchSpaceKillCounter = 0;
 	private TimedEvent driveRepairedMessage = null;
 	private boolean hyperdriveMalfunction = false;
-	private boolean witchSpace = false;
 
 	WitchSpaceRender(InGameManager inGame) {
 		this.inGame = inGame;
@@ -61,12 +60,11 @@ public class WitchSpaceRender implements Serializable {
 		return hyperdriveMalfunction;
 	}
 
-	public boolean isWitchSpace() {
-		return witchSpace;
+	public int getWitchSpaceKillCounter() {
+		return witchSpaceKillCounter;
 	}
 
 	void enterWitchSpace() {
-		witchSpace = true;
 		witchSpaceKillCounter = 0;
 		Alite.get().getPlayer().setHyperspaceSystem(null);
 		hyperdriveMalfunction = true;
@@ -75,13 +73,7 @@ public class WitchSpaceRender implements Serializable {
 		}
 		inGame.getMessage().repeatText(L.string(R.string.com_hyperdrive_malfunction), 1, 4, 1);
 		SoundManager.play(Assets.com_hyperdriveMalfunction);
-		int maxAttackersNumber = Alite.get().getPlayer().getRating().ordinal() - Rating.AVERAGE.ordinal();
-		if (maxAttackersNumber < 1) {
-			maxAttackersNumber = 1;
-		} else if (maxAttackersNumber > 4) {
-			maxAttackersNumber = 4;
-		}
-		int attackers = (int) (Math.random() * maxAttackersNumber);
+		int attackers = (int) (Math.random() * (Alite.get().getPlayer().getRating().ordinal() - Rating.AVERAGE.ordinal()));
 		if (attackers < 1) {
 			attackers = 1;
 		} else if (attackers > 4) {

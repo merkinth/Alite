@@ -20,15 +20,23 @@ package de.phbouillon.android.games.alite;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
+import de.phbouillon.android.framework.Rect;
 import de.phbouillon.android.framework.impl.gl.font.GLText;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
 
-public class Slider {
+public class Slider extends Component<Slider> {
 	private static final int SLIDER_SIZE = 40;
 
-	private final int xCoord;
-	private final int yCoord;
+	private static final int TEXT_COLOR = ColorScheme.get(ColorScheme.COLOR_MESSAGE);
+	private static final int LIGHT_SCALE_COLOR = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT);
+	private static final int DARK_SCALE_COLOR = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK);
+	private static final int TICK_COLOR = ColorScheme.get(ColorScheme.COLOR_MESSAGE);
+
+	private static final int NUMBER_OF_TICKS = 8;
+
+	private final int x;
+	private final int y;
 	private final int width;
 	private final int height;
 	private final float minValue;
@@ -36,22 +44,16 @@ public class Slider {
 	private float currentValue;
 	private String text;
 	private GLText font;
-	private int textColor = ColorScheme.get(ColorScheme.COLOR_MESSAGE);
-	private int lightScaleColor = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_LIGHT);
-	private int darkScaleColor = ColorScheme.get(ColorScheme.COLOR_BACKGROUND_DARK);
-	private int tickColor = ColorScheme.get(ColorScheme.COLOR_MESSAGE);
 	private final int scaleHeight;
-	private final int numberOfTicks;
-	private final int[] tickX;
-	private int fingerDown = 0;
+	private final int[] tickX = new int[NUMBER_OF_TICKS + 1];
 	private String minText;
 	private String maxText;
 	private String middleText;
-	private boolean currentValueChanged = false;
+	private boolean currentValueChanged;
 
 	public Slider(int x, int y, int width, int height, float minValue, float maxValue, float currentValue, String text, GLText font) {
-		this.xCoord = x;
-		this.yCoord = y;
+		this.x = x;
+		this.y = y;
 		this.width = width;
 		this.height = height;
 		this.text = text;
@@ -60,15 +62,17 @@ public class Slider {
 		this.maxValue = maxValue;
 		this.currentValue = currentValue;
 		scaleHeight = Math.min(height >> 1, 10);
-		numberOfTicks = 8;
-		tickX = new int[numberOfTicks + 1];
+		setTickX();
+	}
+
+	private void setTickX() {
 		float cPos = x;
 		int current = 0;
-		while (cPos < x + width && current <= numberOfTicks) {
+		while (cPos < x + width && current <= NUMBER_OF_TICKS) {
 			tickX[current++] = (int) cPos;
-			cPos = width / numberOfTicks * current + x;
+			cPos = (float) width / NUMBER_OF_TICKS * current + x;
 		}
-		tickX[numberOfTicks] = x + width - 1;
+		tickX[NUMBER_OF_TICKS] = x + width - 1;
 	}
 
 	public void setScaleTexts(String min, String max, String middle) {
@@ -89,65 +93,48 @@ public class Slider {
 		return text;
 	}
 
-	private void fingerDown(int pointer) {
-		int val = 1 << pointer;
-		if ((fingerDown & val) == 0) {
-			fingerDown += val;
-		}
-	}
-
-	private void fingerUp(int pointer) {
-		int val = 1 << pointer;
-		if ((fingerDown & val) != 0) {
-			fingerDown -= val;
-		}
-	}
-
-	private boolean isDown(int pointer) {
-		return (fingerDown & (1 << pointer)) != 0;
-	}
-
 	private void renderScale(Graphics g) {
-		int middle = yCoord + (height >> 1);
-		g.rec3d(xCoord, middle - (scaleHeight >> 1), width, scaleHeight, 2, lightScaleColor, darkScaleColor);
+		int middle = y + (height >> 1);
+		g.rec3d(x, middle - (scaleHeight >> 1), width, scaleHeight, 2, LIGHT_SCALE_COLOR, DARK_SCALE_COLOR);
 		for (int x: tickX) {
-			g.drawLine(x, middle - scaleHeight - 3, x, middle + scaleHeight + 3, tickColor);
+			g.drawLine(x, middle - scaleHeight - 3, x, middle + scaleHeight + 3, TICK_COLOR);
 		}
 		g.drawText(text + ": " + StringUtil.format("%3.2f", currentValue),
-			xCoord + (width >> 1) - (g.getTextWidth(text, font) >> 1), middle - 20, textColor, font);
+			x + (width >> 1) - (g.getTextWidth(text, font) >> 1), middle - 20, TEXT_COLOR, font);
 		if (minText != null) {
 			int x = tickX[0] - (g.getTextWidth(minText, Assets.regularFont) >> 1);
-			g.drawText(minText, x, middle + scaleHeight + 30, textColor, Assets.regularFont);
+			g.drawText(minText, x, middle + scaleHeight + 30, TEXT_COLOR, Assets.regularFont);
 		}
 		if (middleText != null) {
-			int x = tickX[numberOfTicks >> 1] - (g.getTextWidth(middleText, Assets.regularFont) >> 1);
-			g.drawText(middleText, x, middle + scaleHeight + 30, textColor, Assets.regularFont);
+			int x = tickX[NUMBER_OF_TICKS >> 1] - (g.getTextWidth(middleText, Assets.regularFont) >> 1);
+			g.drawText(middleText, x, middle + scaleHeight + 30, TEXT_COLOR, Assets.regularFont);
 		}
 		if (maxText != null) {
-			int x = tickX[numberOfTicks] - (g.getTextWidth(maxText, Assets.regularFont) >> 1);
-			g.drawText(maxText, x, middle + scaleHeight + 30, textColor, Assets.regularFont);
+			int x = tickX[NUMBER_OF_TICKS] - (g.getTextWidth(maxText, Assets.regularFont) >> 1);
+			g.drawText(maxText, x, middle + scaleHeight + 30, TEXT_COLOR, Assets.regularFont);
 		}
 	}
 
 	private void renderPointer(Graphics g) {
-		int middleX = (int) ((currentValue - minValue) / maxValue * width + xCoord);
-		int middleY = yCoord + (height >> 1);
-		g.fillCircle(middleX, middleY, SLIDER_SIZE, tickColor, 32);
+		int middleX = (int) ((currentValue - minValue) / maxValue * width + x);
+		int middleY = y + (height >> 1);
+		g.fillCircle(middleX, middleY, SLIDER_SIZE, TICK_COLOR);
 	}
 
+	@Override
 	public void render(Graphics g) {
 		renderScale(g);
 		renderPointer(g);
 	}
 
 	private void modifyValue(int xVal) {
-		if (xVal < xCoord) {
-			xVal = xCoord;
+		if (xVal < x) {
+			xVal = x;
 		}
-		if (xVal >= xCoord + width) {
-			xVal = xCoord + width;
+		if (xVal >= x + width) {
+			xVal = x + width;
 		}
-		currentValue = (xVal - (float) xCoord) / width;
+		currentValue = (xVal - (float) x) / width;
 		if (currentValue < minValue) {
 			currentValue = minValue;
 		}
@@ -157,6 +144,7 @@ public class Slider {
 		currentValueChanged = true;
 	}
 
+	@Override
 	public boolean checkEvent(TouchEvent e) {
 		if (e.type == TouchEvent.TOUCH_DRAGGED) {
 			if (isDown(e.pointer)) {
@@ -165,20 +153,17 @@ public class Slider {
 			}
 		}
 		if (e.type == TouchEvent.TOUCH_DOWN) {
-			if (e.x >= xCoord && e.x <= xCoord + width) {
-				if (e.y >= yCoord && e.y <= yCoord + height) {
-					fingerDown(e.pointer);
-					modifyValue(e.x);
-					return false;
-				}
+			if (Rect.inside(e.x, e.y, x, y, x + width, y + height)) {
+				fingerDown(e.pointer);
+				modifyValue(e.x);
+				return false;
 			}
-			int middleX = (int) ((currentValue - minValue) / maxValue * width + xCoord);
-			int middleY = yCoord + (height >> 1);
-			if (e.x >= middleX - SLIDER_SIZE && e.x <= middleX + SLIDER_SIZE) {
-				if (e.y >= middleY - SLIDER_SIZE && e.y <= middleY + SLIDER_SIZE) {
-					fingerDown(e.pointer);
-					return false;
-				}
+			int middleX = (int) ((currentValue - minValue) / maxValue * width + x);
+			int middleY = y + (height >> 1);
+			if (Rect.inside(e.x, e.y, middleX - SLIDER_SIZE, middleY - SLIDER_SIZE,
+					middleX + SLIDER_SIZE, middleY + SLIDER_SIZE)) {
+				fingerDown(e.pointer);
+				return false;
 			}
 		}
 		if (e.type == TouchEvent.TOUCH_UP) {
@@ -193,11 +178,11 @@ public class Slider {
 	}
 
 	public int getX() {
-		return xCoord;
+		return x;
 	}
 
 	public int getY() {
-		return yCoord;
+		return y;
 	}
 
 	public int getWidth() {
@@ -211,4 +196,9 @@ public class Slider {
 	public float getCurrentValue() {
 		return currentValue;
 	}
+
+	public float getCurrentValue(float step) {
+		return Math.round(currentValue / step) * step;
+	}
+
 }

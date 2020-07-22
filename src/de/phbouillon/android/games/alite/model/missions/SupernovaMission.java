@@ -23,9 +23,7 @@ import java.io.*;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.games.alite.*;
-import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.Equipment;
-import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
@@ -42,12 +40,22 @@ public class SupernovaMission extends Mission implements Serializable {
 
 	public static final int ID = 3;
 
-	private final TimedEvent preStartEvent;
 	private Timer timer;
 
 	public SupernovaMission() {
 		super(ID);
-		preStartEvent = new TimedEvent(100000000);
+	}
+
+	@Override
+	public boolean willStartOnDock() {
+		return !started && !MissionManager.getInstance().get(ID).isCompleted() && checkStart(alite.getPlayer());
+	}
+
+	@Override
+	public TimedEvent getPreStartEvent(InGameManager manager) {
+		manager.setMessage(L.string(R.string.com_fuel_system_malfunction));
+		SoundManager.play(Assets.com_fuelSystemMalfunction);
+		TimedEvent preStartEvent = new TimedEvent(100000000);
 		preStartEvent.addAlarmEvent(new IMethodHook() {
 			private static final long serialVersionUID = -6824297537488646688L;
 
@@ -59,33 +67,11 @@ public class SupernovaMission extends Mission implements Serializable {
 				}
 			}
 		});
-	}
-
-	@Override
-	protected boolean checkStart(Player player) {
-		return player.getCompletedMissions().contains(MissionManager.getInstance().get(ThargoidDocumentsMission.ID)) &&
-			player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64;
-	}
-
-	@Override
-	public boolean willStartOnDock() {
-		Player player = alite.getPlayer();
-		return !started &&
-			   !player.getCompletedMissions().contains(this) &&
-				player.getCompletedMissions().contains(MissionManager.getInstance().get(ThargoidDocumentsMission.ID)) &&
-				player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64;
-	}
-
-	@Override
-	public TimedEvent getPreStartEvent(InGameManager manager) {
-		manager.setMessage(L.string(R.string.com_fuel_system_malfunction));
-		SoundManager.play(Assets.com_fuelSystemMalfunction);
 		return preStartEvent;
 	}
 
 	@Override
 	protected void acceptMission(boolean accept) {
-		alite.getPlayer().addActiveMission(this);
 		if (state == 1) {
 			alite.getCobra().clearInventory();
 			alite.getCobra().setTradeGood(TradeGoodStore.get().getGoodById(TradeGoodStore.UNHAPPY_REFUGEES), alite.getCobra().getFreeCargo(), 0);
@@ -94,8 +80,8 @@ public class SupernovaMission extends Mission implements Serializable {
 
 	@Override
 	public void onMissionComplete() {
-		active = false;
-		alite.getCobra().removeTradeGood(TradeGoodStore.get().getGoodById(TradeGoodStore.UNHAPPY_REFUGEES));
+		alite.getCobra().removeItem(alite.getCobra().getInventoryItemByGood(
+			TradeGoodStore.get().getGoodById(TradeGoodStore.UNHAPPY_REFUGEES)));
 		alite.getCobra().addTradeGood(TradeGoodStore.get().getGoodById(TradeGoodStore.GEM_STONES), Weight.kilograms(1), 0);
 	}
 
@@ -106,16 +92,14 @@ public class SupernovaMission extends Mission implements Serializable {
 
 	@Override
 	public AliteScreen checkForUpdate() {
-		if (alite.getPlayer().getCondition() != Condition.DOCKED || state < 1 || !started || !active) {
+		if (missionDidNotStart()) {
 			return null;
 		}
 		if (state == 1 && !positionMatchesTarget()) {
 			return new SupernovaScreen(3);
 		}
 		if (state == 2 && !positionMatchesTarget()) {
-			active = false;
-			alite.getPlayer().removeActiveMission(this);
-			alite.getPlayer().addCompletedMission(this);
+			finalizeMission();
 		}
 		return null;
 	}
@@ -155,12 +139,10 @@ public class SupernovaMission extends Mission implements Serializable {
 					inGame.setMessage(L.string(R.string.mission_supernova_danger));
 					SoundManager.repeat(Assets.criticalCondition);
 					timer = new Timer();
-				} else {
-					if (timer.hasPassedSeconds(20)) {
-						event.remove();
-						timer = null;
-						inGame.gameOver();
-					}
+				} else if (timer.hasPassedSeconds(20)) {
+					event.remove();
+					timer = null;
+					inGame.gameOver();
 				}
 			}
 		});

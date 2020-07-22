@@ -21,16 +21,13 @@ package de.phbouillon.android.games.alite.screens.opengl.objects.space;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SpaceObjectFactory {
 
 	private static SpaceObjectFactory instance;
-	private List<SpaceObject> objects = new ArrayList<>();
-	private List<String> demoObjectId = new ArrayList<>();
+	private final List<SpaceObject> objects = new ArrayList<>();
+	private final Set<String> demoObjectId = new HashSet<>();
 	//         AI file     States      Messages     Methods
 	private Map<String, Map<String, Map<String, List<AIMethod>>>> AIs = new HashMap<>();
 
@@ -44,8 +41,9 @@ public class SpaceObjectFactory {
 	}
 
 	public void registerSpaceObject(SpaceObject object) {
-		object.initTargetBox();
-		objects.add(object);
+		if (!objects.contains(object)) {
+			objects.add(object);
+		}
 	}
 
 	public SpaceObject getRandomObjectByType(ObjectType type) {

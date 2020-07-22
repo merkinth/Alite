@@ -71,12 +71,10 @@ public class CompassRenderer implements Serializable {
 		int y = (int) (COMPASS_CENTER_Y + planet[1] * -64.0f / l);
 
 		if (planet[2] < 0 && !redDotActive) {
-			SpriteData spriteData =  Alite.get().getTextureManager().getSprite(AliteHud.TEXTURE_FILE, "red");
-			compassDot.setTextureCoords(spriteData.x, spriteData.y, spriteData.x2, spriteData.y2);
+			compassDot.setTextureCoords(Alite.get().getTextureManager().getSprite(AliteHud.TEXTURE_FILE, "red"));
 			redDotActive = true;
 		} else if (planet[2] > 0 && redDotActive) {
-			SpriteData spriteData =  Alite.get().getTextureManager().getSprite(AliteHud.TEXTURE_FILE, "green");
-			compassDot.setTextureCoords(spriteData.x, spriteData.y, spriteData.x2, spriteData.y2);
+			compassDot.setTextureCoords(Alite.get().getTextureManager().getSprite(AliteHud.TEXTURE_FILE, "green"));
 			redDotActive = false;
 		}
 

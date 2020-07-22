@@ -21,36 +21,25 @@ package de.phbouillon.android.games.alite.screens.canvas.options;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import android.graphics.Bitmap;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
+import de.phbouillon.android.framework.SpriteData;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
+import de.phbouillon.android.games.alite.screens.opengl.sprites.buttons.AliteButtons;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class InFlightButtonsOptionsScreen extends AliteScreen {
-	private ButtonConfigData[] uiButton = new ButtonConfigData[12];
-
-	private Pixmap torusDriveDockingComputerPixmap;
-	private Pixmap hyperspacePixmap;
-	private Pixmap galacticHyperspacePixmap;
-	private Pixmap statusPixmap;
-	private Pixmap ecmPixmap;
-	private Pixmap escapeCapsulePixmap;
-	private Pixmap energyBombPixmap;
-	private Pixmap retroRocketsPixmap;
-	private Pixmap ecmJammerPixmap;
-	private Pixmap cloakingDevicePixmap;
-	private Pixmap missilePixmap;
-	private Pixmap firePixmap;
-	private Pixmap overlayPixmap;
+	private final ButtonConfigData[] uiButton = new ButtonConfigData[12];
 
 	private Button selectionMode;
 	private Button reset;
 	private Button back;
 	private ButtonConfigData selectedButton = null;
-	private ButtonConfigGroup[] buttonGroups = new ButtonConfigGroup[4];
+	private final ButtonConfigGroup[] buttonGroups = new ButtonConfigGroup[4];
 	private boolean groupSelectionMode = true;
 	private boolean confirmReset = false;
 
@@ -74,18 +63,30 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 
 	@Override
 	public void activate() {
-		uiButton[Settings.FIRE] = createButton(Settings.buttonPosition[Settings.FIRE], firePixmap, Settings.FIRE, L.string(R.string.in_flight_button_fire));
-		uiButton[Settings.MISSILE] = createButton(Settings.buttonPosition[Settings.MISSILE], missilePixmap, Settings.MISSILE, L.string(R.string.in_flight_button_missile));
-		uiButton[Settings.ECM] = createButton(Settings.buttonPosition[Settings.ECM], ecmPixmap, Settings.ECM, L.string(R.string.in_flight_button_ecm));
-		uiButton[Settings.RETRO_ROCKETS] = createButton(Settings.buttonPosition[Settings.RETRO_ROCKETS], retroRocketsPixmap, Settings.RETRO_ROCKETS, L.string(R.string.in_flight_button_retro_rockets));
-		uiButton[Settings.ESCAPE_CAPSULE] = createButton(Settings.buttonPosition[Settings.ESCAPE_CAPSULE], escapeCapsulePixmap, Settings.ESCAPE_CAPSULE, L.string(R.string.in_flight_button_escape_capsule));
-		uiButton[Settings.ENERGY_BOMB] = createButton(Settings.buttonPosition[Settings.ENERGY_BOMB], energyBombPixmap, Settings.ENERGY_BOMB, L.string(R.string.in_flight_button_energy_bomb));
-		uiButton[Settings.STATUS] = createButton(Settings.buttonPosition[Settings.STATUS], statusPixmap, Settings.STATUS, L.string(R.string.in_flight_button_status));
-		uiButton[Settings.TORUS] = createButton(Settings.buttonPosition[Settings.TORUS], torusDriveDockingComputerPixmap, Settings.TORUS, L.string(R.string.in_flight_button_drive_docking));
-		uiButton[Settings.HYPERSPACE] = createButton(Settings.buttonPosition[Settings.HYPERSPACE], hyperspacePixmap, Settings.HYPERSPACE, L.string(R.string.in_flight_button_hyperspace));
-		uiButton[Settings.GALACTIC_HYPERSPACE] = createButton(Settings.buttonPosition[Settings.GALACTIC_HYPERSPACE], galacticHyperspacePixmap, Settings.GALACTIC_HYPERSPACE, L.string(R.string.in_flight_button_galactic_hyperspace));
-	    uiButton[Settings.CLOAKING_DEVICE] = createButton(Settings.buttonPosition[Settings.CLOAKING_DEVICE], cloakingDevicePixmap, Settings.CLOAKING_DEVICE, L.string(R.string.in_flight_button_cloaking_device));
-	    uiButton[Settings.ECM_JAMMER] = createButton(Settings.buttonPosition[Settings.ECM_JAMMER], ecmJammerPixmap, Settings.ECM_JAMMER, L.string(R.string.in_flight_button_ecm_jammer));
+		uiButton[Settings.FIRE] = createButton(Settings.buttonPosition[Settings.FIRE],
+			"fire", Settings.FIRE, L.string(R.string.in_flight_button_fire));
+		uiButton[Settings.MISSILE] = createButton(Settings.buttonPosition[Settings.MISSILE],
+			"missile", Settings.MISSILE, L.string(R.string.in_flight_button_missile));
+		uiButton[Settings.ECM] = createButton(Settings.buttonPosition[Settings.ECM],
+			"ecm", Settings.ECM, L.string(R.string.in_flight_button_ecm));
+		uiButton[Settings.RETRO_ROCKETS] = createButton(Settings.buttonPosition[Settings.RETRO_ROCKETS],
+			"retro_rockets", Settings.RETRO_ROCKETS, L.string(R.string.in_flight_button_retro_rockets));
+		uiButton[Settings.ESCAPE_CAPSULE] = createButton(Settings.buttonPosition[Settings.ESCAPE_CAPSULE],
+			"escape_capsule", Settings.ESCAPE_CAPSULE, L.string(R.string.in_flight_button_escape_capsule));
+		uiButton[Settings.ENERGY_BOMB] = createButton(Settings.buttonPosition[Settings.ENERGY_BOMB],
+			"energy_bomb", Settings.ENERGY_BOMB, L.string(R.string.in_flight_button_energy_bomb));
+		uiButton[Settings.STATUS] = createButton(Settings.buttonPosition[Settings.STATUS],
+			"status", Settings.STATUS, L.string(R.string.in_flight_button_status));
+		uiButton[Settings.TORUS] = createButton(Settings.buttonPosition[Settings.TORUS],
+			"torus_docking", Settings.TORUS, L.string(R.string.in_flight_button_drive_docking));
+		uiButton[Settings.HYPERSPACE] = createButton(Settings.buttonPosition[Settings.HYPERSPACE],
+			"hyperspace", Settings.HYPERSPACE, L.string(R.string.in_flight_button_hyperspace));
+		uiButton[Settings.GALACTIC_HYPERSPACE] = createButton(Settings.buttonPosition[Settings.GALACTIC_HYPERSPACE],
+			"gal_hyperspace", Settings.GALACTIC_HYPERSPACE, L.string(R.string.in_flight_button_galactic_hyperspace));
+		uiButton[Settings.CLOAKING_DEVICE] = createButton(Settings.buttonPosition[Settings.CLOAKING_DEVICE],
+			"cloaking_device", Settings.CLOAKING_DEVICE, L.string(R.string.in_flight_button_cloaking_device));
+		uiButton[Settings.ECM_JAMMER] = createButton(Settings.buttonPosition[Settings.ECM_JAMMER],
+			"ecm_jammer", Settings.ECM_JAMMER, L.string(R.string.in_flight_button_ecm_jammer));
 
 		selectionMode = Button.createGradientTitleButton(50, 860, 1620, 100,
 			L.string(R.string.options_in_flight_selection_mode, L.string(groupSelectionMode ? R.string.options_in_flight_selection_mode_group : R.string.options_in_flight_selection_mode_button)));
@@ -93,7 +94,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		reset = Button.createGradientTitleButton(890, 970, 780, 100, L.string(R.string.options_in_flight_reset_positions));
 	}
 
-	private ButtonConfigData createButton(int position, Pixmap pixmap, int settingsPosition, String name) {
+	private ButtonConfigData createButton(int position, String spriteName, int settingsPosition, String name) {
 		int xt;
 		int yt;
 		int groupIndex;
@@ -108,7 +109,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		yt = position % 3 * 150 + 200;
 		buttonIndex = position % 3;
 
-		Button result = Button.createPictureButton(xt, yt, 200, 200, pixmap);
+		Button result = Button.createPictureButton(xt, yt, 200, 200, pics.get(spriteName));
 
 		ButtonConfigData config = new ButtonConfigData();
 		config.button = result;
@@ -143,7 +144,7 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 		for (ButtonConfigData b: uiButton) {
 			b.button.render(g);
 			if (b.button.isSelected()) {
-				g.drawPixmap(overlayPixmap, b.button.getX(), b.button.getY());
+				g.drawPixmap(pics.get("overlay"), b.button.getX(), b.button.getY());
 				if (!b.name.contains(";")) {
 					centerText(b.name, b.button.getY() + 100, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 				} else {
@@ -243,6 +244,27 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
+		if (back.isPressed(touch)) {
+			newScreen = new ControlOptionsScreen(false);
+			return;
+		}
+		if (selectionMode.isPressed(touch)) {
+			groupSelectionMode = !groupSelectionMode;
+			selectionMode.setText(L.string(R.string.options_in_flight_selection_mode,
+				L.string(groupSelectionMode ? R.string.options_in_flight_selection_mode_group :
+					R.string.options_in_flight_selection_mode_button)));
+			selectedButton = null;
+			for (ButtonConfigData b: uiButton) {
+				b.button.setSelected(false);
+			}
+			return;
+		}
+		if (reset.isPressed(touch)) {
+			showQuestionDialog(L.string(R.string.options_in_flight_reset_positions_confirm));
+			confirmReset = true;
+			return;
+		}
+
 		if (touch.type != TouchEvent.TOUCH_UP) {
 			return;
 		}
@@ -258,27 +280,6 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 			return;
 		}
 		messageResult = RESULT_NONE;
-		if (back.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			newScreen = new ControlOptionsScreen(false);
-			return;
-		}
-		if (selectionMode.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			groupSelectionMode = !groupSelectionMode;
-			selectionMode.setText(L.string(R.string.options_in_flight_selection_mode, L.string(groupSelectionMode ? R.string.options_in_flight_selection_mode_group : R.string.options_in_flight_selection_mode_button)));
-			selectedButton = null;
-			for (ButtonConfigData b: uiButton) {
-				b.button.setSelected(false);
-			}
-			return;
-		}
-		if (reset.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
-			showQuestionDialog(L.string(R.string.options_in_flight_reset_positions_confirm));
-			confirmReset = true;
-			return;
-		}
 		for (ButtonConfigData b: uiButton) {
 			if (b.button.isTouched(touch.x, touch.y)) {
 				if (selectedButton == null) {
@@ -297,81 +298,25 @@ public class InFlightButtonsOptionsScreen extends AliteScreen {
 	}
 
 	@Override
-	public void dispose() {
-		super.dispose();
-		if (torusDriveDockingComputerPixmap != null) {
-			torusDriveDockingComputerPixmap.dispose();
-			torusDriveDockingComputerPixmap = null;
-		}
-		if (hyperspacePixmap != null) {
-			hyperspacePixmap.dispose();
-			hyperspacePixmap = null;
-		}
-		if (galacticHyperspacePixmap != null) {
-			galacticHyperspacePixmap.dispose();
-			galacticHyperspacePixmap = null;
-		}
-		if (statusPixmap != null) {
-			statusPixmap.dispose();
-			statusPixmap = null;
-		}
-		if (ecmPixmap != null) {
-			ecmPixmap.dispose();
-			ecmPixmap = null;
-		}
-		if (escapeCapsulePixmap != null) {
-			escapeCapsulePixmap.dispose();
-			escapeCapsulePixmap = null;
-		}
-		if (energyBombPixmap != null) {
-			energyBombPixmap.dispose();
-			energyBombPixmap = null;
-		}
-		if (retroRocketsPixmap != null) {
-			retroRocketsPixmap.dispose();
-			retroRocketsPixmap = null;
-		}
-		if (ecmJammerPixmap != null) {
-			ecmJammerPixmap.dispose();
-			ecmJammerPixmap = null;
-		}
-		if (cloakingDevicePixmap != null) {
-			cloakingDevicePixmap.dispose();
-			cloakingDevicePixmap = null;
-		}
-		if (missilePixmap != null) {
-			missilePixmap.dispose();
-			missilePixmap = null;
-		}
-		if (firePixmap != null) {
-			firePixmap.dispose();
-			firePixmap = null;
-		}
-		if (overlayPixmap != null) {
-			overlayPixmap.dispose();
-			overlayPixmap = null;
-		}
+	public void loadAssets() {
+		addPicturesFromAliteButtonsTexture("torus_docking", "hyperspace", "gal_hyperspace",
+			"status", "ecm", "escape_capsule", "energy_bomb", "retro_rockets", "ecm_jammer",
+			"cloaking_device", "missile", "fire", "overlay");
+		super.loadAssets();
 	}
 
-	@Override
-	public void loadAssets() {
-		Graphics g = game.getGraphics();
-
-		torusDriveDockingComputerPixmap = g.newPixmap("buttons/torus_docking.png");
-		hyperspacePixmap                = g.newPixmap("buttons/hyperspace.png");
-		galacticHyperspacePixmap        = g.newPixmap("buttons/gal_hyperspace.png");
-		statusPixmap                    = g.newPixmap("buttons/status.png");
-		ecmPixmap                       = g.newPixmap("buttons/ecm.png");
-		escapeCapsulePixmap             = g.newPixmap("buttons/escape_capsule.png");
-		energyBombPixmap                = g.newPixmap("buttons/energy_bomb.png");
-		retroRocketsPixmap              = g.newPixmap("buttons/retro_rockets.png");
-		ecmJammerPixmap                 = g.newPixmap("buttons/ecm_jammer.png");
-		cloakingDevicePixmap            = g.newPixmap("buttons/cloaking_device.png");
-		missilePixmap                   = g.newPixmap("buttons/missile.png");
-		firePixmap                      = g.newPixmap("buttons/fire.png");
-		overlayPixmap                   = g.newPixmap("buttons/overlay.png");
-
-		super.loadAssets();
+	private void addPicturesFromAliteButtonsTexture(String... spriteNames) {
+		if (!pics.containsKey("buttons")) {
+			game.getTextureManager().addTexture(AliteButtons.TEXTURE_FILE);
+			pics.put("buttons", game.getGraphics().newPixmap(AliteButtons.TEXTURE_FILE));
+		}
+		for (String spriteName : spriteNames) {
+			SpriteData data = game.getTextureManager().getSprite(AliteButtons.TEXTURE_FILE, spriteName);
+			Pixmap pixmap = pics.get("buttons");
+			pics.put(spriteName, game.getGraphics().newPixmap(Bitmap.createBitmap(pixmap.getBitmap(),
+				(int) (data.x * pixmap.getWidth()), (int) (data.y * pixmap.getHeight()),
+				(int) data.origWidth, (int) data.origHeight), spriteName));
+		}
 	}
 
 	@Override

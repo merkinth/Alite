@@ -255,6 +255,7 @@
     <string name="navbar_local">Local</string>
     <string name="navbar_planet">Planet</string>
     <string name="navbar_disk">Disk</string>
+    <string name="navbar_achievements">Trophies</string>
     <string name="navbar_options">Options</string>
     <string name="navbar_library">Library</string>
     <string name="navbar_academy">Academy</string>
@@ -414,7 +415,7 @@
         ship is fitted with a device which causes on-board computer systems to malfunction.</string>
 
     <string name="thargoid_station_name">Alien Space Station</string>
-    <string name="mission_thargoid_station_obj">Destroy the Thargoid base.</string>
+    <string name="mission_thargoid_station_obj">Destroy the Thargoid base on %s.</string>
     <string name="mission_thargoid_station_mission_description">The Galactic Intelligence Agency reports that a
         nearby system has been invaded by Thargoid ships and that the space station has been captured.
         All available forces are being gathered to destroy the invading force. The space station has become the
@@ -488,6 +489,7 @@
     <string name="title_more_debug_options">More Debug Options</string>
     <string name="title_training_academy">Training Academy</string>
     <string name="title_debug_menu">Debug Menu</string>
+    <string name="title_achievements">Trophies</string>
 
     <string name="title_mission_constrictor">Mission #1 - Destroy the Constrictor</string>
     <string name="title_mission_thargoid_documents">Mission #2 - Deliver Thargoid Documents</string>
@@ -526,13 +528,10 @@
     <string name="exc_btn_send_error_in_mail">Send Error in Mail</string>
     <string name="exc_btn_save_error_to_file">Save Error to File</string>
     <string name="exc_btn_restart">Restart %s</string>
-    <string name="exc_error_info1">Unfortunately, %s has crashed. I am sorry for the inconvenience :(</string>
-    <string name="exc_error_info2">Please send the error cause detailed below with button \'%s\',</string>
-    <string name="exc_error_info3">it helps tracking down the problem.</string>
-    <string name="exc_error_info4">Neither the subject nor the content does not contain any personal information</string>
-    <string name="exc_error_info5">only the error itself and the environmental data.</string>
-    <string name="exc_error_info6">The code sequence in the subject is formed from the error message,</string>
-    <string name="exc_error_info7">please do not change it, it helps in recognizing the more times sent identical errors.</string>
+    <string name="exc_error_info1">Unfortunately, %s has crashed. I am sorry for the inconvenience. :(</string>
+    <string name="exc_error_info2">Please send the error cause detailed below with button \'%s\', it helps tracking down the problem.</string>
+    <string name="exc_error_info3">Neither the subject nor the content does not contain any personal information only the error itself and the environmental data.</string>
+    <string name="exc_error_info4">The code sequence in the subject is formed from the error message, please do not change it, it helps in recognizing the more times sent identical errors.</string>
     <string name="exc_error_file_name">Report saved to: %s</string>
     <string name="exc_save_error">Saving Failed</string>
     <string name="exc_sending_email">Sending email...</string>
@@ -570,8 +569,6 @@
     <string name="laser_pos_left">Left</string>
     <string name="laser_pos_select">Select Position For Laser</string>
 
-    <string name="library_btn_next">Next:\u0020</string>
-    <string name="library_btn_prev">Prev:\u0020</string>
     <string name="library_btn_toc">Table of Contents</string>
     <string name="library_btn_search">Search</string>
     <string name="library_search_text">Enter search text:</string>
@@ -646,7 +643,8 @@
     <string name="options_audio_sound_fx_volume">Sound FX Volume</string>
     <string name="options_audio_combat_fx_volume">Combat FX Volume</string>
     <string name="options_audio_voice_volume">Voice Volume</string>
-    <string name="options_audio_vibrate_level">Vibrate Level</string>
+    <string name="options_audio_vibrate_level_on_damage">Vibrate Level on damage</string>
+    <string name="options_audio_vibrate_level_on_hit">Vibrate Level on hit</string>
 
     <string name="options_ctrl_ship_control_mode">Ship Control: %s</string>
     <string name="ship_ctrl_acc">Accelerometer</string>
@@ -761,6 +759,9 @@
     <string name="options_gameplay_extension_update_mode_auto_update_at_any_time">Auto-update at any time</string>
     <string name="options_gameplay_extension_update_mode_auto_update_over_wifi_only">Auto-update over Wi-Fi only</string>
 
+    <string name="options_main_tutorial">Tutorial mode: %s</string>
+    <string name="options_tutorial_mode_continuous">Continuous</string>
+    <string name="options_tutorial_mode_tap">Tap</string>
     <string name="options_main_language">Language: %s</string>
     <string name="options_main_reset_game">Reset Game</string>
     <string name="options_main_reset_game_confirm">Are you sure?</string>
@@ -1010,4 +1011,143 @@
 
     <string name="radar_zoom_x2">x2</string>
     <string name="radar_zoom_x4">x4</string>
+
+    <string name="num_thousand">k</string>
+    <string name="num_million">M</string>
+    <string name="num_all">All</string>
+
+    <string name="medal_level">level %d</string>
+    <string name="medal_reached_threshold">Threshold already reached: %s</string>
+    <string name="medal_next_threshold">Threshold for next level: %s</string>
+    <string name="medal_max_level">Highest level reached</string>
+
+    <string name="medal_career_man">Career man</string>
+    <string name="medal_career_man_desc">Galactic Navy officer rank</string>
+    <string name="medal_run_up">Run up</string>
+    <string name="medal_run_up_desc">Total score achieved in combats</string>
+    <string name="medal_addicted">Addicted</string>
+    <string name="medal_addicted_desc">Total days played</string>
+    <string name="medal_systematic">Systematic</string>
+    <string name="medal_systematic_desc">The number of subsequent days played</string>
+
+    <string name="medal_traveller">Traveller</string>
+    <string name="medal_traveller_desc">The total number of visits to alien planets</string>
+    <string name="medal_explorer">Explorer</string>
+    <string name="medal_explorer_desc">The number of distinct planets visited</string>
+    <string name="medal_home_coming">Home-coming</string>
+    <string name="medal_home_coming_desc">The number of visits to the most visited planet</string>
+    <string name="medal_returner">Returner</string>
+    <string name="medal_returner_desc">Most days since last visit</string>
+    <string name="medal_roaming">Roaming</string>
+    <string name="medal_roaming_desc">All planets are visited in a galaxy</string>
+    <string name="medal_hidden_treasure_hunter">Hidden treasure hunter</string>
+    <string name="medal_hidden_treasure_hunter_desc">The number of orphan planets visited</string>
+    <string name="medal_node_seeker">Node seeker</string>
+    <string name="medal_node_seeker_desc">The number of planets visited that have at least 15 connections to other planets</string>
+    <string name="medal_anarchist">Anarchist</string>
+    <string name="medal_anarchist_desc">The number of anarchy planets visited</string>
+    <string name="medal_galaxy_trotter">Galaxy-trotter</string>
+    <string name="medal_galaxy_trotter_desc">The number of galaxies visited</string>
+    <string name="medal_jetlag">Jet-lag</string>
+    <string name="medal_jetlag_desc">The number of hyperspace jumps</string>
+    <string name="medal_multi_cultural">Multicultural</string>
+    <string name="medal_multi_cultural_desc">The number of distinct species visited</string>
+    <string name="medal_marathoner">Marathoner</string>
+    <string name="medal_marathoner_desc">Travelled light years</string>
+    <string name="medal_approacher">Approacher</string>
+    <string name="medal_approacher_desc">The number of dockings without computer or assistance since last docking</string>
+
+    <string name="medal_trader">Trader</string>
+    <string name="medal_trader_desc">Amount of traded goods in tonnes</string>
+    <string name="medal_all_trader">All trader</string>
+    <string name="medal_all_trader_desc">The number of distinct kind of goods traded with</string>
+    <string name="medal_illegal_trader">Illegal trader</string>
+    <string name="medal_illegal_trader_desc">Trade in all kinds of illegal goods at least once</string>
+    <string name="medal_salesman">Salesman</string>
+    <string name="medal_salesman_desc">The biggest gain when selling a product</string>
+    <string name="medal_loser">Loser</string>
+    <string name="medal_loser_desc">The biggest loss when selling a product</string>
+    <string name="medal_millionaire">Millionaire</string>
+    <string name="medal_millionaire_desc">The most money ever earned</string>
+    <string name="medal_collector">Collector</string>
+    <string name="medal_collector_desc">Amount of scooped cargos in tonnes</string>
+    <string name="medal_miner">Miner</string>
+    <string name="medal_miner_desc">Amount of scooped ore obtained from an asteroid</string>
+    <string name="medal_slave_holder">Slave-holder</string>
+    <string name="medal_slave_holder_desc">Amount of scooped escape pods</string>
+    <string name="medal_fisherman">Fisherman</string>
+    <string name="medal_fisherman_desc">Amount of captured Thargon ships</string>
+    <string name="medal_littering">Littering</string>
+    <string name="medal_littering_desc">Amount of ejected and not scooped back cargos</string>
+    <string name="medal_boulder_pulping">Boulder pulping</string>
+    <string name="medal_boulder_pulping_desc">The number of destroyed asteroids</string>
+
+    <string name="medal_destroyer">Destroyer</string>
+    <string name="medal_destroyer_desc">The number of pirates destroyed</string>
+    <string name="medal_insecticide">Insecticide</string>
+    <string name="medal_insecticide_desc">The number of Thargoid ships destroyed</string>
+    <string name="medal_buggy">Buggy</string>
+    <string name="medal_buggy_desc">The number of Thargoid ships destroyed in witch space</string>
+    <string name="medal_passionate">Passionate</string>
+    <string name="medal_passionate_desc">The number of Thargon ships destroyed</string>
+    <string name="medal_nearsighted">Nearsighted</string>
+    <string name="medal_nearsighted_desc">The number of friendly vessels destroyed</string>
+    <string name="medal_cop_killer">Cop killer</string>
+    <string name="medal_cop_killer_desc">The number of Police Vipers destroyed</string>
+    <string name="medal_battering_ram">Battering ram</string>
+    <string name="medal_battering_ram_desc">Amount of collisions</string>
+    <string name="medal_mass_destruction">Mass destruction</string>
+    <string name="medal_mass_destruction_desc">Score for objects destroyed in the same time by the energy bomb</string>
+    <string name="medal_rocket_launcher">Rocket launcher</string>
+    <string name="medal_rocket_launcher_desc">The number of missile hits</string>
+    <string name="medal_rocket_gambler">Rocket gambler</string>
+    <string name="medal_rocket_gambler_desc">The number of missile hits against ships equipped with ecm without using jammer</string>
+    <string name="medal_jammer">Jammer</string>
+    <string name="medal_jammer_desc">The number of missile hits against ships equipped with ecm using ecm jammer</string>
+
+    <string name="medal_rocket_slaughterer">Rocket slaughterer</string>
+    <string name="medal_rocket_slaughterer_desc">The number of missiles destroyed by ecm</string>
+    <string name="medal_golden_eye">Golden eye</string>
+    <string name="medal_golden_eye_desc">The number of missiles shot by laser</string>
+    <string name="medal_survivor">Survivor</string>
+    <string name="medal_survivor_desc">The number of occasions when energy was lower than a half bank</string>
+    <string name="medal_rocket_crasher">Rocket crasher</string>
+    <string name="medal_rocket_crasher_desc">The number of missile hits</string>
+    <string name="medal_cock_shot">Cock-shot</string>
+    <string name="medal_cock_shot_desc">Amount of laser hits</string>
+    <string name="medal_blocker">Blocker</string>
+    <string name="medal_blocker_desc">Hovering in front of the space station for such a long time that its defensive measures are activated</string>
+    <string name="medal_flincher">Flincher</string>
+    <string name="medal_flincher_desc">The number of retro rockets used</string>
+    <string name="medal_invisible_man">Invisible man</string>
+    <string name="medal_invisible_man_desc">The number of cloaking device used while destroying enemy by laser</string>
+    <string name="medal_running_man">Running man</string>
+    <string name="medal_running_man_desc">The number of escape capsule used</string>
+
+    <string name="medal_gadget_lover">Gadget lover</string>
+    <string name="medal_gadget_lover_desc">The biggest number of installed equipments</string>
+    <string name="medal_mechanic">Mechanic</string>
+    <string name="medal_mechanic_desc">The number of malfunction galactic hyperdrive repaired</string>
+    <string name="medal_fuel_efficient">Fuel efficient</string>
+    <string name="medal_fuel_efficient_desc">Amount of scooped fuel</string>
+
+    <string name="medal_missionary">Missionary</string>
+    <string name="medal_missionary_desc">The number of missions successfully completed</string>
+    <string name="medal_law_breaker">Law-breaker</string>
+    <string name="medal_law_breaker_desc">Legal value from the clean to the offender, the fugitive to the severe fugitive</string>
+    <string name="medal_recidivist">Recidivist</string>
+    <string name="medal_recidivist_desc">The number of becoming fugitive again from clean status</string>
+
+    <string name="medal_multiplexer">Multiplexer</string>
+    <string name="medal_multiplexer_desc">Intro was fully watched both with and without subtitle</string>
+    <string name="medal_casting">Casting</string>
+    <string name="medal_casting_desc">All about authors and participants was fully watched</string>
+    <string name="medal_examinee">Examinee</string>
+    <string name="medal_examinee_desc">The number of tutorials passed</string>
+    <string name="medal_bookworm">Bookworm</string>
+    <string name="medal_bookworm_desc">The number of topics read in the library</string>
+    <string name="medal_public_spirit">Public spirit</string>
+    <string name="medal_public_spirit_desc">The forum site link was tapped on the status screen</string>
+    <string name="medal_interrupter">Interrupter</string>
+    <string name="medal_interrupter_desc">The game was also paused by tapping the Alite logo and switching the app during the flight</string>
 </resources>

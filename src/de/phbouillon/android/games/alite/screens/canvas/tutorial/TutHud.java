@@ -36,7 +36,7 @@ public class TutHud extends TutorialScreen {
 	private FlightScreen flight;
 
 	protected TutHud(final FlightScreen flight) {
-		super(true);
+		super(5, true);
 		this.flight = flight;
 
 		setInitialConditions();
@@ -101,11 +101,11 @@ public class TutHud extends TutorialScreen {
 		game.getGenerator().setCurrentGalaxy(1);
 		game.getPlayer().setCurrentSystem(game.getGenerator().getSystem(SystemData.LAVE_SYSTEM_INDEX));
 		game.getPlayer().setHyperspaceSystem(game.getGenerator().getSystem(SystemData.ZAONCE_SYSTEM_INDEX));
-		game.getCobra().setFuel(70);
+		game.getCobra().setFuel(game.getCobra().getMaxFuel());
 	}
 
 	private TutorialLine addTopLine(String text) {
-		return addLine(5, text).setX(250).setWidth(1420).setY(20).setHeight(140);
+		return addLine(text).setX(250).setWidth(1420).setY(20).setHeight(140);
 	}
 
 	private void initLine_00() {
@@ -138,7 +138,7 @@ public class TutHud extends TutorialScreen {
 	}
 
 	private void initLine_05() {
-		addLine(5, L.string(R.string.tutorial_hud_05,
+		addLine(L.string(R.string.tutorial_hud_05,
 				L.string(Settings.tapRadarToChangeView ? R.string.tutorial_hud_05a: R.string.tutorial_hud_05b)),
 				Settings.tapRadarToChangeView ? "a" : "b")
 			.setX(250).setWidth(1420).setY(20).setHeight(180);
@@ -153,11 +153,11 @@ public class TutHud extends TutorialScreen {
 				if (viewPort == 1) {
 					flight.getInGameManager().setViewport(1);
 					currentLineIndex++;
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 				if (viewPort >= 0) {
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 			}
@@ -166,7 +166,7 @@ public class TutHud extends TutorialScreen {
 
 	private void initLine_07() {
 		final TutorialLine line =
-				addLine(5, L.string(R.string.tutorial_hud_07,
+				addLine(L.string(R.string.tutorial_hud_07,
 				L.string(Settings.tapRadarToChangeView ? R.string.tutorial_hud_05a : R.string.tutorial_hud_05b)),
 				Settings.tapRadarToChangeView ? "a" : "b").
 				setX(250).setWidth(1420).setY(20).setHeight(180);
@@ -176,12 +176,12 @@ public class TutHud extends TutorialScreen {
 				int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
 				if (viewPort == 1) {
 					flight.getInGameManager().setViewport(1);
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 				if (viewPort >= 0) {
 					currentLineIndex--;
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 			}
@@ -189,7 +189,7 @@ public class TutHud extends TutorialScreen {
 	}
 
 	private void initLine_08() {
-		addLine(5, L.string(R.string.tutorial_hud_08,
+		addLine(L.string(R.string.tutorial_hud_08,
 				L.string(Settings.tapRadarToChangeView ? R.string.tutorial_hud_08a : R.string.tutorial_hud_08b)),
 				Settings.tapRadarToChangeView ? "a" : "b")
 			.setX(250).setWidth(1420).setY(20).setHeight(180);
@@ -204,11 +204,11 @@ public class TutHud extends TutorialScreen {
 				if (viewPort == 2) {
 					flight.getInGameManager().setViewport(2);
 					currentLineIndex++;
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 				if (viewPort >= 0) {
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 			}
@@ -216,7 +216,7 @@ public class TutHud extends TutorialScreen {
 	}
 
 	private void initLine_10() {
-		final TutorialLine line = addLine(5, L.string(R.string.tutorial_hud_10,
+		final TutorialLine line = addLine(L.string(R.string.tutorial_hud_10,
 				L.string(Settings.tapRadarToChangeView ? R.string.tutorial_hud_10a : R.string.tutorial_hud_05b)),
 				Settings.tapRadarToChangeView ? "a" : "b")
 			.setX(250).setWidth(1420).setY(20).setHeight(180);
@@ -226,12 +226,12 @@ public class TutHud extends TutorialScreen {
 				int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
 				if (viewPort == 2) {
 					flight.getInGameManager().setViewport(2);
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 				if (viewPort >= 0) {
 					currentLineIndex--;
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 			}
@@ -252,11 +252,11 @@ public class TutHud extends TutorialScreen {
 				if (viewPort == 3) {
 					flight.getInGameManager().setViewport(3);
 					currentLineIndex++;
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 				if (viewPort >= 0) {
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 			}
@@ -264,7 +264,7 @@ public class TutHud extends TutorialScreen {
 	}
 
 	private void initLine_13() {
-		final TutorialLine line = addLine(5, L.string(R.string.tutorial_hud_13,
+		final TutorialLine line = addLine(L.string(R.string.tutorial_hud_13,
 				L.string(Settings.tapRadarToChangeView ? R.string.tutorial_hud_13a : R.string.tutorial_hud_13b)),
 				Settings.tapRadarToChangeView ? "a" : "b")
 			.setX(250).setWidth(1420).setY(20).setHeight(180);
@@ -274,12 +274,12 @@ public class TutHud extends TutorialScreen {
 				int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
 				if (viewPort == 3) {
 					flight.getInGameManager().setViewport(3);
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 				if (viewPort >= 0) {
 					currentLineIndex--;
-					line.setFinished();
+					setFinished(line);
 					return;
 				}
 			}
@@ -297,7 +297,7 @@ public class TutHud extends TutorialScreen {
 	}
 
 	private void initLine_16() {
-		final TutorialLine line = addLine(5, L.string(R.string.tutorial_hud_16,
+		final TutorialLine line = addLine(L.string(R.string.tutorial_hud_16,
 				L.string(Settings.tapRadarToChangeView ? R.string.tutorial_hud_16a : R.string.tutorial_hud_16b)),
 				Settings.tapRadarToChangeView ? "a" : "b")
 			.setX(250).setWidth(1420).setY(20).setHeight(140);
@@ -307,10 +307,10 @@ public class TutHud extends TutorialScreen {
 				int viewPort = flight.getInGameManager().handleExternalViewportChange(event);
 				if (viewPort == 3 && Settings.tapRadarToChangeView) {
 					flight.getInGameManager().setViewport(3);
-					line.setFinished();
+					setFinished(line);
 				} else if (viewPort == 4 && !Settings.tapRadarToChangeView) {
 					flight.getInGameManager().toggleZoom();
-					line.setFinished();
+					setFinished(line);
 				}
 			}
 		});
@@ -378,45 +378,45 @@ public class TutHud extends TutorialScreen {
 	}
 
 	private void initLine_29() {
-		addLine(5, L.string(R.string.tutorial_hud_29))
+		addLine(L.string(R.string.tutorial_hud_29))
 			.addHighlight(makeHighlight(0, 0, 350, 350))
 			.addHighlight(makeHighlight(1710, 0, 200, 500));
 	}
 
 	private void initLine_30() {
-		addLine(5, L.string(R.string.tutorial_hud_30,
+		addLine(L.string(R.string.tutorial_hud_30,
 			L.string(Settings.laserButtonAutoFire ? R.string.tutorial_hud_30a : R.string.tutorial_hud_30b)),
 			Settings.laserButtonAutoFire ? "a" : "b")
 		.addHighlight(makeHighlight(0, 0, 200, 200));
 	}
 
 	private void initLine_31() {
-		addLine(5, L.string(R.string.tutorial_hud_31))
+		addLine(L.string(R.string.tutorial_hud_31))
 			.addHighlight(makeHighlight(0, 0, 200, 200));
 	}
 
 	private void initLine_32() {
-		addLine(5, L.string(R.string.tutorial_hud_32))
+		addLine(L.string(R.string.tutorial_hud_32))
 			.addHighlight(makeHighlight(150, 150, 200, 200));
 	}
 
 	private void initLine_33() {
-		addLine(5, L.string(R.string.tutorial_hud_33))
+		addLine(L.string(R.string.tutorial_hud_33))
 			.addHighlight(makeHighlight(1710, 0, 200, 200));
 	}
 
 	private void initLine_34() {
-		addLine(5, L.string(R.string.tutorial_hud_34))
+		addLine(L.string(R.string.tutorial_hud_34))
 			.addHighlight(makeHighlight(1710, 0, 200, 200));
 	}
 
 	private void initLine_35() {
-		addLine(5, L.string(R.string.tutorial_hud_35))
+		addLine(L.string(R.string.tutorial_hud_35))
 			.addHighlight(makeHighlight(1710, 300, 200, 200));
 	}
 
 	private void initLine_36() {
-		addLine(5, L.string(R.string.tutorial_hud_36));
+		addLine(L.string(R.string.tutorial_hud_36));
 	}
 
 	private void initLine_37() {

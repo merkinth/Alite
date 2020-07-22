@@ -19,12 +19,14 @@ package de.phbouillon.android.games.alite.model.missions;
  */
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import android.annotation.SuppressLint;
+import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Assets;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MissionManager {
 	public static final String DIRECTORY_SOUND_MISSION = Assets.DIRECTORY_SOUND + "mission" + File.separator;
@@ -55,7 +57,58 @@ public class MissionManager {
 		missions.clear();
 	}
 
-	public Collection <Mission> getMissions() {
+	public Collection<Mission> getMissions() {
 		return missions.values();
+	}
+
+	public List<Mission> getActiveMissions() {
+		List<Mission> activeMissions = new ArrayList<>();
+		for (Mission m : getMissions()) {
+			if (m.isActive()) {
+				activeMissions.add(m);
+			}
+		}
+		return activeMissions;
+		// From API 24
+		//return missions.values().stream().filter(Mission::isActive).collect(Collectors.toList());
+	}
+
+	public int getCompletedMissionCount() {
+		int count = 0;
+		for (Mission m : getMissions()) {
+			if (m.isCompleted()) {
+				count++;
+			}
+		}
+		return count;
+		// From API 24
+		//return (int) missions.values().stream().filter(Mission::isCompleted).count();
+	}
+
+	public void clearActiveMissions() {
+		for (Mission m : getMissions()) {
+			m.active = false;
+		}
+	}
+
+	public JSONArray toJson() throws JSONException {
+		JSONArray missions = new JSONArray();
+		for (Mission m : this.missions.values()) {
+			missions.put(m.toJson(new JSONObject().put("id", m.getId())));
+		}
+		return missions;
+	}
+
+	public void fromJson(JSONArray missions) throws JSONException {
+		for (int i = 0; i < missions.length(); i++) {
+			JSONObject prop = missions.getJSONObject(i);
+			int missionId = prop.getInt("id");
+			Mission m = this.missions.get(missionId);
+			if (m != null) {
+				m.fromJson(prop);
+			} else {
+				AliteLog.e("[ALITE] loadCommander", "Invalid mission skipped, id: " + missionId);
+			}
+		}
 	}
 }

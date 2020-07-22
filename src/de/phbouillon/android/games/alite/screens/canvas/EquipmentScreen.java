@@ -33,6 +33,7 @@ import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.Mission;
+import de.phbouillon.android.games.alite.model.missions.MissionManager;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class EquipmentScreen extends TradeScreen {
@@ -58,7 +59,7 @@ public class EquipmentScreen extends TradeScreen {
 		Equipment galDrive = EquipmentStore.get().getEquipmentById(EquipmentStore.GALACTIC_HYPERDRIVE);
 		if (currentSystem != null) {
 			techLevel = currentSystem.getTechLevel();
-			orphan = game.getGenerator().isOrphan(game.getGenerator().getCurrentGalaxy(), currentSystem.getIndex());
+			orphan = game.getGenerator().isOrphan(currentSystem.getId());
 		}
 		Iterator<Equipment> i = EquipmentStore.get().getIterator();
 		int pos = 0;
@@ -128,7 +129,7 @@ public class EquipmentScreen extends TradeScreen {
 	}
 
 	private int maintainLaser(int pos, Equipment laser) {
-		Equipment laserInPos = game.getPlayer().getCobra().getLaser(pos);
+		Equipment laserInPos = game.getCobra().getLaser(pos);
 		return laserInPos == null ? 0 : laserInPos == laser ? -1 : 1;
 	}
 
@@ -136,7 +137,7 @@ public class EquipmentScreen extends TradeScreen {
 	protected void performTrade(int index) {
 		Equipment equipment = getEquipment(index);
 		Player player = game.getPlayer();
-		for (Mission mission: player.getActiveMissions()) {
+		for (Mission mission: MissionManager.getInstance().getActiveMissions()) {
 			if (mission.performTrade(this, equipment)) {
 				return;
 			}
@@ -173,8 +174,8 @@ public class EquipmentScreen extends TradeScreen {
 		}
 		if (equipment.getCost() == -1) {
 			// Fuel
-			if (cobra.getFuel() == PlayerCobra.MAXIMUM_FUEL) {
-				showMessageDialog(L.getOneDecimalFormatString(R.string.equip_fuel_full, PlayerCobra.MAXIMUM_FUEL));
+			if (cobra.getFuel() == cobra.getMaxFuel()) {
+				showMessageDialog(L.getOneDecimalFormatString(R.string.equip_fuel_full, cobra.getMaxFuel()));
 				SoundManager.play(Assets.error);
 				return;
 			}
@@ -206,7 +207,7 @@ public class EquipmentScreen extends TradeScreen {
 		if (equipment.getCost() == -1) {
 			// Fuel
 			price = player.getCurrentSystem() == null ? 10 : player.getCurrentSystem().getFuelPrice();
-			int fuelToBuy = PlayerCobra.MAXIMUM_FUEL - cobra.getFuel();
+			int fuelToBuy = cobra.getMaxFuel() - cobra.getFuel();
 			int priceToPay = fuelToBuy * price / 10;
 			if (priceToPay > player.getCash()) {
 				showMessageDialog(L.string(R.string.trade_not_enough_money));
@@ -214,7 +215,7 @@ public class EquipmentScreen extends TradeScreen {
 				return;
 			}
 			player.setCash(player.getCash() - priceToPay);
-			player.getCobra().setFuel(PlayerCobra.MAXIMUM_FUEL);
+			player.getCobra().setFuel(cobra.getMaxFuel());
 			disposeSelectedAnimation(selectionIndex);
 			selectionIndex = -1;
 			cashLeft = getCashLeftString();

@@ -35,26 +35,11 @@ public class LocalScreen extends GalaxyScreen {
 
 		@Override
 	public void activate() {
-		title = L.string(R.string.title_local_nav_chart);
 		Player player = game.getPlayer();
 		SystemData hyper = player.getHyperspaceSystem();
-		zoomFactor = 4.0f;
-		game.getInput().setZoomFactor(zoomFactor);
-
-		centerX = computeCenterX(hyper == null ? player.getPosition().x : hyper.getX());
-		centerY = computeCenterY(hyper == null ? player.getPosition().y : hyper.getY());
-		centerTarget();
-		normalizeSystems();
-	}
-
-	@Override
-	public void pause() {
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-		super.resume();
+		initPosition(hyper == null ? player.getPosition().x : hyper.getX(),
+			hyper == null ? player.getPosition().y : hyper.getY(), 4);
+		activateScreen(L.string(R.string.title_local_nav_chart));
 	}
 
 	@Override

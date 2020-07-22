@@ -214,4 +214,7 @@ public class Equipment implements Serializable {
 		return weaponInfo.getNumericProperty(WeaponProperty.beam_length).intValue();
 	}
 
+	public boolean allowToFit() {
+		return minTechLevel != 1000;
+	}
 }

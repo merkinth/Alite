@@ -21,7 +21,10 @@ package de.phbouillon.android.games.alite.screens.canvas;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
+import android.graphics.Point;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Screen;
@@ -30,20 +33,18 @@ import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.*;
 import de.phbouillon.android.games.alite.model.generator.GalaxyGenerator;
 import de.phbouillon.android.games.alite.model.generator.StringUtil;
+import de.phbouillon.android.games.alite.model.missions.Mission;
+import de.phbouillon.android.games.alite.model.missions.MissionManager;
 import de.phbouillon.android.games.alite.model.trading.TradeGood;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class HackerScreen extends AliteScreen {
 	private HackerState state;
-	private int yPosition = 0;
-	private int startY;
-	private int startX;
-	private int lastY;
-	private int maxY = 430;
-	private int deltaY = 0;
 	private Button done;
-	private int offset;
-	private Button[] values = new Button[256];
+	private final int offset;
+	private final Button[] values = new Button[256];
+	private final ScrollPane scrollPane = new ScrollPane(0, 220, AliteConfig.SCREEN_WIDTH,
+		AliteConfig.SCREEN_HEIGHT, () -> new Point(AliteConfig.SCREEN_WIDTH, 16 * 80));
 
 	private static class HackerState {
 		byte[] values = new byte[256];
@@ -393,10 +394,7 @@ public class HackerScreen extends AliteScreen {
 	public HackerScreen(DataInputStream dis) throws IOException {
 		this();
 		dis.read(state.values, 0, 256);
-		for (int i = 0; i < 256; i++) {
-			values[i].setText(String.format("%02X", state.values[i]));
-		}
-		yPosition = dis.readInt();
+		scrollPane.position.y = dis.readInt();
 	}
 
 
@@ -405,7 +403,7 @@ public class HackerScreen extends AliteScreen {
 		done = Button.createGradientTitleButton(1720, 880, 200, 200, L.string(R.string.hacker_btn_done));
 		int counter = 0;
 		for (int y = 0; y < 16; y++) {
-			int yPos = (int) (140 + 80 * (y + 1) - Assets.titleFont.getSize());
+			int yPos = (int) (120 + 80 * (y + 1) - Assets.titleFont.getSize());
 			for (int x = 0; x < 16; x++) {
 				values[counter] = Button.createTitleButton(5 + offset * (x + 1), yPos, offset, 80, String.format("%02X", state.values[counter]));
 				counter++;
@@ -417,7 +415,7 @@ public class HackerScreen extends AliteScreen {
 	@Override
 	public void saveScreenState(DataOutputStream dos) throws IOException {
 		dos.write(state.values, 0, 256);
-		dos.writeInt(yPosition);
+		dos.writeInt(scrollPane.position.y);
 	}
 
 	private void initializeState() {
@@ -456,10 +454,11 @@ public class HackerScreen extends AliteScreen {
 		for (InventoryItem item : cobra.getInventory()) {
 			state.setGood(item.getGood(), item.getWeight().getWeightInGrams());
 		}
-		state.setHyperspaceJumpCounter(player.getJumpCounter());
+		state.setHyperspaceJumpCounter(player.getJumpCounterSinceLastMission());
 		state.setIntergalacticJumpCounter(player.getIntergalacticJumpCounter());
-		if (!player.getActiveMissions().isEmpty()) {
-			state.setActiveMissionIndex(player.getActiveMissions().get(0).getId());
+		List<Mission> activeMissions = MissionManager.getInstance().getActiveMissions();
+		if (!activeMissions.isEmpty()) {
+			state.setActiveMissionIndex(activeMissions.get(0).getId());
 			// TODO add mission state, target, galaxy seed
 		}
 	}
@@ -512,7 +511,7 @@ public class HackerScreen extends AliteScreen {
 		cobra.equipLaser(state.getMiningLaser(), EquipmentStore.MINING_LASER);
 		cobra.equipLaser(state.getPulseLaser(), EquipmentStore.PULSE_LASER);
 		for (InventoryItem item : cobra.getInventory()) {
-			cobra.setTradeGood(item.getGood(), Weight.grams(state.getGood(item.getGood())), item.getPrice());
+			item.set(Weight.grams(state.getGood(item.getGood())), item.getPrice());
 		}
 	}
 
@@ -537,47 +536,25 @@ public class HackerScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		if (touch.type == TouchEvent.TOUCH_DOWN && touch.pointer == 0) {
-			startX = touch.x;
-			startY = lastY = touch.y;
+		scrollPane.handleEvent(touch);
+		if (scrollPane.isSweepingGesture(touch)) {
+			return;
 		}
-		if (touch.type == TouchEvent.TOUCH_DRAGGED && touch.pointer == 0) {
-			if (touch.x > AliteConfig.DESKTOP_WIDTH) {
-				return;
-			}
-			yPosition += lastY - touch.y;
-			if (yPosition < 0) {
-				yPosition = 0;
-			}
-			if (yPosition > maxY) {
-				yPosition = maxY;
-			}
-			lastY = touch.y;
-		}
-		if (touch.type == TouchEvent.TOUCH_UP && touch.pointer == 0) {
-			if (Math.abs(startX - touch.x) < 20 &&
-				Math.abs(startY - touch.y) < 20) {
-				if (done.isTouched(touch.x, touch.y)) {
-					assignState();
-					game.getNavigationBar().setActive(true);
-					game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
-					newScreen = new StatusScreen();
-					SoundManager.play(Assets.click);
-				} else {
-					for (int i = 0; i < 256; i++) {
-						Button b = values[i];
-						b.setSelected(false);
-						if (b.isTouched(touch.x, touch.y)) {
-							b.setSelected(true);
-							newScreen = new HexNumberPadScreen(this, i % 16 < 8 ? 975 : 60, 180, i);
-							SoundManager.play(Assets.click);
-						}
-					}
+
+		if (done.isPressed(touch)) {
+			assignState();
+			game.getNavigationBar().setActive(true);
+			game.getNavigationBar().setActiveIndex(Alite.NAVIGATION_BAR_STATUS);
+			newScreen = new StatusScreen();
+		} else if (touch.y < AliteConfig.SCREEN_HEIGHT - 60) {
+			for (int i = 0; i < 256; i++) {
+				Button b = values[i];
+				b.setSelected(false);
+				if (b.isPressed(touch)) {
+					b.setSelected(true);
+					newScreen = new HexNumberPadScreen(this, i % 16 < 8 ? 975 : 60, 180, i);
 				}
 			}
-		}
-		if (touch.type == TouchEvent.TOUCH_SWEEP) {
-			deltaY = touch.y2;
 		}
 	}
 
@@ -592,26 +569,17 @@ public class HackerScreen extends AliteScreen {
 			g.drawText(hex, 20 + offset * (i + 1), 140, ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT), Assets.titleFont);
 		}
 
-		if (deltaY != 0) {
-			deltaY += deltaY > 0 ? -1 : 1;
-			yPosition -= deltaY;
-			if (yPosition < 0) {
-				yPosition = 0;
-			}
-			if (yPosition > maxY) {
-				yPosition = maxY;
-			}
-		}
+		scrollPane.scrollingFree();
 
 		g.setClip(0, 60, -1, 930);
 		for (int i = 0; i < 16; i++) {
 			String hex = String.format("%X0", i);
-			int y = 140 - yPosition + 80 * (i + 1);
+			int y = 120 - scrollPane.position.y + 80 * (i + 1);
 			g.drawText(hex, 20, y, ColorScheme.get(ColorScheme.COLOR_ADDITIONAL_TEXT), Assets.titleFont);
 		}
 		int count = 0;
 		for (Button b: values) {
-			b.setYOffset(-yPosition);
+			b.setYOffset(-scrollPane.position.y);
 			b.setTextColor(b.isSelected() ? ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION) :
 				(count / 16 + count % 16) % 2 == 0 ? ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT) :
 				ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));

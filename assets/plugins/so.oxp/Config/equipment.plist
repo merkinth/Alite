@@ -52,7 +52,7 @@
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			weapon_info = {
-				range = 12500;
+				range = 9000;
 				energy = 0.0;
 				damage = 5.0;
 				recharge_rate = 0.6;
@@ -73,7 +73,7 @@
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			weapon_info = {
-				range = 15000;
+				range = 10500;
 				energy = 0.0;
 				damage = 9.0;
 				recharge_rate = 0.36;
@@ -132,7 +132,7 @@
 		}
 	),
 	(
-		100, 500000, "equip_short_naval_energy_unit",
+		1000, 500000, "equip_short_naval_energy_unit",
 		"EQ_NAVAL_ENERGY_UNIT",
 		"equip_naval_energy_unit",
 		{
@@ -171,7 +171,7 @@
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			weapon_info = {
-				range = 12500;
+				range = 9000;
 				energy = 0.0;
 				damage = 7.0;
 				recharge_rate = 0.48;
@@ -193,7 +193,7 @@
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			weapon_info = {
-				range = 30000;
+				range = 15000;
 				energy = 0.0;
 				damage = 11.0;
 				recharge_rate = 0.18;
@@ -237,13 +237,13 @@
 		}
 	),
 	(
-		100, 150000, "Thargoid Laser",
+		1000, 150000, "Thargoid Laser",
 		"EQ_WEAPON_THARGOID_LASER",
 		"Captured Thargoid weapon, self-aiming.",
 		{
 			available_to_player = false;
 			weapon_info = {
-				range = 17500;
+				range = 10500;
 				energy = 1.1;
 				damage = 12.5;
 				recharge_rate = 1.0;
@@ -255,7 +255,7 @@
 		}
 	),
 	(
-		100, 0, "Remove Laser",
+		1000, 0, "Remove Laser",
 		"EQ_WEAPON_NONE",
 		"Remove laser weapon from selected mounting.",
 		{

@@ -28,23 +28,21 @@ import de.phbouillon.android.games.alite.model.generator.SystemData;
 
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class GameplayOptionsScreen extends OptionsScreen {
-	private static final int BUTTON_COUNT = 6;
-
-	private final Button[] buttons = new Button[BUTTON_COUNT];
+	private final Button[] buttons = new Button[6];
 	private Button back;
 
 	@Override
 	public void activate() {
-		buttons[0] = createButton(0, getDifficultyButtonText()).setClickEvent(b -> {
+		buttons[0] = createButton(0, getDifficultyButtonText()).setEvent(b -> {
 			Settings.difficultyLevel = cycleFromZeroTo(Settings.difficultyLevel, 5);
 			b.setText(getDifficultyButtonText());
 		});
-		buttons[1] = createSmallButton(2, true, getLaserButtonText()).setClickEvent(b -> {
+		buttons[1] = createSmallButton(2, true, getLaserButtonText()).setEvent(b -> {
 			Settings.laserButtonAutoFire = !Settings.laserButtonAutoFire;
 			b.setText(getLaserButtonText());
 		});
-		buttons[2] = createSmallButton(2, false, getExtendedGalaxyText()).setClickEvent(b -> {
-			if (!game.getPlayer().isPlanetVisited(SystemData.RAXXLA_GALAXY, SystemData.RAXXLA_SYSTEM_INDEX)) {
+		buttons[2] = createSmallButton(2, false, getExtendedGalaxyText()).setEvent(b -> {
+			if (!game.getPlayer().isPlanetVisited(SystemData.RAXXLA_SYSTEM.getId())) {
 				showLargeMessageDialog(L.string(R.string.options_gameplay_extended_galaxy_on_error));
 				return;
 			}
@@ -55,15 +53,15 @@ public class GameplayOptionsScreen extends OptionsScreen {
 			Settings.maxGalaxies = GalaxyGenerator.EXTENDED_GALAXY_COUNT + GalaxyGenerator.GALAXY_COUNT - Settings.maxGalaxies;
 			b.setText(getExtendedGalaxyText());
 		});
-		buttons[3] = createButton(3, getAutoIdButtonText()).setClickEvent(b -> {
+		buttons[3] = createButton(3, getAutoIdButtonText()).setEvent(b -> {
 			Settings.autoId = !Settings.autoId;
 			b.setText(getAutoIdButtonText());
 		});
-		buttons[4] = createButton(4, getDockingComputerButtonText()).setClickEvent(b -> {
+		buttons[4] = createButton(4, getDockingComputerButtonText()).setEvent(b -> {
 			Settings.dockingComputerSpeed = cycleFromZeroTo(Settings.dockingComputerSpeed, 2);
 			b.setText(getDockingComputerButtonText());
 		});
-		buttons[5] = createButton(5, getExtensionUpdateModeButtonText()).setClickEvent(b -> {
+		buttons[5] = createButton(5, getExtensionUpdateModeButtonText()).setEvent(b -> {
 			Settings.extensionUpdateMode = cycleFromZeroTo(Settings.extensionUpdateMode, PluginManager.UPDATE_MODE_AUTO_UPDATE_OVER_WIFI_ONLY);
 			b.setText(getExtensionUpdateModeButtonText());
 		});
@@ -136,24 +134,22 @@ public class GameplayOptionsScreen extends OptionsScreen {
 
 		displayTitle(L.string(R.string.title_gameplay_options));
 		centerText(L.string(getDifficultyDescription()), 315, Assets.regularFont, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
-		for (int i = 0; i < BUTTON_COUNT; i++) {
-			buttons[i].render(g);
+		for (Button b : buttons) {
+			b.render(g);
 		}
 		back.render(g);
 	}
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		for (int i = 0; i < BUTTON_COUNT; i++) {
-			if (buttons[i].isPressed(touch)) {
-				SoundManager.play(Assets.click);
-				buttons[i].onClicked();
+		for (Button b : buttons) {
+			if (b.isPressed(touch)) {
+				b.onEvent();
 				Settings.save(game.getFileIO());
 				return;
 			}
 		}
 		if (back.isPressed(touch)) {
-			SoundManager.play(Assets.click);
 			newScreen = new OptionsScreen();
 		}
 	}

@@ -21,20 +21,14 @@ package de.phbouillon.android.games.alite.model.missions;
 import java.io.*;
 
 import de.phbouillon.android.framework.IMethodHook;
-import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.*;
-import de.phbouillon.android.games.alite.model.Condition;
 import de.phbouillon.android.games.alite.model.EquipmentStore;
-import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.Weight;
 import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.canvas.AliteScreen;
 import de.phbouillon.android.games.alite.screens.canvas.missions.ThargoidDocumentsScreen;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectSpawnManager;
-import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.TimedEvent;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObjectFactory;
 
 public class ThargoidDocumentsMission extends Mission implements Serializable {
 	private static final long serialVersionUID = 7271967050611429726L;
@@ -48,31 +42,22 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 	}
 
 	@Override
-	protected boolean checkStart(Player player) {
-		return player.getCompletedMissions().contains(MissionManager.getInstance().get(ConstrictorMission.ID)) &&
-			player.getIntergalacticJumpCounter() + player.getJumpCounter() >= 64;
-	}
-
-	@Override
 	protected void acceptMission(boolean accept) {
 		if (accept) {
-			alite.getPlayer().addActiveMission(this);
 			alite.getCobra().setMissiles(4);
-			alite.getCobra().setFuel(70);
+			alite.getCobra().setFuel(alite.getCobra().getMaxFuel());
 			alite.getCobra().setTradeGood(TradeGoodStore.get().getGoodById(TradeGoodStore.THARGOID_DOCUMENTS), Weight.grams(482), 0);
 			state = 1;
 			resetTargetName();
 		} else {
-			alite.getPlayer().resetIntergalacticJumpCounter();
-			alite.getPlayer().resetJumpCounter();
-			alite.getPlayer().addCompletedMission(this);
+			finalizeMission();
 		}
 	}
 
 	@Override
 	public void onMissionComplete() {
-		active = false;
-		alite.getCobra().removeTradeGood(TradeGoodStore.get().getGoodById(TradeGoodStore.THARGOID_DOCUMENTS));
+		alite.getCobra().removeItem(alite.getCobra().getInventoryItemByGood(
+			TradeGoodStore.get().getGoodById(TradeGoodStore.THARGOID_DOCUMENTS)));
 		alite.getCobra().removeEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.EXTRA_ENERGY_UNIT));
 		alite.getCobra().addEquipment(EquipmentStore.get().getEquipmentById(EquipmentStore.NAVAL_ENERGY_UNIT));
 	}
@@ -84,33 +69,20 @@ public class ThargoidDocumentsMission extends Mission implements Serializable {
 
 	@Override
 	public AliteScreen checkForUpdate() {
-		if (alite.getPlayer().getCondition() != Condition.DOCKED || state < 1 || !started || !active) {
-			return null;
-		}
-		if (state == 1 && positionMatchesTarget()) {
-			return new ThargoidDocumentsScreen(2);
-		}
-		return null;
+		return missionDidNotStart() || state != 1 || !positionMatchesTarget() ? null :
+			new ThargoidDocumentsScreen(2);
 	}
 
 	private void spawnThargoids(final ObjectSpawnManager manager) {
 		if (manager.isInTorus()) {
-			int randByte = (int) (Math.random() * 256);
-			if (randByte < 32) {
+			if ((int) (Math.random() * 256) < 32) {
 				return;
 			}
 			manager.leaveTorus();
 		}
-		SoundManager.play(Assets.com_conditionRed);
-		manager.getInGameManager().repeatMessage(L.string(R.string.com_condition_red), 3);
+		manager.conditionRed();
 		conditionRedEvent.pause();
-		Vector3f spawnPosition = manager.getSpawnPosition();
-		int thargoidNum = alite.getPlayer().getRating().ordinal() < 3 ? 1 : Math.random() < 0.5 ? 1 : 2;
-		for (int i = 0; i < thargoidNum; i++) {
-			SpaceObject thargoid = SpaceObjectFactory.getInstance().getRandomObjectByType(ObjectType.Thargoid);
-			thargoid.setSpawnDroneDistanceSq(manager.computeSpawnThargonDistanceSq());
-			manager.spawnEnemyAndAttackPlayer(thargoid, i, spawnPosition);
-		}
+		manager.spawnThargoids(alite.getPlayer().getRating().ordinal() < 3 ? 1 : Math.random() < 0.5 ? 1 : 2);
 	}
 
 	@Override

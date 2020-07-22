@@ -33,6 +33,7 @@ public class LibraryPage {
 	private List <String> paragraphs;
 	private List <ItemDescriptor> images;
 	private ItemDescriptor backgroundImage;
+	private boolean watched;
 
 	private static Element getPageText(Element root) {
 		return (Element) ((Element) root.getElementsByTagName("Content").item(0)).
@@ -155,5 +156,20 @@ public class LibraryPage {
 
 	public ItemDescriptor getBackgroundImage() {
 		return backgroundImage;
+	}
+
+	public boolean isWatched() {
+		if (images != null) {
+			for (ItemDescriptor image : images) {
+				if (!image.isWatched()) {
+					return false;
+				}
+			}
+		}
+		return watched && (backgroundImage == null || backgroundImage.isWatched());
+	}
+
+	public void watched() {
+		watched = true;
 	}
 }

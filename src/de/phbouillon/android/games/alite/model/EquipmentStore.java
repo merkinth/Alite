@@ -18,8 +18,6 @@ package de.phbouillon.android.games.alite.model;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import de.phbouillon.android.games.alite.R;
-
 import java.util.*;
 
 public class EquipmentStore {
@@ -55,12 +53,10 @@ public class EquipmentStore {
 	private EquipmentStore() {
 	}
 
-	public Equipment getEquipment(int index) {
-		return index < 0 || index >= equipments.size() ? null : equipments.get(index);
-	}
-
 	public void addEquipment(Equipment equipment) {
-		equipments.add(equipment);
+		if (!equipments.contains(equipment)) {
+			equipments.add(equipment);
+		}
 	}
 
 	public Equipment getEquipmentById(String name) {
@@ -78,5 +74,17 @@ public class EquipmentStore {
 
 	public Iterator<Equipment> getIterator() {
 		return equipments.iterator();
+	}
+
+	public int getEquipmentCount() {
+		int count = 0;
+		for(Equipment equipment : equipments) {
+			if (equipment.allowToFit()) {
+				count++;
+			}
+		}
+		return count;
+		// From API 24
+		//return (int) equipments.stream().filter(Equipment::allowToFit).count();
 	}
 }

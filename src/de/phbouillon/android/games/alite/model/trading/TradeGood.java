@@ -21,6 +21,7 @@ package de.phbouillon.android.games.alite.model.trading;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Objects;
 
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.L;
@@ -29,17 +30,18 @@ import de.phbouillon.android.games.alite.model.Unit;
 public class TradeGood implements Serializable {
 	private static final long serialVersionUID = 5358106266043560822L;
 
-	private int id;
-	private final int       basePrice;
-	private final int       gradient;
-	private final int       baseQuantity;
-	private final int       maskByte;
-	private final float     legalityType;
+	private final int id;
+	private final int basePrice;
+	private final int gradient;
+	private final int baseQuantity;
+	private final int maskByte;
+	private final float legalityType;
 	private final Unit unit;
 	private final int name;
 	private final int[] averagePrice;
 	private final String iconName;
 	private final boolean specialGood;
+	boolean traded;
 
 	public TradeGood(int id, int basePrice, int gradient, int baseQuantity, int maskByte, Unit unit, int name, String iconName, int... averagePrice) {
 		this(id, basePrice, gradient, baseQuantity, maskByte, 0, unit, name, iconName, false, averagePrice);
@@ -53,12 +55,12 @@ public class TradeGood implements Serializable {
 	private TradeGood(int id, int basePrice, int gradient, int baseQuantity, int maskByte, float legalityType,
 			Unit unit, int name, String iconName, boolean specialGood, int... averagePrice) {
 		this.id = id;
-		this.basePrice    = basePrice;
-		this.gradient     = gradient;
+		this.basePrice = basePrice;
+		this.gradient = gradient;
 		this.baseQuantity = baseQuantity;
-		this.maskByte     = maskByte;
-		this.unit         = unit;
-		this.name         = name;
+		this.maskByte = maskByte;
+		this.unit = unit;
+		this.name = name;
 		this.legalityType = legalityType;
 		this.iconName = iconName;
 		this.specialGood = specialGood;
@@ -76,7 +78,7 @@ public class TradeGood implements Serializable {
 			AliteLog.e("PersistenceException", "TradeGood " + getName(), e);
 			throw e;
 		}
-    }
+	}
 
 	public int getId() {
 		return id;
@@ -120,5 +122,25 @@ public class TradeGood implements Serializable {
 
 	public boolean isSpecialGood() {
 		return specialGood;
+	}
+
+	public boolean isTraded() {
+		return traded;
+	}
+
+	public void traded() {
+		traded = true;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		return id == ((TradeGood) o).id;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
 	}
 }

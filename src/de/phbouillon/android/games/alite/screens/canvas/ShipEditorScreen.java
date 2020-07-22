@@ -18,8 +18,6 @@ package de.phbouillon.android.games.alite.screens.canvas;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-import android.graphics.Rect;
-import android.opengl.GLES11;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.math.Vector3f;
@@ -64,6 +62,9 @@ public class ShipEditorScreen extends AliteScreen {
 	private float lastZoom = -1.0f;
 	private int numberOfExhausts = 2;
 	private final Vector3f temp = new Vector3f(0, 0, 0);
+	private int lastX = -1;
+	private int lastY = -1;
+
 
 	class ExhaustParameters {
 		int xOffset;

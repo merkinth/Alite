@@ -28,7 +28,6 @@ import java.util.List;
 
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
 import de.phbouillon.android.games.alite.model.CommanderData;
@@ -36,11 +35,8 @@ import de.phbouillon.android.games.alite.model.CommanderData;
 //This screen never needs to be serialized, as it is not part of the InGame state.
 public class CatalogScreen extends AliteScreen {
 	protected String title;
-	private List<Button> button = new ArrayList<>();
+	private final List<Button> button = new ArrayList<>();
 	List<CommanderData> commanderData = new ArrayList<>();
-	private Pixmap buttonBackground;
-	private Pixmap buttonBackgroundPushed;
-	private Pixmap buttonBackgroundSelected;
 	private Button btnListForward;
 	private Button btnListBackward;
 	private Button btnBack;
@@ -82,8 +78,9 @@ public class CatalogScreen extends AliteScreen {
 			for (int i = 0; i < commanders.length; i++) {
 				CommanderData data = game.getQuickCommanderInfo(commanders[i].getName());
 				if (data != null) {
-					Button b = Button.createPictureButton(20, 210 + (i % 5) * 140, 1680, 120, buttonBackground)
-						.setPushedBackground(buttonBackgroundPushed)
+					Button b = Button.createPictureButton(20, 210 + (i % 5) * 140, 1680, 120,
+						pics.get("catalog_button"))
+						.setPushedBackground(pics.get("catalog_button_pushed"))
 						.setText("")
 						.setFont(Assets.regularFont);
 					button.add(b);
@@ -119,7 +116,7 @@ public class CatalogScreen extends AliteScreen {
 			for (int i: pendingSelectionIndices) {
 				if (i >= 0 && i < n) {
 					selectedCommanderData.add(commanderData.get(i));
-					button.get(i).setPixmap(buttonBackgroundSelected).setSelected(true);
+					button.get(i).setPixmap(pics.get("catalog_button_selected")).setSelected(true);
 				}
 			}
 			pendingSelectionIndices.clear();
@@ -167,32 +164,25 @@ public class CatalogScreen extends AliteScreen {
 
 	@Override
 	protected void processTouch(TouchEvent touch) {
-		if (touch.type != TouchEvent.TOUCH_UP) {
-			return;
-		}
-		if (btnBack.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
+		if (btnBack.isPressed(touch)) {
 			newScreen = new DiskScreen();
 			return;
 		}
-		if (btnListForward.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
+		if (btnListForward.isPressed(touch)) {
 			currentPage++;
 		}
-		if (btnListBackward.isTouched(touch.x, touch.y)) {
-			SoundManager.play(Assets.click);
+		if (btnListBackward.isPressed(touch)) {
 			currentPage--;
 		}
 		for (int i = currentPage * 5; i < Math.min(currentPage * 5 + 5, button.size()); i++) {
-			if (button.get(i).isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
+			if (button.get(i).isPressed(touch)) {
 				boolean select = !selectedCommanderData.contains(commanderData.get(i));
 				if (select) {
 					selectedCommanderData.add(commanderData.get(i));
-					button.get(i).setPixmap(buttonBackgroundSelected);
+					button.get(i).setPixmap(pics.get("catalog_button_selected"));
 				} else {
 					selectedCommanderData.remove(commanderData.get(i));
-					button.get(i).setPixmap(buttonBackground);
+					button.get(i).setPixmap(pics.get("catalog_button"));
 				}
 				button.get(i).setSelected(select);
 				if (deleteButton != null) {
@@ -200,6 +190,18 @@ public class CatalogScreen extends AliteScreen {
 						L.string(R.string.cmdr_btn_delete_more) : L.string(R.string.cmdr_btn_delete_one));
 				}
 			}
+		}
+		if (deleteButton != null && deleteButton.isPressed(touch) && messageResult == RESULT_NONE) {
+			if (selectedCommanderData.size() == 1) {
+				showQuestionDialog(L.string(R.string.cmdr_delete_one_confirm, selectedCommanderData.get(0).getName()));
+			} else {
+				showQuestionDialog(L.string(R.string.cmdr_delete_more_confirm));
+			}
+			confirmDelete = true;
+		}
+
+		if (touch.type != TouchEvent.TOUCH_UP) {
+			return;
 		}
 		if (confirmDelete && messageResult != RESULT_NONE) {
 			confirmDelete = false;
@@ -212,23 +214,12 @@ public class CatalogScreen extends AliteScreen {
 			clearSelection();
 			messageResult = RESULT_NONE;
 		}
-		if (deleteButton != null && deleteButton.isTouched(touch.x, touch.y)) {
-			if (messageResult == RESULT_NONE) {
-				SoundManager.play(Assets.alert);
-				if (selectedCommanderData.size() == 1) {
-					showQuestionDialog(L.string(R.string.cmdr_delete_one_confirm, selectedCommanderData.get(0).getName()));
-				} else {
-					showQuestionDialog(L.string(R.string.cmdr_delete_more_confirm));
-				}
-				confirmDelete = true;
-			}
-		}
 	}
 
 	void clearSelection() {
 		for (Button aButton : button) {
 			if (aButton.isSelected()) {
-				aButton.setPixmap(buttonBackground).setSelected(false);
+				aButton.setPixmap(pics.get("catalog_button")).setSelected(false);
 			}
 		}
 		selectedCommanderData.clear();
@@ -300,27 +291,8 @@ public class CatalogScreen extends AliteScreen {
 	}
 
 	@Override
-	public void dispose() {
-		super.dispose();
-		if (buttonBackground != null) {
-			buttonBackground.dispose();
-			buttonBackground = null;
-		}
-		if (buttonBackgroundSelected != null) {
-			buttonBackgroundSelected.dispose();
-			buttonBackgroundSelected = null;
-		}
-		if (buttonBackgroundPushed != null) {
-			buttonBackgroundPushed.dispose();
-			buttonBackgroundPushed = null;
-		}
-	}
-
-	@Override
 	public void loadAssets() {
-		buttonBackground = game.getGraphics().newPixmap("catalog_button.png");
-		buttonBackgroundSelected = game.getGraphics().newPixmap("catalog_button_selected.png");
-		buttonBackgroundPushed = game.getGraphics().newPixmap("catalog_button_pushed.png");
+		addPictures("catalog_button", "catalog_button_selected", "catalog_button_pushed");
 		super.loadAssets();
 	}
 

@@ -25,6 +25,7 @@ import java.util.*;
 
 import android.opengl.GLES11;
 import android.opengl.Matrix;
+import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.ResourceStream;
 import de.phbouillon.android.framework.Timer;
 import de.phbouillon.android.framework.impl.gl.GlUtils;
@@ -87,13 +88,13 @@ public class SpaceObject extends AliteObject implements Serializable {
 		fragment_chance,
 		fuel,
 		galaxy, // alite specific may be replaced by condition_script.allowSpawnShip
-		has_cloaking_device,
+		has_cloaking_device, // ok
 		has_ecm, // ok
 		has_energy_bomb,
 		has_escape_pod, // ok
 		has_fuel_injection,
-		has_military_jammer, // has cloaking device
-		has_military_scanner_filter, // can see the currently cloaked object on the radar
+		has_military_jammer, // Ships equipped with this item become invisible on the radar.
+		has_military_scanner_filter, // Ships equipped with this item can see ships equipped with a military jammer on the radar
 		has_scoop, // ok
 		has_scoop_message,
 		has_shield_booster,
@@ -251,7 +252,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 
 	private boolean identified;
  	private float scale = 1;
-	private final List <ObjectType> objectsToSpawn = new ArrayList<>();
+	private final List<ObjectType> objectsToSpawn = new ArrayList<>();
 
 
 	private final SpaceObjectAI ai = new SpaceObjectAI(this);
@@ -269,6 +270,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 	// cargo canister
 	private TradeGood cargoContent;
 	private Weight cargoWeight;
+	private Weight unpunishedWeight;
 	private Equipment specialCargoContent;
 	private long cargoPrice;
 
@@ -300,6 +302,9 @@ public class SpaceObject extends AliteObject implements Serializable {
 			in.defaultReadObject();
 			AliteLog.d("readObject", "SpaceObject.readObject I");
 			SpaceObject so = SpaceObjectFactory.getInstance().getObjectById(getId());
+			if (so == null) {
+				so = SpaceObjectFactory.getInstance().getRandomObjectByType(type);
+			}
 			if (so != null) {
 				textureInputStream = so.textureInputStream;
 			}
@@ -754,13 +759,6 @@ public class SpaceObject extends AliteObject implements Serializable {
 		return getMaxCargoCanisters() > repoHandler.getNumericProperty(Property.cargo_carried).longValue();
 	}
 
-	public void collectCargoCanister() {
-		long cargoCount = repoHandler.getNumericProperty(Property.cargo_carried).longValue();
-		if (getMaxCargoCanisters() > cargoCount) {
-			repoHandler.setProperty(Property.cargo_carried, cargoCount + 1);
-		}
-	}
-
 	public TradeGood getCargoType() {
 		TradeGood good = TradeGoodStore.get().getGoodById(repoHandler.getNumericProperty(Property.likely_cargo).intValue());
 		return good == null ? TradeGoodStore.get().getRandomTradeGoodForContainer() : good;
@@ -847,12 +845,13 @@ public class SpaceObject extends AliteObject implements Serializable {
 		}
 	}
 
-	public void setAIState(String newState, Object ...data) {
-		ai.setState(newState, data);
+	public void setAIState(String newState) {
+		ai.setState(newState);
 	}
 
-	public String getAIState() {
-		return ai.getState();
+	public void setWaypoint(WayPoint wp) {
+		ai.setWaypoints(wp);
+		ai.setState(SpaceObjectAI.AI_STATE_FLY_PATH);
 	}
 
 	public String getCurrentAIStack() {
@@ -1044,7 +1043,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		return repoHandler.getColorProperty(Property.laser_color);
 	}
 
-	public float getDamage() {
+	public int getDamage() {
 		// weapon_energy / subentities type=ball_turret weapon_energy override the standard weapon type
 		return getLaser().getDamage();
 	}
@@ -1187,6 +1186,26 @@ public class SpaceObject extends AliteObject implements Serializable {
 			object.hudColor = hudColor;
 		}
 		object.hasEcm = hasByProbability(object.repoHandler.getNumericProperty(Property.has_ecm));
+		if (hasByProbability(object.repoHandler.getNumericProperty(Property.has_cloaking_device))) {
+			object.setUpdater(new IMethodHook() {
+				private static final long serialVersionUID = 6077773193969694018L;
+				private long nextUpdateEvent = computeNextUpdateTime();
+				private final Timer timer = new Timer().setAutoReset();
+
+				private long computeNextUpdateTime() {
+					// 6 - 12 seconds later.
+					return (long) (6 * Math.random() + 6);
+				}
+
+				@Override
+				public void execute(float deltaTime) {
+					if (timer.hasPassedSeconds(nextUpdateEvent)) {
+						nextUpdateEvent = computeNextUpdateTime();
+						object.cloaked = !object.cloaked;
+					}
+				}
+			});
+		}
 		object.affectedByEnergyBomb = hasByProbability(object.repoHandler.getNumericProperty(Property.affected_by_energy_bomb));
 		float escapePodProbability = object.repoHandler.getNumericProperty(Property.has_escape_pod);
 		if (escapePodProbability > 1) object.escapePod = (int) escapePodProbability;
@@ -1198,6 +1217,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		object.ecmDestroy = ecmDestroy;
 		object.cargoContent = cargoContent;
 		object.cargoWeight = cargoWeight;
+		object.unpunishedWeight = unpunishedWeight;
 		object.specialCargoContent = specialCargoContent;
 		object.cargoPrice = cargoPrice;
 		object.hullStrength = repoHandler.getNumericProperty(SpaceObject.Property.max_energy).intValue();
@@ -1212,7 +1232,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		for (Vector3f l: laserHardpoint) {
 			object.laserHardpoint.add(new Vector3f(l.x, l.y, l.z));
 		}
-		object.targetBox = targetBox;
+		object.initTargetBox();
 		return object;
 	}
 
@@ -1285,14 +1305,20 @@ public class SpaceObject extends AliteObject implements Serializable {
 	}
 
 	public void setCargoContent(TradeGood tradeGood, Weight quantity) {
+		setCargoContent(tradeGood, quantity, quantity);
+	}
+
+	public void setCargoContent(TradeGood tradeGood, Weight quantity, Weight unpunishedQuantity) {
 		cargoContent = tradeGood;
 		cargoWeight = quantity;
+		unpunishedWeight = unpunishedQuantity;
 	}
 
 	public void setSpecialCargoContent(Equipment equipment) {
 		specialCargoContent = equipment;
 		cargoContent = null;
 		cargoWeight = null;
+		unpunishedWeight = null;
 	}
 
 	public Equipment getSpecialCargoContent() {
@@ -1305,6 +1331,10 @@ public class SpaceObject extends AliteObject implements Serializable {
 
 	public Weight getCargoQuantity() {
 		return cargoWeight;
+	}
+
+	public Weight getUnpunishedWeight() {
+		return unpunishedWeight;
 	}
 
 	public long getCargoPrice() {

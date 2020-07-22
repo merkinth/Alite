@@ -40,6 +40,7 @@ public class Assets {
 	public static Pixmap localIcon;
 	public static Pixmap planetIcon;
 	public static Pixmap diskIcon;
+	public static Pixmap achievementsIcon;
 	public static Pixmap optionsIcon;
 	public static Pixmap academyIcon;
 	public static Pixmap libraryIcon;

@@ -29,11 +29,7 @@ import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.screens.canvas.LoadingScreen;
 import de.phbouillon.android.games.alite.screens.opengl.objects.AliteObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AIState;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallback;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.AiStateCallbackHandler;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.SpaceObject;
-import de.phbouillon.android.games.alite.screens.opengl.objects.space.WayPoint;
+import de.phbouillon.android.games.alite.screens.opengl.objects.space.*;
 
 final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 	private static final long serialVersionUID = 7044055833923332317L;
@@ -41,8 +37,9 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 	private static final int DOCKING_DISTANCE         =  6000;
 	private static final int DOCKING_SPEED            =   280;
 
-	private boolean active = false;
-	private InGameManager inGame;
+	private boolean active;
+	private boolean wasActive;
+	private final InGameManager inGame;
 	private final Vector3f v1 = new Vector3f(0, 0, 0);
 	private final DockingComputerAlignmentUpdater dcaUpdater;
 	private boolean onFinalApproach;
@@ -144,6 +141,7 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		}
 		onFinalApproach = false;
 		active = true;
+		wasActive = true;
 		inGame.setPlayerControl(false);
 		dcaUpdater.orientationFound = false;
 		AliteLog.d("DC Speed", "DC Speed = " + Settings.dockingComputerSpeed);
@@ -183,6 +181,10 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 
 	final boolean isActive() {
 		return active;
+	}
+
+	final boolean wasActiveSinceLastDock() {
+		return wasActive;
 	}
 
 	final boolean isOnFinalApproach() {

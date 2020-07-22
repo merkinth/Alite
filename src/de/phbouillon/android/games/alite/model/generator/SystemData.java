@@ -26,6 +26,7 @@ import java.util.*;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
+import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.model.generator.enums.Economy;
 import de.phbouillon.android.games.alite.model.generator.enums.Government;
 
@@ -45,7 +46,7 @@ public class SystemData implements Serializable {
 	public static final int INHABITANT_INDEX_TYPE = 4;
 
 	public static final char INHABITANT_RACE_HUMAN = '0';
-//	public static final char INHABITANT_RACE_ALIEN = '1';
+	public static final char INHABITANT_RACE_ALIEN = '1';
 	public static final char INHABITANT_RACE_TREEARD = '2';
 
 
@@ -97,9 +98,10 @@ public class SystemData implements Serializable {
 	private static String[] planetNameSyllable;
 	private static Map<String,String> descriptionMap;
 
+	private int galaxy;
 	private int index; // 0-255
 	private int x; // 0-255
-	private int y; // 0-255
+	private int y; // 0-127
 	private Government govType; // 0-7
 	private Economy economy; // 0-7
 	private int techLevel; // 0-15 I think (original source says 0-16, which I doubt)
@@ -123,7 +125,7 @@ public class SystemData implements Serializable {
 	private int starTexture;   // 0-22 O-M class stars with 3 different luminosity settings, and two dwarf types.
 	private int dockingFee;    // Fee for automatic docking, if no docking computer is installed. 400-3300.
 
-	private final List <SystemData> reachableSystems = new ArrayList<>();
+	private final List<SystemData> reachableSystems = new ArrayList<>();
 
 	static void initialize() {
 		if (planetNameSyllable != null) {
@@ -150,6 +152,7 @@ public class SystemData implements Serializable {
 
 	private static SystemData createRaxxlaSystem() {
 		SystemData result = new SystemData();
+		result.galaxy = RAXXLA_GALAXY;
 		result.index = RAXXLA_SYSTEM_INDEX;
 		result.x = 12;
 		result.y = 127;
@@ -176,9 +179,10 @@ public class SystemData implements Serializable {
 		result.description = L.string(R.string.raxxla_desc);
 	}
 
-	static SystemData createSystem(int index, SeedType seed) {
+	static SystemData createSystem(int galaxy, int index, SeedType seed) {
 		SystemData result = new SystemData();
 
+		result.galaxy = galaxy;
 		result.index = index;
 
 		result.computePosition(seed);
@@ -311,7 +315,7 @@ public class SystemData implements Serializable {
 
 	static String generateRandomName(SeedType nameSeed) {
 		String planetName = "";
-		char [] pair = new char[4];
+		char[] pair = new char[4];
 		while (planetName.isEmpty()) {
 			char longNameFlag = (char) (nameSeed.getWord(0) & 64);
 
@@ -394,26 +398,29 @@ public class SystemData implements Serializable {
 		return builder.toString();
 	}
 
-	public void computeReachableSystems(SystemData [] allSystems) {
+	public void computeReachableSystems(SystemData[] allSystems) {
 		if (!reachableSystems.isEmpty()) {
 			return;
 		}
 		// Computes all reachable planets. (I.e. all planets with a
 		// distance up to 7.0 light years).
 		for (SystemData data: allSystems) {
-			int dx = x - data.x;
-			int dy = y - data.y;
-			int dist = (int) Math.sqrt(dx * dx + dy * dy) << 2;
-
-			if (dist <= 70) {
+			if (computeDistance(data) <= PlayerCobra.MAX_FUEL) {
 				reachableSystems.add(data);
 			}
 		}
 	}
 
 	public int computeDistance(SystemData targetSystem) {
-		int dx = x - targetSystem.x;
-		int dy = y - targetSystem.y;
+		return computeDistance(x, y, targetSystem.x, targetSystem.y);
+	}
+
+	// The real distance of planets could be bigger than the calculated one
+	// since fractions are truncated after square root. The biggest difference
+	// (worst case) is 0.4 light years.
+	public static int computeDistance(int x1, int y1, int x2, int y2) {
+		int dx = x1 - x2;
+		int dy = y1 - y2;
 		return (int) Math.sqrt(dx * dx + dy * dy) << 2;
 	}
 
@@ -460,6 +467,14 @@ public class SystemData implements Serializable {
 		return govType;
 	}
 
+	public int getId() {
+		return (galaxy << 10) + index;
+	}
+
+	public static int getGalaxyOf(int id) {
+		return id >> 10;
+	}
+
 	public int getIndex() {
 		return index;
 	}
@@ -500,7 +515,7 @@ public class SystemData implements Serializable {
 		return description;
 	}
 
-	public SystemData [] getReachableSystems() {
+	public SystemData[] getReachableSystems() {
 		return reachableSystems.toArray(new SystemData[0]);
 	}
 

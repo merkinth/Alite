@@ -21,14 +21,11 @@ package de.phbouillon.android.games.alite.screens.canvas.missions;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import android.graphics.Point;
 import android.media.MediaPlayer;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
-import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.ColorScheme;
-import de.phbouillon.android.games.alite.model.Player;
 import de.phbouillon.android.games.alite.model.generator.SystemData;
 import de.phbouillon.android.games.alite.model.missions.Mission;
 import de.phbouillon.android.games.alite.model.missions.MissionManager;
@@ -49,8 +46,6 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 	private TextData[] missionText;
 	private Button acceptButton;
 	private Button declineButton;
-	private Pixmap acceptIcon;
-	private Pixmap declineIcon;
 	private SystemData targetSystem = null;
 	private final Mission mission;
 	private final int givenState;
@@ -65,18 +60,13 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 			if (state == 0) {
 				missionLine = new MissionLine(path + "02.mp3", L.string(R.string.mission_thargoid_documents_mission_description));
 				targetSystem = mission.findMostDistantSystem();
-				mission.setTarget(game.getGenerator().getCurrentGalaxy(), targetSystem.getIndex(), state);
+				mission.setTargetPlanet(targetSystem, state);
 				acceptMission = new MissionLine(path + "03.mp3", L.string(R.string.mission_accept));
 			} else if (state == 1) {
 				missionLine = new MissionLine(path + "04.mp3", L.string(R.string.mission_thargoid_documents_fully_serviced));
 			} else if (state == 2) {
 				missionLine = new MissionLine(path + "05.mp3", L.string(R.string.mission_thargoid_documents_success));
-			 	mission.onMissionComplete();
-				Player player = game.getPlayer();
-				player.removeActiveMission(mission);
-				player.addCompletedMission(mission);
-				player.resetIntergalacticJumpCounter();
-				player.resetJumpCounter();
+			 	mission.missionCompleted();
 			} else {
 				AliteLog.e("Unknown State", "Invalid state variable has been passed to ThargoidDocumentScreen: " + state);
 			}
@@ -109,17 +99,13 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 		if (acceptButton == null && declineButton == null) {
 			return;
 		}
-		if (touch.type == TouchEvent.TOUCH_UP) {
-			if (acceptButton.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				mission.setPlayerAccepts(true);
-				newScreen = new ThargoidDocumentsScreen(1);
-			}
-			if (declineButton.isTouched(touch.x, touch.y)) {
-				SoundManager.play(Assets.click);
-				mission.setPlayerAccepts(false);
-				newScreen = new StatusScreen();
-			}
+		if (acceptButton.isPressed(touch)) {
+			mission.setPlayerAccepts(true);
+			newScreen = new ThargoidDocumentsScreen(1);
+		}
+		if (declineButton.isPressed(touch)) {
+			mission.setPlayerAccepts(false);
+			newScreen = new StatusScreen();
 		}
 	}
 
@@ -129,12 +115,14 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 		g.clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle(L.string(R.string.title_mission_thargoid_documents));
 
-		g.drawText(L.string(R.string.mission_attention_commander), 50, 200, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+		g.drawText(L.string(R.string.mission_attention_commander), 50, 200,
+			ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 		if (missionText != null) {
 			displayText(g, missionText);
 		}
 		if (acceptMission != null) {
-			g.drawText(L.string(R.string.mission_accept), 50, 800, ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
+			g.drawText(L.string(R.string.mission_accept), 50, 800,
+				ColorScheme.get(ColorScheme.COLOR_INFORMATION_TEXT), Assets.regularFont);
 			if (acceptButton != null) {
 				acceptButton.render(g);
 			}
@@ -144,63 +132,17 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 		}
 
 		if (targetSystem != null) {
-			displayStarMap();
+			GalaxyScreen.displayStarMap(targetSystem);
 		}
-	}
-
-	private Point toScreen(SystemData systemData, int centerX, int centerY, float zoomFactor) {
-		int offsetX = (int) (centerX * zoomFactor * ConstrictorScreen.STRETCH_X) - 400;
-		int offsetY = (int) (centerY * zoomFactor * ConstrictorScreen.STRETCH_Y) - 550;
-		return new Point((int) (systemData.getX() * zoomFactor) * ConstrictorScreen.STRETCH_X + 900 - offsetX,
-				         (int) (systemData.getY() * zoomFactor) * ConstrictorScreen.STRETCH_Y + 100 - offsetY);
-	}
-
-	private void drawSystem(SystemData system, int centerX, int centerY, float zoomFactor, boolean clearBackground) {
-		Graphics g = game.getGraphics();
-		Point p = toScreen(system, centerX, centerY, zoomFactor);
-		if (p.x < 900 || p.x > 1700 || p.y < 100 || p.y > 1000) {
-			return;
-		}
-		g.fillCircle(p.x, p.y, (int) (3 * zoomFactor), system.getEconomy().getColor(), 32);
-		int nameWidth = g.getTextWidth(system.getName(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
-		int nameHeight = g.getTextHeight(system.getName(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
-		int positionX = (int) (3 * zoomFactor) + 2;
-		int positionY = 40;
-		if (p.x + nameWidth > GalaxyScreen.HALF_WIDTH << 1) {
-			positionX = -positionX - nameWidth;
-		}
-		if (p.y + 40 > GalaxyScreen.HALF_HEIGHT << 1) {
-			positionY = -40;
-		}
-		if (clearBackground) {
-			g.fillRect(p.x + positionX, p.y + positionY - nameHeight, nameWidth, nameHeight, ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
-		}
-		g.drawText(system.getName(), p.x + positionX, p.y + positionY, system.getEconomy().getColor(), system == targetSystem ? Assets.regularFont : Assets.smallFont);
-		if (system == targetSystem) {
-			g.drawLine(p.x, p.y - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.x, p.y - GalaxyScreen.CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
-			g.drawLine(p.x, p.y + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.x, p.y + GalaxyScreen.CROSS_DISTANCE, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
-			g.drawLine(p.x - GalaxyScreen.CROSS_SIZE - GalaxyScreen.CROSS_DISTANCE, p.y, p.x - GalaxyScreen.CROSS_DISTANCE, p.y, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
-			g.drawLine(p.x + GalaxyScreen.CROSS_SIZE + GalaxyScreen.CROSS_DISTANCE, p.y, p.x + GalaxyScreen.CROSS_DISTANCE, p.y, ColorScheme.get(ColorScheme.COLOR_BASE_INFORMATION));
-		}
-	}
-
-	private void displayStarMap() {
-		int centerX = targetSystem.getX();
-		int centerY = targetSystem.getY();
-
-		for (SystemData system: game.getGenerator().getSystems()) {
-			drawSystem(system, centerX, centerY, 3.0f, false);
-		}
-		// Make sure the target system is rendered on top...
-		drawSystem(targetSystem, centerX, centerY, 3.0f, true);
 	}
 
 	@Override
 	public void activate() {
-		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300, 800, 40, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
+		missionText = computeTextDisplay(game.getGraphics(), missionLine.getText(), 50, 300,
+			800, ColorScheme.get(ColorScheme.COLOR_MAIN_TEXT));
 		if (acceptMission != null) {
-			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, acceptIcon);
-			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, declineIcon);
+			acceptButton = Button.createGradientPictureButton(50, 860, 200, 200, pics.get("yes_icon"));
+			declineButton = Button.createGradientPictureButton(650, 860, 200, 200, pics.get("no_icon"));
 		}
 	}
 
@@ -211,8 +153,7 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 
 	@Override
 	public void loadAssets() {
-		acceptIcon = game.getGraphics().newPixmap("yes_icon.png");
-		declineIcon = game.getGraphics().newPixmap("no_icon.png");
+		addPictures("yes_icon", "no_icon");
 	}
 
 	@Override
@@ -220,14 +161,6 @@ public class ThargoidDocumentsScreen extends AliteScreen {
 		super.dispose();
 		if (mediaPlayer != null) {
 			mediaPlayer.reset();
-		}
-		if (acceptIcon != null) {
-			acceptIcon.dispose();
-			acceptIcon = null;
-		}
-		if (declineIcon != null) {
-			declineIcon.dispose();
-			declineIcon = null;
 		}
 	}
 

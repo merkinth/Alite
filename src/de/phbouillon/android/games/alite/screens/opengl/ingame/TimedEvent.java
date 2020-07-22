@@ -21,8 +21,6 @@ package de.phbouillon.android.games.alite.screens.opengl.ingame;
 import de.phbouillon.android.framework.IMethodHook;
 import de.phbouillon.android.framework.Timer;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 public class TimedEvent implements Serializable {
@@ -34,12 +32,6 @@ public class TimedEvent implements Serializable {
 	private long pauseTime;
 	private boolean remove;
 	protected boolean locked;
-
-	private void writeObject(ObjectOutputStream out) throws IOException {
-		if (!remove) {
-			out.defaultWriteObject();
-		}
-	}
 
 	public TimedEvent(long delayInNanos) {
 		this(delayInNanos, -1, -1);

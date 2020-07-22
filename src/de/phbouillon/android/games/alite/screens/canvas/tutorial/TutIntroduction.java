@@ -22,12 +22,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.phbouillon.android.framework.Pixmap;
 import de.phbouillon.android.framework.Screen;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.L;
 import de.phbouillon.android.games.alite.R;
 import de.phbouillon.android.games.alite.ScreenCodes;
+import de.phbouillon.android.games.alite.model.PlayerCobra;
 import de.phbouillon.android.games.alite.screens.canvas.BuyScreen;
 import de.phbouillon.android.games.alite.screens.canvas.GalaxyScreen;
 import de.phbouillon.android.games.alite.screens.canvas.LocalScreen;
@@ -41,10 +41,9 @@ public class TutIntroduction extends TutorialScreen {
 	private BuyScreen buy;
 	private GalaxyScreen galaxy;
 	private int screenToInitialize = 0;
-	private Pixmap quelo;
 
 	public TutIntroduction() {
-		super(false);
+		super(1, false);
 
 		initLine_00();
 		initLine_01();
@@ -71,69 +70,89 @@ public class TutIntroduction extends TutorialScreen {
 	}
 
 	private void initLine_00() {
-		addLine(1, L.string(R.string.tutorial_introduction_00))
-			.setPostPresentMethod(deltaTime -> game.getGraphics().drawPixmap(quelo, 642, 200));
+		addLine(L.string(R.string.tutorial_introduction_00))
+			.setPostPresentMethod(deltaTime -> game.getGraphics().drawPixmap(pics.get("quelo"), 642, 200));
 
 		status = new StatusScreen();
 	}
 
 	private void initLine_01() {
-		addLine(1, L.string(R.string.tutorial_introduction_01));
+		addLine(L.string(R.string.tutorial_introduction_01));
 	}
 
 	private void initLine_02() {
-		addLine(1, L.string(R.string.tutorial_introduction_02))
+		addLine(L.string(R.string.tutorial_introduction_02))
 			.addHighlight(makeHighlight(30, 120, 750, 90));
 	}
 
 	private void initLine_03() {
-		addLine(1, L.string(R.string.tutorial_introduction_03))
-			.addHighlight(makeHighlight(30, 190, 750, 50));
+		addLine(L.string(R.string.tutorial_introduction_03))
+			.addHighlight(makeHighlight(30, 200, 750, 50));
 	}
 
 	private void initLine_04() {
-		addLine(1, L.string(R.string.tutorial_introduction_04))
-			.addHighlight(makeHighlight(30, 230, 750, 50));
+		addLine(L.string(R.string.tutorial_introduction_04))
+			.addHighlight(makeHighlight(30, 245, 750, 50));
 	}
 
 	private void initLine_05() {
-		addLine(1, L.string(R.string.tutorial_introduction_05))
-			.setY(700).setHeight(350).addHighlight(makeHighlight(30, 270, 850, 50));
+		addLine(L.string(R.string.tutorial_introduction_05))
+			.setY(700).setHeight(350).addHighlight(makeHighlight(30, 290, 850, 50));
 	}
 
 	private void initLine_06() {
-		addLine(1, L.string(R.string.tutorial_introduction_06))
-			.addHighlight(makeHighlight(30, 310, 750, 50));
+		addLine(L.string(R.string.tutorial_introduction_06))
+			.addHighlight(makeHighlight(30, 335, 750, 50));
 	}
 
 	private void initLine_07() {
-		addLine(1, L.string(R.string.tutorial_introduction_07))
-			.addHighlight(makeHighlight(30, 350, 750, 50));
+		addLine(L.string(R.string.tutorial_introduction_07))
+			.addHighlight(makeHighlight(30, 380, 750, 50));
 	}
 
 	private void initLine_08() {
-		addLine(1, L.string(R.string.tutorial_introduction_08))
-			.setY(750).addHighlight(makeHighlight(970, 350, 300, 50))
-			.addHighlight(makeHighlight(1330, 540, 300, 50));
+		TutorialLine line = addLine(L.string(R.string.tutorial_introduction_08)).setY(750);
+		if (game.getCobra().getLaser(PlayerCobra.DIR_FRONT) != null) {
+			line.addHighlight(makeHighlight(970, 350, 300, 50));
+		}
+		if (game.getCobra().getLaser(PlayerCobra.DIR_RIGHT) != null) {
+			line.addHighlight(makeHighlight(1340, 790, 300, 50));
+		}
+		if (game.getCobra().getLaser(PlayerCobra.DIR_REAR) != null) {
+			line.addHighlight(makeHighlight(470, 990, 300, 50));
+		}
+		if (game.getCobra().getLaser(PlayerCobra.DIR_LEFT) != null) {
+			line.addHighlight(makeHighlight(90, 790, 300, 50));
+		}
+		int count = game.getCobra().getInstalledEquipment().size();
+		int bottom = 570;
+		if (game.getCobra().getMissiles() > 0) {
+			count++;
+			bottom -= 30;
+		}
+		if (count > 0) {
+			count--;
+			line.addHighlight(makeHighlight(1330, bottom - 30 * count, 370, 50 + 30 * count));
+		}
 	}
 
 	private void initLine_09() {
-		final TutorialLine line = addLine(1, L.string(R.string.tutorial_introduction_09));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_introduction_09));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			updateNavBar();
 			if (game.getNavigationBar().isAtBottom()) {
-				line.setFinished();
+				setFinished(line);
 			}
 		}).addHighlight(makeHighlight(1740, 20, 160, 1040));
 	}
 
 	private void initLine_10() {
-		addLine(1, L.string(R.string.tutorial_introduction_10));
+		addLine(L.string(R.string.tutorial_introduction_10));
 	}
 
 	private void initLine_11() {
-		final TutorialLine line = addLine(1, L.string(R.string.tutorial_introduction_11));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_introduction_11));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			if (updateNavBar() instanceof BuyScreen) {
@@ -143,13 +162,13 @@ public class TutIntroduction extends TutorialScreen {
 				buy = new BuyScreen();
 				buy.loadAssets();
 				buy.activate();
-				line.setFinished();
+				setFinished(line);
 			}
 		});
 	}
 
 	private void initLine_12() {
-		final TutorialLine line = addLine(1, L.string(R.string.tutorial_introduction_12));
+		final TutorialLine line = addLine(L.string(R.string.tutorial_introduction_12));
 
 		line.setUnskippable().setUpdateMethod(deltaTime -> {
 			Screen result = updateNavBar();
@@ -160,17 +179,17 @@ public class TutIntroduction extends TutorialScreen {
 				galaxy = new GalaxyScreen();
 				galaxy.loadAssets();
 				galaxy.activate();
-				line.setFinished();
+				setFinished(line);
 			}
 		});
 	}
 
 	private void initLine_13() {
-		addLine(1, L.string(R.string.tutorial_introduction_13));
+		addLine(L.string(R.string.tutorial_introduction_13));
 	}
 
 	private void initLine_14() {
-		addLine(1, L.string(R.string.tutorial_introduction_14)).setPause(5000);
+		addLine(L.string(R.string.tutorial_introduction_14)).setPause(5000);
 	}
 
 	@Override
@@ -211,10 +230,7 @@ public class TutIntroduction extends TutorialScreen {
 	public void loadAssets() {
 		super.loadAssets();
 		status.loadAssets();
-		if (quelo != null) {
-			quelo.dispose();
-		}
-		quelo = game.getGraphics().newPixmap("quelo.png");
+		addPictures("quelo");
 	}
 
 	@Override
@@ -244,10 +260,6 @@ public class TutIntroduction extends TutorialScreen {
 			galaxy = null;
 		}
 		super.dispose();
-		if (quelo != null) {
-			quelo.dispose();
-			quelo = null;
-		}
 	}
 
 	@Override

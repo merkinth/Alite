@@ -29,6 +29,7 @@ import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Rect;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
+import de.phbouillon.android.framework.SpriteData;
 
 public class Sprite implements Serializable {
 	private static final long serialVersionUID = -8424677289585617300L;
@@ -36,8 +37,8 @@ public class Sprite implements Serializable {
 	private transient FloatBuffer vertexBuffer;
 	private transient FloatBuffer texCoordBuffer;
 
-	private Rect position;
-	private Rect textureCoords;
+	private final Rect position;
+	private final Rect textureCoords;
 	private final String textureFilename;
 
 	public Sprite(float left, float top, float right, float bottom, float tLeft, float tTop, float tRight,
@@ -62,6 +63,16 @@ public class Sprite implements Serializable {
 
 		this.textureFilename = textureFilename;
 		Alite.get().getTextureManager().addTexture(textureFilename);
+	}
+
+	public Sprite(int left, int top, SpriteData spriteData, String textureFilename) {
+		this(left, top, left + spriteData.origWidth, top + spriteData.origHeight,
+			spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, textureFilename);
+	}
+
+	public Sprite(int left, int top, int width, int height, SpriteData spriteData, String textureFilename) {
+		this(left, top, left + width - 1, top + height - 1,
+			spriteData.x, spriteData.y, spriteData.x2, spriteData.y2, textureFilename);
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException {
@@ -99,6 +110,10 @@ public class Sprite implements Serializable {
 		texCoordBuffer.put(tRight);
 		texCoordBuffer.put(tBottom);
 		texCoordBuffer.position(0);
+	}
+
+	public void setTextureCoords(SpriteData spriteData) {
+		setTextureCoords(spriteData.x, spriteData.y, spriteData.x2, spriteData.y2);
 	}
 
 	public void setPosition(Rect rect) {

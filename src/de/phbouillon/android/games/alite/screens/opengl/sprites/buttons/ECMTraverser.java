@@ -18,8 +18,10 @@ package de.phbouillon.android.games.alite.screens.opengl.sprites.buttons;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.Assets;
 import de.phbouillon.android.games.alite.SoundManager;
+import de.phbouillon.android.games.alite.model.EquipmentStore;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.SpaceObjectTraverser;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
@@ -50,6 +52,7 @@ public class ECMTraverser implements SpaceObjectTraverser {
 			}
 			so.setHullStrength(0);
 			inGame.getLaserManager().explode(so);
+			Alite.get().getPlayer().increaseKillCount(so, EquipmentStore.ECM_SYSTEM, false);
 			inGame.reduceShipEnergy(3);
 		}
 		return false;
