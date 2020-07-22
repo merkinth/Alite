@@ -29,6 +29,7 @@
 		);
 		model = "cobra_mk_iii.dat";
 		roles = "Trader Defender";
+		ai_type = "traderAI.plist";
 	};
 
 	"cobra_mk_iii_enemy" = {
@@ -36,6 +37,7 @@
 		max_energy = 140.0;
 		forward_weapon_type = "WEAPON_MILITARY_LASER";
 		roles = "Pirate(0.01)";
+		ai_type = "pirateAI.plist";
 	};
 
 	"krait" = {
@@ -64,6 +66,7 @@
 		);
 		model = "krait.dat";
 		roles = "Pirate Defender";
+		ai_type = "pirateAI.plist";
 	};
 
 	"thargoid" = {
@@ -89,6 +92,7 @@
 		);
 		model = "thargoid.dat";
 		roles = "Thargoid";
+		ai_type = "thargoidAI.plist";
 	};
 
 	"thargoid_a" = {
@@ -113,6 +117,7 @@
 		laser_color ="#7F00FFAA"; // dark cyan
 		model = "thargon.dat";
 		roles = "Thargon";
+		ai_type = "thargletAI.plist";
 	};
 
 	"thargon_a" = {
@@ -144,6 +149,7 @@
 		);
 		model = "boaclasscruiser.dat";
 		roles = "Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"gecko" = {
@@ -170,6 +176,7 @@
 		);
 		model = "gecko.dat";
 		roles = "Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"moray_star_boat" = {
@@ -192,6 +199,7 @@
 		);
 		model = "moraystarboat.dat";
 		roles = "Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"adder" = {
@@ -221,6 +229,7 @@
 		);
 		model = "adder.dat";
 		roles = "Defender Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"mamba" = {
@@ -250,6 +259,7 @@
 		);
 		model = "mamba.dat";
 		roles = "Defender Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"viper" = {
@@ -275,6 +285,7 @@
 		);
 		model = "viper.dat";
 		roles = "Police";
+		ai_type = "policeInterceptAI.plist";
 	};
 
 	"fer_de_lance" = {
@@ -298,6 +309,7 @@
 			"0.94 0.73 0.23 0.7"
 		);
 		model = "ferdelance.dat";
+		ai_type = "traderAI.plist";
 		roles = "Trader Defender";
 	};
 
@@ -334,6 +346,7 @@
 		);
 		model = "cobramki.dat";
 		roles = "Trader Defender";
+		ai_type = "traderAI.plist";
 	};
 
 	"cobra_mk_i_enemy" = {
@@ -341,6 +354,7 @@
 		max_energy = 140.0;
 		bounty = 40;
 		roles = "Pirate(0.02)";
+		ai_type = "pirateAI.plist";
 	};
 
 	"python" = {
@@ -363,6 +377,7 @@
 			"0.0 0.0 0.0 31 19 44.0"
 		);
 		model = "python.dat";
+		ai_type = "traderAI.plist";
 		roles = "Trader Defender";
 	};
 
@@ -397,6 +412,7 @@
 		);
 		model = "anaconda.dat";
 		roles = "Trader";
+		ai_type = "traderAI.plist";
 	};
 
 	"rolfs_cobra" = {
@@ -420,6 +436,7 @@
 		);
 		model = "rolfscobra.dat";
 		roles = "Trader";
+		ai_type = "traderAI.plist";
 	};
 
 	"asp_mk_ii" = {
@@ -446,6 +463,7 @@
 		);
 		model = "aspmkii.dat";
 		roles = "Pirate Defender";
+		ai_type = "pirateAI.plist";
 	};
 
 	"sidewinder" = {
@@ -471,6 +489,7 @@
 		);
 		model = "sidewinder.dat";
 		roles = "Pirate Defender";
+		ai_type = "pirateAI.plist";
 	};
 
 	"wolf_mk_ii" = {
@@ -497,6 +516,7 @@
 		);
 		model = "wolfmkii.dat";
 		roles = "Pirate Defender";
+		ai_type = "pirateAI.plist";
 	};
 
 	"orbit_shuttle" = {
@@ -523,6 +543,7 @@
 		);
 		model = "orbitshuttle.dat";
 		roles = "Shuttle";
+		ai_type = "shuttleAI.plist";
 	};
 
 	"transporter" = {
@@ -539,6 +560,7 @@
 		);
 		model = "transporter.dat";
 		roles = "Shuttle";
+		ai_type = "shuttleAI.plist";
 	};
 
 	"missile" = {
@@ -554,6 +576,7 @@
 		);
 		model = "missile.dat";
 		roles = "Missile";
+		ai_type = "missileAI.plist";
 	};
 
 	"escape_capsule" = {
@@ -577,6 +600,7 @@
 		);
 		model = "escapecapsule.dat";
 		roles = "EscapeCapsule";
+		ai_type = "shuttleAI.plist";
 	};
 
 	"cargo_canister" = {
@@ -591,6 +615,7 @@
 		proximity_warning = 0;
 		model = "cargo_canister.dat";
 		roles = "CargoPod";
+		ai_type = "dumbAI.plist";
 	};
 
 	"platlet" = {
@@ -605,6 +630,7 @@
 		proximity_warning = 0;
 		model = "platlet.dat";
 		roles = "Alloy";
+		ai_type = "dumbAI.plist";
 	};
 
 	"asteroid1" = {
@@ -620,6 +646,7 @@
 		proximity_warning = 0;
 		model = "asteroid1.dat";
 		roles = "Asteroid";
+		ai_type = "dumbAI.plist";
 	};
 
 	"asteroid2" = {
@@ -635,6 +662,7 @@
 		proximity_warning = 0;
 		model = "asteroid2.dat";
 		roles = "Asteroid";
+		ai_type = "dumbAI.plist";
 	};
 
 	"harken" = {
@@ -661,6 +689,7 @@
 		);
 		model = "harken.dat";
 		roles = "Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"constrictor" = {
@@ -688,6 +717,7 @@
 		);
 		model = "constrictor.dat";
 		roles = "Constrictor";
+		ai_type = "constrictorAI.plist";
 	};
 
 	"cottonmouth" = {
@@ -713,6 +743,7 @@
 		);
 		model = "cottonmouth.dat";
 		roles = "Pirate Defender";
+		ai_type = "pirateAI.plist";
 	};
 
 	"cougarwing" = {
@@ -763,6 +794,7 @@
 		);
 		model = "cougar.dat";
 		roles = "Cougar";
+		ai_type = "pirateAI.plist";
 	};
 
 	"hognose" = {
@@ -787,6 +819,7 @@
 		);
 		model = "hognose.dat";
 		roles = "Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"lancehead" = {
@@ -813,6 +846,7 @@
 		);
 		model = "lancehead.dat";
 		roles = "Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"gopher" = {
@@ -845,6 +879,7 @@
 		);
 		model = "gopher.dat";
 		roles = "Pirate Defender";
+		ai_type = "pirateAI.plist";
 	};
 
 	"coral" = {
@@ -876,6 +911,7 @@
 		);
 		model = "coral.dat";
 		roles = "Pirate Defender";
+		ai_type = "pirateAI.plist";
 	};
 
 	"bushmaster" = {
@@ -906,6 +942,7 @@
 		);
 		model = "bushmaster.dat";
 		roles = "Pirate Defender";
+		ai_type = "pirateAI.plist";
 	};
 
 	"rattlesnake" = {
@@ -942,6 +979,7 @@
 		);
 		model = "rattlesnake.dat";
 		roles = "Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"mussurana" = {
@@ -967,6 +1005,7 @@
 		);
 		model = "mussurana.dat";
 		roles = "Pirate Defender";
+		ai_type = "pirateAI.plist";
 	};
 
 	"dugite" = {
@@ -995,6 +1034,7 @@
 		);
 		model = "dugite.dat";
 		roles = "Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"yellowbelly" = {
@@ -1020,6 +1060,7 @@
 		);
 		model = "yellowbelly.dat";
 		roles = "Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"indigo" = {
@@ -1045,6 +1086,7 @@
 		);
 		model = "indigo.dat";
 		roles = "Pirate Defender";
+		ai_type = "pirateAI.plist";
 	};
 
 	"harlequin" = {
@@ -1078,6 +1120,7 @@
 		);
 		model = "harlequin.dat";
 		roles = "Pirate";
+		ai_type = "pirateAI.plist";
 	};
 
 	"tie_fighter" = {
@@ -1106,6 +1149,7 @@
 		);
 		model = "tiefighter.dat";
 		roles = "TieFighter";
+		ai_type = "pirateAI.plist";
 	};
 
 	"lyre" = {
@@ -1136,6 +1180,7 @@
 		);
 		model = "lyre.dat";
 		roles = "Pirate Defender";
+		ai_type = "pirateAI.plist";
 	};
 
 	"buoy" = {
@@ -1149,6 +1194,7 @@
 		missiles = 0;
 		model = "buoy.dat";
 		roles = "Buoy";
+		ai_type = "buoyAI.plist";
 	};
 
 	"coriolis_dock" = {
@@ -1172,6 +1218,7 @@
 		model_scale_factor = 6.0;
 		model = "coriolis.dat";
 		roles = "Coriolis";
+		ai_type = "stationAI.plist";
 		subentities = (
 			{
 				subentity_key = "coriolis_dock";
@@ -1203,6 +1250,7 @@
 		model_scale_factor = 3.84;
 		model = "icosaeder.dat";
 		roles = "Icosahedron";
+		ai_type = "stationAI.plist";
 		subentities = (
 			{
 				subentity_key = "icosaeder_dock";
@@ -1235,6 +1283,7 @@
 		model_scale_factor = 4.897959;
 		model = "dodec.dat";
 		roles = "Dodecahedron";
+		ai_type = "stationAI.plist";
 		subentities = (
 			{
 				subentity_key = "dodec_dock";

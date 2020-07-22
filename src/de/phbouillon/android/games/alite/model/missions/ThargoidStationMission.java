@@ -60,7 +60,7 @@ public class ThargoidStationMission extends Mission implements Serializable {
 							thargoid.setUpdater(null);
 							thargoid.setInBay(false);
 							thargoid.setIgnoreSafeZone();
-							thargoid.setAIState(SpaceObjectAI.AI_STATE_ATTACK, spawnManager.getInGameManager().getShip());
+							thargoid.setAIState(SpaceObjectAI.AI_STATE_ATTACK);
 						}
 					});
 				}

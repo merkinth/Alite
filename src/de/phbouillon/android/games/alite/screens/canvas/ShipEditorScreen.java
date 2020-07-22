@@ -100,7 +100,7 @@ public class ShipEditorScreen extends AliteScreen {
 		exhausts.add(new EngineExhaust(13.0f, 13.0f, 300.0f, -50.0f, 0, 0));
 		exhausts.add(new EngineExhaust(13.0f, 13.0f, 300.0f,  50.0f, 0, 0));
 		currentShip.setPosition(0, 0, -700.0f);
-		currentShip.setAIState(SpaceObjectAI.AI_STATE_GLOBAL, (Object[]) null);
+		currentShip.setAIState(SpaceObjectAI.AI_STATE_GLOBAL);
 		currentShip.setSpeed(-currentShip.getMaxSpeed());
 	}
 

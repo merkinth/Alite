@@ -342,7 +342,7 @@ class InGameHelper implements Serializable {
 				Alite.get().getPlayer().computeLegalStatusAtLaunchMissile();
 			}
 		}
-		missile.setAIState(SpaceObjectAI.AI_STATE_MISSILE_TRACK, target);
+		missile.setAIState(SpaceObjectAI.AI_STATE_MISSILE_TRACK);
 		inGame.addObject(missile);
 		return missile;
 	}

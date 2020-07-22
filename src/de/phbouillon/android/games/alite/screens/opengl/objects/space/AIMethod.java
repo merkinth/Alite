@@ -2,7 +2,7 @@ package de.phbouillon.android.games.alite.screens.opengl.objects.space;
 
 /* Alite - Discover the Universe on your Favorite Android Device
  * Copyright (C) 2015 Philipp Bouillon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License, or
@@ -18,15 +18,20 @@ package de.phbouillon.android.games.alite.screens.opengl.objects.space;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
-public enum AIState {
-	IDLE,
-	FLY_STRAIGHT,
-	FLY_PATH,
-	BANK,
-	EVADE,
-	TRACK,
-	MISSILE_TRACK,
-	ATTACK,
-	FLEE,
-	FOLLOW_CURVE
+public class AIMethod {
+	private final String name;
+	private final String parameter;
+
+	public AIMethod(String name, String parameter) {
+		this.name = name;
+		this.parameter = parameter;
+	}
+
+	String getName() {
+		return name;
+	}
+
+	String getParameter() {
+		return parameter;
+	}
 }

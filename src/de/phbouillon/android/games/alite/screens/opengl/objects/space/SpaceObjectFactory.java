@@ -29,7 +29,7 @@ public class SpaceObjectFactory {
 	private final List<SpaceObject> objects = new ArrayList<>();
 	private final Set<String> demoObjectId = new HashSet<>();
 	//         AI file     States      Messages     Methods
-	private Map<String, Map<String, Map<String, List<AIMethod>>>> AIs = new HashMap<>();
+	private final Map<String, Map<String, Map<String, List<AIMethod>>>> AIs = new HashMap<>();
 
 	public static SpaceObjectFactory getInstance() {
 		if (instance == null) {
@@ -189,4 +189,11 @@ public class SpaceObjectFactory {
 		return state.get(messageName);
 	}
 
+	public boolean isAIType(String aiName) {
+		return AIs.get(aiName) != null;
+	}
+
+	public boolean isAIState(String aiName, String stateName) {
+		return AIs.get(aiName).get(stateName) != null;
+	}
 }

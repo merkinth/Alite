@@ -721,21 +721,22 @@ public class OXPParser {
 			return;
 		}
 		for (String fileName : fileNameList) {
-			if (SpaceObjectFactory.getInstance().existsAI(fileName)) {
+			if (SpaceObjectFactory.getInstance().existsAI(fileName) || !fileName.endsWith(".plist")) {
 				continue;
 			}
 			NSDictionary ai = parser.parseFile(DIRECTORY_AIS + File.separatorChar + fileName);
-			for (String state : ai.keySet()) {
-				NSDictionary messages = (NSDictionary) ai.get(state);
-				for (String message : messages.keySet()) {
+			for (Map.Entry<String, NSObject> state : ai.entrySet()) {
+				NSDictionary messages = (NSDictionary) state.getValue();
+				for (Map.Entry<String, NSObject> message : messages.entrySet()) {
 					List<AIMethod> aiMethods = new ArrayList<>();
-					for (NSObject method : ((NSArray) messages.get(message)).getArray()) {
+					for (NSObject method : ((NSArray) message.getValue()).getArray()) {
 						String methodWithParam = ((NSString) method).getContent();
 						int p = methodWithParam.indexOf(": ");
-						aiMethods.add(new AIMethod(p < 0 ? methodWithParam : methodWithParam.substring(0, p),
-							p < 0 ? null : methodWithParam.substring(p + 2)));
+						aiMethods.add(p < 0 ? new AIMethod(methodWithParam, null) :
+							new AIMethod(methodWithParam.substring(0, p), methodWithParam.substring(p + 2)));
 					}
-					SpaceObjectFactory.getInstance().addMethodsOfStateOfAI(fileName, state, message, aiMethods);
+					SpaceObjectFactory.getInstance().addMethodsOfStateOfAI(fileName, state.getKey(),
+						message.getKey(), aiMethods);
 				}
 			}
 		}

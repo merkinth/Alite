@@ -401,7 +401,7 @@ public class ObjectSpawnManager implements Serializable {
 		ship.orientTowards(inGame.getShip(), 0);
 		inGame.addObject(ship);
 		ship.assertOrthoNormal();
-		ship.setAIState(AIState.ATTACK, inGame.getShip());
+		ship.setAIState(SpaceObjectAI.AI_STATE_ATTACK);
 		if (index < 12) {
 			vector.x = spawnPosition.x + spawnMatrix[index * 2] * SPAWN_INTER_SHIP_DISTANCE;
 			vector.y = spawnPosition.y + spawnMatrix[index * 2 + 1] * SPAWN_INTER_SHIP_DISTANCE;
@@ -676,7 +676,8 @@ public class ObjectSpawnManager implements Serializable {
 							}
 						}
 					});
-					so.setAIState(AIState.FLY_STRAIGHT, ship.getMaxSpeed());
+					so.adjustSpeed(-so.getMaxSpeed());
+					so.setAIState(SpaceObjectAI.AI_STATE_FLY_STRAIGHT);
 				}
 			});
 			return;
@@ -722,7 +723,7 @@ public class ObjectSpawnManager implements Serializable {
 		inGame.getStation().getForwardVector().copy(vector);
 		vector.scale(1000);
 		vector.add(inGame.getStation().getPosition());
-		so.setAIState(AIState.FLY_PATH, WayPoint.newWayPoint(vector, so.getUpVector()));
+		so.setWaypoint(WayPoint.newWayPoint(vector, so.getUpVector()));
 		so.setUpdater(new IMethodHook() {
 			private static final long serialVersionUID = 9195512054255867095L;
 
@@ -825,7 +826,7 @@ public class ObjectSpawnManager implements Serializable {
 			public void execute(SpaceObject so) {
 				shuttle.setUpdater(null);
 				shuttle.setInBay(false);
-				shuttle.setAIState(AIState.FLY_PATH, WayPoint.newWayPoint(FlightScreen.PLANET_POSITION, shuttle.getUpVector()));
+				shuttle.setWaypoint(WayPoint.newWayPoint(FlightScreen.PLANET_POSITION, shuttle.getUpVector()));
 				shuttle.setUpdater(new IMethodHook() {
 					private static final long serialVersionUID = 2702506138360802890L;
 
@@ -904,7 +905,7 @@ public class ObjectSpawnManager implements Serializable {
 			public void execute(SpaceObject so) {
 				viper.setUpdater(null);
 				viper.setInBay(false);
-				viper.setAIState(AIState.ATTACK, inGame.getShip());
+				viper.setAIState(SpaceObjectAI.AI_STATE_ATTACK);
 			}
 		});
 	}
@@ -953,7 +954,8 @@ public class ObjectSpawnManager implements Serializable {
 				public void execute(float deltaTime) {
 					for (SpaceObject drone: mother.getActiveDrones()) {
 						if (drone.getHullStrength() > 0) {
-							drone.setAIState(AIState.FLY_STRAIGHT, -drone.getSpeed());
+							drone.adjustSpeed(drone.getSpeed());
+							drone.setAIState(SpaceObjectAI.AI_STATE_FLY_STRAIGHT);
 						}
 					}
 				}

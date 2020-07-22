@@ -167,7 +167,7 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 		dcaUpdater.orientationFound = false;
 		inGame.getShip().setProximity(null);
 		inGame.getShip().clearAiStateCallbackHandler(AiStateCallback.EndOfWaypointsReached);
-		inGame.getShip().setAIState(AIState.IDLE, (Object[]) null);
+		inGame.getShip().setAIState(SpaceObjectAI.AI_STATE_GLOBAL);
 		inGame.getShip().setUpdater(null);
 		inGame.setNeedsSpeedAdjustment(true);
 		inGame.getShip().adjustSpeed(0);
@@ -206,9 +206,9 @@ final class DockingComputerAI implements AiStateCallbackHandler, Serializable {
 
 		// Step 2: Fly towards the computed point - evading anything that
 		//         might be in the way (the station for example)
-		WayPoint[] wps = new WayPoint[] {WayPoint.newWayPoint(v1, station.getUpVector())};
-		wps[0].orientFirst = true;
-		ship.setAIState(AIState.FLY_PATH, (Object[]) wps);
+		WayPoint wps = WayPoint.newWayPoint(v1, station.getUpVector());
+		wps.orientFirst = true;
+		ship.setWaypoint(wps);
 		ship.registerAiStateCallbackHandler(AiStateCallback.EndOfWaypointsReached, this);
 	}
 

@@ -223,7 +223,7 @@ public class ShipIntroScreen extends AliteScreen {
 		MathHelper.getRandomRotationAngles(targetDelta);
 		timer.reset();
 		displayMode = DisplayMode.DANCE;
-		currentShip.setAIState(SpaceObjectAI.AI_STATE_GLOBAL, (Object[]) null);
+		currentShip.setAIState(SpaceObjectAI.AI_STATE_GLOBAL);
 		currentShip.setSpeed(-currentShip.getMaxSpeed());
 		yesButton = Button.createGradientPictureButton(1000, 950, 110, 110, Assets.yesIcon)
 			.setVisible(showLoadNewCommander);
@@ -312,7 +312,7 @@ public class ShipIntroScreen extends AliteScreen {
 	private SpaceObject getNextShip() {
 		SpaceObject ao = SpaceObjectFactory.getInstance().getNextObject(currentShip, selectionDirection, DEBUG_EXHAUST);
 		selectionDirection = 1;
-		ao.setAIState(SpaceObjectAI.AI_STATE_GLOBAL, (Object[]) null);
+		ao.setAIState(SpaceObjectAI.AI_STATE_GLOBAL);
 		ao.setSpeed(-ao.getMaxSpeed());
 		return ao;
 	}

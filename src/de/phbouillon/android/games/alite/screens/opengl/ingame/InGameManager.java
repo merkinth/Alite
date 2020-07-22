@@ -622,10 +622,7 @@ public class InGameManager implements Serializable {
 				continue;
 			}
 			if (ao instanceof SpaceObject) {
-				((SpaceObject) ao).update(deltaTime);
-				if (!SpaceObjectAI.AI_STATE_FOLLOW_CURVE.equals(((SpaceObject) ao).getAIState())) {
-					ao.moveForward(deltaTime);
-				}
+				((SpaceObject) ao).updateWithMovingForward(deltaTime);
 				if (((SpaceObject) ao).getType() == ObjectType.Missile) {
 					helper.handleMissileUpdate((SpaceObject)ao, deltaTime);
 					ao.getPosition().sub(ship.getPosition(), tempVector);

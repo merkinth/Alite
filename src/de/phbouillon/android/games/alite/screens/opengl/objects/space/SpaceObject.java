@@ -491,7 +491,7 @@ public class SpaceObject extends AliteObject implements Serializable {
 		if (dotSq > collisionSq) {
 			return;
 		}
-		if (SpaceObjectAI.AI_STATE_EVADE.equals(getAIState()) && proximity != null) {
+		if (SpaceObjectAI.AI_STATE_EVADE.equals(ai.getState()) && proximity != null) {
 			getPosition().sub(proximity.getPosition(), v0);
 			v0.normalize();
 			float angleProx = getForwardVector().angleInDegrees(v0);
@@ -830,6 +830,13 @@ public class SpaceObject extends AliteObject implements Serializable {
 		ai.orient(v1, v0, 0);
 	}
 
+	public void updateWithMovingForward(float deltaTime) {
+		update(deltaTime);
+		if (!SpaceObjectAI.AI_STATE_FOLLOW_CURVE.equals(ai.getState())) {
+			moveForward(deltaTime);
+		}
+	}
+
 	public void update(float deltaTime) {
 		if (escapePod > 0 && hullStrength < 2 && !hasEjected()) {
 			if (Math.random() < 0.1) {
@@ -867,6 +874,10 @@ public class SpaceObject extends AliteObject implements Serializable {
 		INCOMING_MISSILE		Sent to the target attacked by missile.
 		OFFENCE_COMMITTED		Station, buoy or police is attacked by the player
 		UPDATE					This message is sent to the current state each time the AI gets a chance to "think".
+		COLLISION				Both player and object are notified to the collision
+		RESTARTED				AI state machine become the top of the AI state machine stack
+		GONE_BEYOND_RANGE
+		DESIRED_RANGE_ACHIEVED
 	 */
 
 	/* Still unsent messages

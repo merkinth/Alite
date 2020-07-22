@@ -18,19 +18,24 @@ package de.phbouillon.android.games.alite.screens.opengl.objects.space;
  * http://http://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
+// d:\TOM\java\oolite-master\Resources\Config\autoAImap.plist
+// http://wiki.alioth.net/index.php/State_machine
+// http://wiki.alioth.net/index.php/OXP_howto_AI
+// http://wiki.alioth.net/index.php/Oolite_PriorityAI_Tutorial
+// d:\TOM\java\oolite-master\Resources\Scripts\oolite-priorityai.js
+
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 import android.opengl.Matrix;
 import de.phbouillon.android.framework.Timer;
-import de.phbouillon.android.framework.impl.gl.GraphicObject;
 import de.phbouillon.android.framework.math.Quaternion;
 import de.phbouillon.android.framework.math.Vector3f;
 import de.phbouillon.android.games.alite.Alite;
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.Settings;
+import de.phbouillon.android.games.alite.model.trading.TradeGoodStore;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.InGameManager;
 import de.phbouillon.android.games.alite.screens.opengl.ingame.ObjectType;
 import de.phbouillon.android.games.alite.screens.opengl.objects.space.curves.BreakDown;
@@ -40,11 +45,33 @@ import de.phbouillon.android.games.alite.screens.opengl.objects.space.curves.Cur
 public final class SpaceObjectAI implements Serializable {
 	private static final long serialVersionUID = 8646121427456794783L;
 
-	private static final float MISSILE_MIN_DIST_SQ                      = 36000000.0f;
+	public static final String AI_STATE_GLOBAL = "GLOBAL";
+	public static final String AI_STATE_ATTACK = "FIGHTING";
+	public static final String AI_STATE_FLEE = "FLEEING";
+	public static final String AI_STATE_LURKING = "LURKING";
+	public static final String AI_STATE_FLY_STRAIGHT = "FLY_STRAIGHT";
+	public static final String AI_STATE_FLY_PATH = "FLY_PATH";
+	public static final String AI_STATE_EVADE = "EVADE";
+	public static final String AI_STATE_TRACK = "TRACK";
+	public static final String AI_STATE_MISSILE_TRACK = "MISSILE_TRACK";
+	public static final String AI_STATE_FOLLOW_CURVE = "FOLLOW_CURVE";
+
 	private static final float FIRE_MISSILE_UPON_FIRST_HIT_PROBABILITY  = 5.0f;
 	private static final long  BASE_DELAY_BETWEEN_SHOOT_CHECKS          = 59880239L; // 16.7 FPS
 	private static final long  SHOOT_DELAY_REDUCE_PER_RATING_LEVEL      = 3318363L; // 1.6625 Delta FPS
-	                                                                                 // => ~30 FPS at Elite.
+
+	private static final Set<String> priorityMessages = new HashSet<>(Arrays.asList("ENTER", "EXIT", "UPDATE",
+		"LAUNCHED OKAY", "FRUSTRATED", "DESIRED_RANGE_ACHIEVED", "APPROACHING_SURFACE", "LEAVING_SURFACE",
+		"TARGET_LOST", "WITCHSPACE OKAY", "STATION_LAUNCHED_SHIP", "ECM", "PLAYER WITCHSPACE", "CLOSE CONTACT",
+		"POSITIVE X TRAVERSE", "NEGATIVE X TRAVERSE", "POSITIVE Y TRAVERSE", "NEGATIVE Y TRAVERSE",
+		"POSITIVE Z TRAVERSE", "NEGATIVE Z TRAVERSE", "ATTACKED", "ATTACKED_BY_CLOAKED", "NAVPOINT_REACHED",
+		"ENDPOINT_REACHED", "CASCADE_WEAPON_DETECTED", "ATTACKER_MISSED", "INCOMING_MISSILE", "COLLISION",
+		"ENERGY_LOW", "LANDED_ON_PLANET", "OFFENCE_COMMITTED", "FOUND_PILOT", "PILOT_ARRIVED", "GROUP_ATTACK_TARGET",
+		"HAZARD_CAN_BE_DESTROYED", "WITCHSPACE UNAVAILABLE", "WITCHSPACE BLOCKED", "ACCEPT_DISTRESS_CALL",
+		"DOCKING_REQUESTED", "GREEN_ALERT", "YELLOW_ALERT", "RED_ALERT", "ENTER WORMHOLE", "EXITED WITCHSPACE",
+		"PLAYER WITCHSPACE"));
+
+	// => ~30 FPS at Elite.
 	private final SpaceObject so;
 
 	private final Quaternion q1 = new Quaternion();
@@ -55,9 +82,9 @@ public final class SpaceObjectAI implements Serializable {
 	private final Vector3f   v2 = new Vector3f(0, 0, 0);
 	private final Vector3f   v3 = new Vector3f(0, 0, 0);
 
-	private Stack <AIState> currentState = new Stack<>();
-	private GraphicObject target = null;
-	private Vector3f evadePosition = new Vector3f(0, 0, 0);
+	private final Stack <String> currentState = new Stack<>();
+	private SpaceObject target = null;
+	private final Vector3f evadePosition = new Vector3f(0, 0, 0);
 	private float evadeRangeSq = 0;
 	private final List <WayPoint> waypoints = new ArrayList<>();
 	private float currentDistance = -1;
@@ -70,9 +97,15 @@ public final class SpaceObjectAI implements Serializable {
 	private final Timer curveFollowStart = new Timer();
 	private final Vector3f lastRotation = new Vector3f(0, 0, 0);
 
+//	private Timer updateTimer = new Timer().setAutoReset();
+//	private float pauseAI = 1f / 8; // sec;
+	private String stateName = AI_STATE_GLOBAL;
+	private String lastMessage;
+	private float timeSpent;
+
 	SpaceObjectAI(final SpaceObject so) {
 		this.so = so;
-		currentState.push(AIState.IDLE);
+		currentState.push(AI_STATE_GLOBAL);
 	}
 
 	void orientUsingRollPitchOnly(Vector3f targetPosition, float deltaTime) {
@@ -80,14 +113,14 @@ public final class SpaceObjectAI implements Serializable {
 		executeSteeringNoSpeedChange(targetPosition);
 	}
 
-	private float trackPosition(Vector3f targetPosition, Vector3f targetUp, float deltaTime) {
+	private float trackTargetPosition(float deltaTime) {
 		Quaternion.fromMatrix(so.getMatrix(), q1);
 		q1.normalize();
 
-		so.getPosition().sub(targetPosition, v0);
+		so.getPosition().sub(target.getPosition(), v0);
 		v0.normalize();
 
-		targetUp.cross(v0, v1);
+		target.getUpVector().cross(v0, v1);
 		v1.normalize();
 		v0.cross(v1, v2);
 		v2.normalize();
@@ -246,56 +279,35 @@ public final class SpaceObjectAI implements Serializable {
 	}
 
 	private float executeSteering(float desiredSpeed) {
-		so.applyDeltaRotation(flightPitch, 0, flightRoll);
-		if (so.isPlayer()) {
-			Alite.get().getCobra().setRotation(flightPitch, flightRoll);
-		}
-		so.getPosition().copy(v0);
-		if (target == null) {
-			AliteLog.dumpStack("Execute Steering", "No target set. But why?");
-			AliteLog.e("Target is not set in executeSteering", "No target in execute steering for object " + so.getId() + ".");
-			return 90; // To make sure this doesn't fire randomly...
-		}
-		v0.sub(target.getPosition());
-		v0.normalize();
-		float angle = so.getForwardVector().angleInDegrees(v0);
-		if (desiredSpeed > so.getMaxSpeed()) {
-			so.adjustSpeed(-so.getMaxSpeed());
-		} else if (desiredSpeed < 0) {
-			calculateTrackingSpeed(angle);
-		} else {
-			so.adjustSpeed(-desiredSpeed);
+		return executeSteering(desiredSpeed, target == null ? null : target.getPosition());
+	}
+
+	private float executeSteering(float desiredSpeed, Vector3f targetPosition) {
+		float angle = executeSteeringNoSpeedChange(targetPosition);
+		if (targetPosition != null) {
+			if (desiredSpeed > so.getMaxSpeed()) {
+				so.adjustSpeed(-so.getMaxSpeed());
+			} else if (desiredSpeed < 0) {
+				calculateTrackingSpeed(angle);
+			} else {
+				so.adjustSpeed(-desiredSpeed);
+			}
 		}
 		return angle;
 	}
 
-	private void executeSteeringNoSpeedChange(Vector3f targetPosition) {
+	private float executeSteeringNoSpeedChange(Vector3f targetPosition) {
 		so.applyDeltaRotation(flightPitch, 0, flightRoll);
 		if (so.isPlayer()) {
 			Alite.get().getCobra().setRotation(flightPitch, flightRoll);
+		}
+		if (targetPosition == null) {
+			return 90; // To make sure this doesn't fire randomly...
 		}
 		so.getPosition().copy(v0);
 		v0.sub(targetPosition);
 		v0.normalize();
-		so.getForwardVector().angleInDegrees(v0);
-	}
-
-	private void executeSteering(float desiredSpeed, Vector3f position) {
-		so.applyDeltaRotation(flightPitch, 0, flightRoll);
-		if (so.isPlayer()) {
-			Alite.get().getCobra().setRotation(flightPitch, flightRoll);
-		}
-		so.getPosition().copy(v0);
-		v0.sub(position);
-		v0.normalize();
-		float angle = so.getForwardVector().angleInDegrees(v0);
-		if (desiredSpeed > so.getMaxSpeed()) {
-			so.adjustSpeed(-so.getMaxSpeed());
-		} else if (desiredSpeed < 0) {
-			calculateTrackingSpeed(angle);
-		} else {
-			so.adjustSpeed(-desiredSpeed);
-		}
+		return so.getForwardVector().angleInDegrees(v0);
 	}
 
 	private float clamp(float val, float min, float max) {
@@ -345,19 +357,7 @@ public final class SpaceObjectAI implements Serializable {
 
 	private void calculateTrackingSpeed(float angle) {
 		if (so.getType() == ObjectType.Missile) {
-			if (angle > 50) {
-				so.setSpeed(-so.getMaxSpeed() * 0.3f);
-			} else if (angle > 40) {
-				so.setSpeed(-so.getMaxSpeed() * 0.4f);
-			} else if (angle > 30) {
-				so.setSpeed(-so.getMaxSpeed() * 0.5f);
-			} else if (angle > 20) {
-				so.setSpeed(-so.getMaxSpeed() * 0.6f);
-			} else if (angle > 10) {
-				so.setSpeed(-so.getMaxSpeed() * 0.7f);
-			} else {
-				so.setSpeed(-so.getMaxSpeed());
-			}
+			calculateMissileSpeed(angle);
 			return;
 		}
 		if (angle > 50) {
@@ -375,18 +375,34 @@ public final class SpaceObjectAI implements Serializable {
 		}
 	}
 
+	private void calculateMissileSpeed(float angle) {
+		if (angle > 50) {
+			so.setSpeed(-so.getMaxSpeed() * 0.3f);
+		} else if (angle > 40) {
+			so.setSpeed(-so.getMaxSpeed() * 0.4f);
+		} else if (angle > 30) {
+			so.setSpeed(-so.getMaxSpeed() * 0.5f);
+		} else if (angle > 20) {
+			so.setSpeed(-so.getMaxSpeed() * 0.6f);
+		} else if (angle > 10) {
+			so.setSpeed(-so.getMaxSpeed() * 0.7f);
+		} else {
+			so.setSpeed(-so.getMaxSpeed());
+		}
+	}
+
 	private void avoidCollision() {
 		SpaceObject proximity = so.getProximity();
 		if (proximity != null && !so.isInBay()) {
-			pushState(AIState.EVADE, proximity);
+			pushState(AI_STATE_EVADE);
 		}
 	}
 
 	private void attackObject(float deltaTime) {
-		if (target instanceof SpaceObject && ((SpaceObject) target).isPlayer()) {
+		if (target.isPlayer()) {
 			if (InGameManager.playerInSafeZone && so.getType() != ObjectType.Police && !so.isIgnoreSafeZone()) {
 				waitForSafeZoneExit = true;
-				pushState(AIState.FLEE, target);
+				pushState(AI_STATE_FLEE);
 				return;
 			}
 		}
@@ -397,7 +413,7 @@ public final class SpaceObjectAI implements Serializable {
 		if (angle >= 10 || distanceSq >= so.getShootRangeSq() || so.hasEjected()) {
 			return;
 		}
-		if (target instanceof SpaceObject && ((SpaceObject) target).isCloaked()) {
+		if (target.isCloaked()) {
 			return;
 		}
 		int rating = Alite.get().getPlayer().getRating().ordinal();
@@ -411,7 +427,7 @@ public final class SpaceObjectAI implements Serializable {
 	}
 
 	private void fleeObject(float deltaTime) {
-		if (target instanceof SpaceObject && ((SpaceObject) target).isPlayer()) {
+		if (target.isPlayer()) {
 			if (!InGameManager.playerInSafeZone && waitForSafeZoneExit) {
 				popState();
 				waitForSafeZoneExit = false;
@@ -423,15 +439,11 @@ public final class SpaceObjectAI implements Serializable {
 		executeSteering(so.getMaxSpeed());
 	}
 
-	private void flyStraight() {
-		avoidCollision();
-	}
-
 	private void flyPath(float deltaTime) {
 		if (waypoints.isEmpty()) {
 			popState();
 			if (currentState.isEmpty()) {
-				setState(AIState.IDLE, (Object[]) null);
+				setState(AI_STATE_GLOBAL);
 			}
 			so.aiStateCallback(AiStateCallback.EndOfWaypointsReached);
 			return;
@@ -474,7 +486,7 @@ public final class SpaceObjectAI implements Serializable {
 			popState();
 			if (currentState.isEmpty()) {
 				so.setSpeed(0);
-				setState(AIState.IDLE, (Object[]) null);
+				setState(AI_STATE_GLOBAL);
 			}
 		}
 	}
@@ -492,7 +504,7 @@ public final class SpaceObjectAI implements Serializable {
 			so.setProximity(null);
 			popState();
 			if (currentState.isEmpty()) {
-				setState(AIState.IDLE, (Object[]) null);
+				setState(AI_STATE_GLOBAL);
 			}
 			return;
 		}
@@ -506,91 +518,52 @@ public final class SpaceObjectAI implements Serializable {
 	}
 
 	private void updateTrack(float deltaTime) {
-		if (so.getType() == ObjectType.Missile && target != null) {
-			float angle = trackPosition(target.getPosition(), target.getUpVector(), deltaTime);
-			calculateTrackingSpeed(angle);
+		if (so.getType() == ObjectType.Missile) {
+			calculateMissileSpeed(trackTargetPosition(deltaTime));
 			return;
 		}
-		if (target instanceof SpaceObject && !((SpaceObject) target).isCloaked()) {
+		if (!target.isCloaked()) {
 			trackInternal(target.getPosition(), 1000.0f, deltaTime, false);
 		}
 		executeSteering(so.getType() == ObjectType.Missile ? -1 : so.getMaxSpeed());
 	}
 
-	private void initiateTrack(boolean replace, Object[] data) {
-		if (replace) {
-			currentState.clear();
+	private boolean pushIfNewState(String newState) {
+		if (currentState.isEmpty() || !currentState.peek().equals(newState)) {
+			currentState.push(newState);
+			return true;
 		}
-		if (currentState.isEmpty() || currentState.peek() != AIState.TRACK) {
-			currentState.push(AIState.TRACK);
-		}
-		target = data == null || data[0] == null ? null : (GraphicObject) data[0];
+		return false;
 	}
 
-	private void initiateMissileTrack(boolean replace, Object[] data) {
-		if (replace) {
-			currentState.clear();
+	private void initiateMissileTrack() {
+		currentState.clear();
+		if (target == null) {
+			return;
 		}
-		target = data == null || data[0] == null ? null : (GraphicObject) data[0];
-		if (target != null) {
-			float distanceSq = target.getPosition().distanceSq(so.getPosition());
-			if (distanceSq < 9000000) {
-				currentState.push(AIState.TRACK);
-			} else {
-				pushState(AIState.TRACK, target);
-				so.getPosition().copy(v0);
-				target.getPosition().sub(v0, v1);
-				v1.scale(0.5f);
-				target.getPosition().sub(v1, v0);
-				target.getRightVector().copy(v1);
-				v1.scale(1000);
-				v0.add(v1);
-				WayPoint wp = WayPoint.newWayPoint(v0, target.getUpVector());
-				pushState(AIState.FLY_PATH, wp);
-			}
+		float distanceSq = target.getPosition().distanceSq(so.getPosition());
+		if (distanceSq < 9000000) {
+			currentState.push(AI_STATE_TRACK);
+			return;
 		}
+		pushState(AI_STATE_TRACK);
+		so.getPosition().copy(v0);
+		target.getPosition().sub(v0, v1);
+		v1.scale(0.5f);
+		target.getPosition().sub(v1, v0);
+		target.getRightVector().copy(v1);
+		v1.scale(1000);
+		v0.add(v1);
+		setWaypoints(WayPoint.newWayPoint(v0, target.getUpVector()));
+		pushState(AI_STATE_FLY_PATH);
 	}
 
-	private void initiateIdle(boolean replace) {
-		if (replace) {
-			currentState.clear();
-		}
-		if (currentState.isEmpty() || currentState.peek() != AIState.IDLE) {
-			currentState.push(AIState.IDLE);
-		}
-		so.adjustSpeed(0);
-	}
-
-	private void initiateStraight(boolean replace, Object[] data) {
-		if (replace) {
-			currentState.clear();
-		}
-		if (currentState.isEmpty() || currentState.peek() != AIState.FLY_STRAIGHT) {
-			currentState.push(AIState.FLY_STRAIGHT);
-		}
-		if (data != null && data.length > 0) {
-			so.adjustSpeed(-(Float) data[0]);
-			if (data.length > 1) {
-				// Force new speed...
-				so.setSpeed(-(Float) data[0]);
-			}
-		} else {
-			so.adjustSpeed(-so.getMaxSpeed());
-		}
-	}
-
-	private void initiatePath(boolean replace, Object[] data) {
-		if (replace) {
-			currentState.clear();
-		}
-		if (currentState.isEmpty() || currentState.peek() != AIState.FLY_PATH) {
-			currentState.push(AIState.FLY_PATH);
-		}
+	void setWaypoints(WayPoint... waypoint) {
 		waypoints.clear();
-		if (data != null && data.length > 0) {
-			for (Object o: data) {
-				if (o != null) {
-					waypoints.add((WayPoint) o);
+		if (waypoint != null && waypoint.length > 0) {
+			for (WayPoint w: waypoint) {
+				if (w != null) {
+					waypoints.add(w);
 				}
 			}
 		}
@@ -602,33 +575,16 @@ public final class SpaceObjectAI implements Serializable {
 		}
 	}
 
-	private void initiateFollowCurve(boolean replace, Object[] data) {
-		if (replace) {
-			currentState.clear();
-		}
-		if (currentState.isEmpty() || currentState.peek() != AIState.FOLLOW_CURVE) {
-			currentState.push(AIState.FOLLOW_CURVE);
-		}
+	private void initiateFollowCurve() {
+		pushIfNewState(AI_STATE_FOLLOW_CURVE);
 		waypoints.clear();
-		if (data != null && data.length > 0) {
-			curve = (Curve) data[0];
-			curveFollowStart.reset();
-		}
+		curve = Math.random() < 0.5 ? new BreakUp(so) : new BreakDown(so);
+		curveFollowStart.reset();
 		currentDistance = -1;
 		so.adjustSpeed(-so.getMaxSpeed());
 		lastRotation.x = 0;
 		lastRotation.y = 0;
 		lastRotation.z = 0;
-	}
-
-	private void initiateFlee(boolean replace, Object[] data) {
-		if (replace) {
-			currentState.clear();
-		}
-		if (currentState.isEmpty() || currentState.peek() != AIState.FLEE) {
-			currentState.push(AIState.FLEE);
-		}
-		target = data == null || data[0] == null ? null : (GraphicObject) data[0];
 	}
 
 	private void getFartherDirection(Vector3f direction, final Vector3f targetVector, final float scale) {
@@ -649,11 +605,10 @@ public final class SpaceObjectAI implements Serializable {
 		}
 	}
 
-	private void initiateBank(boolean replace, Object[] data) {
-		target = data == null || data[0] == null ? null : (GraphicObject) data[0];
+	private void initiateBank() {
 		if (target == null) {
 			if (currentState.isEmpty()) {
-				setState(AIState.IDLE, 0);
+				setState(AI_STATE_GLOBAL);
 			} else {
 				popState();
 			}
@@ -668,20 +623,12 @@ public final class SpaceObjectAI implements Serializable {
 		v0.scale(10000.0f);
 		v2.add(v0);
 		WayPoint wp2 = WayPoint.newWayPoint(v2, target.getUpVector());
-
-		if (replace) {
-			setState(AIState.FLY_PATH, wp1, wp2);
-		} else {
-			pushState(AIState.FLY_PATH, wp1, wp2);
-		}
+		setWaypoints(wp1, wp2);
+		pushState(AI_STATE_FLY_PATH);
 	}
 
-	private void initiateEvade(boolean replace) {
-		if (replace) {
-			currentState.clear();
-		}
-		if (currentState.isEmpty() || currentState.peek() != AIState.EVADE) {
-			currentState.push(AIState.EVADE);
+	private void initiateEvade() {
+		if (pushIfNewState(AI_STATE_EVADE)) {
 			if (target == null) {
 				target = so.getProximity();
 			}
@@ -694,48 +641,54 @@ public final class SpaceObjectAI implements Serializable {
 		pitchingOver = true;
 	}
 
-	private void initiateAttack(boolean replace, Object[] data) {
-		if (replace) {
-			currentState.clear();
+	private void pushState(String newState) {
+		if (!currentState.isEmpty()) {
+			sendAIMessage("EXIT");
 		}
-		if (currentState.isEmpty() || currentState.peek() != AIState.ATTACK) {
-			currentState.push(AIState.ATTACK);
-		}
-		target = data == null || data[0] == null ? null : (GraphicObject) data[0];
-	}
-
-	private void alterStateInternal(AIState newState, boolean replace, Object ...data) {
 		switch (newState) {
-			case ATTACK:        initiateAttack(replace, data);
-					    break;
-			case BANK:          initiateBank(replace, data);
-					    break;
-			case EVADE:         initiateEvade(replace);
-			                    break;
-			case FLEE:          initiateFlee(replace, data);
-					    break;
-			case FLY_STRAIGHT:  initiateStraight(replace, data);
-					    break;
-			case FLY_PATH:      initiatePath(replace, data);
-					    break;
-			case IDLE:          initiateIdle(replace);
-					    break;
-			case TRACK:         initiateTrack(replace, data);
-					    break;
-			case MISSILE_TRACK: initiateMissileTrack(replace, data);
-			                    break;
-			case FOLLOW_CURVE:  initiateFollowCurve(replace, data);
-			                    break;
-			default:            break;
+			case AI_STATE_ATTACK:
+				pushIfNewState(AI_STATE_ATTACK);
+				break;
+			case AI_STATE_LURKING:
+				initiateBank();
+				break;
+			case AI_STATE_EVADE:
+				initiateEvade();
+				break;
+			case AI_STATE_FLEE:
+				pushIfNewState(AI_STATE_FLEE);
+				break;
+			case AI_STATE_FLY_STRAIGHT:
+				pushIfNewState(AI_STATE_FLY_STRAIGHT);
+				break;
+			case AI_STATE_FLY_PATH:
+				pushIfNewState(AI_STATE_FLY_PATH);
+				break;
+			case AI_STATE_GLOBAL:
+				pushIfNewState(AI_STATE_GLOBAL);
+				so.adjustSpeed(0);
+				break;
+			case AI_STATE_TRACK:
+				pushIfNewState(AI_STATE_TRACK);
+				break;
+			case AI_STATE_MISSILE_TRACK:
+				target = so.getTarget();
+				initiateMissileTrack();
+				break;
+			case AI_STATE_FOLLOW_CURVE:
+				initiateFollowCurve();
+				break;
 		}
+		stateName = newState;
+		sendAIMessage("ENTER");
 	}
 
-	final void setState(AIState newState, Object... data) {
-		alterStateInternal(newState, true, data);
-	}
-
-	private void pushState(AIState newState, Object... data) {
-		alterStateInternal(newState, false, data);
+	final void setState(String newState) {
+		if (AI_STATE_ATTACK.equals(newState)) {
+			target = Alite.get().getInGame().getShip();
+		}
+		currentState.clear();
+		pushState(newState);
 	}
 
 	private void popState() {
@@ -743,51 +696,51 @@ public final class SpaceObjectAI implements Serializable {
 			return;
 		}
 		currentState.pop();
-		AIState state = getState();
-		if (state == AIState.FOLLOW_CURVE) {
+		String state = getState();
+		if (AI_STATE_FOLLOW_CURVE.equals(state)) {
 			// Make sure that an interrupted "follow curve" is not resumed.
 			popState();
 		}
 	}
 
 	final void update(float deltaTime) {
-		if (so != null) {
-			if (so.getEscapePod() > 0 && so.getHullStrength() < 2 && !so.hasEjected()) {
-				if (Math.random() < 0.1) {
-					so.setEjected();
-					so.addObjectToSpawn(ObjectType.EscapeCapsule);
-				}
-			}
-		}
 		if (currentState.isEmpty() || so.hasEjected()) {
 			return;
 		}
 		so.updateSpeed(deltaTime);
+
+//		if (!updateTimer.hasPassedSeconds(pauseAI)) {
+//			return;
+//		}
+//		deltaTime+= pauseAI;
+		timeSpent = deltaTime;
+		executeAIMessage("UPDATE");
+
 		switch (currentState.peek()) {
-			case ATTACK:
+			case AI_STATE_ATTACK:
 				attackObject(deltaTime);
 				break;
-			case BANK:
-				AliteLog.e("Updating bank state", "This should not happen...");
+			case AI_STATE_LURKING:
+				AliteLog.e("Updating lurking state", "This should not happen...");
 				break;
-			case EVADE:
+			case AI_STATE_EVADE:
 				updateEvade(deltaTime);
 				break;
-			case FLEE:
+			case AI_STATE_FLEE:
 				fleeObject(deltaTime);
 				break;
-			case FLY_STRAIGHT:
-				flyStraight();
+			case AI_STATE_FLY_STRAIGHT:
+				avoidCollision();
 				break;
-			case FLY_PATH:
+			case AI_STATE_FLY_PATH:
 				flyPath(deltaTime);
 				break;
-			case IDLE:
+			case AI_STATE_GLOBAL:
 				break;
-			case TRACK:
+			case AI_STATE_TRACK:
 				updateTrack(deltaTime);
 				break;
-			case FOLLOW_CURVE:
+			case AI_STATE_FOLLOW_CURVE:
 				followCurve();
 				break;
 			default:
@@ -797,15 +750,15 @@ public final class SpaceObjectAI implements Serializable {
 			if (so.isPlayer()) {
 				String sl;
 				switch (currentState.peek()) {
-				case ATTACK:       sl = "AT"; break;
-				case BANK:         sl = "BN"; break;
-				case EVADE:        sl = "EV"; break;
-				case FLEE:         sl = "FL"; break;
-				case FLY_STRAIGHT: sl = "FS"; break;
-				case FLY_PATH:     sl = "FP"; break;
-				case IDLE:         sl = "ID"; break;
-				case TRACK:        sl = "TR"; break;
-				case FOLLOW_CURVE: sl = "FC"; break;
+				case AI_STATE_ATTACK:       sl = "AT"; break;
+				case AI_STATE_LURKING:            sl = "BN"; break;
+				case AI_STATE_EVADE:        sl = "EV"; break;
+				case AI_STATE_FLEE:         sl = "FL"; break;
+				case AI_STATE_FLY_STRAIGHT: sl = "FS"; break;
+				case AI_STATE_FLY_PATH:     sl = "FP"; break;
+				case AI_STATE_GLOBAL:       sl = "ID"; break;
+				case AI_STATE_TRACK:        sl = "TR"; break;
+				case AI_STATE_FOLLOW_CURVE: sl = "FC"; break;
 				default:           sl = "DE"; break;
 				}
 				AliteLog.d("AIS", "SOPATH: Player " + sl + " (" + so.getPosition().x + ":" + so.getPosition().y + ":" + so.getPosition().z +
@@ -817,7 +770,7 @@ public final class SpaceObjectAI implements Serializable {
 		}
 	}
 
-	public AIState getState() {
+	String getState() {
 		if (currentState.isEmpty()) {
 			return null;
 		}
@@ -826,27 +779,28 @@ public final class SpaceObjectAI implements Serializable {
 
 	String getStateStack() {
 		String stack = "";
-		for (AIState aCurrentState : currentState) {
+		for (String aCurrentState : currentState) {
 			stack += aCurrentState + ", ";
 		}
 		return stack;
 	}
 
 	private void bankOrAttack(SpaceObject player) {
-		AIState state = getState();
-		AliteLog.d("Object has been hit", "Object has been hit. Current State == " + state.name());
-		if (state == AIState.FOLLOW_CURVE) {
+		String state = getState();
+		AliteLog.d("Object has been hit", "Object has been hit. Current State == " + state);
+		if (AI_STATE_FOLLOW_CURVE.equals(state)) {
 			return;
 		}
-		if (state == AIState.BANK || state == AIState.EVADE || state == AIState.FLY_PATH) {
+		if (AI_STATE_LURKING.equals(state) || AI_STATE_EVADE.equals(state) || AI_STATE_FLY_PATH.equals(state)) {
 			float f = (float) Math.random();
 			if (f < 0.3) {
 				// Do nothing...
 				AliteLog.d("NPC got Hit", "On Hit (should be 'no change'): New AI Stack: " + getStateStack());
 				return;
 			}
+			popState();
+			target = player;
 			if (f < 0.7) {
-				popState();
 				so.getForwardVector().copy(v0);
 				v0.x *= -Math.random() * 2 + 1;
 				v0.y *= -Math.random() * 2 + 1;
@@ -857,44 +811,45 @@ public final class SpaceObjectAI implements Serializable {
 					v0.z = 0;
 				}
 				v0.normalize();
-				pushState(AIState.ATTACK, player);
-				pushState(AIState.FLY_PATH, WayPoint.newWayPoint(MathHelper.getRandomPosition(so.getPosition(), v0, 5000, 1000), so.getUpVector()));
+				pushState(AI_STATE_ATTACK);
+				setWaypoints(WayPoint.newWayPoint(MathHelper.getRandomPosition(so.getPosition(), v0,
+					5000, 1000), so.getUpVector()));
+				pushState(AI_STATE_FLY_PATH);
 				AliteLog.d("NPC got Hit", "On Hit (should be fly path): New AI Stack: " + getStateStack());
 				return;
 			}
-			popState();
-			pushState(AIState.ATTACK, player);
-			pushState(AIState.FOLLOW_CURVE, Math.random() < 0.5 ? new BreakUp(so) : new BreakDown(so));
+			pushState(AI_STATE_ATTACK);
+			pushState(AI_STATE_FOLLOW_CURVE);
 			AliteLog.d("NPC got Hit", "On Hit (should be follow curve): New AI Stack: " + getStateStack());
-		} else if (state != AIState.ATTACK) {
-			pushState(AIState.BANK, player, true);
+		} else if (!AI_STATE_ATTACK.equals(state)) {
+			target = player;
+			pushState(AI_STATE_LURKING);
 		}
 	}
 
 	private void flee(SpaceObject player) {
-		if (getState() != AIState.FLEE) {
-			if (Math.random() * 100 < FIRE_MISSILE_UPON_FIRST_HIT_PROBABILITY) {
-				if (!player.isCloaked() && so.getMissileCount() > 0 && so.getPosition().distanceSq(player.getPosition()) >= MISSILE_MIN_DIST_SQ) {
-					if (so.canFireMissile()) {
-						so.setProperty(SpaceObject.Property.missiles, so.getMissileCount() - 1);
-						so.addObjectToSpawn(ObjectType.Missile);
-					}
-				}
-			}
-			setState(AIState.FLEE, player);
+		if (AI_STATE_FLEE.equals(getState())) {
+			return;
 		}
+		if (Math.random() * 100 < FIRE_MISSILE_UPON_FIRST_HIT_PROBABILITY) {
+			so.spawnMissile(player);
+		}
+		target = player;
+		setState(AI_STATE_FLEE);
 	}
 
 	private void fleeBankOrAttack(SpaceObject player) {
-		AIState state = getState();
-		if (state == AIState.ATTACK) {
+		String state = getState();
+		if (AI_STATE_ATTACK.equals(state)) {
 			bankOrAttack(player);
-		} else if (state == AIState.FLEE) {
-			pushState(AIState.BANK, player);
-		} else if (state == AIState.BANK || state == AIState.EVADE) {
+		} else if (AI_STATE_FLEE.equals(state)) {
+			target = player;
+			pushState(AI_STATE_LURKING);
+		} else if (AI_STATE_LURKING.equals(state) || AI_STATE_EVADE.equals(state)) {
 			popState();
-			pushState(AIState.BANK, player);
-		} else if (state == AIState.FLY_PATH || state == AIState.FLY_STRAIGHT || state == AIState.IDLE) {
+			target = player;
+			pushState(AI_STATE_LURKING);
+		} else if (AI_STATE_FLY_PATH.equals(state) || AI_STATE_FLY_STRAIGHT.equals(state) || AI_STATE_GLOBAL.equals(state)) {
 			if (Math.random() * 50 < so.getAggressionLevel()) {
 				bankOrAttack(player);
 			} else {
@@ -905,22 +860,6 @@ public final class SpaceObjectAI implements Serializable {
 	}
 
 	void executeHit(SpaceObject player) {
-		if (so.getHullStrength() > 0 && !so.mustBeRemoved() && !so.hasEjected()) {
-			int rand = (int) (Math.random() * 256);
-			int check = (Alite.get().getPlayer().getRating().ordinal() << 2) + 15;
-			if (so.getMissileCount() > 0 && rand < check && !player.isCloaked() && so.getPosition().distanceSq(player.getPosition()) >= MISSILE_MIN_DIST_SQ) {
-				if (so.canFireMissile()) {
-					so.setProperty(SpaceObject.Property.missiles, so.getMissileCount() - 1);
-					so.addObjectToSpawn(ObjectType.Missile);
-				}
-			}
-		}
-
-		// Nothing to do (actually handled in the SpaceStation code)
-		if (ObjectType.isSpaceStation(so.getType())) {
-			return;
-		}
-
 		switch (so.getType()) {
 			case Asteroid:
 			case CargoPod:
@@ -928,13 +867,661 @@ public final class SpaceObjectAI implements Serializable {
 			case Alloy:
 			case Missile: break; // Nothing to do
 
-			case EscapeCapsule: pushState(AIState.BANK, player); break;
+			case EscapeCapsule:
+			case Shuttle: flee(player); break;
+			case Trader: fleeBankOrAttack(player); break;
 
-			case Shuttle: so.hasBeenHitByPlayer(); flee(player); break;
-			case Trader: so.hasBeenHitByPlayer(); fleeBankOrAttack(player); break;
-
-			// EnemyShip (Constrictor, Cougar, TieFighter, Defender, Thargoid, Thargon, Viper)
+			// EnemyShip (Pirate, Constrictor, Cougar, TieFighter, Defender, Thargoid, Thargon, Viper)
 			default: bankOrAttack(player); break;
 		}
+	}
+
+	void sendAIMessage(String message) {
+		if (priorityMessages.contains(message)) {
+			executeAIMessage(message);
+		} else {
+			queueAIMessage(message);
+		}
+	}
+
+	private void executeAIMessage(String message) {
+//		if (message.equals(lastMessage)) {
+//			return;
+//		}
+//		lastMessage = message;
+
+//		AliteLog.d("AI message received", "Object: " + so.getId() +
+//			", AI: '" + so.getAIType() + "', state: '" + stateName + "', message: '" + message + "'");
+		List<AIMethod> methods = SpaceObjectFactory.getInstance().getMethods(so.getAIType(), stateName, message);
+		if (methods == null) {
+			if (!SpaceObjectFactory.getInstance().isAIType(so.getAIType())) {
+//				AliteLog.e("AI type error", "AI type " + so.getAIType() + " not found.");
+				return;
+			}
+			if (!SpaceObjectFactory.getInstance().isAIState(so.getAIType(), stateName)) {
+//				AliteLog.e("AI state error", "AI state " + stateName + " not found for AI type " + so.getAIType() + ".");
+				return;
+			}
+//			AliteLog.d("AI methods", "No method for state.");
+			return;
+		}
+		for (AIMethod method : methods) {
+			try {
+				SpaceObjectAI.class.getDeclaredMethod(method.getName(), String[].class).invoke(this,
+					new Object[] { method.getParameter() == null ? new String[0] : method.getParameter().split(" ")});
+				AliteLog.d("AI methods", "AI method " + method.getName() + "(" +
+					(method.getParameter() == null ? "" : method.getParameter()) + ") called.");
+			} catch (IllegalAccessException | NoSuchMethodException e) {
+				AliteLog.e("AI methods", "No AI method " + method.getName() + " found.", e);
+			} catch (InvocationTargetException e) {
+				AliteLog.e("ai.syntax." + method.getName(), e.getCause().getMessage(), e.getCause());
+			}
+		}
+	}
+
+	private void queueAIMessage(String message) {
+		if (message.equals(lastMessage)) {
+			return;
+		}
+		lastMessage = message;
+		// push to message queue executed by update message
+	}
+
+	private void checkArguments(int expectedArgNum, String expectedArgs, String... args) {
+		if (expectedArgNum == args.length) {
+			return;
+		}
+		throw new IllegalArgumentException("Wrong number of arguments. Expected " + expectedArgNum +
+			(expectedArgs == null ? "" : " (" + expectedArgs + ")") +
+			", got " + args.length + " " + Arrays.toString(args));
+	}
+
+	// Allowed AI methods for ships called by sendAIMessage.
+
+	@SuppressWarnings("unused")
+	private void setStateTo(String... state) {
+		checkArguments(1, "{state_name}", state);
+		setState(state[0]);
+	}
+
+	@SuppressWarnings("unused")
+	private void setAITo(String... ai) {
+		checkArguments(1, "{ai_name}", ai);
+		// todo: push ai to aiStack
+	}
+
+	@SuppressWarnings("unused")
+	private void switchAITo(String... ai) {
+		checkArguments(1, "{ai_name}", ai);
+		// todo: clear aiStack
+		setAITo(ai);
+	}
+
+	@SuppressWarnings("unused")
+	private void exitAI(String... message) {
+		checkArguments(0, "", message);
+		exitAIWithMessage("RESTARTED");
+	}
+
+	@SuppressWarnings("unused")
+	private void exitAIWithMessage(String... message) {
+		checkArguments(1, "{exit_message}", message);
+		// todo: aiStack is needed instead of state stack!
+		if (!currentState.empty()) {
+			popState();
+			sendAIMessage(message[0] == null ? "RESTARTED" : message[0]);
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private void pauseAI(String... intervalString) {
+		checkArguments(1, "{delay_time_in_sec}", intervalString);
+//		pauseAI = Float.parseFloat(intervalString[0]);
+	}
+
+	@SuppressWarnings("unused")
+	private void randomPauseAI(String... intervalString) {
+		checkArguments(2, "{min_delay_time_in_sec} {max_delay_time_in_sec}", intervalString);
+		float start = Float.parseFloat(intervalString[0]);
+		float end = Float.parseFloat(intervalString[1]);
+		if (start < 0 || end < 0 || end <= start) {
+			throw new IllegalArgumentException("Invalid value: " + Arrays.toString(intervalString));
+		}
+//		pauseAI = (float) (start + (end - start) * Math.random());
+	}
+
+	@SuppressWarnings("unused")
+	private void dropMessages(String... messageString) {
+		if (messageString.length == 0) {
+			throw new IllegalArgumentException("Missing argument, at least one message name must be passed.");
+		}
+		for (String message : messageString) {
+			// todo: drop message
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private void performAvoidCollision(String... args) {
+		updateEvade(timeSpent);
+	}
+
+	@SuppressWarnings("unused")
+	private void performAttack(String... args) {
+		attackObject(timeSpent);
+	}
+
+	@SuppressWarnings("unused")
+	private void debugDumpPendingMessages(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setDestinationToCurrentLocation(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setDesiredRangeTo(String... rangeString) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setDesiredRangeForWaypoint(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void performIntercept(String... args) {
+		checkArguments(0, "", args);
+		if (!isTargetExist()) {
+			sendAIMessage("TARGET_LOST");
+		}
+		if (target.getPosition().distanceSq(so.getPosition()) <= 40000) {
+			sendAIMessage("DESIRED_RANGE_ACHIEVED");
+		}
+		// todo send FRUSTRATED after 10 sec
+	}
+
+	@SuppressWarnings("unused")
+	private void performFlyToRangeFromDestination(String... args) {
+		checkArguments(0, "", args);
+		if (target.getPosition().distanceSq(so.getPosition()) <= 40000) {
+			sendAIMessage("DESIRED_RANGE_ACHIEVED");
+		}
+	}
+
+	private boolean isTargetExist() {
+		return target != null && !target.mustBeRemoved() && target.getHullStrength() > 0;
+	}
+
+	@SuppressWarnings("unused")
+	private void setSpeedTo(String... speedString) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setSpeedFactorTo(String... speedString) {
+		checkArguments(1, "{percentage_of_max_speed(0-1)}", speedString);
+		float speed = Float.parseFloat(speedString[0]);
+		if (speed >= 0 && speed <= 1) {
+			so.setSpeed(-so.getMaxSpeed() * speed);
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private void setSpeedToCruiseSpeed(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setThrustFactorTo(String... thrustFactorString) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setTargetToPrimaryAggressor(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNearestMerchantman(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForRandomMerchantman(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForLoot(String... args) {
+		checkArguments(0, "", args);
+		if (ObjectType.isSpaceStation(so.getType()) || so.getRepoHandler().getNumericProperty(SpaceObject.Property.has_scoop) < 1) {
+			sendAIMessage("NOTHING_FOUND");
+			return;
+		}
+		if (Alite.get().getInGame().getObjects(ObjectType.EscapeCapsule).isEmpty()) {
+			List<SpaceObject> cargo = Alite.get().getInGame().getObjects(ObjectType.CargoPod);
+			if (cargo.isEmpty()) {
+				sendAIMessage("NOTHING_FOUND");
+				return;
+			}
+			if (so.getType() == ObjectType.Police) {
+				boolean slaveFound = false;
+				for (SpaceObject c : cargo) {
+					if (c.getCargoContent() == TradeGoodStore.get().getGoodById(TradeGoodStore.SLAVES)) {
+						slaveFound = true;
+						break;
+					}
+				}
+				if (!slaveFound) {
+					sendAIMessage("NOTHING_FOUND");
+				}
+				return;
+			}
+		}
+		sendAIMessage(so.hasFreeSpace() ? "TARGET_FOUND" : "HOLD_FULL");
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForRandomLoot(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setTargetToFoundTarget(String... args) {
+		//
+	}
+
+	@SuppressWarnings("unused")
+	private void checkForFullHold(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void getWitchspaceEntryCoordinates(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setDestinationFromCoordinates(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setCoordinatesFromPosition(String... args) {
+		checkArguments(0, "", args);
+	}
+
+	@SuppressWarnings("unused")
+	private void fightOrFleeMissile(String... args) {
+		checkArguments(0, "", args);
+		flee(Alite.get().getInGame().getShip());
+	}
+
+	@SuppressWarnings("unused")
+	private void fightOrFleeHostiles(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setCourseToPlanet(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setTakeOffFromPlanet(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void landOnPlanet(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void checkTargetLegalStatus(String... args) {
+		checkArguments(0, "", args);
+		switch (Alite.get().getPlayer().getLegalStatus()) {
+			case CLEAN:
+				sendAIMessage(Alite.get().getPlayer().getLegalValue() == 0 ? "TARGET_CLEAN" : "TARGET_MINOR_OFFENDER");
+			case OFFENDER:
+				sendAIMessage("TARGET_OFFENDER");
+			case FUGITIVE:
+				sendAIMessage("TARGET_FUGITIVE");
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private void checkOwnLegalStatus(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setDestinationToTarget(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setDestinationWithinTarget(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void checkCourseToDestination(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void checkAegis(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void checkEnergy(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void checkHeatInsulation(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForOffenders(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setCourseToWitchpoint(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setDestinationToWitchpoint(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setDestinationToStationBeacon(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void performHyperSpaceExit(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void performHyperSpaceExitWithoutReplacing(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void wormholeGroup(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void commsMessage(String... valueString) {
+	}
+
+	@SuppressWarnings("unused")
+	private void commsMessageByUnpiloted(String... valueString) {
+	}
+
+	@SuppressWarnings("unused")
+	private void ejectCargo(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForThargoid(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNonThargoid(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void thargonCheckMother(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void becomeUncontrolledThargon(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void checkDistanceTravelled(String... args) {
+		if (isTargetExist() && target.getPosition().distanceSq(so.getPosition()) > 90000000) {
+			sendAIMessage("GONE_BEYOND_RANGE");
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private void suggestEscort(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void escortCheckMother(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void checkGroupOddsVersusTarget(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForFormationLeader(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void messageMother(String... msgString) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setPlanetPatrolCoordinates(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setSunSkimStartCoordinates(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setSunSkimEndCoordinates(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setSunSkimExitCoordinates(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void patrolReportIn(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void checkForMotherStation(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void sendTargetCommsMessage(String... message) {
+	}
+
+	@SuppressWarnings("unused")
+	private void markTargetForFines(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void markTargetForOffence(String... args) {
+		checkArguments(0, "", args);
+		Alite.get().getPlayer().setLegalValue(Alite.get().getPlayer().getLegalValue() | 15);
+	}
+
+	@SuppressWarnings("unused")
+	private void storeTarget(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void recallStoredTarget(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForRocks(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setDestinationToDockingAbort(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void requestNewTarget(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void rollD(String... die_number) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNearestShipWithPrimaryRole(String... scanRole) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNearestShipHavingRole(String... scanRole) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNearestShipWithAnyPrimaryRole(String... scanRoles) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNearestShipHavingAnyRole(String... scanRoles) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNearestShipWithScanClass(String... scanScanClass) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNearestShipWithoutPrimaryRole(String... scanRole) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNearestShipNotHavingRole(String... scanRole) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNearestShipWithoutAnyPrimaryRole(String... scanRoles) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNearestShipNotHavingAnyRole(String... scanRoles) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scanForNearestShipWithoutScanClass(String... scanScanClass) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setCoordinates(String... systemXYZ) {
+	}
+
+	@SuppressWarnings("unused")
+	private void checkForNormalSpace(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setTargetToRandomStation(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setTargetToLastStation(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void addFuel(String... fuel_number) {
+	}
+
+	@SuppressWarnings("unused")
+	private void scriptActionOnTarget(String... action) {
+	}
+
+	@SuppressWarnings("unused")
+	private void sendScriptMessage(String... message) {
+	}
+
+	@SuppressWarnings("unused")
+	private void ai_throwSparks(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void explodeSelf(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void ai_debugMessage(String... message) {
+	}
+
+	@SuppressWarnings("unused")
+	private void targetFirstBeaconWithCode(String... code) {
+	}
+
+	@SuppressWarnings("unused")
+	private void targetNextBeaconWithCode(String... code) {
+	}
+
+	@SuppressWarnings("unused")
+	private void setRacepointsFromTarget(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void performFlyRacepoints(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void addPrimaryAggressorAsDefenseTarget(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void addFoundTargetAsDefenseTarget(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void findNewDefenseTarget(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void fireECM(String... args) {
+		//
+	}
+
+	// Allowed AI methods for stations called by sendAIMessage.
+	@SuppressWarnings("unused")
+	private void increaseAlertLevel(String... args) {
+		checkArguments(0, "", args);
+		Alite.get().getPlayer().increaseAlertLevel();
+	}
+
+	@SuppressWarnings("unused")
+	private void decreaseAlertLevel(String... args) {
+		checkArguments(0, "", args);
+		Alite.get().getPlayer().decreaseAlertLevel();
+	}
+
+	@SuppressWarnings("unused")
+	private void launchPolice(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void launchDefenseShip(String... args) {
+		//
+	}
+
+	@SuppressWarnings("unused")
+	private void launchScavenger(String... args) {
+		//
+	}
+
+	@SuppressWarnings("unused")
+	private void launchMiner(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void launchPirateShip(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void launchShuttle(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void launchTrader(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void launchEscort(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void launchPatrol(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void launchShipWithRole(String... role) {
+	}
+
+	@SuppressWarnings("unused")
+	private void abortAllDockings(String... args) {
+	}
+
+	@SuppressWarnings("unused")
+	private void performTumble(String... args) {
+		checkArguments(0, "", args);
+		Alite.get().getInGame().getSpawnManager().spawnTumbleObject(so, so.getPosition());
 	}
 }
