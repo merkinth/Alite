@@ -17,6 +17,15 @@ exploration directly to you - wherever you are.
 Alite is inspired by classic Elite, (c) Acornsoft, Bell & Braben.
 
 ### Version History
+* Version 1.6.0 07/23/2020
+  * Achievements feature is added
+  * Extended galaxies added
+  * Stars as lines at torus speed
+  * Vibrate for on hit added
+  * Assisted docking added
+  * Continuous / tap tutorial mode added
+  * Equipments extracted to equipment.plist
+
 * Version 1.5.9 05/11/2019
   * THIS VERSION IS NOT YET PULLED FROM PHILIPP REPOSITORY, IT IS CURRENTLY THE VERSION PLACEHOLDER ONLY. Improvement: Beginning of a controller implementation that allows the complete control of Alite via a gamepad. The general architecture is now present. The tedious bit is now to implement the controls for each and every screen. For now, the "simple ones" work: Intro-Movie (skip by pressing any button), ShipIntroScreen (change the ships by pressing left/right on the dpad or by using the primary stick, acknowledge the tap to start button by pushing A, or changing between the Load New Commander Yes/No options by using the second stick), Navigation Bar (secondary stick up/down, B to select), dialogs (secondary stick left/right, A to select -- does not work for all modal dialogs, yet).
 </br>
