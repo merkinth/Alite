@@ -4,7 +4,7 @@ bin/
 gen/
 main.*.de.phbouillon.android.games.alite.obb
 /local.properties
-gradle*
+gradlew*
 settings.gradle
 .gradle/
 gradle/

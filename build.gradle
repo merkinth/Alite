@@ -8,7 +8,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.2'
+        classpath 'com.android.tools.build:gradle:3.6.4'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -23,30 +23,33 @@ allprojects {
 }
 
 dependencies {
-    api 'com.google.api-client:google-api-client-android:1.30.2'
-    api 'com.google.android.gms:play-services-auth:17.0.0'
-    api 'com.google.android.gms:play-services-basement:17.1.0'
-    api 'com.google.apis:google-api-services-drive:v3-rev20190620-1.30.1'
+    api 'com.google.api-client:google-api-client-android:1.30.10'
+    api 'com.google.android.gms:play-services-auth:18.0.0'
+    api 'com.google.android.gms:play-services-basement:17.3.0'
+    api 'com.google.apis:google-api-services-drive:v3-rev20200618-1.30.10'
     api 'io.apisense:rhino-android:1.1.1'
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
     testImplementation 'org.hamcrest:hamcrest-junit:2.0.0.0'
-    testImplementation 'org.json:json:20180813'
+    testImplementation 'org.json:json:20190722'
 }
 
 android {
-    buildToolsVersion '28.0.3'
+    buildToolsVersion '29.0.0'
     compileSdkVersion 28
     defaultConfig {
         applicationId 'de.phbouillon.android.games.alite'
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 2201
-        versionName '1.5.8'
-        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+        versionCode 2400
+        versionName '1.6.0'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    testOptions {
+        unitTests.returnDefaultValues = true
     }
 
     sourceSets {
