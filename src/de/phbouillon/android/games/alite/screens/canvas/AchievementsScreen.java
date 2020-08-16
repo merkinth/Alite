@@ -273,7 +273,13 @@ public class AchievementsScreen extends AliteScreen {
 	public void present(float deltaTime) {
 		game.getGraphics().clear(ColorScheme.get(ColorScheme.COLOR_BACKGROUND));
 		displayTitle(L.string(R.string.title_achievements));
-		drawInformation();
+		try {
+			drawInformation();
+		} catch (IllegalArgumentException ignored) {
+			// It can happen when app started in the background and orientation is portrait.
+			// In this case the icons are diminished according to the aspect ratio,
+			// so icons become smaller than expected.
+		}
 		scrollPane.scrollingFree();
 	}
 
@@ -297,37 +303,38 @@ public class AchievementsScreen extends AliteScreen {
 
 	@Override
 	public void loadAssets() {
-		Alite.get().getTextureManager().addTexture(TEXTURE_FILE);
-		pics.put("medals", game.getGraphics().newPixmap(TEXTURE_FILE));
-
-		Alite.get().getTextureManager().addTexture(AliteButtons.TEXTURE_FILE);
-		pics.put("buttons", game.getGraphics().newPixmap(AliteButtons.TEXTURE_FILE));
-
-		Pixmap p = game.getGraphics().newPixmap(Bitmap.createBitmap(Assets.achievementsIcon.getBitmap(),
-			36, 14, 126, 128), "medal_trophy");
-		pics.put("trophy", p);
-		p = game.getGraphics().newPixmap(p.getBitmap(), ICON_GRAY_TROPHY);
-		pics.put(ICON_GRAY_TROPHY, p);
-		game.getGraphics().applyFilterToPixmap(p, ColorFilterGenerator.adjustColor(-100, 0)); // grayscale
-		addPictures("ext_new");
-		pics.put("about_icon", getResizedPixmapPart(Assets.aliteLogoSmall, 0, 0, "about_icon", 150, 100));
-		addFromIcon(Assets.inventoryIcon, 10, 26, 180, 114, "inventory_icon");
-		addFromIcon(Assets.planetIcon, 0, 39, 177, 72, "travel_icon");
-		addFromIcon(Assets.localIcon, 7, 7, 175, 154, "local_icon");
-		addFromIcon(Assets.galaxyIcon, 10, 11, 180, 129, "galaxy_icon");
-		addFromIcon(Assets.equipIcon, 29, 13, 138, 140, "equipment_icon");
-		addFromIcon(Assets.optionsIcon, 28, 9, 143, 158, "options_icon");
-		addFromIcon(Assets.academyIcon, 19, 0, 163, 163, "academy_icon");
-		addFromIcon(Assets.libraryIcon, 16, 5, 167, 157, "library_icon");
-		addFromIcon(Assets.quitIcon, 24, 2, 153, 150, "quit_icon");
-
-		pics.put("firearms_icon", game.getGraphics().newPixmap(TradeGoodStore.get().getGoodById(
-			TradeGoodStore.FIREARMS).getIconName(), 150, 150));
-		addFromIcon(game.getGraphics().newPixmap(TradeGoodStore.get().getGoodById(
-			TradeGoodStore.GOLD).getIconName()), 6, 36, 214, 177, "gold_icon");
-		addFromIcon(game.getGraphics().newPixmap(TradeGoodStore.get().getGoodById(
-			TradeGoodStore.THARGOID_DOCUMENTS).getIconName()), 0, 25, 223, 170, "mission_icon");
 		try {
+			Alite.get().getTextureManager().addTexture(TEXTURE_FILE);
+			pics.put("medals", game.getGraphics().newPixmap(TEXTURE_FILE));
+
+			Alite.get().getTextureManager().addTexture(AliteButtons.TEXTURE_FILE);
+			pics.put("buttons", game.getGraphics().newPixmap(AliteButtons.TEXTURE_FILE));
+
+			Pixmap p = game.getGraphics().newPixmap(Bitmap.createBitmap(Assets.achievementsIcon.getBitmap(),
+				36, 14, 126, 128), "medal_trophy");
+			pics.put("trophy", p);
+			p = game.getGraphics().newPixmap(p.getBitmap(), ICON_GRAY_TROPHY);
+			pics.put(ICON_GRAY_TROPHY, p);
+			game.getGraphics().applyFilterToPixmap(p, ColorFilterGenerator.adjustColor(-100, 0)); // grayscale
+			addPictures("ext_new");
+			pics.put("about_icon", getResizedPixmapPart(Assets.aliteLogoSmall, 0, 0, "about_icon", 150, 100));
+			addFromIcon(Assets.inventoryIcon, 10, 26, 180, 114, "inventory_icon");
+			addFromIcon(Assets.planetIcon, 0, 39, 177, 72, "travel_icon");
+			addFromIcon(Assets.localIcon, 7, 7, 175, 154, "local_icon");
+			addFromIcon(Assets.galaxyIcon, 10, 11, 180, 129, "galaxy_icon");
+			addFromIcon(Assets.equipIcon, 29, 13, 138, 140, "equipment_icon");
+			addFromIcon(Assets.optionsIcon, 28, 9, 143, 158, "options_icon");
+			addFromIcon(Assets.academyIcon, 19, 0, 163, 163, "academy_icon");
+			addFromIcon(Assets.libraryIcon, 16, 5, 167, 157, "library_icon");
+			addFromIcon(Assets.quitIcon, 24, 2, 153, 150, "quit_icon");
+
+			pics.put("firearms_icon", game.getGraphics().newPixmap(TradeGoodStore.get().getGoodById(
+				TradeGoodStore.FIREARMS).getIconName(), 150, 150));
+			addFromIcon(game.getGraphics().newPixmap(TradeGoodStore.get().getGoodById(
+				TradeGoodStore.GOLD).getIconName()), 6, 36, 214, 177, "gold_icon");
+			addFromIcon(game.getGraphics().newPixmap(TradeGoodStore.get().getGoodById(
+			TradeGoodStore.THARGOID_DOCUMENTS).getIconName()), 0, 25, 223, 170, "mission_icon");
+
 			addFromLibrary("thargon", 275, 47, "thargon");
 			addFromLibrary("anaconda", 250, 195, "trader");
 			addFromLibrary("viper_gui", 360, 65, "police");
@@ -338,6 +345,10 @@ public class AchievementsScreen extends AliteScreen {
 			setFromEquipment(EquipmentStore.PULSE_LASER, 23);
 			setFromEquipment(EquipmentStore.BEAM_LASER, 0);
 			setFromEquipment(EquipmentStore.MILITARY_LASER, 0);
+		} catch (IllegalArgumentException ignored) {
+			// It can happen when app started in the background and orientation is portrait.
+			// In this case the icons are diminished according to the aspect ratio,
+			// so icons become smaller than expected.
 		} catch (IOException e) {
 			AliteLog.e("Achievement icon load error", "Loading icon failed.", e);
 		}

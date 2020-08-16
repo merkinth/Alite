@@ -254,10 +254,11 @@ public class AliteButtons implements Serializable {
 		if (buttons[DOCKING_COMPUTER] == null) {
 			return;
 		}
-		if (inGame.getDockingFee() <= alite.getPlayer().getCash() &&
+		if (InGameManager.playerInSafeZone && (alite.getCobra().isEquipmentInstalled(
+				EquipmentStore.get().getEquipmentById(EquipmentStore.DOCKING_COMPUTER)) ||
+				inGame.getDockingFee() <= alite.getPlayer().getCash() &&
 				alite.getPlayer().getLegalStatus() == LegalStatus.CLEAN &&
-				alite.getPlayer().getRating().ordinal() < Rating.AVERAGE.ordinal() &&
-				InGameManager.playerInSafeZone) {
+				alite.getPlayer().getRating().ordinal() < Rating.AVERAGE.ordinal())) {
 			buttons[DOCKING_COMPUTER].active = true;
 			buttons[DOCKING_COMPUTER].yellow = inGame.isDockingComputerActive();
 		} else {
