@@ -25,6 +25,7 @@ import java.util.Objects;
 
 import de.phbouillon.android.games.alite.AliteLog;
 import de.phbouillon.android.games.alite.L;
+import de.phbouillon.android.games.alite.Settings;
 import de.phbouillon.android.games.alite.model.Unit;
 
 public class TradeGood implements Serializable {
@@ -117,7 +118,8 @@ public class TradeGood implements Serializable {
 	}
 
 	public int getAveragePrice(int galaxyNumber) {
-		return galaxyNumber > 0 && galaxyNumber < 9 ? averagePrice[galaxyNumber] : averagePrice[0];
+		return galaxyNumber > 0 && galaxyNumber <= Settings.maxGalaxies ?
+			averagePrice[(galaxyNumber - 1) % 8 + 1] : averagePrice[0];
 	}
 
 	public boolean isSpecialGood() {
