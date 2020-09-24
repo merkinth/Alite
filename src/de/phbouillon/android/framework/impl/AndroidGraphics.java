@@ -45,7 +45,7 @@ public class AndroidGraphics implements Graphics {
 	private final Canvas converterCanvas = new Canvas();
 	private final Paint paint = new Paint();
 	private final Canvas canvas = new Canvas();
-	private final Paint filterPaint = new Paint();
+	private final Paint filterPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
 	private final Matrix scaleMatrix = new Matrix();
 	private final Options options = new Options();
 	private final FileIO fileIO;
@@ -59,7 +59,6 @@ public class AndroidGraphics implements Graphics {
 		circleBuffer = GlUtils.allocateFloatBuffer(64 * 8);
 		colorBuffer = GlUtils.allocateFloatBuffer(4 * 16);
 		this.textureManager = textureManager;
-		filterPaint.setFilterBitmap(true);
 	}
 
 	@Override
@@ -89,8 +88,6 @@ public class AndroidGraphics implements Graphics {
 	}
 
 	private Bitmap loadBitmap(String fileName) {
-		options.inPreferredConfig = Settings.colorDepth == 1 ? Config.ARGB_8888 : Config.ARGB_4444;
-		options.inSampleSize = Settings.textureLevel;
 		try (InputStream is = fileIO.readPrivateFile(fileName)) {
 			return loadBitmap(fileName, is);
 		} catch (IOException ignored) {
@@ -204,24 +201,22 @@ public class AndroidGraphics implements Graphics {
 
 	@Override
 	public void drawRect(int x, int y, int width, int height, int color) {
-		int x2 = transX(x + width);
-		int y2 = transY(y + height);
-		x = transX(x);
-		y = transY(y);
-		int ty = y < 0 ? 0 : y;
-		if (y2 < 0) {
-			return;
-		}
-
 		GLES11.glLineWidth(scaleFactor);
 		setColor(color);
-		setRectBuffer(x, ty, x2, y2);
+		if (!setRectBuffer(x, y, width, height)) return;
 		GLES11.glVertexPointer(2, GLES11.GL_FLOAT, 0, rectBuffer);
 		GLES11.glDrawArrays(GLES11.GL_LINE_LOOP, 0, 4);
 		GLES11.glLineWidth(1);
 	}
 
-	private void setRectBuffer(int left, int top, int right, int bottom) {
+	private boolean setRectBuffer(int left, int top, int width, int height) {
+		int bottom = transY(top + height);
+		if (bottom < 0) {
+			return false;
+		}
+		int right = transX(left + width);
+		left = transX(left);
+		top = transY(top);
 		rectBuffer.clear();
 		rectBuffer.put(left);
 		rectBuffer.put(top);
@@ -232,6 +227,7 @@ public class AndroidGraphics implements Graphics {
 		rectBuffer.put(left);
 		rectBuffer.put(bottom);
 		rectBuffer.position(0);
+		return true;
 	}
 
 	@Override
@@ -246,17 +242,8 @@ public class AndroidGraphics implements Graphics {
 
 	@Override
 	public void fillRect(int x, int y, int width, int height, int color) {
-		int x2 = transX(x + width);
-		int y2 = transY(y + height);
-		x = transX(x);
-		y = transY(y);
-		int ty = y < 0 ? 0 : y;
-		if (y2 < 0) {
-			return;
-		}
-
 		setColor(color);
-		setRectBuffer(x, ty, x2, y2);
+		if (!setRectBuffer(x, y, width, height)) return;
 		GLES11.glVertexPointer(2, GLES11.GL_FLOAT, 0, rectBuffer);
 		GLES11.glDrawArrays(GLES11.GL_TRIANGLE_FAN, 0, 4);
 	}
@@ -272,18 +259,9 @@ public class AndroidGraphics implements Graphics {
 	}
 
 	private void gradientRect(int x, int y, int width, int height, boolean horizontal, int color1, int color2) {
-		int x2 = transX(x + width);
-		int y2 = transY(y + height);
-		x = transX(x);
-		y = transY(y);
-		int ty = y < 0 ? 0 : y;
-		if (y2 < 0) {
-			return;
-		}
-
 		GLES11.glEnableClientState(GLES11.GL_VERTEX_ARRAY);
 		GLES11.glEnableClientState(GLES11.GL_COLOR_ARRAY);
-		setRectBuffer(x, ty, x2, y2);
+		if (!setRectBuffer(x, y, width, height)) return;
 		colorBuffer.clear();
 		putToColorBuffer(color1);
 		putToColorBuffer(horizontal ? color2 : color1);

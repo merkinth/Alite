@@ -23,6 +23,7 @@ import android.graphics.Point;
 import de.phbouillon.android.framework.Graphics;
 import de.phbouillon.android.framework.Input.TouchEvent;
 import de.phbouillon.android.framework.Pixmap;
+import de.phbouillon.android.framework.impl.AndroidGame;
 import de.phbouillon.android.framework.impl.ColorFilterGenerator;
 import de.phbouillon.android.games.alite.*;
 import de.phbouillon.android.games.alite.colors.AliteColor;
@@ -229,7 +230,7 @@ public class AchievementsScreen extends AliteScreen {
 			SpriteData data = Alite.get().getTextureManager().getSprite(TEXTURE_FILE, spriteName);
 			if (data != null) {
 				if (!pics.containsKey(spriteName)) {
-					pics.put(spriteName, getImagePart(data, "medals",  spriteName, -1, -1));
+					pics.put(spriteName, getImagePart(data, "medals",  spriteName));
 				}
 				return pics.get(spriteName);
 			}
@@ -238,23 +239,25 @@ public class AchievementsScreen extends AliteScreen {
 		return pics.get(achieved ? "trophy" : ICON_GRAY_TROPHY);
 	}
 
-	private Pixmap getImagePart(SpriteData data, String textureName, String spriteName, int width, int height) {
+	private Pixmap getImagePart(SpriteData data, String textureName, String spriteName) {
 		Pixmap pixmap = pics.get(textureName);
-		AliteLog.d("getImagePart", textureName + ":" + spriteName + " (" + data.x * pixmap.getWidth() +
-			"," +  data.y * pixmap.getHeight() + ", "  + data.origWidth + "," + data.origHeight + ")");
-		Pixmap medal = game.getGraphics().newPixmap(Bitmap.createBitmap(pixmap.getBitmap(),
-			(int) (data.x * pixmap.getWidth()), (int) (data.y * pixmap.getHeight()),
-			(int) data.origWidth, (int) data.origHeight), spriteName);
-		if (width != -1 && height != -1) {
-			medal = getResizedPixmapPart(medal, 0, 0, spriteName, width, height);
-		}
-		return medal;
+		int x = (int) (data.x * pixmap.getWidth() + 0.99f);
+		int y = (int) (data.y * pixmap.getHeight() + 0.99f);
+		int w = (int) (data.origWidth);
+		int h = (int) (data.origHeight);
+		Bitmap b = pixmap.getBitmap();
+		AliteLog.d("getImagePart", textureName + ":" + spriteName + " (" + x + "," +  y + ", " +
+			w + "," + h + ") (" + b.getWidth() + "," + b.getHeight() + ")");
+		b = createScaledBitmap(b, x, y, w, h);
+		return game.getGraphics().newPixmap(b, spriteName, (int) (b.getWidth() / AndroidGame.scaleFactor),
+			(int) (b.getHeight() / AndroidGame.scaleFactor));
 	}
 
 	private Pixmap getFromButtons(String spriteName) {
 		if (!pics.containsKey(spriteName)) {
-			pics.put(spriteName, getImagePart(Alite.get().getTextureManager().getSprite(AliteButtons.TEXTURE_FILE, spriteName),
-				"buttons",  spriteName, 150, 150));
+			pics.put(spriteName, getResizedPixmapPart(getImagePart(Alite.get().getTextureManager().
+				getSprite(AliteButtons.TEXTURE_FILE, spriteName), "buttons",  spriteName),
+				0, 0, spriteName, 150, 150));
 		}
 		return pics.get(spriteName);
 	}
@@ -310,10 +313,11 @@ public class AchievementsScreen extends AliteScreen {
 			Alite.get().getTextureManager().addTexture(AliteButtons.TEXTURE_FILE);
 			pics.put("buttons", game.getGraphics().newPixmap(AliteButtons.TEXTURE_FILE));
 
-			Pixmap p = game.getGraphics().newPixmap(Bitmap.createBitmap(Assets.achievementsIcon.getBitmap(),
+			Pixmap p = game.getGraphics().newPixmap(createScaledBitmap(Assets.achievementsIcon.getBitmap(),
 				36, 14, 126, 128), "medal_trophy");
 			pics.put("trophy", p);
-			p = game.getGraphics().newPixmap(p.getBitmap(), ICON_GRAY_TROPHY);
+			p = game.getGraphics().newPixmap(p.getBitmap(), ICON_GRAY_TROPHY,
+				(int)(p.getWidth() / AndroidGame.scaleFactor), (int)(p.getHeight() / AndroidGame.scaleFactor));
 			pics.put(ICON_GRAY_TROPHY, p);
 			game.getGraphics().applyFilterToPixmap(p, ColorFilterGenerator.adjustColor(-100, 0)); // grayscale
 			addPictures("ext_new");
@@ -379,8 +383,13 @@ public class AchievementsScreen extends AliteScreen {
 
 	private Pixmap getResizedPixmapRect(Pixmap pixmap, int x, int y, int width, int height,
 			String name, int destWidth, int destHeight) {
-		return game.getGraphics().newPixmap(Bitmap.createBitmap(pixmap.getBitmap(), x, y, width, height),
+		return game.getGraphics().newPixmap(createScaledBitmap(pixmap.getBitmap(), x, y, width, height),
 			name, destWidth, destHeight);
+	}
+
+	private Bitmap createScaledBitmap(Bitmap bitmap, int x, int y, int width, int height) {
+		return Bitmap.createBitmap(bitmap, (int) (x * AndroidGame.scaleFactor), (int) (y * AndroidGame.scaleFactor),
+			(int) (width * AndroidGame.scaleFactor), (int) (height * AndroidGame.scaleFactor));
 	}
 
 	@Override
